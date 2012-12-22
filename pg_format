@@ -810,7 +810,7 @@ Options:
 Examples:
 
     cat samples/ex1.sql | /usr/local/bin/pg_format -
-    /usr/local/bin/pg_format -c samples/ex1.sql
+    /usr/local/bin/pg_format -n samples/ex1.sql
     /usr/local/bin/pg_format -f 2 -c samples/ex1.sql -o result.sql
 
 };
