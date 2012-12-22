@@ -1,0 +1,97 @@
+ABSTRACT
+    pgFormatter - PostgreSQL SQL syntax beautifier
+
+DESCRIPTION
+    This SQL formatter/beautifier supports keywords from SQL-92, SQL-99,
+    SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords. May
+    works with any other databases too.
+
+    pgFormatter can work as a console program or as a CGI. It will
+    automatically detect his environment and output as text or as HTML
+    following the context.
+
+    Keywords highlighting will only be available in CGI context.
+
+  Terminal/console execution
+    Usage: pg_format [options] file.sql [...]
+
+            PostgreSQL SQL queries and PL/PGSQL code beautifier.
+
+    Arguments:
+
+        file.sql can be a file or use - to send a query using stdin. Use a single
+        dot in a line to terminate the stdin input or EOF.
+
+        Returning the SQL formatted to stdout or into a file specified with the
+        -o | --ouput option.
+
+    Options:
+
+        -d | --debug          : enable debug mode. Disabled by default.
+        -f | --function-case N: Change the case of the reserved keyword. Default is
+                                unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+                                2=>uppercase, 3=>capitalize.
+        -h | --help           : show this message and exit.
+        -m | --maxlength SIZE : maximum length of a query, it will be cutted above
+                                the given size. Default: no truncate.
+        -n | --nocomment      : remove any comment from SQL code.
+        -o | --output file    : define the filename for the output. Default: stdout.
+        -s | --spaces size    : change space indent, default 4 spaces.
+        -u | --keyword-case N : Change the case of the reserved keyword. Default is
+                                uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
+                                2=>uppercase, 3=>capitalize.
+        -v | --version        : show pg_format version and exit.
+
+    Examples:
+
+        cat samples/ex1.sql | /usr/local/bin/pg_format -
+        /usr/local/bin/pg_format -c samples/ex1.sql
+        /usr/local/bin/pg_format -f 2 -n samples/ex1.sql -o result.sql
+
+  CGI context
+    Install pg_format into your cgi-bin folder, grant execution on it as a
+    CGI script (maybe you should add the .cgi extension) and get it from
+    your favorite browser.
+
+    You have a live example without limitation than ten thousand characters
+    in your SQL query here:
+
+            http://sqlformat.darold.net/
+
+    pg_format will automatically detected that it is running in a CGI
+    environment and will output all html code needed to run an online code
+    formatter site. There's nothing more to do.
+
+INSTALLATION
+    Download the tarball from github and unpack the archive as follow:
+
+            tar xzf pgFormatter-x.x.tar.gz
+            cd pgFormatter-x.x/
+            perl Makefile.PL
+            make && sudo make install
+
+    This will copy the Perl script pg_format in /usr/local/bin/pg_format
+    directory by default and the man page into
+    /usr/local/share/man/man1/pg_format.1. Those are the default
+    installation directory for 'site' install.
+
+    If you want to install all under /usr/ location, use INSTALLDIRS='perl'
+    as argument of Makefile.PL. The script will be installed into
+    /usr/bin/pg_format and the manpage into /usr/share/man/man1/pg_format.1.
+
+    For example, to install everything just like Debian does, proceed as
+    follow:
+
+            perl Makefile.PL INSTALLDIRS=vendor
+
+    By default INSTALLDIRS is set to site.
+
+AUTHORS
+    pgFormatter is an original work from Gilles Darold
+
+COPYRIGHT
+    Copyright 2012 Gilles Darold. All rights reserved.
+
+LICENSE
+    pgFormatter is free software distributed under the PostgreSQL Licence.
+

@@ -1,0 +1,1490 @@
+#!/usr/bin/perl
+#------------------------------------------------------------------------------
+#
+# pg_format - A PostgreSQL SQL syntax beautifier 
+#
+# This program is open source, licensed under the PostgreSQL Licence.
+# For license terms, see the LICENSE file.
+#
+# Author: Gilles Darold
+# Copyright: (c) 2012 Gilles Darold - All rights reserved
+#------------------------------------------------------------------------------
+use vars qw($VERSION $SOFTWARE);
+
+use strict qw(vars subs);
+
+use Getopt::Long qw(:config no_ignore_case bundling);
+use IO::File;
+use File::Basename;
+use POSIX qw(locale_h);
+setlocale(LC_NUMERIC, '');
+setlocale(LC_ALL, 'C');
+use CGI;
+
+$VERSION = '1.0';
+$SOFTWARE = 'pgFormatter',
+
+$| = 1;
+
+# Command line options
+my $maxlength           = 10000;
+my $spaces              = 4;
+my $outfile             = '';
+my $outdir              = '';
+my $help                = '';
+my $version             = '';
+my $nocomment           = 0;
+my $colorize            = 1;
+my $uc_keyword          = 2;
+my $uc_function         = 0;
+my $debug               = 0;
+my $cgi                 = undef;
+my $content             = '';
+my $show_example        = 0;
+my $project_url         = 'https://github.org/darold/pgformatter';
+my $service_url         = 'http://sqlformat.darold.net/';  
+
+# Filename to load tracker and ad to be included respectively in the
+# HTML head and the bottom of the HTML page. 
+my $bottom_ad_file      = 'bottom_ad_file.txt';
+my $head_track_file     = 'head_track_file.txt';
+
+# Pg Keywords
+my @pg_keywords = qw(
+	ALL ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION BINARY BOTH CASE
+	CAST CHECK COLLATE COLLATION COLUMN CONCURRENTLY CONSTRAINT CREATE CROSS
+	CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER
+	DEFAULT DEFERRABLE DESC DISTINCT DO ELSE END EXCEPT FALSE FETCH FOR FOREIGN FREEZE FROM
+	FULL GRANT GROUP HAVING ILIKE IN INITIALLY INNER INTERSECT INTO IS ISNULL JOIN LEADING
+	LEFT LIKE LIMIT LOCALTIME LOCALTIMESTAMP NATURAL NOT NOTNULL NULL ON ONLY OPEN OR
+	ORDER OUTER OVER OVERLAPS PLACING PRIMARY REFERENCES RETURNING RIGHT SELECT SESSION_USER
+	SIMILAR SOME SYMMETRIC TABLE THEN TO TRAILING TRUE UNION UNIQUE USER USING VARIADIC
+	VERBOSE WHEN WHERE WINDOW WITH
+);
+
+# SQL keywords
+my @KEYWORDS1 = qw(
+	ALTER ADD AUTO_INCREMENT BETWEEN BY BOOLEAN BEGIN CHANGE COLUMNS COMMIT COALESCE CLUSTER
+	COPY DATABASES DATABASE DATA DELAYED DESCRIBE DELETE DROP ENCLOSED ESCAPED EXISTS EXPLAIN
+	FIELDS FIELD FLUSH FUNCTION GREATEST IGNORE INDEX INFILE INSERT IDENTIFIED IF INHERIT
+	KEYS KILL KEY LINES LOAD LOCAL LOCK LOW_PRIORITY LANGUAGE LEAST LOGIN MODIFY
+	NULLIF NOSUPERUSER NOCREATEDB NOCREATEROLE OPTIMIZE OPTION OPTIONALLY OUTFILE OWNER PROCEDURE
+	PROCEDURAL READ REGEXP RENAME RETURN REVOKE RLIKE ROLE ROLLBACK SHOW SONAME STATUS
+	STRAIGHT_JOIN SET SEQUENCE TABLES TEMINATED TRUNCATE TEMPORARY TRIGGER TRUSTED UNLOCK
+	USE UPDATE UNSIGNED VALUES VARIABLES VIEW VACUUM WRITE ZEROFILL XOR
+	ABORT ABSOLUTE ACCESS ACTION ADMIN AFTER AGGREGATE ALSO ALWAYS ASSERTION ASSIGNMENT AT ATTRIBUTE
+	BACKWARD BEFORE BIGINT CACHE CALLED CASCADE CASCADED CATALOG CHAIN CHARACTER CHARACTERISTICS
+	CHECKPOINT CLOSE COMMENT COMMENTS COMMITTED CONFIGURATION CONNECTION CONSTRAINTS CONTENT
+	CONTINUE CONVERSION COST CSV CURRENT CURSOR CYCLE DAY DEALLOCATE DEC DECIMAL DECLARE DEFAULTS
+	DEFERRED DEFINER DELIMITER DELIMITERS DICTIONARY DISABLE DISCARD DOCUMENT DOMAIN DOUBLE EACH
+	ENABLE ENCODING ENCRYPTED ENUM ESCAPE EXCLUDE EXCLUDING EXCLUSIVE EXECUTE EXTENSION EXTERNAL
+	FIRST FLOAT FOLLOWING FORCE FORWARD FUNCTIONS GLOBAL GRANTED HANDLER HEADER HOLD
+	HOUR IDENTITY IMMEDIATE IMMUTABLE IMPLICIT INCLUDING INCREMENT INDEXES INHERITS INLINE INOUT INPUT
+	INSENSITIVE INSTEAD INT INTEGER INVOKER ISOLATION LABEL LARGE LAST LC_COLLATE LC_CTYPE
+	LEAKPROOF LEVEL LISTEN LOCATION LOOP MAPPING MATCH MAXVALUE MINUTE MINVALUE MODE MONTH MOVE NAMES
+	NATIONAL NCHAR NEXT NO NONE NOTHING NOTIFY NOWAIT NULLS OBJECT OF OFF OIDS OPERATOR OPTIONS
+	OUT OWNED PARSER PARTIAL PARTITION PASSING PASSWORD PLANS PRECEDING PRECISION PREPARE
+	PREPARED PRESERVE PRIOR PRIVILEGES QUOTE RANGE REAL REASSIGN RECHECK RECURSIVE REF REINDEX RELATIVE
+	RELEASE REPEATABLE REPLICA RESET RESTART RESTRICT RETURNS ROW ROWS RULE SAVEPOINT SCHEMA SCROLL SEARCH
+	SECOND SECURITY SEQUENCES SERIALIZABLE SERVER SESSION SETOF SHARE SIMPLE SMALLINT SNAPSHOT STABLE
+	STANDALONE START STATEMENT STATISTICS STORAGE STRICT SYSID SYSTEM TABLESPACE TEMP
+	TEMPLATE TRANSACTION TREAT TYPE TYPES UNBOUNDED UNCOMMITTED UNENCRYPTED
+	UNKNOWN UNLISTEN UNLOGGED UNTIL VALID VALIDATE VALIDATOR VALUE VARYING VOLATILE
+	WHITESPACE WITHOUT WORK WRAPPER XMLATTRIBUTES XMLCONCAT XMLELEMENT XMLEXISTS XMLFOREST XMLPARSE
+	XMLPI XMLROOT XMLSERIALIZE YEAR YES ZONE
+);
+
+foreach my $k (@pg_keywords) {
+	push(@KEYWORDS1, $k) if (!grep(/^$k$/i, @KEYWORDS1));
+}
+
+# List of PostgreSQL functions
+my @KEYWORDS2 = qw(
+	ascii age bit_length btrim char_length character_length convert chr current_date current_time current_timestamp count
+	decode date_part date_trunc encode extract get_byte get_bit initcap isfinite interval justify_hours justify_days
+	lower length lpad ltrim localtime localtimestamp md5 now octet_length overlay position pg_client_encoding
+	quote_ident quote_literal repeat replace rpad rtrim substring split_part strpos substr set_byte set_bit
+	trim to_ascii to_hex translate to_char to_date to_timestamp to_number timeofday upper
+
+	abbrev abs abstime abstimeeq abstimege abstimegt abstimein abstimele 
+	abstimelt abstimene abstimeout abstimerecv abstimesend aclcontains acldefault 
+	aclexplode aclinsert aclitemeq aclitemin aclitemout aclremove acos 
+	any_in any_out anyarray_in anyarray_out anyarray_recv anyarray_send anyelement_in 
+	anyelement_out anyenum_in anyenum_out anynonarray_in anynonarray_out anyrange_in anyrange_out 
+	anytextcat area areajoinsel areasel armor array_agg array_agg_finalfn 
+	array_agg_transfn array_append array_cat array_dims array_eq array_fill array_ge 
+	array_gt array_in array_larger array_le array_length array_lower array_lt 
+	array_ndims array_ne array_out array_prepend array_recv array_send array_smaller 
+	array_to_json array_to_string array_typanalyze array_upper arraycontained arraycontains arraycontjoinsel 
+	arraycontsel arrayoverlap ascii_to_mic ascii_to_utf8 asin atan atan2 
+	avg big5_to_euc_tw big5_to_mic big5_to_utf8 bit bit_and bit_in 
+	bit_or bit_out bit_recv bit_send bitand bitcat bitcmp 
+	biteq bitge bitgt bitle bitlt bitne bitnot 
+	bitor bitshiftleft bitshiftright bittypmodin bittypmodout bitxor bool 
+	bool_and bool_or booland_statefunc booleq boolge boolgt boolin 
+	boolle boollt boolne boolor_statefunc boolout boolrecv boolsend 
+	box box_above box_above_eq box_add box_below box_below_eq box_center 
+	box_contain box_contain_pt box_contained box_distance box_div box_eq box_ge 
+	box_gt box_in box_intersect box_le box_left box_lt box_mul 
+	box_out box_overabove box_overbelow box_overlap box_overleft box_overright box_recv 
+	box_right box_same box_send box_sub bpchar bpchar_larger bpchar_pattern_ge 
+	bpchar_pattern_gt bpchar_pattern_le bpchar_pattern_lt bpchar_smaller bpcharcmp bpchareq bpcharge 
+	bpchargt bpchariclike bpcharicnlike bpcharicregexeq bpcharicregexne bpcharin bpcharle 
+	bpcharlike bpcharlt bpcharne bpcharnlike bpcharout bpcharrecv bpcharregexeq 
+	bpcharregexne bpcharsend bpchartypmodin bpchartypmodout broadcast btabstimecmp btarraycmp 
+	btbeginscan btboolcmp btbpchar_pattern_cmp btbuild btbuildempty btbulkdelete btcanreturn 
+	btcharcmp btcostestimate btendscan btfloat48cmp btfloat4cmp btfloat4sortsupport btfloat84cmp 
+	btfloat8cmp btfloat8sortsupport btgetbitmap btgettuple btinsert btint24cmp btint28cmp 
+	btint2cmp btint2sortsupport btint42cmp btint48cmp btint4cmp btint4sortsupport btint82cmp 
+	btint84cmp btint8cmp btint8sortsupport btmarkpos btnamecmp btnamesortsupport btoidcmp 
+	btoidsortsupport btoidvectorcmp btoptions btrecordcmp btreltimecmp btrescan btrestrpos 
+	bttext_pattern_cmp bttextcmp bttidcmp bttintervalcmp btvacuumcleanup bytea_string_agg_finalfn bytea_string_agg_transfn 
+	byteacat byteacmp byteaeq byteage byteagt byteain byteale 
+	bytealike bytealt byteane byteanlike byteaout bytearecv byteasend 
+	cash_cmp cash_div_cash cash_div_flt4 cash_div_flt8 cash_div_int2 cash_div_int4 cash_eq 
+	cash_ge cash_gt cash_in cash_le cash_lt cash_mi cash_mul_flt4 
+	cash_mul_flt8 cash_mul_int2 cash_mul_int4 cash_ne cash_out cash_pl cash_recv 
+	cash_send cash_words cashlarger cashsmaller cbrt ceil ceiling 
+	center char chareq charge chargt charin charle 
+	charlt charne charout charrecv charsend cideq cidin 
+	cidout cidr cidr_in cidr_out cidr_recv cidr_send cidrecv 
+	cidsend circle circle_above circle_add_pt circle_below circle_center circle_contain 
+	circle_contain_pt circle_contained circle_distance circle_div_pt circle_eq circle_ge circle_gt 
+	circle_in circle_le circle_left circle_lt circle_mul_pt circle_ne circle_out 
+	circle_overabove circle_overbelow circle_overlap circle_overleft circle_overright circle_recv circle_right 
+	circle_same circle_send circle_sub_pt clock_timestamp close_lb close_ls close_lseg 
+	close_pb close_pl close_ps close_sb close_sl col_description concat 
+	concat_ws contjoinsel contsel convert_from convert_to corr cos 
+	cot covar_pop covar_samp crypt cstring_in cstring_out cstring_recv 
+	cstring_send cume_dist current_database current_query current_schema current_schemas current_setting 
+	current_user currtid currtid2 currval cursor_to_xml cursor_to_xmlschema database_to_xml 
+	database_to_xml_and_xmlschema database_to_xmlschema date date_cmp date_cmp_timestamp date_cmp_timestamptz date_eq 
+	date_eq_timestamp date_eq_timestamptz date_ge date_ge_timestamp date_ge_timestamptz date_gt date_gt_timestamp 
+	date_gt_timestamptz date_in date_larger date_le date_le_timestamp date_le_timestamptz date_lt 
+	date_lt_timestamp date_lt_timestamptz date_mi date_mi_interval date_mii date_ne date_ne_timestamp 
+	date_ne_timestamptz date_out date_pl_interval date_pli date_recv date_send date_smaller 
+	date_sortsupport daterange daterange_canonical daterange_subdiff datetime_pl datetimetz_pl dcbrt 
+	dearmor decrypt decrypt_iv degrees dense_rank dexp diagonal 
+	diameter digest dispell_init dispell_lexize dist_cpoly dist_lb dist_pb 
+	dist_pc dist_pl dist_ppath dist_ps dist_sb dist_sl div 
+	dlog1 dlog10 domain_in domain_recv dpow dround dsimple_init 
+	dsimple_lexize dsnowball_init dsnowball_lexize dsqrt dsynonym_init dsynonym_lexize dtrunc 
+	elem_contained_by_range encrypt encrypt_iv enum_cmp enum_eq enum_first enum_ge 
+	enum_gt enum_in enum_larger enum_last enum_le enum_lt enum_ne 
+	enum_out enum_range enum_recv enum_send enum_smaller eqjoinsel eqsel 
+	euc_cn_to_mic euc_cn_to_utf8 euc_jis_2004_to_shift_jis_2004 euc_jis_2004_to_utf8 euc_jp_to_mic euc_jp_to_sjis euc_jp_to_utf8 
+	euc_kr_to_mic euc_kr_to_utf8 euc_tw_to_big5 euc_tw_to_mic euc_tw_to_utf8 every exp 
+	factorial family fdw_handler_in fdw_handler_out first_value float4 float48div 
+	float48eq float48ge float48gt float48le float48lt float48mi float48mul 
+	float48ne float48pl float4_accum float4abs float4div float4eq float4ge 
+	float4gt float4in float4larger float4le float4lt float4mi float4mul 
+	float4ne float4out float4pl float4recv float4send float4smaller float4um 
+	float4up float8 float84div float84eq float84ge float84gt float84le 
+	float84lt float84mi float84mul float84ne float84pl float8_accum float8_avg 
+	float8_corr float8_covar_pop float8_covar_samp float8_regr_accum float8_regr_avgx float8_regr_avgy float8_regr_intercept 
+	float8_regr_r2 float8_regr_slope float8_regr_sxx float8_regr_sxy float8_regr_syy float8_stddev_pop float8_stddev_samp 
+	float8_var_pop float8_var_samp float8abs float8div float8eq float8ge float8gt 
+	float8in float8larger float8le float8lt float8mi float8mul float8ne 
+	float8out float8pl float8recv float8send float8smaller float8um float8up 
+	floor flt4_mul_cash flt8_mul_cash fmgr_c_validator fmgr_internal_validator fmgr_sql_validator format 
+	format_type gb18030_to_utf8 gbk_to_utf8 gen_random_bytes gen_salt generate_series generate_subscripts 
+	get_current_ts_config getdatabaseencoding getpgusername gin_cmp_prefix gin_cmp_tslexeme gin_extract_tsquery gin_extract_tsvector 
+	gin_tsquery_consistent ginarrayconsistent ginarrayextract ginbeginscan ginbuild ginbuildempty ginbulkdelete 
+	gincostestimate ginendscan gingetbitmap gininsert ginmarkpos ginoptions ginqueryarrayextract 
+	ginrescan ginrestrpos ginvacuumcleanup gist_box_compress gist_box_consistent gist_box_decompress gist_box_penalty 
+	gist_box_picksplit gist_box_same gist_box_union gist_circle_compress gist_circle_consistent gist_point_compress gist_point_consistent 
+	gist_point_distance gist_poly_compress gist_poly_consistent gistbeginscan gistbuild gistbuildempty gistbulkdelete 
+	gistcostestimate gistendscan gistgetbitmap gistgettuple gistinsert gistmarkpos gistoptions 
+	gistrescan gistrestrpos gistvacuumcleanup gtsquery_compress gtsquery_consistent gtsquery_decompress gtsquery_penalty 
+	gtsquery_picksplit gtsquery_same gtsquery_union gtsvector_compress gtsvector_consistent gtsvector_decompress gtsvector_penalty 
+	gtsvector_picksplit gtsvector_same gtsvector_union gtsvectorin gtsvectorout has_any_column_privilege has_column_privilege 
+	has_database_privilege has_foreign_data_wrapper_privilege has_function_privilege has_language_privilege has_schema_privilege
+	has_sequence_privilege has_server_privilege has_table_privilege has_tablespace_privilege has_type_privilege hash_aclitem
+	hash_array hash_numeric hash_range hashbeginscan hashbpchar hashbuild hashbuildempty hashbulkdelete hashchar hashcostestimate 
+	hashendscan hashenum hashfloat4 hashfloat8 hashgetbitmap hashgettuple hashinet 
+	hashinsert hashint2 hashint2vector hashint4 hashint8 hashmacaddr hashmarkpos 
+	hashname hashoid hashoidvector hashoptions hashrescan hashrestrpos hashtext 
+	hashvacuumcleanup hashvarlena height hmac host hostmask iclikejoinsel 
+	iclikesel icnlikejoinsel icnlikesel icregexeqjoinsel icregexeqsel icregexnejoinsel icregexnesel 
+	inet_client_addr inet_client_port inet_in inet_out inet_recv inet_send inet_server_addr 
+	inet_server_port inetand inetmi inetmi_int8 inetnot inetor inetpl 
+	int2 int24div int24eq int24ge int24gt int24le int24lt 
+	int24mi int24mul int24ne int24pl int28div int28eq int28ge 
+	int28gt int28le int28lt int28mi int28mul int28ne int28pl 
+	int2_accum int2_avg_accum int2_mul_cash int2_sum int2abs int2and int2div 
+	int2eq int2ge int2gt int2in int2larger int2le int2lt 
+	int2mi int2mod int2mul int2ne int2not int2or int2out 
+	int2pl int2recv int2send int2shl int2shr int2smaller int2um 
+	int2up int2vectoreq int2vectorin int2vectorout int2vectorrecv int2vectorsend int2xor 
+	int4 int42div int42eq int42ge int42gt int42le int42lt 
+	int42mi int42mul int42ne int42pl int48div int48eq int48ge 
+	int48gt int48le int48lt int48mi int48mul int48ne int48pl 
+	int4_accum int4_avg_accum int4_mul_cash int4_sum int4abs int4and int4div 
+	int4eq int4ge int4gt int4in int4inc int4larger int4le 
+	int4lt int4mi int4mod int4mul int4ne int4not int4or 
+	int4out int4pl int4range int4range_canonical int4range_subdiff int4recv int4send 
+	int4shl int4shr int4smaller int4um int4up int4xor int8 
+	int82div int82eq int82ge int82gt int82le int82lt int82mi 
+	int82mul int82ne int82pl int84div int84eq int84ge int84gt 
+	int84le int84lt int84mi int84mul int84ne int84pl int8_accum 
+	int8_avg int8_avg_accum int8_sum int8abs int8and int8div int8eq 
+	int8ge int8gt int8in int8inc int8inc_any int8inc_float8_float8 int8larger 
+	int8le int8lt int8mi int8mod int8mul int8ne int8not 
+	int8or int8out int8pl int8pl_inet int8range int8range_canonical int8range_subdiff 
+	int8recv int8send int8shl int8shr int8smaller int8um int8up 
+	int8xor integer_pl_date inter_lb inter_sb inter_sl internal_in internal_out 
+	interval_accum interval_avg interval_cmp interval_div interval_eq interval_ge interval_gt 
+	interval_hash interval_in interval_larger interval_le interval_lt interval_mi interval_mul 
+	interval_ne interval_out interval_pl interval_pl_date interval_pl_time interval_pl_timestamp interval_pl_timestamptz 
+	interval_pl_timetz interval_recv interval_send interval_smaller interval_transform interval_um intervaltypmodin 
+	intervaltypmodout intinterval isclosed isempty ishorizontal iso8859_1_to_utf8 iso8859_to_utf8 
+	iso_to_koi8r iso_to_mic iso_to_win1251 iso_to_win866 isopen isparallel isperp 
+	isvertical johab_to_utf8 json_in json_out json_recv json_send justify_interval 
+	koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8 lag 
+	language_handler_in language_handler_out last_value lastval latin1_to_mic latin2_to_mic latin2_to_win1250 
+	latin3_to_mic latin4_to_mic lead like_escape likejoinsel 
+	likesel line line_distance line_eq line_horizontal line_in line_interpt 
+	line_intersect line_out line_parallel line_perp line_recv line_send line_vertical 
+	ln lo_close lo_creat lo_create lo_export lo_import lo_lseek 
+	lo_open lo_tell lo_truncate lo_unlink log loread lower_inc 
+	lower_inf lowrite lseg lseg_center lseg_distance lseg_eq lseg_ge 
+	lseg_gt lseg_horizontal lseg_in lseg_interpt lseg_intersect lseg_le lseg_length 
+	lseg_lt lseg_ne lseg_out lseg_parallel lseg_perp lseg_recv lseg_send 
+	lseg_vertical macaddr_and macaddr_cmp macaddr_eq macaddr_ge macaddr_gt macaddr_in 
+	macaddr_le macaddr_lt macaddr_ne macaddr_not macaddr_or macaddr_out macaddr_recv 
+	macaddr_send makeaclitem masklen max mic_to_ascii mic_to_big5 mic_to_euc_cn 
+	mic_to_euc_jp mic_to_euc_kr mic_to_euc_tw mic_to_iso mic_to_koi8r mic_to_latin1 mic_to_latin2 
+	mic_to_latin3 mic_to_latin4 mic_to_sjis mic_to_win1250 mic_to_win1251 mic_to_win866 min 
+	mktinterval mod money mul_d_interval name nameeq namege 
+	namegt nameiclike nameicnlike nameicregexeq nameicregexne namein namele 
+	namelike namelt namene namenlike nameout namerecv nameregexeq 
+	nameregexne namesend neqjoinsel neqsel netmask network network_cmp 
+	network_eq network_ge network_gt network_le network_lt network_ne network_sub 
+	network_subeq network_sup network_supeq nextval nlikejoinsel nlikesel notlike 
+	npoints nth_value ntile numeric numeric_abs numeric_accum numeric_add 
+	numeric_avg numeric_avg_accum numeric_cmp numeric_div numeric_div_trunc numeric_eq numeric_exp 
+	numeric_fac numeric_ge numeric_gt numeric_in numeric_inc numeric_larger numeric_le 
+	numeric_ln numeric_log numeric_lt numeric_mod numeric_mul numeric_ne numeric_out 
+	numeric_power numeric_recv numeric_send numeric_smaller numeric_sqrt numeric_stddev_pop numeric_stddev_samp 
+	numeric_sub numeric_transform numeric_uminus numeric_uplus numeric_var_pop numeric_var_samp numerictypmodin 
+	numerictypmodout numnode numrange numrange_subdiff obj_description oid oideq 
+	oidge oidgt oidin oidlarger oidle oidlt oidne 
+	oidout oidrecv oidsend oidsmaller oidvectoreq oidvectorge oidvectorgt 
+	oidvectorin oidvectorle oidvectorlt oidvectorne oidvectorout oidvectorrecv oidvectorsend 
+	oidvectortypes on_pb on_pl on_ppath on_ps on_sb on_sl 
+	opaque_in opaque_out overlaps path path_add path_add_pt path_center 
+	path_contain_pt path_distance path_div_pt path_in path_inter path_length path_mul_pt 
+	path_n_eq path_n_ge path_n_gt path_n_le path_n_lt path_npoints path_out 
+	path_recv path_send path_sub_pt pclose percent_rank pg_advisory_lock pg_advisory_lock_shared 
+	pg_advisory_unlock pg_advisory_unlock_all pg_advisory_unlock_shared pg_advisory_xact_lock pg_advisory_xact_lock_shared
+	pg_available_extension_versions pg_available_extensions pg_backend_pid pg_cancel_backend pg_char_to_encoding pg_collation_for
+	pg_collation_is_visible pg_column_size pg_conf_load_time pg_conversion_is_visible pg_create_restore_point pg_current_xlog_insert_location
+	pg_current_xlog_location pg_cursor pg_database_size pg_describe_object pg_encoding_max_length pg_encoding_to_char pg_export_snapshot
+	pg_extension_config_dump pg_extension_update_paths pg_function_is_visible pg_get_constraintdef pg_get_expr pg_get_function_arguments
+	pg_get_function_identity_arguments pg_get_function_result pg_get_functiondef pg_get_indexdef pg_get_keywords 
+	pg_get_ruledef pg_get_serial_sequence pg_get_triggerdef pg_get_userbyid pg_get_viewdef pg_has_role pg_indexes_size 
+	pg_is_in_recovery pg_is_other_temp_schema pg_is_xlog_replay_paused pg_last_xact_replay_timestamp pg_last_xlog_receive_location
+	pg_last_xlog_replay_location pg_listening_channels pg_lock_status pg_ls_dir pg_my_temp_schema pg_node_tree_in pg_node_tree_out
+	pg_node_tree_recv pg_node_tree_send pg_notify pg_opclass_is_visible pg_operator_is_visible pg_opfamily_is_visible pg_options_to_table
+	pg_postmaster_start_time pg_prepared_statement pg_prepared_xact pg_read_binary_file pg_read_file pg_relation_filenode pg_relation_filepath
+	pg_relation_size pg_reload_conf pg_rotate_logfile pg_sequence_parameters pg_show_all_settings pg_size_pretty pg_sleep pg_start_backup
+	pg_stat_clear_snapshot pg_stat_file pg_stat_get_activity pg_stat_get_analyze_count pg_stat_get_autoanalyze_count pg_stat_get_autovacuum_count
+	pg_stat_get_backend_activity pg_stat_get_backend_activity_start pg_stat_get_backend_client_addr pg_stat_get_backend_client_port
+	pg_stat_get_backend_dbid pg_stat_get_backend_idset pg_stat_get_backend_pid pg_stat_get_backend_start pg_stat_get_backend_userid 
+	pg_stat_get_backend_waiting pg_stat_get_backend_xact_start pg_stat_get_bgwriter_buf_written_checkpoints pg_stat_get_bgwriter_buf_written_clean
+	pg_stat_get_bgwriter_maxwritten_clean pg_stat_get_bgwriter_requested_checkpoints pg_stat_get_bgwriter_stat_reset_time 
+	pg_stat_get_bgwriter_timed_checkpoints pg_stat_get_blocks_fetched pg_stat_get_blocks_hit pg_stat_get_buf_alloc pg_stat_get_buf_fsync_backend
+	pg_stat_get_buf_written_backend pg_stat_get_checkpoint_sync_time pg_stat_get_checkpoint_write_time pg_stat_get_db_blk_read_time
+	pg_stat_get_db_blk_write_time pg_stat_get_db_blocks_fetched pg_stat_get_db_blocks_hit pg_stat_get_db_conflict_all pg_stat_get_db_conflict_bufferpin 
+	pg_stat_get_db_conflict_lock pg_stat_get_db_conflict_snapshot pg_stat_get_db_conflict_startup_deadlock pg_stat_get_db_conflict_tablespace
+	pg_stat_get_db_deadlocks pg_stat_get_db_numbackends pg_stat_get_db_stat_reset_time pg_stat_get_db_temp_bytes pg_stat_get_db_temp_files
+	pg_stat_get_db_tuples_deleted pg_stat_get_db_tuples_fetched pg_stat_get_db_tuples_inserted pg_stat_get_db_tuples_returned pg_stat_get_db_tuples_updated 
+	pg_stat_get_db_xact_commit pg_stat_get_db_xact_rollback pg_stat_get_dead_tuples pg_stat_get_function_calls pg_stat_get_function_self_time
+	pg_stat_get_function_total_time pg_stat_get_last_analyze_time pg_stat_get_last_autoanalyze_time pg_stat_get_last_autovacuum_time
+	pg_stat_get_last_vacuum_time pg_stat_get_live_tuples pg_stat_get_numscans pg_stat_get_tuples_deleted pg_stat_get_tuples_fetched 
+	pg_stat_get_tuples_hot_updated pg_stat_get_tuples_inserted pg_stat_get_tuples_returned pg_stat_get_tuples_updated pg_stat_get_vacuum_count
+	pg_stat_get_wal_senders pg_stat_get_xact_blocks_fetched pg_stat_get_xact_blocks_hit pg_stat_get_xact_function_calls pg_stat_get_xact_function_self_time
+	pg_stat_get_xact_function_total_time pg_stat_get_xact_numscans pg_stat_get_xact_tuples_deleted pg_stat_get_xact_tuples_fetched 
+	pg_stat_get_xact_tuples_hot_updated pg_stat_get_xact_tuples_inserted pg_stat_get_xact_tuples_returned pg_stat_get_xact_tuples_updated pg_stat_reset
+	pg_stat_reset_shared pg_stat_reset_single_function_counters pg_stat_reset_single_table_counters pg_stop_backup pg_switch_xlog pg_table_is_visible
+	pg_table_size pg_tablespace_databases pg_tablespace_location pg_tablespace_size pg_terminate_backend pg_timezone_abbrevs pg_timezone_names
+	pg_total_relation_size pg_trigger_depth pg_try_advisory_lock pg_try_advisory_lock_shared pg_try_advisory_xact_lock pg_try_advisory_xact_lock_shared
+	pg_ts_config_is_visible pg_ts_dict_is_visible pg_ts_parser_is_visible pg_ts_template_is_visible 
+	pg_type_is_visible pg_typeof pg_xlog_location_diff pg_xlog_replay_pause pg_xlog_replay_resume pg_xlogfile_name pg_xlogfile_name_offset 
+	pgp_key_id pgp_pub_decrypt pgp_pub_decrypt_bytea pgp_pub_encrypt pgp_pub_encrypt_bytea pgp_sym_decrypt pgp_sym_decrypt_bytea 
+	pgp_sym_encrypt pgp_sym_encrypt_bytea pi plainto_tsquery plpgsql_call_handler plpgsql_inline_handler plpgsql_validator 
+	point point_above point_add point_below point_distance point_div point_eq 
+	point_horiz point_in point_left point_mul point_ne point_out point_recv 
+	point_right point_send point_sub point_vert poly_above poly_below poly_center 
+	poly_contain poly_contain_pt poly_contained poly_distance poly_in poly_left poly_npoints 
+	poly_out poly_overabove poly_overbelow poly_overlap poly_overleft poly_overright poly_recv 
+	poly_right poly_same poly_send polygon popen positionjoinsel positionsel 
+	postgresql_fdw_validator pow power prsd_end prsd_headline prsd_lextype prsd_nexttoken 
+	prsd_start pt_contained_circle pt_contained_poly query_to_xml query_to_xml_and_xmlschema query_to_xmlschema querytree 
+	quote_nullable radians radius random range_adjacent range_after range_before 
+	range_cmp range_contained_by range_contains range_contains_elem range_eq range_ge range_gist_compress 
+	range_gist_consistent range_gist_decompress range_gist_penalty range_gist_picksplit range_gist_same range_gist_union range_gt 
+	range_in range_intersect range_le range_lt range_minus range_ne range_out 
+	range_overlaps range_overleft range_overright range_recv range_send range_typanalyze range_union 
+	rank record_eq record_ge record_gt record_in record_le record_lt 
+	record_ne record_out record_recv record_send regclass regclassin regclassout 
+	regclassrecv regclasssend regconfigin regconfigout regconfigrecv regconfigsend regdictionaryin 
+	regdictionaryout regdictionaryrecv regdictionarysend regexeqjoinsel regexeqsel regexnejoinsel regexnesel 
+	regexp_matches regexp_replace regexp_split_to_array regexp_split_to_table regoperatorin regoperatorout regoperatorrecv 
+	regoperatorsend regoperin regoperout regoperrecv regopersend regprocedurein regprocedureout 
+	regprocedurerecv regproceduresend regprocin regprocout regprocrecv regprocsend regr_avgx 
+	regr_avgy regr_count regr_intercept regr_r2 regr_slope regr_sxx regr_sxy 
+	regr_syy regtypein regtypeout regtyperecv regtypesend reltime reltimeeq 
+	reltimege reltimegt reltimein reltimele reltimelt reltimene reltimeout 
+	reltimerecv reltimesend reverse round row_number row_to_json 
+	scalargtjoinsel scalargtsel scalarltjoinsel scalarltsel schema_to_xml schema_to_xml_and_xmlschema schema_to_xmlschema 
+	session_user set_config set_masklen setseed setval setweight shell_in 
+	shell_out shift_jis_2004_to_euc_jis_2004 shift_jis_2004_to_utf8 shobj_description sign similar_escape sin 
+	sjis_to_euc_jp sjis_to_mic sjis_to_utf8 slope smgreq smgrin smgrne 
+	smgrout spg_kd_choose spg_kd_config spg_kd_inner_consistent spg_kd_picksplit spg_quad_choose spg_quad_config 
+	spg_quad_inner_consistent spg_quad_leaf_consistent spg_quad_picksplit spg_text_choose spg_text_config spg_text_inner_consistent spg_text_leaf_consistent 
+	spg_text_picksplit spgbeginscan spgbuild spgbuildempty spgbulkdelete spgcanreturn spgcostestimate 
+	spgendscan spggetbitmap spggettuple spginsert spgmarkpos spgoptions spgrescan 
+	spgrestrpos spgvacuumcleanup sqrt statement_timestamp stddev stddev_pop stddev_samp 
+	string_agg string_agg_finalfn string_agg_transfn string_to_array strip sum table_to_xml 
+	table_to_xml_and_xmlschema table_to_xmlschema tan text text_ge text_gt text_larger 
+	text_le text_lt text_pattern_ge text_pattern_gt text_pattern_le text_pattern_lt text_smaller 
+	textanycat textcat texteq texticlike texticnlike texticregexeq texticregexne 
+	textin textlen textlike textne textnlike textout textrecv 
+	textregexeq textregexne textsend thesaurus_init thesaurus_lexize tideq tidge 
+	tidgt tidin tidlarger tidle tidlt tidne tidout 
+	tidrecv tidsend tidsmaller time time_cmp time_eq time_ge 
+	time_gt time_hash time_in time_larger time_le time_lt time_mi_interval 
+	time_mi_time time_ne time_out time_pl_interval time_recv time_send time_smaller 
+	time_transform timedate_pl timemi timenow timepl timestamp timestamp_cmp 
+	timestamp_cmp_date timestamp_cmp_timestamptz timestamp_eq timestamp_eq_date timestamp_eq_timestamptz timestamp_ge timestamp_ge_date 
+	timestamp_ge_timestamptz timestamp_gt timestamp_gt_date timestamp_gt_timestamptz timestamp_hash timestamp_in timestamp_larger 
+	timestamp_le timestamp_le_date timestamp_le_timestamptz timestamp_lt timestamp_lt_date timestamp_lt_timestamptz timestamp_mi 
+	timestamp_mi_interval timestamp_ne timestamp_ne_date timestamp_ne_timestamptz timestamp_out timestamp_pl_interval timestamp_recv 
+	timestamp_send timestamp_smaller timestamp_sortsupport timestamp_transform timestamptypmodin timestamptypmodout timestamptz 
+	timestamptz_cmp timestamptz_cmp_date timestamptz_cmp_timestamp timestamptz_eq timestamptz_eq_date timestamptz_eq_timestamp timestamptz_ge 
+	timestamptz_ge_date timestamptz_ge_timestamp timestamptz_gt timestamptz_gt_date timestamptz_gt_timestamp timestamptz_in timestamptz_larger 
+	timestamptz_le timestamptz_le_date timestamptz_le_timestamp timestamptz_lt timestamptz_lt_date timestamptz_lt_timestamp timestamptz_mi 
+	timestamptz_mi_interval timestamptz_ne timestamptz_ne_date timestamptz_ne_timestamp timestamptz_out timestamptz_pl_interval timestamptz_recv 
+	timestamptz_send timestamptz_smaller timestamptztypmodin timestamptztypmodout timetypmodin timetypmodout timetz 
+	timetz_cmp timetz_eq timetz_ge timetz_gt timetz_hash timetz_in timetz_larger 
+	timetz_le timetz_lt timetz_mi_interval timetz_ne timetz_out timetz_pl_interval timetz_recv 
+	timetz_send timetz_smaller timetzdate_pl timetztypmodin timetztypmodout timezone tinterval 
+	tintervalct tintervalend tintervaleq tintervalge tintervalgt tintervalin tintervalle 
+	tintervalleneq tintervallenge tintervallengt tintervallenle tintervallenlt tintervallenne tintervallt 
+	tintervalne tintervalout tintervalov tintervalrecv tintervalrel tintervalsame tintervalsend 
+	tintervalstart to_tsquery to_tsvector transaction_timestamp trigger_out trunc ts_debug 
+	ts_headline ts_lexize ts_match_qv ts_match_tq ts_match_tt ts_match_vq ts_parse 
+	ts_rank ts_rank_cd ts_rewrite ts_stat ts_token_type ts_typanalyze tsmatchjoinsel 
+	tsmatchsel tsq_mcontained tsq_mcontains tsquery_and tsquery_cmp tsquery_eq tsquery_ge 
+	tsquery_gt tsquery_le tsquery_lt tsquery_ne tsquery_not tsquery_or tsqueryin 
+	tsqueryout tsqueryrecv tsquerysend tsrange tsrange_subdiff tstzrange tstzrange_subdiff 
+	tsvector_cmp tsvector_concat tsvector_eq tsvector_ge tsvector_gt tsvector_le tsvector_lt 
+	tsvector_ne tsvectorin tsvectorout tsvectorrecv tsvectorsend txid_current txid_current_snapshot 
+	txid_snapshot_in txid_snapshot_out txid_snapshot_recv txid_snapshot_send txid_snapshot_xip txid_snapshot_xmax txid_snapshot_xmin 
+	txid_visible_in_snapshot uhc_to_utf8 unknownin unknownout unknownrecv unknownsend unnest 
+	upper_inc upper_inf utf8_to_ascii utf8_to_big5 utf8_to_euc_cn utf8_to_euc_jis_2004 utf8_to_euc_jp 
+	utf8_to_euc_kr utf8_to_euc_tw utf8_to_gb18030 utf8_to_gbk utf8_to_iso8859 utf8_to_iso8859_1 utf8_to_johab 
+	utf8_to_koi8r utf8_to_koi8u utf8_to_shift_jis_2004 utf8_to_sjis utf8_to_uhc utf8_to_win uuid_cmp 
+	uuid_eq uuid_ge uuid_gt uuid_hash uuid_in uuid_le uuid_lt 
+	uuid_ne uuid_out uuid_recv uuid_send var_pop var_samp varbit 
+	varbit_in varbit_out varbit_recv varbit_send varbit_transform varbitcmp varbiteq 
+	varbitge varbitgt varbitle varbitlt varbitne varbittypmodin varbittypmodout 
+	varchar varchar_transform varcharin varcharout varcharrecv varcharsend varchartypmodin 
+	varchartypmodout variance version void_in void_out void_recv void_send 
+	width width_bucket win1250_to_latin2 win1250_to_mic win1251_to_iso win1251_to_koi8r win1251_to_mic 
+	win1251_to_win866 win866_to_iso win866_to_koi8r win866_to_mic win866_to_win1251 win_to_utf8 xideq 
+	xideqint4 xidin xidout xidrecv xidsend xml xml_in 
+	xml_is_well_formed xml_is_well_formed_content xml_is_well_formed_document xml_out xml_recv xml_send xmlagg 
+);
+
+# COPY Keywords
+my @KEYWORDS3 = ('STDIN', 'STDOUT');
+
+# SQL symbols
+my %SYMBOLS = (
+	'='  => '=', '<'  => '&lt;', '>' => '&gt;', '\|' => '|', ',' => ',', '\.' => '.', '\+' => '+', '\-' => '-',
+	'\*' => '*', '\/' => '/', '!=' => '!='
+);
+my @BRACKETS = ('(', ')');
+map {$_ = quotemeta($_)} @BRACKETS;
+
+
+if ($ENV{GATEWAY_INTERFACE}) {
+
+	$cgi      = new CGI;
+	if ($cgi->param) {
+		$colorize     = $cgi->param('colorize');
+		$spaces       = $cgi->param('spaces');
+		$uc_keyword   = $cgi->param('uc_keyword');
+		$uc_function  = $cgi->param('uc_function');
+		$content      = $cgi->param('content') || $content;
+		$nocomment    = $cgi->param('nocomment');
+		$show_example = $cgi->param('show_example');
+		# Do some sanity check
+		$colorize     = 1 if ($colorize && ($colorize !~ /^(0|1)$/));
+		$spaces       = 4 if ($spaces !~ /^\d{1,2}$/);
+		$uc_keyword   = 2 if ($uc_keyword && ($uc_keyword !~ /^(0|1|2|3)$/));
+		$uc_function  = 0 if ($uc_function && ($uc_function !~ /^(0|1|2|3)$/));
+		$nocomment    = 0 if ($nocomment !~ /^(0|1)$/);
+		$show_example = 0 if ($show_example !~ /^(0|1)$/);
+	}
+
+	print $cgi->header();
+	&html_header();
+
+} else {
+
+	$colorize = 0;
+
+	# get the command line parameters
+	my $result = GetOptions(
+		"d|debug!"            => \$debug,
+		"f|function-case=i"   => \$uc_function,
+		"h|help!"             => \$help,
+		"n|nocomment!"         => \$nocomment,
+		"o|output=s"          => \$outfile,
+		"s|spaces=i"          => \$spaces,
+		"u|keyword-case=i"    => \$uc_keyword,
+		"v|version!"          => \$version,
+	);
+
+	if ($version) {
+		print "$SOFTWARE version $VERSION\n";
+		exit 0;
+	}
+	&usage() if ($help);
+
+	# SQL file to be parsed are passed as command line argument
+	my $infile = $ARGV[0] || '';
+	if (!$infile) {
+		print STDERR "FATAL: you must give a file with SQL queries as command line parameter.\n\n";
+		&usage();
+	} else {
+		if ($infile ne '-') {
+			die "FATAL: SQL file $infile must exist!\n" if (!-f $infile);
+			if (-z $infile) {
+				print "WARNING: file $infile is empty\n";
+				next;
+			}
+		}
+	}
+
+	# Set default filename of the output file
+	if (!$outfile || ($outfile eq '-')) {
+		$outfile = '';
+		&logmsg('DEBUG', "Formatted SQL queries will be written to stdout");
+	} else {
+		&logmsg('DEBUG', "Formatted SQL queries will be written to $outfile");
+	}
+
+
+	# Extract the output directory from outfile so that graphs will
+	# be created in the same directoty
+	my @infs = fileparse($outfile);
+	$outdir = $infs[1] . '/';
+
+	# Main loop reading log files
+	&logmsg('DEBUG', "Starting to parse SQL file: $infile");
+
+	# Open log file for reading
+	my $lfile = new IO::File;
+	$lfile->open($infile) || die "FATAL: cannot read SQL file $infile. $!\n";
+	&logmsg('DEBUG', "Starting reading file...");
+	while (my $line = <$lfile>) {
+		chomp($line);
+		$line =~ s///;
+		last if ($line eq '.');
+		$content .= $line . "\n";
+
+	}
+	$lfile->close();
+	&logmsg('DEBUG', "Ok, generating output");
+	print "-"x80,"\n" if (($infile eq '-') && (!$outfile));
+}
+
+if ($ENV{GATEWAY_INTERFACE} && $show_example) {
+	my @data = <DATA>;
+	$content = join('', @data);
+}
+
+# Prettifying SQL query
+if (!$show_example && $content) {
+
+	my $sql = SQL::Beautify->new(uc_keywords => $uc_keyword, uc_functions => $uc_function, keywords => \@pg_keywords, functions => \@KEYWORDS2, spaces => $spaces, no_comments => $nocomment);
+
+	$sql->query($content);
+	$content = $sql->beautify;
+
+	$content = &highlight_code($content);
+}
+
+if (!$ENV{GATEWAY_INTERFACE}) {
+
+	if (!$content) {
+		die "FATAL: no SQL content provided.\n";
+	}
+
+} else {
+
+	my $chk_nocomment = '';
+	if ($nocomment) {
+		$chk_nocomment = 'checked="checked" ';
+	}
+	my $chk_colorize = '';
+	if ($colorize) {
+		$chk_colorize = 'checked="checked" ';
+	}
+	my %kw_toggle = (0 => '', 1 => '', 2 => '', 3 => '');
+	$kw_toggle{$uc_keyword} = ' selected="selected"';
+
+	my %fct_toggle = (0 => '', 1 => '', 2 => '', 3 => '');
+	$fct_toggle{$uc_function} = ' selected="selected"';
+
+	print qq{
+<form method="post" action="" enctype="multipart/form-data">
+ <table width="100%"><tr><td align="center" valign="top">
+ <div id="options">
+    <fieldset><legend id="general"><strong> General </strong></legend>
+      <div id="general_content" class="content">
+      <input type="checkbox" id="id_highlight" name="colorize" value="1" $chk_colorize/>
+      <label for="id_highlight">Enable syntax highlighting</label>
+      <br />
+      <input type="checkbox" id="id_remove_comments" name="nocomment" value="1" $chk_nocomment/>
+      <label for="id_remove_comments">Remove comments</label>
+      </div>
+    </fieldset>
+      <br />
+    <fieldset><legend id="kwcase">
+	<strong> Keywords & functions</strong></legend>
+      <div>
+	  Keywords: <select name="uc_keyword">
+			<option value="0"$kw_toggle{0}>Unchanged</option>
+			<option value="1"$kw_toggle{1} >Lower case</option>
+			<option value="2"$kw_toggle{2} >Upper case</option>
+			<option value="3"$kw_toggle{3} >Capitalize</option>
+	  </select>
+	<br />
+	  Functions: <select name="uc_function">
+			<option value="0"$fct_toggle{0}>Unchanged</option>
+			<option value="1"$fct_toggle{1} >Lower case</option>
+			<option value="2"$fct_toggle{2} >Upper case</option>
+			<option value="3"$fct_toggle{3} >Capitalize</option>
+	  </select>
+	</div>
+    </fieldset>
+      <br />
+    <fieldset><legend id="indent"><strong> Indentation </strong>
+	</legend>
+	  <div id="indent_content" class="content">
+	    Indentation: <input name="spaces" value="$spaces" maxlength="2" type="text" id="spaces" size="2" /> spaces
+	  </div>
+    </fieldset>
+    <p align="center"><input type="button" value="Reset all" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/></p>
+	<input type="hidden" name="show_example" value="0" />
+	<br />
+    <p align="center"><input type="button" value="Load an example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();"/></p>
+  </div>
+  </td><td valign="top" align="left">
+};
+
+	if ($show_example || !$content) {
+		$content = 'Enter your SQL code here...' if (!$content);
+		print qq{
+    <textarea name="content" id="sqlcontent" onfocus="if (done == 0) this.value=''; done = 1; set_bg_color('sqlcontent', '#f5f3de');" onblur="set_bg_color('sqlcontent', 'white');" onchange="maxlength_textarea(this, $maxlength)">$content</textarea>
+};
+	} else {
+		print qq{
+    <div class="sql" id="sql">
+$content
+    </div>
+};
+	}
+
+	print qq{
+  </td></tr></table>
+</form>
+};
+
+}
+
+if (!$ENV{GATEWAY_INTERFACE}) {
+
+	# Open filehandle
+	if ($outfile) {
+		my $fh = new IO::File ">$outfile";
+		if (not defined $fh) {
+			die "FATAL: can't write to $outfile, $!\n";
+		}
+		print $fh $content;
+		$fh->close;
+	} else {
+		print $content;
+	}
+} else {
+
+	&html_footer();
+}
+
+exit 0;
+
+#-------------------------------------------------------------------------------
+
+# Show PgSQL->format command line usage
+sub usage
+{
+	print qq{
+Usage: pg_format [options] file.sql [...]
+
+	PostgreSQL SQL queries and PL/PGSQL code beautifier.
+
+Arguments:
+
+	file.sql can be a file or use - to send a query using stdin. Use a
+	single dot in a line to terminate the stdin input.
+
+	Returning the SQL formatted to stdout or into a file specified with
+	the -o | --ouput option.
+
+Options:
+
+    -d | --debug          : enable debug mode. Disabled by default.
+    -f | --function-case N: Change the case of the reserved keyword. Default is
+                            unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
+    -h | --help           : show this message and exit.
+    -m | --maxlength SIZE : maximum length of a query, it will be cutted above
+                            the given size. Default: no truncate.
+    -n | --nocomment      : remove any comment from SQL code.
+    -o | --output file    : define the filename for the output. Default: stdout.
+    -s | --spaces size    : change space indent, default 4 spaces.
+    -u | --keyword-case N : Change the case of the reserved keyword. Default is
+                            uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
+    -v | --version        : show pg_format version and exit.
+
+Examples:
+
+    cat samples/ex1.sql | /usr/local/bin/pg_format -
+    /usr/local/bin/pg_format -c samples/ex1.sql
+    /usr/local/bin/pg_format -f 2 -c samples/ex1.sql -o result.sql
+
+};
+
+	exit 0;
+}
+# Display message following the log level
+sub logmsg
+{
+	my ($level, $str) = @_;
+
+	return if (!$debug && ($level eq 'DEBUG'));
+
+	if ($level =~ /(\d+)/) {
+		print STDERR "\t" x $1;
+	}
+
+	print STDERR "$level: $str\n";
+}
+
+
+# Highlight SQL code
+sub highlight_code
+{
+	my $code = shift;
+
+	return $code if (!$colorize);
+
+	my $i = 0;
+	my @qqcode = ();
+	while ($code =~ s/("[^\"]*")/QQCODEY${i}A/s) {
+		push(@qqcode, $1);
+		$i++;
+	}
+	$i = 0;
+	my @qcode = ();
+	while ($code =~ s/('[^\']*')/QCODEY${i}B/s) {
+		push(@qcode, $1);
+		$i++;
+	}
+	foreach my $x (keys %SYMBOLS) {
+		$code =~ s/$x/\$\$CLASSSY0A\$\$$SYMBOLS{$x}\$\$CLASSSY0B\$\$/gs;
+	}
+	for (my $x = 0 ; $x <= $#KEYWORDS1 ; $x++) {
+		if ($uc_keyword == 1) {
+			$code =~ s/(?<!CLASSSY0B\$\$)\b$KEYWORDS1[$x]\b/<span class="kw1_l">$KEYWORDS1[$x]<\/span>/igs;
+		} elsif ($uc_keyword == 2) {
+			$code =~ s/(?<!CLASSSY0B\$\$)\b$KEYWORDS1[$x]\b/<span class="kw1_u">$KEYWORDS1[$x]<\/span>/igs;
+		} elsif ($uc_keyword == 3) {
+			$code =~ s/(?<!CLASSSY0B\$\$)\b$KEYWORDS1[$x]\b/<span class="kw1_c">\L$KEYWORDS1[$x]\E<\/span>/igs;
+		} else {
+			$code =~ s/(?<!CLASSSY0B\$\$)\b$KEYWORDS1[$x]\b/<span class="kw1">$KEYWORDS1[$x]<\/span>/igs;
+		}
+	}
+	for (my $x = 0 ; $x <= $#KEYWORDS2 ; $x++) {
+		if ($uc_function == 1) {
+			$code =~ s/(?<!:)\b$KEYWORDS2[$x]\b/<span class="kw2_l">$KEYWORDS2[$x]<\/span>/igs;
+		} elsif ($uc_function == 2) {
+			$code =~ s/(?<!:)\b$KEYWORDS2[$x]\b/<span class="kw2_u">$KEYWORDS2[$x]<\/span>/igs;
+		} elsif ($uc_function == 3) {
+			$code =~ s/(?<!:)\b$KEYWORDS2[$x]\b/<span class="kw2_c">\L$KEYWORDS2[$x]\E<\/span>/igs;
+		} else {
+			$code =~ s/(?<!:)\b$KEYWORDS2[$x]\b/<span class="kw2">$KEYWORDS2[$x]<\/span>/igs;
+		}
+	}
+	for (my $x = 0 ; $x <= $#KEYWORDS3 ; $x++) {
+		if ($uc_keyword == 1) {
+			$code =~ s/\b$KEYWORDS3[$x]\b/<span class="kw3_l">$KEYWORDS3[$x]<\/span>/igs;
+		} elsif ($uc_keyword == 2) {
+			$code =~ s/\b$KEYWORDS3[$x]\b/<span class="kw3_u">$KEYWORDS3[$x]<\/span>/igs;
+		} elsif ($uc_keyword == 3) {
+			$code =~ s/\b$KEYWORDS3[$x]\b/<span class="kw3_c">\L$KEYWORDS3[$x]\E<\/span>/igs;
+		} else {
+			$code =~ s/\b$KEYWORDS3[$x]\b/<span class="kw3">$KEYWORDS3[$x]<\/span>/igs;
+		}
+	}
+	for (my $x = 0 ; $x <= $#BRACKETS ; $x++) {
+		$code =~ s/($BRACKETS[$x])/<span class="br0">$1<\/span>/igs;
+	}
+	$code =~ s/\$\$CLASSSY0A\$\$([^\$]+)\$\$CLASSSY0B\$\$/<span class="sy0">$1<\/span>/gs;
+
+	$code =~ s/\b(\d+)\b/<span class="nu0">$1<\/span>/igs;
+
+	for (my $x = 0; $x <= $#qqcode; $x++) {
+		$code =~ s/QQCODEY${x}A/$qqcode[$x]/s;
+	}
+	for (my $x = 0; $x <= $#qcode; $x++) {
+		$code =~ s/QCODEY${x}B/$qcode[$x]/s;
+	}
+	$code =~ s/('[^']*')/<span class="st0">$1<\/span>/gs;
+	$code =~ s/(`[^`]*`)/<span class="st0">$1<\/span>/gs;
+
+
+	return $code;
+}
+
+# Inclusion of package SQL::Beautify
+{
+
+	package SQL::Beautify;
+
+	use strict;
+	use warnings;
+
+	our $VERSION = 0.04;
+
+	use Carp;
+
+	# Keywords from SQL-92, SQL-99, SQL-2003, SQL-2008 and SQL-2011 specifics keywords.
+	use constant KEYWORDS => qw(
+		ABSOLUTE ACTION ADD AFTER ALL ALLOCATE ALTER AND ANY ARE ARRAY AS ASC
+		ASENSITIVE ASSERTION ASYMMETRIC AT ATOMIC AUTHORIZATION AVG BEFORE BEGIN
+		BETWEEN BIGINT BINARY BIT BIT_LENGTH BLOB BOOLEAN BOTH BREADTH BY CALL
+		CALLED CASCADE CASCADED CASE CAST CATALOG CHAR CHARACTER CHARACTER_LENGTH
+		CHAR_LENGTH CHECK CLOB CLOSE COALESCE COLLATE COLLATION COLUMN COMMIT
+		CONDITION CONNECT CONNECTION CONSTRAINT CONSTRAINTS CONSTRUCTOR CONTAINS
+		CONTINUE CONVERT CORRESPONDING COUNT CREATE CROSS CUBE CURRENT CURRENT_DATE
+		CURRENT_DEFAULT_TRANSFORM_GROUP CURRENT_CATALOG CURRENT_PATH CURRENT_ROLE
+		CURRENT_SCHEMA CURRENT_TIME CURRENT_TIMESTAMP CURRENT_TRANSFORM_GROUP_FOR_TYPE
+		CURRENT_USER CURSOR CYCLE DATA DATE DAY DEALLOCATE DEC DECIMAL DECLARE DEFAULT
+		DEFERRABLE DEFERRED DELETE DEPTH DEREF DESC DESCRIBE DESCRIPTOR DETERMINISTIC
+		DIAGNOSTICS DISCONNECT DISTINCT DO DOMAIN DOUBLE DROP DYNAMIC EACH ELEMENT
+		ELSE ELSEIF END EPOCH EQUALS ESCAPE EXCEPT EXCEPTION EXEC EXECUTE EXISTS
+		EXIT EXTERNAL EXTRACT FALSE FETCH FILTER FIRST FLOAT FOR FOREIGN FOUND FREE
+		FROM FULL FUNCTION GENERAL GET GLOBAL GO GOTO GRANT GROUP GROUPING HANDLER
+		HAVING HOLD HOUR IDENTITY IF IMMEDIATE IN INDICATOR INITIALLY INNER INOUT
+		INPUT INSENSITIVE INSERT INT INTEGER INTERSECT INTERVAL INTO IS ISOLATION
+		ITERATE JOIN KEY LANGUAGE LARGE LAST LATERAL LEADING LEAVE LEFT LEVEL LIKE
+		LIMIT LOCAL LOCALTIME LOCALTIMESTAMP LOCATOR LOOP LOWER MAP MATCH MAX
+		MEMBER MERGE METHOD MIN MINUTE MODIFIES MODULE MONTH MULTISET NAMES
+		NATIONAL NATURAL NCHAR NCLOB NEW NEXT NO NONE NOT NULL NULLIF NUMERIC
+		OBJECT OCTET_LENGTH OF OFFSET OLD ON ONLY OPEN OPTION OR ORDER ORDINALITY OUT
+		OUTER OUTPUT OVER OVERLAPS PAD PARAMETER PARTIAL PARTITION PATH POSITION
+		PRECISION PREPARE PRESERVE PRIMARY PRIOR PRIVILEGES PROCEDURE PUBLIC RANGE
+		READ READS REAL RECURSIVE REF REFERENCES REFERENCING RELATIVE RELEASE
+		REPEAT RESIGNAL RESTRICT RESULT RETURN RETURNS REVOKE RIGHT ROLE ROLLBACK
+		ROLLUP ROUTINE ROW ROWS SAVEPOINT SCHEMA SCOPE SCROLL SEARCH SECOND SECTION
+		SELECT SENSITIVE SESSION SESSION_USER SET SETS SIGNAL SIMILAR SIZE SMALLINT
+		SOME SPACE SPECIFIC SPECIFICTYPE SQL SQLCODE SQLERROR SQLEXCEPTION SQLSTATE
+		SQLWARNING START STATE STATIC SUBMULTISET SUBSTRING SUM SYMMETRIC SYSTEM
+		SYSTEM_USER TABLE TABLESAMPLE TEMPORARY TEXT THEN TIME TIMESTAMP
+		TIMEZONE_HOUR TIMEZONE_MINUTE TINYINT TO TRAILING TRANSACTION TRANSLATE
+		TRANSLATION TREAT TRIGGER TRIM TRUE UNDER UNDO UNION UNIQUE UNKNOWN UNNEST
+		UNTIL UPDATE UPPER USAGE USER USING VALUE VALUES VARCHAR VARYING VIEW WHEN
+		WHENEVER WHERE WHILE WINDOW WITH WITHIN WITHOUT WORK WRITE YEAR ZONE
+	);
+	use constant FUNCTIONS => qw();
+
+	sub tokenize_sql
+	{
+		my ($query, $remove_white_tokens) = @_;
+
+		my $re = qr{
+    (
+        (?:--|\#)[\ \t\S]*      # single line comments
+        |
+        (?:<>|<=>|>=|<=|==|=|!=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?)
+                                # operators and tests
+        |
+        [\[\]\(\),;.]            # punctuation (parenthesis, comma)
+        |
+        \'\'(?!\')              # empty single quoted string
+        |
+        \"\"(?!\"")             # empty double quoted string
+        |
+        "(?>(?:(?>[^"\\]+)|""|\\.)*)+"
+                                # anything inside double quotes, ungreedy
+        |
+        `(?>(?:(?>[^`\\]+)|``|\\.)*)+`
+                                # anything inside backticks quotes, ungreedy
+        |
+        '(?>(?:(?>[^'\\]+)|''|\\.)*)+'
+                                # anything inside single quotes, ungreedy.
+        |
+        /\*[\ \t\r\n\S]*?\*/      # C style comments
+        |
+        (?:[\w:@]+(?:\.(?:\w+|\*)?)*)
+                                # words, standard named placeholders, db.table.*, db.*
+        |
+        (?: \$_\$ | \$\d+ | \${1,2} )
+                                # dollar expressions - eg $_$ $3 $$
+        |
+        \n                      # newline
+        |
+        [\t\ ]+                 # any kind of white spaces
+    )
+}smx;
+
+		my @query = ();
+		@query = $query =~ m{$re}smxg;
+
+		if ($remove_white_tokens) {
+			@query = grep(!/^[\s\n\r]*$/, @query);
+		}
+		return wantarray ? @query : \@query;
+	}
+
+	sub new
+	{
+		my ($class, %options) = @_;
+
+		my $self = bless {%options}, $class;
+
+		# Set some defaults.
+		$self->{query}       = ''   unless defined($self->{query});
+		$self->{spaces}      = 4    unless defined($self->{spaces});
+		$self->{space}       = ' '  unless defined($self->{space});
+		$self->{break}       = "\n" unless defined($self->{break});
+		$self->{wrap}        = {}   unless defined($self->{wrap});
+		$self->{keywords}    = []   unless defined($self->{keywords});
+		$self->{functions}   = []   unless defined($self->{functions});
+		$self->{rules}       = {}   unless defined($self->{rules});
+		$self->{uc_keywords} = 0    unless defined($self->{uc_keywords});
+		$self->{uc_functions}= 0    unless defined($self->{uc_functions});
+		$self->{no_comments} = 0    unless defined($self->{no_comments});
+
+		push @{$self->{keywords}}, KEYWORDS;
+		push @{$self->{functions}}, FUNCTIONS;
+
+		# Initialize internal stuff.
+		$self->{_level} = 0;
+
+		return $self;
+	}
+
+	# Add more SQL.
+	sub add
+	{
+		my ($self, $addendum) = @_;
+
+		$addendum =~ s/^\s*/ /;
+
+		$self->{query} .= $addendum;
+	}
+
+	# Set SQL to beautify.
+	sub query
+	{
+		my ($self, $query) = @_;
+
+		$self->{query} = $query if (defined($query));
+
+		return $self->{query};
+	}
+
+	# Beautify SQL.
+	sub beautify
+	{
+		my ($self) = @_;
+
+		$self->{_output}      = '';
+		$self->{_level_stack} = [];
+		$self->{_new_line}    = 1;
+
+		my $last;
+		$self->{_tokens} = [tokenize_sql($self->query, 1)];
+
+		while (defined(my $token = $self->_token)) {
+			my $rule = $self->_get_rule($token);
+
+			# Allow custom rules to override defaults.
+			if ($rule) {
+				$self->_process_rule($rule, $token);
+			}
+
+			elsif ($token eq '(') {
+				$self->_add_token($token);
+#				$self->_new_line;
+				push @{$self->{_level_stack}}, $self->{_level};
+				$self->_over unless $last and uc($last) eq 'WHERE';
+			}
+
+			elsif ($token eq ')') {
+#				$self->_new_line;
+				$self->{_level} = pop(@{$self->{_level_stack}}) || 0;
+				$self->_add_token($token);
+				$self->_new_line if ($self->_next_token
+							and $self->_next_token !~ /^AS$/i
+							and $self->_next_token ne ')'
+							and $self->_next_token !~ /::/
+							and $self->_next_token ne ';'
+					);
+			}
+
+			elsif ($token eq ',') {
+				$self->_add_token($token);
+				$self->_new_line;
+			}
+
+			elsif ($token eq ';') {
+				$self->_add_token($token);
+				$self->_new_line;
+
+				# End of statement; remove all indentation.
+				@{$self->{_level_stack}} = ();
+				$self->{_level} = 0;
+			}
+
+			elsif ($token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN)$/i) {
+				$self->_back if (!$last and $last ne '(' and $last ne 'FOR');
+				$self->_new_line;
+				$self->_add_token($token);
+				$self->_new_line if ($self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';');
+				$self->_over;
+			}
+
+			elsif ($token =~ /^(?:GROUP|ORDER|LIMIT)$/i) {
+				$self->_back;
+				$self->_new_line;
+				$self->_add_token($token);
+			}
+
+			elsif ($token =~ /^(?:BY)$/i) {
+				$self->_add_token($token);
+				$self->_new_line;
+				$self->_over;
+			}
+
+			elsif ($token =~ /^(?:CASE)$/i) {
+				$self->_add_token($token);
+				$self->_over;
+			}
+
+			elsif ($token =~ /^(?:WHEN)$/i) {
+				$self->_new_line;
+				$self->_add_token($token);
+			}
+
+			elsif ($token =~ /^(?:ELSE)$/i) {
+				$self->_new_line;
+				$self->_add_token($token);
+			}
+
+			elsif ($token =~ /^(?:END)$/i) {
+				$self->_back;
+				$self->_new_line;
+				$self->_add_token($token);
+			}
+
+			elsif ($token =~ /^(?:UNION|INTERSECT|EXCEPT)$/i) {
+				$self->_back unless $last and $last eq '(';
+				$self->_new_line;
+				$self->_add_token($token);
+				$self->_new_line if ($self->_next_token and $self->_next_token ne '(');
+				$self->_over;
+			}
+
+			elsif ($token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS)$/i) {
+				$self->_back;
+				$self->_new_line;
+				$self->_add_token($token);
+				$self->_over;
+			}
+
+			elsif ($token =~ /^(?:JOIN)$/i) {
+				if ($last and $last !~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS)$/) {
+					$self->_new_line;
+				}
+
+				$self->_add_token($token);
+			}
+
+			elsif ($token =~ /^(?:AND|OR)$/i) {
+				$self->_new_line;
+				$self->_add_token($token);
+#				$self->_new_line;
+			}
+
+			elsif ($token =~ /^--/) {
+				if (!$self->{no_comments}) {
+					$self->_add_token($token);
+					$self->_new_line;
+				}
+			}
+
+			elsif ($token =~ /^\/\*.*\*\/$/s) {
+				if (!$self->{no_comments}) {
+					$token =~ s/\n[\s\t]+\*/\n\*/gs;
+					$self->_new_line;
+					$self->_add_token($token);
+					$self->_new_line;
+				}
+			}
+
+			else {
+				$self->_add_token($token, $last);
+			}
+
+			$last = $token;
+		}
+
+		$self->_new_line;
+
+		$self->{_output};
+	}
+
+	# Add a token to the beautified string.
+	sub _add_token
+	{
+		my ($self, $token, $last_token) = @_;
+
+		if ($self->{wrap}) {
+			my $wrap;
+			if ($self->_is_keyword($token)) {
+				$wrap = $self->{wrap}->{keywords};
+			} elsif ($self->_is_constant($token)) {
+				$wrap = $self->{wrap}->{constants};
+			}
+
+			if ($wrap) {
+				$token = $wrap->[0] . $token . $wrap->[1];
+			}
+		}
+
+		my $last_is_dot = defined($last_token) && $last_token eq '.';
+
+		if (!$self->_is_punctuation($token) and !$last_is_dot) {
+			my $sp = $self->_indent;
+			$self->{_output} .= $sp;
+			$token =~ s/\n/\n$sp/gs;
+		}
+
+		# uppercase keywords
+		if ($self->{uc_keywords} && $self->_is_keyword($token)) {
+			$token = lc($token) if ($self->{uc_keywords} == 1);
+			$token = uc($token) if ($self->{uc_keywords} == 2);
+			$token = ucfirst(lc($token)) if ($self->{uc_keywords} == 3);
+		}
+		# uppercase functions
+		if ($self->{uc_functions} && (my $fct = $self->_is_function($token))) {
+			$token =~ s/$fct/\L$fct\E/i if ($self->{uc_functions} == 1);
+			$token =~ s/$fct/\U$fct\E/i if ($self->{uc_functions} == 2);
+			$fct = ucfirst(lc($fct));
+			$token = s/$fct/$fct/i if ($self->{uc_functions} == 3);
+		}
+
+		$self->{_output} .= $token;
+
+		# This can't be the beginning of a new line anymore.
+		$self->{_new_line} = 0;
+	}
+
+	# Increase the indentation level.
+	sub _over
+	{
+		my ($self) = @_;
+
+		++$self->{_level};
+	}
+
+	# Decrease the indentation level.
+	sub _back
+	{
+		my ($self) = @_;
+
+		--$self->{_level} if ($self->{_level} > 0);
+	}
+
+	# Return a string of spaces according to the current indentation level and the
+	# spaces setting for indenting.
+	sub _indent
+	{
+		my ($self) = @_;
+
+		if ($self->{_new_line}) {
+			return $self->{space} x ($self->{spaces} * $self->{_level});
+		} else {
+			return $self->{space};
+		}
+	}
+
+	# Add a line break, but make sure there are no empty lines.
+	sub _new_line
+	{
+		my ($self) = @_;
+
+		$self->{_output} .= $self->{break} unless ($self->{_new_line});
+		$self->{_new_line} = 1;
+	}
+
+	# Have a look at the token that's coming up next.
+	sub _next_token
+	{
+		my ($self) = @_;
+
+		return @{$self->{_tokens}} ? $self->{_tokens}->[0] : undef;
+	}
+
+	# Get the next token, removing it from the list of remaining tokens.
+	sub _token
+	{
+		my ($self) = @_;
+
+		return shift @{$self->{_tokens}};
+	}
+
+	# Check if a token is a known SQL keyword.
+	sub _is_keyword
+	{
+		my ($self, $token) = @_;
+
+		return ~~ grep {$_ eq uc($token)} @{$self->{keywords}};
+	}
+
+	# Check if a token is a known SQL function.
+	sub _is_function
+	{
+		my ($self, $token) = @_;
+
+		my @ret = grep($token =~ /\b[\.]*$_$/i, @{$self->{functions}});
+
+		return $ret[0];
+	}
+
+	# Add new keywords to highlight.
+	sub add_keywords
+	{
+		my $self = shift;
+
+		for my $keyword (@_) {
+			push @{$self->{keywords}}, ref($keyword) ? @{$keyword} : $keyword;
+		}
+	}
+
+	# Add new functions to highlight.
+	sub add_functions
+	{
+		my $self = shift;
+
+		for my $function (@_) {
+			push @{$self->{functions}}, ref($function) ? @{$function} : $function;
+		}
+	}
+
+	# Add new rules.
+	sub add_rule
+	{
+		my ($self, $format, $token) = @_;
+
+		my $rules = $self->{rules}    ||= {};
+		my $group = $rules->{$format} ||= [];
+
+		push @{$group}, ref($token) ? @{$token} : $token;
+	}
+
+	# Find custom rule for a token.
+	sub _get_rule
+	{
+		my ($self, $token) = @_;
+
+		values %{$self->{rules}};    # Reset iterator.
+
+		while (my ($rule, $list) = each %{$self->{rules}}) {
+			return $rule if (grep {uc($token) eq uc($_)} @$list);
+		}
+
+		return undef;
+	}
+
+	sub _process_rule
+	{
+		my ($self, $rule, $token) = @_;
+
+		my $format = {
+			break => sub {$self->_new_line},
+			over  => sub {$self->_over},
+			back  => sub {$self->_back},
+			token => sub {$self->_add_token($token)},
+			push  => sub {push @{$self->{_level_stack}}, $self->{_level}},
+			pop   => sub {$self->{_level} = pop(@{$self->{_level_stack}}) || 0},
+			reset => sub {$self->{_level} = 0; @{$self->{_level_stack}} = ();},
+		};
+
+		for (split /-/, lc $rule) {
+			&{$format->{$_}} if ($format->{$_});
+		}
+	}
+
+	# Check if a token is a constant.
+	sub _is_constant
+	{
+		my ($self, $token) = @_;
+
+		return ($token =~ /^\d+$/ or $token =~ /^(['"`]).*\1$/);
+	}
+
+	# Check if a token is punctuation.
+	sub _is_punctuation
+	{
+		my ($self, $token) = @_;
+		return ($token =~ /^[,;.]$/);
+	}
+
+}
+
+
+sub html_footer
+{
+        my @ad_content = ();
+        if (-e $bottom_ad_file && !-z $bottom_ad_file) {
+            if (open(IN, "$bottom_ad_file")) {
+                @ad_content = <IN>;
+            }
+        } 
+        print qq{
+@ad_content
+        <div class="footer">
+                Service provided by <a href="$project_url" target="_new">$SOFTWARE</a> $VERSION.<br />
+		Copyright 2012 Gilles Darold. All rights reserved.
+        </div>
+</div>
+</body>
+</html>
+};
+
+}
+
+sub html_header
+{
+
+        my $date = localtime(time);
+
+        my @track_content = ();
+        if (-e $head_track_file && !-z $head_track_file) {
+            if (open(IN, "$head_track_file")) {
+                @track_content = <IN>;
+            }
+        } 
+        print qq{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>$SOFTWARE</title>
+<meta NAME="robots" CONTENT="noindex,nofollow">
+<meta HTTP-EQUIV="Expires" CONTENT="$date">
+<meta HTTP-EQUIV="Generator" CONTENT="$SOFTWARE v$VERSION">
+<meta HTTP-EQUIV="Date" CONTENT="$date">
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<meta name="description" content="Free online sql formatting tool, beautify sql code instantly for PostgreSQL, SQL-92, SQL-99, SQL-2003, SQL-2008 and SQL-2011" />
+<meta name="keywords" content="sql formatter,sql beautifier,format sql,formatting sql" />
+@track_content
+<style type="text/css">
+body 
+{
+background-color:#262626;
+margin-top:0px;
+font-family: Lucida Sans, Arial, Helvetica, sans-serif;
+font-size: 18px;
+color: #888888;
+height: 100% !important;
+background-position:top center;
+background-attachment:fixed;
+}
+		
+a 
+{
+text-decoration: none;
+color: #000000;
+}
+			
+a:hover 
+{
+text-decoration:underline;
+color: #000000;
+}
+h1 {
+	font-family: Lucida Sans, sans-serif;
+	font-size: 38px;
+	color:#ff7400;
+	font-weight: bold;
+	padding:5px;
+    margin:3px 3px 3px 3px;
+    border-radius:6px;
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+    box-shadow:3px 3px 6px 2px #A9A9A9;
+    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+}
+textarea#sqlcontent {
+	width: 800px;
+	height: 400px;
+	border: 3px solid #cccccc;
+	padding: 5px;
+	font-family: Tahoma, sans-serif;
+	font-size: 14px;
+	background-position: bottom right;
+	background-repeat: no-repeat;
+	background: #f5f3de;
+    border-radius:6px;
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+    box-shadow:3px 3px 6px 2px #A9A9A9;
+    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+}
+div#sql {
+	width: 900px;
+	height: 450px;
+	border: 3px solid #cccccc;
+	padding: 5px;
+    overflow: auto;
+	font-family:monospace;
+	font-size: 14px;
+    float: left;
+    text-align: left;
+	background-position: bottom right;
+	background-repeat: no-repeat;
+	background: #f5f3de;
+	white-space: pre;
+    border-radius:6px;
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+    box-shadow:3px 3px 6px 2px #A9A9A9;
+    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+}
+.sql .kw1 {color: #993333; font-weight: bold;}
+.sql .kw1_u {color: #993333; font-weight: bold; text-transform: uppercase;}
+.sql .kw1_l {color: #993333; font-weight: bold; text-transform: lowercase;}
+.sql .kw1_c {color: #993333; font-weight: bold; text-transform: capitalize;}
+.sql .kw2 {color: #993333; font-style: italic;}
+.sql .kw2_u {color: #993333; font-style: italic; text-transform: uppercase;}
+.sql .kw2_l {color: #993333; font-style: italic; text-transform: lowercase;}
+.sql .kw2_c {color: #993333; font-style: italic; text-transform: capitalize;}
+.sql .kw3 {color: #993333;}
+.sql .kw3_u {color: #993333; text-transform: uppercase;}
+.sql .kw3_l {color: #993333; text-transform: lowercase;}
+.sql .kw3_c {color: #993333; text-transform: capitalize;}
+.sql .br0 {color: #66cc66;}
+.sql .sy0 {color: #000000;}
+.sql .st0 {color: #ff0000;}
+.sql .nu0 {color: #cc66cc;}
+div.footer { font: 14px Helvetica, Arial, sans-serif;clear: both; height:40px; color: #000000; padding:13px 0px 0 0;margin-left: auto; margin-right: auto;  text-align: center; background-color: #ff7400; }
+div.footer a strong { color: #eeeeee; font-weight: bold;}
+div.footer a, #footer a:visited { color: #eeeeee; }
+div.footer a:hover { color: #eeeeee; }
+
+#options {
+    width: 250px;
+    height: 400px;
+    margin:3px 3px 3px 3px;
+    padding:2 2px;
+    font-size: 14px;
+    float: left;
+    text-align: left;
+    color: #2e3436;
+    border-radius:6px;
+}
+
+#options fieldset {
+    border: 1px solid #dddddd;
+    margin:3px 3px 3px 3px;
+    background: #ff7400;
+    border-radius:6px;
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+    box-shadow:3px 3px 6px 2px #A9A9A9;
+    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+}
+
+#options fieldset legend {
+    border: 1px solid #dddddd;
+    margin-bottom: .6em;
+    background: #ff7400;
+    border-radius:6px;
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+    box-shadow:3px 3px 6px 2px #A9A9A9;
+    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+}
+
+
+
+#options input, select, button {
+    border: 1px solid #dddddd;
+    background: #f5f3de;
+    border-radius:6px;
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+    box-shadow:3px 3px 6px 2px #A9A9A9;
+    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+}
+
+
+</style>
+<script type="text/javascript">
+	<!--
+	var done = 0;
+	function set_bg_color(id, color) {
+		document.getElementById(id).style.background=color;
+	}
+	function maxlength_textarea(objtextarea,maxlength) {
+		if (objtextarea.value.length > maxlength) {
+			objtextarea.value = objtextarea.value.substring(0, maxlength);
+			alert('Hum, with no limit I means up to '+maxlength+' characters!\\nThat should be enough, no ? Content has been truncated.');
+		}
+	}
+	//-->
+</script>
+</head>
+<body>
+<div id="content">
+
+<a href="$service_url"><h1 id="top">$SOFTWARE</h1></a>
+<p>
+Free Online version of $SOFTWARE a PostgreSQL SQL syntaxe beautifier (no line limit here up to $maxlength characters).
+</p>
+<p>
+This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords. May works with any other databases too.
+</p> 
+};
+
+}
+
+__DATA__
+
+SELECT DISTINCT (current_database())::information_schema.sql_identifier AS view_catalog, (nv.nspname)::information_schema.sql_identifier AS view_schema, (v.relname)::information_schema.sql_identifier AS view_name, (current_database())::information_schema.sql_identifier AS table_catalog, (nt.nspname)::information_schema.sql_identifier AS table_schema, (t.relname)::information_schema.sql_identifier AS table_name FROM pg_namespace nv, pg_class v, pg_depend dv, pg_depend dt, pg_class t, pg_namespace nt WHERE ((((((((((((((nv.oid = v.relnamespace) AND (v.relkind = 'v'::"char")) AND (v.oid = dv.refobjid)) AND (dv.refclassid = ('pg_class'::regclass)::oid)) AND (dv.classid = ('pg_rewrite'::regclass)::oid)) AND (dv.deptype = 'i'::"char")) AND (dv.objid = dt.objid)) AND (dv.refobjid <> dt.refobjid)) AND (dt.classid = ('pg_rewrite'::regclass)::oid)) AND (dt.refclassid = ('pg_class'::regclass)::oid)) AND (dt.refobjid = t.oid)) AND (t.relnamespace = nt.oid)) AND (t.relkind = ANY (ARRAY['r'::"char", 'v'::"char"]))) AND pg_has_role(t.relowner, 'USAGE'::text)) ORDER BY (current_database())::information_schema.sql_identifier, (nv.nspname)::information_schema.sql_identifier, (v.relname)::information_schema.sql_identifier, (current_database())::information_schema.sql_identifier, (nt.nspname)::information_schema.sql_identifier, (t.relname)::information_schema.sql_identifier;
+
