@@ -41,7 +41,7 @@ my $debug               = 0;
 my $cgi                 = undef;
 my $content             = '';
 my $show_example        = 0;
-my $project_url         = 'https://github.org/darold/pgformatter';
+my $project_url         = 'https://github.com/darold/pgFormatter';
 my $service_url         = 'http://sqlformat.darold.net/';  
 
 # Filename to load tracker and ad to be included respectively in the
@@ -571,6 +571,7 @@ if ($ENV{GATEWAY_INTERFACE}) {
 		$uc_function  = 0 if ($uc_function && ($uc_function !~ /^(0|1|2|3)$/));
 		$nocomment    = 0 if ($nocomment !~ /^(0|1)$/);
 		$show_example = 0 if ($show_example !~ /^(0|1)$/);
+		$content      = substr($content, 0, $maxlength) if ($content && (length($content) > $maxlength));
 	}
 
 	print $cgi->header();
