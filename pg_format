@@ -43,6 +43,7 @@ my $content             = '';
 my $show_example        = 0;
 my $project_url         = 'https://github.com/darold/pgFormatter';
 my $service_url         = 'http://sqlformat.darold.net/';  
+my $download_url         = 'http://sourceforge.net/projects/pgformatter/';
 
 # Filename to load tracker and ad to be included respectively in the
 # HTML head and the bottom of the HTML page. 
@@ -1418,8 +1419,8 @@ sub html_footer
         print qq{
 @ad_content
         <div class="footer">
-                Service provided by <a href="$project_url" target="_new">$SOFTWARE</a> $VERSION.<br />
-		Copyright 2012 Gilles Darold. All rights reserved.
+                Service provided by <a href="$download_url" target="_new">$SOFTWARE $VERSION</a>. Development code available on <a href="$project_url" target="_new">GitHub.org</a><br />
+		&copy; Copyright 2012 - Gilles Darold.
         </div>
 </div>
 </body>
