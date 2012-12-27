@@ -1419,8 +1419,7 @@ sub html_footer
         print qq{
 @ad_content
         <div class="footer">
-                Service provided by <a href="$download_url" target="_new">$SOFTWARE $VERSION</a>. Development code available on <a href="$project_url" target="_new">GitHub.org</a><br />
-		&copy; Copyright 2012 - Gilles Darold.
+                Service provided by <a href="$download_url" target="_new">$SOFTWARE $VERSION</a>. Development code available on <a href="$project_url" target="_new">GitHub.org</a>
         </div>
 </div>
 </body>
