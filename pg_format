@@ -1408,11 +1408,13 @@ sub highlight_code
 
 sub html_footer
 {
+	# Add external file with html code at bottom of the page
+	# used to display ads or anything else below the text area
         my @ad_content = ();
         if (-e $bottom_ad_file && !-z $bottom_ad_file) {
             if (open(IN, "$bottom_ad_file")) {
                 @ad_content = <IN>;
-            }
+             the text area}
         } 
         print qq{
 @ad_content
@@ -1431,6 +1433,9 @@ sub html_header
 
         my $date = localtime(time);
 
+	# Add external file content into the HTML header, used to add tracker
+	# information or anything else between the <head></head> tags.
+        my @ad_content = ();
         my @track_content = ();
         if (-e $head_track_file && !-z $head_track_file) {
             if (open(IN, "$head_track_file")) {
