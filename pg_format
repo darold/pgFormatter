@@ -1414,7 +1414,7 @@ sub html_footer
         if (-e $bottom_ad_file && !-z $bottom_ad_file) {
             if (open(IN, "$bottom_ad_file")) {
                 @ad_content = <IN>;
-             the text area}
+            }
         } 
         print qq{
 @ad_content
