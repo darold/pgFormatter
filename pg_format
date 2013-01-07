@@ -43,7 +43,7 @@ my $content             = '';
 my $show_example        = 0;
 my $project_url         = 'https://github.com/darold/pgFormatter';
 my $service_url         = 'http://sqlformat.darold.net/';  
-my $download_url         = 'http://sourceforge.net/projects/pgformatter/';
+my $download_url        = 'http://sourceforge.net/projects/pgformatter/';
 
 # Filename to load tracker and ad to be included respectively in the
 # HTML head and the bottom of the HTML page. 
@@ -557,6 +557,7 @@ map {$_ = quotemeta($_)} @BRACKETS;
 if ($ENV{GATEWAY_INTERFACE}) {
 
 	$cgi      = new CGI;
+	$CGI::POST_MAX = $maxlength; # max posts size
 	if ($cgi->param) {
 		$colorize     = $cgi->param('colorize');
 		$spaces       = $cgi->param('spaces');
@@ -572,7 +573,21 @@ if ($ENV{GATEWAY_INTERFACE}) {
 		$uc_function  = 0 if ($uc_function && ($uc_function !~ /^(0|1|2|3)$/));
 		$nocomment    = 0 if ($nocomment !~ /^(0|1)$/);
 		$show_example = 0 if ($show_example !~ /^(0|1)$/);
-		$content      = substr($content, 0, $maxlength) if ($content && (length($content) > $maxlength));
+		my $filename  = $cgi->param('filetoload') || '';
+		if ($filename) {	
+			my $type = $cgi->uploadInfo($filename)->{'Content-Type'};
+			unless ($type eq 'text/plain') {
+				$colorize = 0;
+				$uc_keyword = 0;
+				$content =  "FATAL: Only text/plain files are supported!";
+			} else {
+				$content = '';
+				while (<$filename>) {
+					$content .= $_;
+				}
+			}
+		}
+		$content = substr($content, 0, $maxlength) if ($content && (length($content) > $maxlength));
 	}
 
 	print $cgi->header();
@@ -729,6 +744,16 @@ if (!$ENV{GATEWAY_INTERFACE}) {
 	<input type="hidden" name="show_example" value="0" />
 	<br />
     <p align="center"><input type="button" value="Load an example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();"/></p>
+	<input type="hidden" name="load_from_file" value="0" />
+    <p align="center">
+    <span style="position: relative">
+        <span style="position:absolute; top:0; left:0; width:150px; filter:alpha(opacity=0); opacity:0.0; overflow:hidden">
+        <input type="file" name="filetoload" onchange="document.forms[0].fake_upload.value=this.value" style="height:28px;width:150px;cursor:hand;">
+        </span>
+        <input type="text" name="fake_upload" style="width: 150px">
+	<input type="button" value="Upload file" onclick="if (document.forms[0].filetoload.value != '') { document.forms[0].load_from_file.value=1; document.forms[0].submit(); } return false;"/>
+    </span>
+    </p>
   </div>
   </td><td valign="top" align="left">
 };
@@ -1414,6 +1439,7 @@ sub html_footer
         if (-e $bottom_ad_file && !-z $bottom_ad_file) {
             if (open(IN, "$bottom_ad_file")) {
                 @ad_content = <IN>;
+		close(IN);
             }
         } 
         print qq{
@@ -1440,12 +1466,14 @@ sub html_header
         if (-e $head_track_file && !-z $head_track_file) {
             if (open(IN, "$head_track_file")) {
                 @track_content = <IN>;
+		close(IN);
             }
         } 
 
         if (-e $css_file && !-z $css_file) {
             if (open(IN, "$css_file")) {
                 @style_content = <IN>;
+		close(IN);
             }
         } 
 
