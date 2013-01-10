@@ -100,7 +100,7 @@ Copyright 2012-2013 Gilles Darold. All rights reserved.
 
 pgFormatter is free software distributed under the PostgreSQL Licence.
 
-A modified version of the SQL::Beautify Perl Module is embedded in pgBadger
+A modified version of the SQL::Beautify Perl Module is embedded in pgFormatter
 with copyright (C) 2009 by Jonas Kramer and is published under the terms of
 the Artistic License 2.0.
 
