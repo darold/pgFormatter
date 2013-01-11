@@ -1,3 +1,31 @@
+January 11 2013 - v1.2
+
+This release add file upload capability in CGI context and better code
+formatting.
+
+	- Add HTML break before the footer in CGI context.
+	- Add missing SQL::Beautify paternity and update license part
+	  of the documentation.
+	- Allow file upload in CGI context.
+	- Fix issue in formatting that prevent left back indentation
+	  when major keywords were found. Thanks to Kevin Brannen for
+	  the patch.
+	- Add information in code comments about external files in
+	  CGI mode.
+	- Force the parser to not insert a new line after the SET
+	  keyword when the query begin with it. This is to preserve the
+	  single line with queries like SET client_encoding TO "utf8";
+	- Add new line after SET keyword to better format UPDATE queries.
+	  Thanks to Pilat66 for the report.
+
+December 27 2012 - v1.1
+
+	- Preserve SQL code formatting when copy/paste.
+	- Removed coypright from CGI footer
+	- Modify links at the bottom of the CGI interface.
+	- Fix obsolete option in usage example.
+	- Limit SQL query size to $maxlength in CGI context and non interactive usage.
+
 December 22 2012 - v1.0
 
 	This is the initial release of pgFormatter
