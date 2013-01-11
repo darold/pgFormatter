@@ -1443,7 +1443,9 @@ sub html_footer
                 @ad_content = <IN>;
 		close(IN);
             }
-        } 
+        } else {
+		push(@ad_content, "<br/>");
+	}
         print qq{
 @ad_content
         <div class="footer">
