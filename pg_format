@@ -1104,9 +1104,11 @@ sub highlight_code
 
 			elsif ($token eq '(') {
 				$self->_add_token($token);
-#				$self->_new_line;
-				push @{$self->{_level_stack}}, $self->{_level};
-				$self->_over unless $last and uc($last) eq 'WHERE';
+				if ($self->_next_token ne ')') {
+					$self->_new_line;
+					push @{$self->{_level_stack}}, $self->{_level};
+					$self->_over unless $last and uc($last) eq 'WHERE';
+				}
 			}
 
 			elsif ($token eq ')') {
@@ -1118,6 +1120,7 @@ sub highlight_code
 							and $self->_next_token ne ')'
 							and $self->_next_token !~ /::/
 							and $self->_next_token ne ';'
+							and $self->_next_token ne ','
 					);
 			}
 
