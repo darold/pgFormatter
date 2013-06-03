@@ -23,7 +23,7 @@ DESCRIPTION
         dot in a line to terminate the stdin input or EOF.
 
         Returning the SQL formatted to stdout or into a file specified with the
-        -o | --ouput option.
+        -o | --output option.
 
     Options:
 
@@ -32,7 +32,7 @@ DESCRIPTION
                                 unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                                 2=>uppercase, 3=>capitalize.
         -h | --help           : show this message and exit.
-        -m | --maxlength SIZE : maximum length of a query, it will be cutted above
+        -m | --maxlength SIZE : maximum length of a query, it will be cut above
                                 the given size. Default: no truncate.
         -n | --nocomment      : remove any comment from SQL code.
         -o | --output file    : define the filename for the output. Default: stdout.
