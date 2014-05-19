@@ -1112,7 +1112,6 @@ sub highlight_code
 			}
 
 			elsif ($token eq ')') {
-#				$self->_new_line;
 				$self->{_level} = pop(@{$self->{_level_stack}}) || 0;
 				$self->_add_token($token);
 				$self->_new_line if ($self->_next_token
@@ -1139,7 +1138,9 @@ sub highlight_code
 			}
 
 			elsif ($token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN|SET)$/i) {
-				$self->_back if ($last and $last ne '(' and $last ne 'FOR');
+				# if we're not in a sub-select, make sure these always are
+				# at the far left (col 1)
+				$self->{_level} = 0 if ($last and $last ne '(' and $last ne 'FOR'); 
 				$self->_new_line;
 				$self->_add_token($token);
 				$self->_new_line if ((($token ne 'SET') || $last) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';');
@@ -1187,25 +1188,29 @@ sub highlight_code
 				$self->_over;
 			}
 
-			elsif ($token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS)$/i) {
-				$self->_back;
-				$self->_new_line;
+			elsif ($token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i) {
+				$self->_back unless $last and $last eq ')';
+				#$self->_new_line,$self->_over if ($token =~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i);
+				if ($token =~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i) {
+					$self->_new_line;
+					$self->_over if ($self->{_level} == 0);
+				}
 				$self->_add_token($token);
-				$self->_over;
 			}
 
 			elsif ($token =~ /^(?:JOIN)$/i) {
-				if ($last and $last !~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS)$/) {
+				if (!$last or $last !~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i) {
 					$self->_new_line;
 				}
-
 				$self->_add_token($token);
+				if ($last =~ /^(?:INNER|OUTER)$/i) {
+					$self->_over;
+				}
 			}
 
 			elsif ($token =~ /^(?:AND|OR)$/i) {
 				$self->_new_line;
 				$self->_add_token($token);
-#				$self->_new_line;
 			}
 
 			elsif ($token =~ /^--/) {
