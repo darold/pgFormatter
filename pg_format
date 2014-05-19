@@ -1278,7 +1278,7 @@ sub highlight_code
 			$token =~ s/$fct/\L$fct\E/i if ($self->{uc_functions} == 1);
 			$token =~ s/$fct/\U$fct\E/i if ($self->{uc_functions} == 2);
 			$fct = ucfirst(lc($fct));
-			$token = s/$fct/$fct/i if ($self->{uc_functions} == 3);
+			$token =~ s/$fct/$fct/i if ($self->{uc_functions} == 3);
 		}
 
 		$self->{_output} .= $token;
