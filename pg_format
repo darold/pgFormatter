@@ -11,6 +11,8 @@
 #------------------------------------------------------------------------------
 use vars qw($VERSION $SOFTWARE);
 
+use re '/aa';
+
 use strict qw(vars subs);
 
 use Getopt::Long qw(:config no_ignore_case bundling);
