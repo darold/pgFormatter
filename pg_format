@@ -766,6 +766,8 @@ if (!$ENV{GATEWAY_INTERFACE}) {
     <textarea name="content" id="sqlcontent" onfocus="if (done == 0) this.value=''; done = 1; set_bg_color('sqlcontent', '#f5f3de');" onblur="set_bg_color('sqlcontent', 'white');" onchange="maxlength_textarea(this, $maxlength)">$content</textarea>
 };
 	} else {
+print STDERR "$content\n";
+
 		print qq{
     <div class="sql" id="sql"><pre>$content</pre></div>
 };
@@ -1047,6 +1049,7 @@ sub highlight_code
 		$self->{spaces}      = 4    unless defined($self->{spaces});
 		$self->{space}       = ' '  unless defined($self->{space});
 		$self->{break}       = "\n" unless defined($self->{break});
+		$self->{break}       = ' '  unless ($self->{spaces} != 0);
 		$self->{wrap}        = {}   unless defined($self->{wrap});
 		$self->{keywords}    = []   unless defined($self->{keywords});
 		$self->{functions}   = []   unless defined($self->{functions});
@@ -1132,11 +1135,13 @@ sub highlight_code
 
 			elsif ($token eq ';') {
 				$self->_add_token($token);
+				$self->{break} = "\n" unless ($self->{spaces} != 0);
 				$self->_new_line;
 
 				# End of statement; remove all indentation.
 				@{$self->{_level_stack}} = ();
 				$self->{_level} = 0;
+				$self->{break} = ' ' unless ($self->{spaces} != 0);
 			}
 
 			elsif ($token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN|SET)$/i) {
