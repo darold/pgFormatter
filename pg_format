@@ -1223,7 +1223,9 @@ sub highlight_code
 			elsif ($token =~ /^--/) {
 				if (!$self->{no_comments}) {
 					$self->_add_token($token);
+					$self->{break} = "\n" unless ($self->{spaces} != 0);
 					$self->_new_line;
+					$self->{break} = ' ' unless ($self->{spaces} != 0);
 				}
 			}
 
@@ -1232,7 +1234,9 @@ sub highlight_code
 					$token =~ s/\n[\s\t]+\*/\n\*/gs;
 					$self->_new_line;
 					$self->_add_token($token);
+					$self->{break} = "\n" unless ($self->{spaces} != 0);
 					$self->_new_line;
+					$self->{break} = " " unless ($self->{spaces} != 0);
 				}
 			}
 
