@@ -147,6 +147,7 @@ div.footer { font: 14px Helvetica, Arial, sans-serif;clear: both; height:40px; c
 div.footer a strong { color: #eeeeee; font-weight: bold;}
 div.footer a, #footer a:visited { color: #eeeeee; }
 div.footer a:hover { color: #eeeeee; }
+div.smaller { font: 11px Helvetica, Arial, sans-serif;clear: both; color: #000000; padding:13px 0px 0 0;margin-left: auto; margin-right: auto; text-align: center; background-color: #ff7400; }
 
 #options {
 	width: 250px;
@@ -740,6 +741,7 @@ if (!$ENV{GATEWAY_INTERFACE}) {
 	</legend>
 	  <div id="indent_content" class="content">
 	    Indentation: <input name="spaces" value="$spaces" maxlength="2" type="text" id="spaces" size="2" /> spaces
+        <div class="smaller">(set it to 0 to obtain a single line statement)</div>
 	  </div>
     </fieldset>
     <p align="center"><input type="button" value="Reset all" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/></p>
