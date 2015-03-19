@@ -663,7 +663,6 @@ if ($ENV{GATEWAY_INTERFACE}) {
 	}
 	$lfile->close();
 	&logmsg('DEBUG', "Ok, generating output");
-	print "-"x80,"\n" if (($infile eq '-') && (!$outfile));
 }
 
 if ($ENV{GATEWAY_INTERFACE} && $show_example) {
