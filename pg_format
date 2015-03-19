@@ -7,7 +7,7 @@
 # For license terms, see the LICENSE file.
 #
 # Author: Gilles Darold
-# Copyright: (c) 2012-2013 Gilles Darold - All rights reserved
+# Copyright: (c) 2012-2015 Gilles Darold - All rights reserved
 #------------------------------------------------------------------------------
 use vars qw($VERSION $SOFTWARE);
 
@@ -23,7 +23,7 @@ setlocale(LC_NUMERIC, '');
 setlocale(LC_ALL, 'C');
 use CGI;
 
-$VERSION = '1.2';
+$VERSION = '1.3';
 $SOFTWARE = 'pgFormatter',
 
 $| = 1;

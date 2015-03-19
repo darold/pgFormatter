@@ -94,7 +94,7 @@ pgFormatter is an original work from Gilles Darold
 
 =head1 COPYRIGHT
 
-Copyright 2012-2013 Gilles Darold. All rights reserved.
+Copyright 2012-2015 Gilles Darold. All rights reserved.
 
 =head1 LICENSE
 
