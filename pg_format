@@ -44,7 +44,7 @@ my $cgi                 = undef;
 my $content             = '';
 my $show_example        = 0;
 my $project_url         = 'https://github.com/darold/pgFormatter';
-my $service_url         = 'http://sqlformat.darold.net/';  
+my $service_url         = '';  
 my $download_url        = 'http://sourceforge.net/projects/pgformatter/';
 
 # Filename to load tracker and ad to be included respectively in the
@@ -703,6 +703,7 @@ if (!$ENV{GATEWAY_INTERFACE}) {
 	my %fct_toggle = (0 => '', 1 => '', 2 => '', 3 => '');
 	$fct_toggle{$uc_function} = ' selected="selected"';
 
+    $service_url = $cgi->url if (!$service_url);
 	print qq{
 <form method="post" action="" enctype="multipart/form-data">
  <table width="100%"><tr><td align="center" valign="top">
