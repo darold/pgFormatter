@@ -29,6 +29,8 @@ Arguments:
 
 Options:
 
+    -a | --anonymize      : obscure all literals in queries, useful to hide
+                            confidential data before formatting.
     -d | --debug          : enable debug mode. Disabled by default.
     -f | --function-case N: Change the case of the reserved keyword. Default is
 			    unchanged: 0. Values: 0=>unchanged, 1=>lowercase,

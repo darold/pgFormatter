@@ -46,6 +46,7 @@ my $show_example        = 0;
 my $project_url         = 'https://github.com/darold/pgFormatter';
 my $service_url         = 'http://sqlformat.darold.net/';  
 my $download_url        = 'http://sourceforge.net/projects/pgformatter/';
+my $anonymize           = 0;
 
 # Filename to load tracker and ad to be included respectively in the
 # HTML head and the bottom of the HTML page. 
@@ -568,6 +569,8 @@ if ($ENV{GATEWAY_INTERFACE}) {
 		$content      = $cgi->param('content') || $content;
 		$nocomment    = $cgi->param('nocomment');
 		$show_example = $cgi->param('show_example');
+		$anonymize = $cgi->param('anonymize');
+
 		# Do some sanity check
 		$colorize     = 1 if ($colorize && ($colorize !~ /^(0|1)$/));
 		$spaces       = 4 if ($spaces !~ /^\d{1,2}$/);
@@ -601,6 +604,7 @@ if ($ENV{GATEWAY_INTERFACE}) {
 
 	# get the command line parameters
 	my $result = GetOptions(
+		"a|anonymize!"        => \$anonymize,
 		"d|debug!"            => \$debug,
 		"f|function-case=i"   => \$uc_function,
 		"h|help!"             => \$help,
@@ -670,6 +674,11 @@ if ($ENV{GATEWAY_INTERFACE} && $show_example) {
 	$content = join('', @data);
 }
 
+# Anonymize the SQL query if required
+if ($anonymize) {
+	$content = &anonymize_query($content);
+}
+
 # Prettifying SQL query
 if (!$show_example && $content) {
 
@@ -697,6 +706,10 @@ if (!$ENV{GATEWAY_INTERFACE}) {
 	if ($colorize) {
 		$chk_colorize = 'checked="checked" ';
 	}
+	my $chk_anonymize = '';
+	if ($anonymize) {
+		$chk_anonymize = 'checked="checked" ';
+	}
 	my %kw_toggle = (0 => '', 1 => '', 2 => '', 3 => '');
 	$kw_toggle{$uc_keyword} = ' selected="selected"';
 
@@ -714,6 +727,9 @@ if (!$ENV{GATEWAY_INTERFACE}) {
       <br />
       <input type="checkbox" id="id_remove_comments" name="nocomment" value="1" $chk_nocomment/>
       <label for="id_remove_comments">Remove comments</label>
+      <br />
+      <input type="checkbox" id="id_anonymize" name="anonymize" value="1" $chk_anonymize/>
+      <label for="id_anonymize">Anonymize values in queries</label>
       </div>
     </fieldset>
       <br />
@@ -820,6 +836,8 @@ Arguments:
 
 Options:
 
+    -a | --anonymize      : obscure all literals in queries, useful to hide
+                            confidential data before formatting.
     -d | --debug          : enable debug mode. Disabled by default.
     -f | --function-case N: Change the case of the reserved keyword. Default is
                             unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
@@ -1546,6 +1564,39 @@ This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, S
 };
 
 }
+
+# Simply genreate a random string, thanks to Perlmonks
+sub generate_fake_string
+{
+	return join('', @_[ map{ rand @_ } 1 .. shift ]);
+}
+
+# Anonymize litteral in SQL queries by replacing parameters with fake values
+sub anonymize_query
+{
+	my $orig_query = shift;
+
+	return if (!$orig_query);
+
+	# Remove comments
+	$orig_query =~ s/\/\*(.*?)\*\///gs;
+
+	# Clean query
+	$orig_query =~ s/\\'//g;
+	$orig_query =~ s/('')+//g;
+
+	# Prevent date to be anonymized
+	$orig_query =~ s/'([\d\/\-\:\s]+)'/DATEBOUNDARY$1DATEBOUNDARY/g;
+
+	# Anonymize each values
+	$orig_query =~ s/'[^']*'/"'".&generate_fake_string(10, 'A'..'Z', 0..9, 'a'..'z', '-', '_', '.')."'"/eg;
+
+	# Restore quote around date values
+	$orig_query =~ s/DATEBOUNDARY/'/g;
+
+	return $orig_query;
+}
+
 
 __DATA__
 
