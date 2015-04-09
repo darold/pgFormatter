@@ -7,7 +7,7 @@
 # For license terms, see the LICENSE file.
 #
 # Author: Gilles Darold
-# Copyright: (c) 2012-2013 Gilles Darold - All rights reserved
+# Copyright: (c) 2012-2015 Gilles Darold - All rights reserved
 #------------------------------------------------------------------------------
 use vars qw($VERSION $SOFTWARE);
 
@@ -23,7 +23,7 @@ setlocale(LC_NUMERIC, '');
 setlocale(LC_ALL, 'C');
 use CGI;
 
-$VERSION = '1.2';
+$VERSION = '1.3';
 $SOFTWARE = 'pgFormatter',
 
 $| = 1;
@@ -44,7 +44,7 @@ my $cgi                 = undef;
 my $content             = '';
 my $show_example        = 0;
 my $project_url         = 'https://github.com/darold/pgFormatter';
-my $service_url         = 'http://sqlformat.darold.net/';  
+my $service_url         = '';  
 my $download_url        = 'http://sourceforge.net/projects/pgformatter/';
 my $anonymize           = 0;
 
@@ -148,6 +148,7 @@ div.footer { font: 14px Helvetica, Arial, sans-serif;clear: both; height:40px; c
 div.footer a strong { color: #eeeeee; font-weight: bold;}
 div.footer a, #footer a:visited { color: #eeeeee; }
 div.footer a:hover { color: #eeeeee; }
+div.smaller { font: 11px Helvetica, Arial, sans-serif;clear: both; color: #000000; padding:13px 0px 0 0;margin-left: auto; margin-right: auto; text-align: center; background-color: #ff7400; }
 
 #options {
 	width: 250px;
@@ -666,7 +667,6 @@ if ($ENV{GATEWAY_INTERFACE}) {
 	}
 	$lfile->close();
 	&logmsg('DEBUG', "Ok, generating output");
-	print "-"x80,"\n" if (($infile eq '-') && (!$outfile));
 }
 
 if ($ENV{GATEWAY_INTERFACE} && $show_example) {
@@ -716,6 +716,7 @@ if (!$ENV{GATEWAY_INTERFACE}) {
 	my %fct_toggle = (0 => '', 1 => '', 2 => '', 3 => '');
 	$fct_toggle{$uc_function} = ' selected="selected"';
 
+    $service_url = $cgi->url if (!$service_url);
 	print qq{
 <form method="post" action="" enctype="multipart/form-data">
  <table width="100%"><tr><td align="center" valign="top">
@@ -756,6 +757,7 @@ if (!$ENV{GATEWAY_INTERFACE}) {
 	</legend>
 	  <div id="indent_content" class="content">
 	    Indentation: <input name="spaces" value="$spaces" maxlength="2" type="text" id="spaces" size="2" /> spaces
+        <div class="smaller">(set it to 0 to obtain a single line statement)</div>
 	  </div>
     </fieldset>
     <p align="center"><input type="button" value="Reset all" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/></p>
@@ -1168,7 +1170,8 @@ sub highlight_code
 			elsif ($token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN|SET)$/i) {
 				# if we're not in a sub-select, make sure these always are
 				# at the far left (col 1)
-				$self->{_level} = 0 if ($last and $last ne '(' and $last ne 'FOR'); 
+				$self->_back if ($last and $last ne '(' and $last ne 'FOR');
+				#$self->{_level} = 0 if ($last and $last ne '(' and $last ne 'FOR'); 
 				$self->_new_line;
 				$self->_add_token($token);
 				$self->_new_line if ((($token ne 'SET') || $last) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';');

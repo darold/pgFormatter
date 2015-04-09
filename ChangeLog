@@ -1,3 +1,34 @@
+Mars 19 2015 - v1.3
+
+This release fixes several issues and adds geometric operators. It is also
+possible now to format an sql script with one statement per line, which is
+the reverse of the standard used.
+
+	- Update Copyright year.
+	- Add geometric operators. Thanks to Devin Ben-Hur for the report.
+	- With one statement per line format, keep comment on separate line.
+	  Thanks to Marco Schmidt for the patch.
+	- Allow pgFormatter to format an sql script with one statement per
+	  line (no line-break, no indent, no comments) when -s | --space is
+	  set to 0. Thanks to Marco Schmidt for the patch.
+	- Restrict regex matching in the ASCII range only with "use re /aa;".
+	  Regex that has a look-ahead or look-behind AND uses the "i" modifier
+	  need the "aa" modifiers too. This is for perl>=5.14. For perl<5.14
+	  you will just have a warning about non existant re pragma. Thanks
+	  to Kevin Brannen for the patch.
+	- Fix bug where capitalize makes functions disappear. Thanks to Vincent
+	  Picavet for the report.
+	- Fix usage where obsolete -c option was still used.
+	- Add new sample file.
+	- Fix left joins that came out too far to the left and remove newline
+	  after OUTER. Thanks to Kevin Brannen for the report.
+	- Applied typo patch of Felix Hummel to the POD documentation.
+	- Fix some typo on documentation. Thanks to Felix Hummel for the patch.
+	- Fix issue in formatting double quotes included into single quotes.
+	  Thanks to Julien Rouhaud for the report.
+	- Fix issue with Perl 5.16 that do not allow "ss" inside look-behind
+	  assertions. Thanks to Cedric for the report.
+
 January 11 2013 - v1.2
 
 This release add file upload capability in CGI context and better code
