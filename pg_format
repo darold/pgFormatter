@@ -554,8 +554,7 @@ my %SYMBOLS = (
 	'='  => '=', '<'  => '&lt;', '>' => '&gt;', '\|' => '|', ',' => ',', '\.' => '.', '\+' => '+', '\-' => '-',
 	'\*' => '*', '\/' => '/', '!=' => '!='
 );
-my @BRACKETS = ('(', ')');
-map {$_ = quotemeta($_)} @BRACKETS;
+my @BRACKETS = map {quotemeta($_)} ('(', ')');
 
 
 if ($ENV{GATEWAY_INTERFACE}) {
