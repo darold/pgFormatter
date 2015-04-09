@@ -569,7 +569,7 @@ if ($ENV{GATEWAY_INTERFACE}) {
 		$content      = $cgi->param('content') || $content;
 		$nocomment    = $cgi->param('nocomment');
 		$show_example = $cgi->param('show_example');
-		$anonymize = $cgi->param('anonymize');
+		$anonymize    = $cgi->param('anonymize');
 
 		# Do some sanity check
 		$colorize     = 1 if ($colorize && ($colorize !~ /^(0|1)$/));
