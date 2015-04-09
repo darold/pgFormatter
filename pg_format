@@ -1435,7 +1435,7 @@ sub highlight_code
 			return $rule if (grep {uc($token) eq uc($_)} @$list);
 		}
 
-		return undef;
+		return;
 	}
 
 	sub _process_rule
