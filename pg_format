@@ -1568,9 +1568,22 @@ This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, S
 }
 
 # Simply genreate a random string, thanks to Perlmonks
-sub generate_fake_string
+sub generate_anonymized_string
 {
-	return join('', @_[ map{ rand @_ } 1 .. shift ]);
+	my ($original, $cache) = @_;
+
+	# Prevent dates from being anonymized
+	return $original if $original =~ m{\A\d\d\d\d[/:-]\d\d[/:-]\d\d\z};
+	return $original if $original =~ m{\A\d\d[/:-]\d\d[/:-]\d\d\d\d\z};
+
+	# Range of characters to use in anonymized strings
+	my @chars = ('A'..'Z', 0..9, 'a'..'z', '-', '_', '.');
+
+	unless ($cache->{$original}) {
+		# Actual anonymized version generation
+		$cache->{$original} = join('', map { $chars[rand @chars] } 1..10 );
+	}
+	return $cache->{$original};
 }
 
 # Anonymize litteral in SQL queries by replacing parameters with fake values
@@ -1580,6 +1593,10 @@ sub anonymize_query
 
 	return if (!$orig_query);
 
+    # Variable to hold anonymized versions, so we can provide the same value
+    # for the same input, within single query.
+    my $anonymization_cache = {};
+
 	# Remove comments
 	$orig_query =~ s/\/\*(.*?)\*\///gs;
 
@@ -1587,14 +1604,8 @@ sub anonymize_query
 	$orig_query =~ s/\\'//g;
 	$orig_query =~ s/('')+//g;
 
-	# Prevent date to be anonymized
-	$orig_query =~ s/'([\d\/\-\:\s]+)'/DATEBOUNDARY$1DATEBOUNDARY/g;
-
 	# Anonymize each values
-	$orig_query =~ s/'[^']*'/"'".&generate_fake_string(10, 'A'..'Z', 0..9, 'a'..'z', '-', '_', '.')."'"/eg;
-
-	# Restore quote around date values
-	$orig_query =~ s/DATEBOUNDARY/'/g;
+	$orig_query =~ s/'([^']*)'/"'".generate_anonymized_string($1, $anonymization_cache)."'"/eg;
 
 	return $orig_query;
 }
