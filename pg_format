@@ -554,8 +554,7 @@ my %SYMBOLS = (
 	'='  => '=', '<'  => '&lt;', '>' => '&gt;', '\|' => '|', ',' => ',', '\.' => '.', '\+' => '+', '\-' => '-',
 	'\*' => '*', '\/' => '/', '!=' => '!='
 );
-my @BRACKETS = ('(', ')');
-map {$_ = quotemeta($_)} @BRACKETS;
+my @BRACKETS = map {quotemeta($_)} ('(', ')');
 
 
 if ($ENV{GATEWAY_INTERFACE}) {
@@ -1436,7 +1435,7 @@ sub highlight_code
 			return $rule if (grep {uc($token) eq uc($_)} @$list);
 		}
 
-		return undef;
+		return;
 	}
 
 	sub _process_rule
@@ -1482,9 +1481,9 @@ sub html_footer
 	# used to display ads or anything else below the text area
         my @ad_content = ();
         if (-e $bottom_ad_file && !-z $bottom_ad_file) {
-            if (open(IN, "$bottom_ad_file")) {
-                @ad_content = <IN>;
-		close(IN);
+            if (open(my $in, '<', $bottom_ad_file)) {
+                @ad_content = <$in>;
+		close($in);
             }
         } else {
 		push(@ad_content, "<br/>");
@@ -1511,16 +1510,16 @@ sub html_header
         my @ad_content = ();
         my @track_content = ();
         if (-e $head_track_file && !-z $head_track_file) {
-            if (open(IN, "$head_track_file")) {
-                @track_content = <IN>;
-		close(IN);
+            if (open(my $in, '<', $head_track_file)) {
+                @track_content = <$in>;
+		close($in);
             }
         } 
 
         if (-e $css_file && !-z $css_file) {
-            if (open(IN, "$css_file")) {
-                @style_content = <IN>;
-		close(IN);
+            if (open(my $in, '<', $css_file)) {
+                @style_content = <$in>;
+		close($in);
             }
         } 
 
