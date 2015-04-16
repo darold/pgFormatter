@@ -1574,7 +1574,7 @@ This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, S
 # Simply genreate a random string, thanks to Perlmonks
 sub generate_anonymized_string
 {
-	my ($original, $cache, $before) = @_;
+	my ($original, $cache, $before, $after) = @_;
 
 	# Prevent dates from being anonymized
 	return $original if $original =~ m{\A\d\d\d\d[/:-]\d\d[/:-]\d\d\z};
@@ -1583,6 +1583,7 @@ sub generate_anonymized_string
 	return $original if $original =~ m{\A(?:FM|FX|TM)?(?:HH|HH12|HH24|MI|SS|MS|US|SSSS|AM|A\.M\.|PM|P\.M\.|am|a\.m\.|pm|p\.m\.|Y,YYY|YYYY|YYY|YY|Y|IYYY|IYY|IY|I|BC|B\.C\.|AD|A\.D\.|bc|b\.c\.|ad|a\.d\.|MONTH|Month|month|MON|Mon|mon|MM|DAY|Day|day|DY|Dy|dy|DDD|DD|D|W|WW|IW|CC|J|Q|RM|rm|TZ|tz|[\s\/\-:])+(?:TH|th|SP)?\z};
 	# Prevent interval from being anonymized
 	return $original if $before =~ /interval/i;
+	return $original if $after =~ /^[\)]*\:\:interval/i;
 
 	# Range of characters to use in anonymized strings
 	my @chars = ('A'..'Z', 0..9, 'a'..'z', '-', '_', '.');
@@ -1613,7 +1614,7 @@ sub anonymize_query
 	$orig_query =~ s/('')+//g;
 
 	# Anonymize each values
-	$orig_query =~ s/([^\s]+[\s\(]*)'([^']*)'/"$1'".generate_anonymized_string($2, $anonymization_cache, $1)."'"/eg;
+	$orig_query =~ s/([^\s]+[\s\(]*)'([^']*)'([\)]*::\w+)?/"$1'".generate_anonymized_string($2, $anonymization_cache, $1, $3)."'$3"/eg;
 
 	return $orig_query;
 }
