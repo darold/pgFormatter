@@ -1239,7 +1239,9 @@ sub highlight_code
 			}
 
 			elsif ($token =~ /^(?:AND|OR)$/i) {
-				$self->_new_line;
+				if (!$last or ($last !~ /^(?:CREATE)$/i) ) {
+					$self->_new_line;
+				}
 				$self->_add_token($token);
 			}
 
