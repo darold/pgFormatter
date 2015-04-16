@@ -1042,8 +1042,10 @@ sub highlight_code
         (?:[\w:@]+(?:\.(?:\w+|\*)?)*)
                                 # words, standard named placeholders, db.table.*, db.*
         |
-        (?: \$_\$ | \$\d+ | \${1,2} )
-                                # dollar expressions - eg $_$ $3 $$
+        (?:\$\w+\$)
+        |
+        (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$ )
+                                # dollar expressions - eg $_$ $3 $$ $BODY$
         |
         \n                      # newline
         |
