@@ -1,63 +1,95 @@
+April 18 2015 - v1.4
+
+This release fixes several issues and adds a useful anonymization option to
+be able to obfuscate all values in SQL queries, see option -a | --anonymize
+at command line or the corresponding checkbox in the CGI interface.
+
+  - Fix wrong reset position when a FROM clause is encountered in a subselect.
+    Thanks to Alvaro Herrera for the report.
+  - Add information on indentation to obtain a single line statement in CGI
+    interface.
+  - Remove unecessary first line in text mode and stdout output. Thanks to
+    David Fetter for the report.
+  - Automatically set default page for Reset all redirection. Thanks to
+    rimbault for the report.
+  - Add -a | --anonymize to obfuscate all values in SQL queries.
+  - Add checkbox to activation anonymize feature from CGI interface.
+  - Ran perlcritic on the code, and fixed most critical issues. Thanks to
+    Hubert depesz Lubaczewski for the patch.
+  - Make anonymization more useful. Thanks to Hubert depesz Lubaczewski for
+    the patch.
+  - Removed anonymisation of interval value (eg: 1 day) and to_char date format
+    (eg: DD/MM/YYYY HH24:MI:SS. Add a sample into ex4.sql file.
+  - Add REPLACE to the list of SQL keywords. Thanks to Alvaro Herrera for the
+    report.
+  - Prevent new line to be inserted before OR after a CREATE keyword to have
+    CREATE OR REPLACE on a single line.
+  - Fix additional spaces added in function body separator ($BODY$ was
+    rewritten as $ BODY $). Thanks to Alvaro Herrera for the report.
+  - Prevent (....)::interval to be replaced by the anonymizer.
+  - Add sample file with create function for testing purpose.
+
+
 Mars 19 2015 - v1.3
 
 This release fixes several issues and adds geometric operators. It is also
 possible now to format an sql script with one statement per line, which is
 the reverse of the standard used.
 
-	- Update Copyright year.
-	- Add geometric operators. Thanks to Devin Ben-Hur for the report.
-	- With one statement per line format, keep comment on separate line.
-	  Thanks to Marco Schmidt for the patch.
-	- Allow pgFormatter to format an sql script with one statement per
-	  line (no line-break, no indent, no comments) when -s | --space is
-	  set to 0. Thanks to Marco Schmidt for the patch.
-	- Restrict regex matching in the ASCII range only with "use re /aa;".
-	  Regex that has a look-ahead or look-behind AND uses the "i" modifier
-	  need the "aa" modifiers too. This is for perl>=5.14. For perl<5.14
-	  you will just have a warning about non existant re pragma. Thanks
-	  to Kevin Brannen for the patch.
-	- Fix bug where capitalize makes functions disappear. Thanks to Vincent
-	  Picavet for the report.
-	- Fix usage where obsolete -c option was still used.
-	- Add new sample file.
-	- Fix left joins that came out too far to the left and remove newline
-	  after OUTER. Thanks to Kevin Brannen for the report.
-	- Applied typo patch of Felix Hummel to the POD documentation.
-	- Fix some typo on documentation. Thanks to Felix Hummel for the patch.
-	- Fix issue in formatting double quotes included into single quotes.
-	  Thanks to Julien Rouhaud for the report.
-	- Fix issue with Perl 5.16 that do not allow "ss" inside look-behind
-	  assertions. Thanks to Cedric for the report.
+  - Update Copyright year.
+  - Add geometric operators. Thanks to Devin Ben-Hur for the report.
+  - With one statement per line format, keep comment on separate line.
+    Thanks to Marco Schmidt for the patch.
+  - Allow pgFormatter to format an sql script with one statement per
+    line (no line-break, no indent, no comments) when -s | --space is
+    set to 0. Thanks to Marco Schmidt for the patch.
+  - Restrict regex matching in the ASCII range only with "use re /aa;".
+    Regex that has a look-ahead or look-behind AND uses the "i" modifier
+    need the "aa" modifiers too. This is for perl>=5.14. For perl<5.14
+    you will just have a warning about non existant re pragma. Thanks
+    to Kevin Brannen for the patch.
+  - Fix bug where capitalize makes functions disappear. Thanks to Vincent
+    Picavet for the report.
+  - Fix usage where obsolete -c option was still used.
+  - Add new sample file.
+  - Fix left joins that came out too far to the left and remove newline
+    after OUTER. Thanks to Kevin Brannen for the report.
+  - Applied typo patch of Felix Hummel to the POD documentation.
+  - Fix some typo on documentation. Thanks to Felix Hummel for the patch.
+  - Fix issue in formatting double quotes included into single quotes.
+    Thanks to Julien Rouhaud for the report.
+  - Fix issue with Perl 5.16 that do not allow "ss" inside look-behind
+    assertions. Thanks to Cedric for the report.
 
 January 11 2013 - v1.2
 
 This release add file upload capability in CGI context and better code
 formatting.
 
-	- Add HTML break before the footer in CGI context.
-	- Add missing SQL::Beautify paternity and update license part
-	  of the documentation.
-	- Allow file upload in CGI context.
-	- Fix issue in formatting that prevent left back indentation
-	  when major keywords were found. Thanks to Kevin Brannen for
-	  the patch.
-	- Add information in code comments about external files in
-	  CGI mode.
-	- Force the parser to not insert a new line after the SET
-	  keyword when the query begin with it. This is to preserve the
-	  single line with queries like SET client_encoding TO "utf8";
-	- Add new line after SET keyword to better format UPDATE queries.
-	  Thanks to Pilat66 for the report.
+  - Add HTML break before the footer in CGI context.
+  - Add missing SQL::Beautify paternity and update license part
+    of the documentation.
+  - Allow file upload in CGI context.
+  - Fix issue in formatting that prevent left back indentation
+    when major keywords were found. Thanks to Kevin Brannen for
+    the patch.
+  - Add information in code comments about external files in
+    CGI mode.
+  - Force the parser to not insert a new line after the SET
+    keyword when the query begin with it. This is to preserve the
+    single line with queries like SET client_encoding TO "utf8";
+  - Add new line after SET keyword to better format UPDATE queries.
+    Thanks to Pilat66 for the report.
 
 December 27 2012 - v1.1
 
-	- Preserve SQL code formatting when copy/paste.
-	- Removed coypright from CGI footer
-	- Modify links at the bottom of the CGI interface.
-	- Fix obsolete option in usage example.
-	- Limit SQL query size to $maxlength in CGI context and non interactive usage.
+  - Preserve SQL code formatting when copy/paste.
+  - Removed coypright from CGI footer
+  - Modify links at the bottom of the CGI interface.
+  - Fix obsolete option in usage example.
+  - Limit SQL query size to $maxlength in CGI context and non interactive usage.
 
 December 22 2012 - v1.0
 
-	This is the initial release of pgFormatter
+  This is the initial release of pgFormatter
 
