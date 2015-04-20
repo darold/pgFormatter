@@ -1,0 +1,212 @@
+package pgFormatter::CLI;
+
+# UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
+use v5.14;    # It was released in 2011, so I guess we can assume anything should have it by now.
+use strict;
+use warnings;
+use warnings qw( FATAL utf8 );
+use utf8;
+use open qw( :std :utf8 );
+use Encode qw( decode );
+
+# UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
+
+# Version of pgFormatter
+our $VERSION = '1.4';
+
+use autodie;
+use pgFormatter::Beautify;
+use Getopt::Long qw(:config no_ignore_case bundling);
+use File::Basename;
+
+# Object constructor, nothing fancy in here.
+sub new {
+    my $class = shift;
+    return bless {}, $class;
+}
+
+# Wraps all work related to pg_format CLI program
+sub run {
+    my $self = shift;
+    $self->get_command_line_args();
+    $self->validate_args();
+    $self->logmsg( 'DEBUG', 'Starting to parse SQL file: %s', $self->{ 'cfg' }->{ 'input' } );
+    $self->load_sql();
+    $self->logmsg( 'DEBUG', 'Beautifying' );
+    $self->beautify();
+    $self->logmsg( 'DEBUG', 'Writing output' );
+    $self->save_output();
+    return;
+}
+
+# Actually formats loaded query using pgFormatter::Beautify library. If necessary runs anonymization.
+sub beautify {
+    my $self = shift;
+    my %args;
+    $args{ 'no_comments' }  = 1 if $self->{ 'cfg' }->{ 'nocomment' };
+    $args{ 'spaces' }       = $self->{ 'cfg' }->{ 'spaces' };
+    $args{ 'uc_keywords' }  = $self->{ 'cfg' }->{ 'keyword-case' };
+    $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
+
+    my $beautifier = pgFormatter::Beautify->new( %args );
+    $beautifier->query( $self->{ 'query' } );
+    $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
+    $beautifier->beautify();
+
+    $self->{ 'ready' } = $beautifier->content();
+    return;
+}
+
+# Saves beautified query to whatever is output filehandle
+sub save_output {
+    my $self = shift;
+    my $fh   = delete $self->{ 'output' };
+    print $fh $self->{ 'ready' };
+    close $fh;
+    return;
+}
+
+# Display message following the log level
+sub logmsg {
+    my $self = shift;
+    my ( $level, $str, @args ) = @_;
+
+    return if ( !$self->{ 'cfg' }->{ 'debug' } && ( $level eq 'DEBUG' ) );
+
+    printf STDERR "%s: $str\n", $level, @args;
+    return;
+}
+
+# As name suggests - shows help page, with optional error message, and ends program.
+sub show_help_and_die {
+    my $self = shift;
+    my ( $status, $format, @args ) = @_;
+
+    if ( $format ) {
+        $format =~ s/\s*$//;
+        printf STDERR "Error: $format\n\n", @args;
+    }
+
+    my $program_name = basename( $0 );
+    my $help         = qq{
+Usage: $program_name [options] file.sql
+
+    PostgreSQL SQL queries and PL/PGSQL code beautifier.
+
+Arguments:
+
+    file.sql can be a file or use - to read query from stdin.
+
+    Returning the SQL formatted to stdout or into a file specified with
+    the -o | --ouput option.
+
+Options:
+
+    -a | --anonymize      : obscure all literals in queries, useful to hide
+                            confidential data before formatting.
+    -d | --debug          : enable debug mode. Disabled by default.
+    -f | --function-case N: Change the case of the reserved keyword. Default is
+                            unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
+    -h | --help           : show this message and exit.
+    -m | --maxlength SIZE : maximum length of a query, it will be cutted above
+                            the given size. Default: no truncate.
+    -n | --nocomment      : remove any comment from SQL code.
+    -o | --output file    : define the filename for the output. Default: stdout.
+    -s | --spaces size    : change space indent, default 4 spaces.
+    -u | --keyword-case N : Change the case of the reserved keyword. Default is
+                            uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
+    -v | --version        : show pg_format version and exit.
+
+Examples:
+
+    cat samples/ex1.sql | $0 -
+    $0 -n samples/ex1.sql
+    $0 -f 2 -n -o result.sql samples/ex1.sql
+};
+
+    if ( $status ) {
+        print STDERR $help;
+    }
+    else {
+        print $help;
+    }
+
+    exit $status;
+}
+
+# Loads SQL from input file or stdin.
+sub load_sql {
+    my $self = shift;
+    local $/ = undef;
+    my $fh = delete $self->{ 'input' };
+    $self->{ 'query' } = <$fh>;
+    close $fh;
+    return;
+}
+
+# Parses command line options into $self->{'cfg'}.
+sub get_command_line_args {
+    my $self = shift;
+    my %cfg;
+    my @options = (
+        'anonymize|a!',
+        'debug|d!',
+        'function-case|f=i',
+        'help|h!',
+        'nocomment|n!',
+        'output|o=s',
+        'spaces|s=i',
+        'keyword-case|u=i',
+        'version|v!',
+    );
+
+    $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
+
+    $self->show_help_and_die( 0 ) if $cfg{ 'help' };
+
+    if ( $cfg{ 'version' } ) {
+        printf '%s version %s%s', basename( $0 ), $VERSION, "\n";
+        exit 0;
+    }
+
+    $cfg{ 'spaces' }        //= 4;
+    $cfg{ 'output' }        //= '-';
+    $cfg{ 'function-case' } //= 0;
+    $cfg{ 'keyword-case' }  //= 2;
+
+    $cfg{ 'input' } = $ARGV[ 0 ] // '-';
+    $self->{ 'cfg' } = \%cfg;
+    return;
+}
+
+# Validates that options parsed from command line have sensible values, opens input and output files.
+sub validate_args {
+    my $self = shift;
+
+    $self->show_help_and_die( 2, 'function-case can be only one of: 0, 1, 2, or 3.' ) unless $self->{ 'cfg' }->{ 'function-case' } =~ m{\A[0123]\z};
+    $self->show_help_and_die( 2, 'keyword-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'keyword-case' } =~ m{\A[0123]\z};
+
+    # Thanks to "autodie" I don't have to check if open() worked.
+    if ( $self->{ 'cfg' }->{ 'input' } eq '-' ) {
+        $self->{ 'input' } = \*STDIN;
+    }
+    else {
+        open my $fh, '<', $self->{ 'cfg' }->{ 'input' };
+        $self->{ 'input' } = $fh;
+    }
+
+    if ( $self->{ 'cfg' }->{ 'output' } eq '-' ) {
+        $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
+        $self->{ 'output' } = \*STDOUT;
+    }
+    else {
+        $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to %s', $self->{ 'cfg' }->{ 'output' } );
+        open my $fh, '>', $self->{ 'cfg' }->{ 'output' };
+        $self->{ 'output' } = $fh;
+    }
+    return;
+}
+
+1;
