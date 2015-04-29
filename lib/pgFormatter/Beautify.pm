@@ -337,7 +337,7 @@ sub beautify {
                 $self->_new_line;
             }
             $self->_add_token( $token );
-            if ( $last =~ /^(?:INNER|OUTER)$/i ) {
+            if ( $last && $last =~ /^(?:INNER|OUTER)$/i ) {
                 $self->_over;
             }
         }
