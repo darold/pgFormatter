@@ -11,6 +11,16 @@ use Encode qw( decode );
 
 # UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
 
+=head1 NAME
+
+pgFormatter::CLI - Implementation of command line program to format SQL queries.
+
+=head1 VERSION
+
+Version 1.4
+
+=cut
+
 # Version of pgFormatter
 our $VERSION = '1.4';
 
@@ -19,13 +29,36 @@ use pgFormatter::Beautify;
 use Getopt::Long qw(:config no_ignore_case bundling);
 use File::Basename;
 
-# Object constructor, nothing fancy in here.
+=head1 SYNOPSIS
+
+This module is called by pg_format program, when it detects it is not being
+run in CGI environment. In such case all control over flow is passed to this
+module by calling:
+
+    my $program = pgFormatter::CLI->new();
+    $program->run()
+
+=head1 FUNCTIONS
+
+=head2 new
+
+Object constructor, nothing fancy in here.
+
+=cut
+
 sub new {
     my $class = shift;
     return bless {}, $class;
 }
 
-# Wraps all work related to pg_format CLI program
+=head2 run
+
+Wraps all work related to pg_format CLI program. This includes calling
+methods to read command line parameters, validate them, read query, beautify
+it, and output.
+
+=cut
+
 sub run {
     my $self = shift;
     $self->get_command_line_args();
@@ -39,7 +72,13 @@ sub run {
     return;
 }
 
-# Actually formats loaded query using pgFormatter::Beautify library. If necessary runs anonymization.
+=head2 beautify
+
+Actually formats loaded query using pgFormatter::Beautify library. If
+necessary runs anonymization.
+
+=cut
+
 sub beautify {
     my $self = shift;
     my %args;
@@ -57,7 +96,12 @@ sub beautify {
     return;
 }
 
-# Saves beautified query to whatever is output filehandle
+=head2 save_output
+
+Saves beautified query to whatever is output filehandle
+
+=cut
+
 sub save_output {
     my $self = shift;
     my $fh   = delete $self->{ 'output' };
@@ -66,7 +110,12 @@ sub save_output {
     return;
 }
 
-# Display message following the log level
+=head2 logmsg
+
+Display message following the log level
+
+=cut
+
 sub logmsg {
     my $self = shift;
     my ( $level, $str, @args ) = @_;
@@ -77,7 +126,13 @@ sub logmsg {
     return;
 }
 
-# As name suggests - shows help page, with optional error message, and ends program.
+=head2 show_help_and_die
+
+As name suggests - shows help page, with optional error message, and ends
+program.
+
+=cut
+
 sub show_help_and_die {
     my $self = shift;
     my ( $status, $format, @args ) = @_;
@@ -136,7 +191,12 @@ Examples:
     exit $status;
 }
 
-# Loads SQL from input file or stdin.
+=head2 load_sql
+
+Loads SQL from input file or stdin.
+
+=cut
+
 sub load_sql {
     my $self = shift;
     local $/ = undef;
@@ -146,7 +206,12 @@ sub load_sql {
     return;
 }
 
-# Parses command line options into $self->{'cfg'}.
+=head2 get_command_line_args
+
+Parses command line options into $self->{'cfg'}.
+
+=cut
+
 sub get_command_line_args {
     my $self = shift;
     my %cfg;
@@ -181,7 +246,13 @@ sub get_command_line_args {
     return;
 }
 
-# Validates that options parsed from command line have sensible values, opens input and output files.
+=head2 validate_args
+
+Validates that options parsed from command line have sensible values, opens
+input and output files.
+
+=cut
+
 sub validate_args {
     my $self = shift;
 
@@ -208,5 +279,27 @@ sub validate_args {
     }
     return;
 }
+
+=head1 AUTHOR
+
+pgFormatter is an original work from Gilles Darold
+
+=head1 BUGS
+
+Please report any bugs or feature requests to: https://github.com/darold/pgFormatter/issues
+
+=head1 COPYRIGHT
+
+Copyright 2012-2015 Gilles Darold. All rights reserved.
+
+=head1 LICENSE
+
+pgFormatter is free software distributed under the PostgreSQL Licence.
+
+A modified version of the SQL::Beautify Perl Module is embedded in pgFormatter
+with copyright (C) 2009 by Jonas Kramer and is published under the terms of
+the Artistic License 2.0.
+
+=cut
 
 1;

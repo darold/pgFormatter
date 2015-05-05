@@ -11,6 +11,16 @@ use Encode qw( decode );
 
 # UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
 
+=head1 NAME
+
+pgFormatter::CGI - Implementation of CGI-BIN script to format SQL queries.
+
+=head1 VERSION
+
+Version 1.4
+
+=cut
+
 # Version of pgFormatter
 our $VERSION = '1.4';
 
@@ -18,13 +28,39 @@ use pgFormatter::Beautify;
 use File::Basename;
 use CGI;
 
-# Object constructor, nothing fancy in here.
+=head1 SYNOPSIS
+
+This module is called by pg_format program, when it detects it is run in CGI
+environment. In such case all control over flow is passed to this module by
+calling:
+
+    my $program = pgFormatter::CGI->new();
+    $program->run()
+
+=head1 FUNCTIONS
+
+=head2 new
+
+Object constructor, calls L<set_config> method to set default values for
+various parameters.
+
+=cut
+
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
     $self->set_config();
     return $self;
 }
+
+=head2 run
+
+Wraps all work related to generating html page.
+
+It calls set of functions to get CGI object, receive parameters from
+request, sanitize them, beautify query (if provided) and print ghtml.
+
+=cut
 
 sub run {
     my $self = shift;
@@ -38,12 +74,25 @@ sub run {
     return;
 }
 
+=head2 get_cgi
+
+Creates CGI object, and sets POST size limit
+
+=cut
+
 sub get_cgi {
     my $self = shift;
     $self->{ 'cgi' } = CGI->new();
     $CGI::POST_MAX = $self->{ 'maxlength' };
     return;
 }
+
+=head2
+
+Sets config for the page and beautifier. URLs, names of auxiliary files,
+configuration for pgFormatter::Beautify module.
+
+=cut
 
 sub set_config {
     my $self = shift;
@@ -77,12 +126,25 @@ sub set_config {
     return;
 }
 
+=head2
+
+Loads, and returns, default CSS from __DATA__.
+
+=cut
+
 sub default_styles {
     my $shift;
     local $/;
     my $style = <DATA>;
     return $style;
 }
+
+=head2
+
+Gets values of parameters, and possibly uploaded file from CGI object to
+structures in $self.
+
+=cut
 
 sub get_params {
     my $self = shift;
@@ -114,6 +176,12 @@ sub get_params {
     return;
 }
 
+=head2 sanitize_params
+
+Overrides parameter values if given values were not within acceptable ranges.
+
+=cut
+
 sub sanitize_params {
     my $self = shift;
     $self->{ 'colorize' }     = 1 if $self->{ 'colorize' } !~ /^(0|1)$/;
@@ -133,6 +201,12 @@ SELECT DISTINCT (current_database())::information_schema.sql_identifier AS view_
     return;
 }
 
+=head2 beautify_query
+
+Runs beautification on provided query, and stores new version in $self->{'content'}
+
+=cut
+
 sub beautify_query {
     my $self = shift;
     return if $self->{ 'show_example' };
@@ -146,11 +220,17 @@ sub beautify_query {
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'content' } );
     $beautifier->anonymize() if $self->{ 'anonymize' };
-    $beautifier->beautify();
+    $beautifier->html_highlight_code();
 
     $self->{ 'content' } = $beautifier->content();
     return;
 }
+
+=head2
+
+Outputs body of the page.
+
+=cut
 
 sub print_body {
     my $self = shift;
@@ -243,6 +323,12 @@ qq{<textarea name="content" id="sqlcontent" onfocus="if (done == 0) this.value='
     return;
 }
 
+=head2 print_footer
+
+Outputs footer of the page
+
+=cut
+
 sub print_footer {
     my $self = shift;
 
@@ -259,6 +345,13 @@ qq{ <div class="footer"> Service provided by <a href="$self->{ 'download_url' }"
 
 }
 
+=head2 _load_optional_file
+
+Helper function to try to load file. If it succeeds, it returns file
+content, it not, it returns empty string (instead of dying).
+
+=cut
+
 sub _load_optional_file {
     my $self     = shift;
     my $filename = shift;
@@ -272,6 +365,12 @@ sub _load_optional_file {
     close $in;
     return $content;
 }
+
+=head2 print_headers
+
+Outputs page headers - both HTTP level headers, and HTML.
+
+=cut
 
 sub print_headers {
     my $self = shift;
@@ -330,7 +429,33 @@ _END_OF_HTML_HEADER_
     return;
 }
 
-# __DATA__ Is used to store default CSS Style, so that it will not "pollute" Perl code, and will not need to be indented
+=head1 DATA
+
+__DATA__ section (at the end of this file) is used to store default CSS
+Style, so that it will not "pollute" Perl code, and will not need to be
+indented.
+
+=head1 AUTHOR
+
+pgFormatter is an original work from Gilles Darold
+
+=head1 BUGS
+
+Please report any bugs or feature requests to: https://github.com/darold/pgFormatter/issues
+
+=head1 COPYRIGHT
+
+Copyright 2012-2015 Gilles Darold. All rights reserved.
+
+=head1 LICENSE
+
+pgFormatter is free software distributed under the PostgreSQL Licence.
+
+A modified version of the SQL::Beautify Perl Module is embedded in pgFormatter
+with copyright (C) 2009 by Jonas Kramer and is published under the terms of
+the Artistic License 2.0.
+
+=cut
 
 __DATA__
 

@@ -16,6 +16,16 @@ use re '/aa';
 
 # Without this, usage of /(?<!STYLES)/i will break
 
+=head1 NAME
+
+pgFormatter::Beautify - Library for pretty-printing SQL queries
+
+=head1 VERSION
+
+Version 1.4
+
+=cut
+
 # Version of pgFormatter
 our $VERSION = '1.4';
 
@@ -23,7 +33,77 @@ our $VERSION = '1.4';
 # Copyright (C) 2009 by Jonas Kramer
 # Published under the terms of the Artistic License 2.0.
 
-# Generic constructur - creates object, sets defaults, and reads config from given hash with options.
+=head1 SYNOPSIS
+
+This module can be used to reformat given SQL query, optionally anonymizing parameters.
+
+Output can be either plain text, or it can be HTML with appropriate styles so that it can be displayed on a web page.
+
+Example usage:
+
+    my $beautifier = pgFormatter::Beautify->new();
+    $beautifier->query( 'select a,b,c from d where e = f' );
+
+    $beautifier->beautify();
+    my $nice_txt = $beautifier->content();
+
+    $beautifier->html_highlight_code();
+    my $nice_html = $beautifier->content();
+
+    $beautifier->anonymize();
+    $beautifier->html_highlight_code();
+    my $nice_anonymized_html = $beautifier->content();
+
+=head1 FUNCTIONS
+
+=head2 new
+
+Generic constructur - creates object, sets defaults, and reads config from given hash with options.
+
+Takes options as hash. Following options are recognized:
+
+=over
+
+=item * break - String that is used for linebreaks. Default is "\n".
+
+=item * functions - list (arrayref) of strings that are function names
+
+=item * keywords - list (arrayref) of strings that are keywords
+
+=item * no_comments - if set to true comments will be removed from query
+
+=item * query - query to beautify
+
+=item * rules - hash of rules - uses rule semantics from SQL::Beautify
+
+=item * space - character(s) to be used as space for indentation
+
+=item * spaces - how many spaces to use for indentation
+
+=item * uc_functions - what to do with function names:
+
+=over
+
+=item 0 - do not change
+
+=item 1 - change to lower case
+
+=item 2 - change to upper case
+
+=item 3 - change to Capitalized
+
+=back
+
+=item * uc_keywords - what to do with keywords - meaning of value like with uc_functions
+
+=item * wrap - wraps given keywords in pre- and post- markup. Specific docs in SQL::Beautify
+
+=back
+
+For defaults, please check function L<set_defaults>.
+
+=cut
+
 sub new {
     my $class   = shift;
     my %options = @_;
@@ -44,7 +124,18 @@ sub new {
     return $self;
 }
 
-# Accessor to query string. Both reads ($object->query()), and writes ($object->query( $something ))
+=head2 query
+
+Accessor to query string. Both reads:
+
+    $object->query()
+
+, and writes
+
+    $object->query( $something )
+
+=cut
+
 sub query {
     my $self      = shift;
     my $new_value = shift;
@@ -53,8 +144,14 @@ sub query {
     return $self->{ 'query' };
 }
 
-# Accessor to content of results.
-# This can be either plain text (after $object->beautify()), or html, if client code called $object->html_highlight_code()
+=head2 content
+
+Accessor to content of results.
+
+This can be either plain text (after $object->beautify()), or html, if client code called $object->html_highlight_code()
+
+=cut
+
 sub content {
     my $self      = shift;
     my $new_value = shift;
@@ -63,7 +160,14 @@ sub content {
     return $self->{ 'content' };
 }
 
-# Makes result (in $object->content()) html with styles set for highlighting.
+=head2 html_highlight_code
+
+Makes result (in $object->content()) html with styles set for highlighting.
+
+Internally it calls L<beautify()> method, and then reformats output to HTML form.
+
+=cut
+
 sub html_highlight_code {
     my $self = shift;
 
@@ -158,8 +262,14 @@ sub html_highlight_code {
     return;
 }
 
-# Splits input SQL into tokens
-# Code lifted from SQL::Beautify
+=head2 tokenize_sql
+
+Splits input SQL into tokens
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub tokenize_sql {
     my $self  = shift;
     my $query = $self->query();
@@ -209,9 +319,16 @@ sub tokenize_sql {
     $self->{ '_tokens' } = \@query;
 }
 
-# Beautify SQL.
-# After calling this function, $object->content() will contain nicely indented result.
-# Code lifted from SQL::Beautify
+=head2 beautify
+
+Beautify SQL.
+
+After calling this function, $object->content() will contain nicely indented result.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub beautify {
     my $self = shift;
 
@@ -381,8 +498,14 @@ sub beautify {
     return;
 }
 
-# Add a token to the beautified string.
-# Code lifted from SQL::Beautify
+=head2 _add_token
+
+Add a token to the beautified string.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _add_token {
     my ( $self, $token, $last_token ) = @_;
 
@@ -429,25 +552,43 @@ sub _add_token {
     $self->{ '_new_line' } = 0;
 }
 
-# Increase the indentation level.
-# Code lifted from SQL::Beautify
+=head2 _over
+
+Increase the indentation level.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _over {
     my ( $self ) = @_;
 
     ++$self->{ '_level' };
 }
 
-# Decrease the indentation level.
-# Code lifted from SQL::Beautify
+=head2 _back
+
+Decrease the indentation level.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _back {
     my ( $self ) = @_;
 
     --$self->{ '_level' } if ( $self->{ '_level' } > 0 );
 }
 
-# Return a string of spaces according to the current indentation level and the
-# spaces setting for indenting.
-# Code lifted from SQL::Beautify
+=head2 _indent
+
+Return a string of spaces according to the current indentation level and the
+spaces setting for indenting.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _indent {
     my ( $self ) = @_;
 
@@ -459,8 +600,14 @@ sub _indent {
     }
 }
 
-# Add a line break, but make sure there are no empty lines.
-# Code lifted from SQL::Beautify
+=head2 _new_line
+
+Add a line break, but make sure there are no empty lines.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _new_line {
     my ( $self ) = @_;
 
@@ -468,32 +615,56 @@ sub _new_line {
     $self->{ '_new_line' } = 1;
 }
 
-# Have a look at the token that's coming up next.
-# Code lifted from SQL::Beautify
+=head2 _next_token
+
+Have a look at the token that's coming up next.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _next_token {
     my ( $self ) = @_;
 
     return @{ $self->{ '_tokens' } } ? $self->{ '_tokens' }->[ 0 ] : undef;
 }
 
-# Get the next token, removing it from the list of remaining tokens.
-# Code lifted from SQL::Beautify
+=head2 _token
+
+Get the next token, removing it from the list of remaining tokens.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _token {
     my ( $self ) = @_;
 
     return shift @{ $self->{ '_tokens' } };
 }
 
-# Check if a token is a known SQL keyword.
-# Code lifted from SQL::Beautify
+=head2 _is_keyword
+
+Check if a token is a known SQL keyword.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _is_keyword {
     my ( $self, $token ) = @_;
 
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } };
 }
 
-# Check if a token is a known SQL function.
-# Code lifted from SQL::Beautify
+=head2 _is_function
+
+Check if a token is a known SQL function.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _is_function {
     my ( $self, $token ) = @_;
 
@@ -502,8 +673,14 @@ sub _is_function {
     return $ret[ 0 ];
 }
 
-# Add new keywords to highlight.
-# Code lifted from SQL::Beautify
+=head2 add_keywords
+
+Add new keywords to highlight.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub add_keywords {
     my $self = shift;
 
@@ -512,8 +689,14 @@ sub add_keywords {
     }
 }
 
-# Add new functions to highlight.
-# Code lifted from SQL::Beautify
+=head2 add_functions
+
+Add new functions to highlight.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub add_functions {
     my $self = shift;
 
@@ -522,8 +705,14 @@ sub add_functions {
     }
 }
 
-# Add new rules.
-# Code lifted from SQL::Beautify
+=head2 add_rule
+
+Add new rules.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub add_rule {
     my ( $self, $format, $token ) = @_;
 
@@ -533,8 +722,14 @@ sub add_rule {
     push @{ $group }, ref( $token ) ? @{ $token } : $token;
 }
 
-# Find custom rule for a token.
-# Code lifted from SQL::Beautify
+=head2 _get_rule
+
+Find custom rule for a token.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _get_rule {
     my ( $self, $token ) = @_;
 
@@ -547,7 +742,14 @@ sub _get_rule {
     return;
 }
 
-# Code lifted from SQL::Beautify
+=head2 _process_rule
+
+Applies defined rule.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _process_rule {
     my ( $self, $rule, $token ) = @_;
 
@@ -566,23 +768,42 @@ sub _process_rule {
     }
 }
 
-# Check if a token is a constant.
-# Code lifted from SQL::Beautify
+=head2 _is_constant
+
+Check if a token is a constant.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _is_constant {
     my ( $self, $token ) = @_;
 
     return ( $token =~ /^\d+$/ or $token =~ /^(['"`]).*\1$/ );
 }
 
-# Check if a token is punctuation.
-# Code lifted from SQL::Beautify
+=head2 _is_punctuation
+
+Check if a token is punctuation.
+
+Code lifted from SQL::Beautify
+
+=cut
+
 sub _is_punctuation {
     my ( $self, $token ) = @_;
     return ( $token =~ /^[,;.]$/ );
 }
 
-# Simply generate a random string, thanks to Perlmonks
-# Returns original in certain cases which don't require anonymization
+=head2 _generate_anonymized_string
+
+Simply generate a random string, thanks to Perlmonks.
+
+Returns original in certain cases which don't require anonymization, like
+timestamps, or intervals.
+
+=cut
+
 sub _generate_anonymized_string {
     my $self = shift;
     my ( $before, $original, $after ) = @_;
@@ -641,7 +862,12 @@ sub _generate_anonymized_string {
     return $cache->{ $original };
 }
 
-# Anonymize litteral in SQL queries by replacing parameters with fake values
+=head2 anonymize
+
+Anonymize litteral in SQL queries by replacing parameters with fake values
+
+=cut
+
 sub anonymize {
     my $self  = shift;
     my $query = $self->query;
@@ -669,7 +895,30 @@ sub anonymize {
     $self->query( $query );
 }
 
-# Sets defaults for newly created objects.
+=head2 set_defaults
+
+Sets defaults for newly created objects.
+
+Currently defined defaults:
+
+=over
+
+=item spaces => 4
+
+=item space => ' '
+
+=item break => "\n"
+
+=item uc_keywords => 0
+
+=item uc_functions => 0
+
+=item no_comments => 0
+
+=back
+
+=cut
+
 sub set_defaults {
     my $self = shift;
     $self->set_dicts();
@@ -689,8 +938,15 @@ sub set_defaults {
     return;
 }
 
-# Sets various dictionaries (lists of keywords)
-# This was moved to separate function, so it can be put at the very end of module so it will be easier to read the rest of the code.
+=head2 set_dicts
+
+Sets various dictionaries (lists of keywords, functions, symbols, and the like)
+
+This was moved to separate function, so it can be put at the very end of module
+so it will be easier to read the rest of the code.
+
+=cut
+
 sub set_dicts {
     my $self = shift;
 
@@ -1061,5 +1317,27 @@ sub set_dicts {
     $self->{ 'dict' }->{ 'brackets' }      = \@brackets;
     return;
 }
+
+=head1 AUTHOR
+
+pgFormatter is an original work from Gilles Darold
+
+=head1 BUGS
+
+Please report any bugs or feature requests to: https://github.com/darold/pgFormatter/issues
+
+=head1 COPYRIGHT
+
+Copyright 2012-2015 Gilles Darold. All rights reserved.
+
+=head1 LICENSE
+
+pgFormatter is free software distributed under the PostgreSQL Licence.
+
+A modified version of the SQL::Beautify Perl Module is embedded in pgFormatter
+with copyright (C) 2009 by Jonas Kramer and is published under the terms of
+the Artistic License 2.0.
+
+=cut
 
 1;
