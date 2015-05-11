@@ -844,8 +844,9 @@ sub _generate_anonymized_string {
     };
 
     # Prevent interval from being anonymized
-    return $original if $before =~ /interval/i;
-    return $original if $after =~ /^\)*::interval/i;
+
+    return $original if ($before && ($before =~ /interval/i));
+    return $original if ($after && ($after =~ /^\)*::interval/i));
 
     # Shortcut
     my $cache = $self->{ '_anonymization_cache' };
@@ -890,7 +891,7 @@ sub anonymize {
         (\S+[\s\(]*)            # before
         '([^']*)'               # original
         ([\)]*::\w+)?           # after
-    }{$1 . "'" . $self->_generate_anonymized_string($1, $2, $3) . "'" . $3}xeg;
+    }{$1 . "'" . $self->_generate_anonymized_string($1, $2, $3) . "'" . ($3||'')}xeg;
 
     $self->query( $query );
 }
