@@ -1144,9 +1144,13 @@ sub set_dicts {
         interval_pl_timetz interval_recv interval_send interval_smaller interval_transform interval_um intervaltypmodin
         intervaltypmodout intinterval isclosed isempty ishorizontal iso8859_1_to_utf8 iso8859_to_utf8
         iso_to_koi8r iso_to_mic iso_to_win1251 iso_to_win866 isopen isparallel isperp
-        isvertical johab_to_utf8 json_in json_out json_recv json_send justify_interval
-        koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8 lag
-        language_handler_in language_handler_out last_value lastval latin1_to_mic latin2_to_mic latin2_to_win1250
+        isvertical johab_to_utf8 json_array_elements jsonb_array_elements json_array_elements_text jsonb_array_elements_text
+        json_array_length jsonb_array_length json_build_array json_build_object json_each jsonb_each json_each_text
+        jsonb_each_text json_extract_path jsonb_extract_path json_extract_path_text jsonb_extract_path_text json_in json_object
+        json_object_keys jsonb_object_keys json_out json_populate_record jsonb_populate_record json_populate_recordset
+        jsonb_populate_recordset json_recv json_send json_typeof jsonb_typeof json_to_record jsonb_to_record json_to_recordset
+        jsonb_to_recordset justify_interval koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8
+        lag language_handler_in language_handler_out last_value lastval latin1_to_mic latin2_to_mic latin2_to_win1250
         latin3_to_mic latin4_to_mic lead like_escape likejoinsel
         likesel line line_distance line_eq line_horizontal line_in line_interpt
         line_intersect line_out line_parallel line_perp line_recv line_send line_vertical
@@ -1278,7 +1282,7 @@ sub set_dicts {
         tintervalct tintervalend tintervaleq tintervalge tintervalgt tintervalin tintervalle
         tintervalleneq tintervallenge tintervallengt tintervallenle tintervallenlt tintervallenne tintervallt
         tintervalne tintervalout tintervalov tintervalrecv tintervalrel tintervalsame tintervalsend
-        tintervalstart to_tsquery to_tsvector transaction_timestamp trigger_out trunc ts_debug
+        tintervalstart to_json to_tsquery to_tsvector transaction_timestamp trigger_out trunc ts_debug
         ts_headline ts_lexize ts_match_qv ts_match_tq ts_match_tt ts_match_vq ts_parse
         ts_rank ts_rank_cd ts_rewrite ts_stat ts_token_type ts_typanalyze tsmatchjoinsel
         tsmatchsel tsq_mcontained tsq_mcontains tsquery_and tsquery_cmp tsquery_eq tsquery_ge
