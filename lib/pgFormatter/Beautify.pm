@@ -14,7 +14,8 @@ use Encode qw( decode );
 # Without this, usage of /(?<!STYLES)/i will break
 use re '/aa';
 
-# Without this, usage of /(?<!STYLES)/i will break
+# PostgreSQL functions that use a FROM clause
+our @have_from_clause = qw( extract overlay substring trim );
 
 =head1 NAME
 
@@ -352,14 +353,19 @@ sub beautify {
         elsif ( $token eq '(' ) {
             $self->_add_token( $token );
             if ( $self->_next_token ne ')' ) {
+		$self->{ '_has_from' } = 1 if (grep(/^$last$/i, @have_from_clause));
                 $self->_new_line;
                 push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
                 $self->_over unless $last and uc( $last ) eq 'WHERE';
+
             }
         }
 
         elsif ( $token eq ')' ) {
-            $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+	    $self->{ '_has_from' } = 0;
+	    if ($last ne '(') {
+		$self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+	    }
             $self->_add_token( $token );
             $self->_new_line
                 if ($self->_next_token
@@ -376,6 +382,7 @@ sub beautify {
         }
 
         elsif ( $token eq ';' ) {
+	    $self->{ '_has_from' } = 0;
             $self->_add_token( $token );
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -388,15 +395,23 @@ sub beautify {
 
         elsif ( $token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN|SET)$/i ) {
 
-            # if we're not in a sub-select, make sure these always are
-            # at the far left (col 1)
-            $self->_back if ( $last and $last ne '(' and $last ne 'FOR' );
+	    if (($token =~ /^FROM$/i) && $self->{ '_has_from' } ) {
+		$self->{ '_has_from' } = 0;
+                $self->_new_line;
+	        $self->_add_token( $token );
+                $self->_new_line;
+	    }
+	    else
+	    {
+		# if we're not in a sub-select, make sure these always are
+		# at the far left (col 1)
+		$self->_back if ( $last and $last ne '(' and $last ne 'FOR' );
 
-            #$self->{_level} = 0 if ($last and $last ne '(' and $last ne 'FOR');
-            $self->_new_line;
-            $self->_add_token( $token );
-            $self->_new_line if ( ( ( $token ne 'SET' ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
-            $self->_over;
+		$self->_new_line;
+		$self->_add_token( $token );
+		$self->_new_line if ( ( ( $token ne 'SET' ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
+		$self->_over;
+	    }
         }
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT)$/i ) {
