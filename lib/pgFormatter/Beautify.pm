@@ -503,12 +503,6 @@ sub beautify {
             }
         }
 
-        elsif ($token =~ /^(?:FOR)$/i) {
-            $self->_new_line;
-            $self->_over;
-            $self->_add_token($token);
-        }
-
         elsif ($token =~ /^(?:USING)$/i) {
             $self->_new_line;
             $self->_add_token($token);
