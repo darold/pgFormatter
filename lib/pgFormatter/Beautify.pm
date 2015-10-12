@@ -503,6 +503,17 @@ sub beautify {
             }
         }
 
+        elsif ($token =~ /^(?:FOR)$/i) {
+            $self->_new_line;
+            $self->_over;
+            $self->_add_token($token);
+        }
+
+        elsif ($token =~ /^(?:USING)$/i) {
+            $self->_new_line;
+            $self->_add_token($token);
+        }
+
         else {
             $self->_add_token( $token, $last );
         }
@@ -972,17 +983,17 @@ sub set_dicts {
     # Afterwards, when everything is ready, put it in $self->{'dict'}->{...}
 
     my @pg_keywords = map { uc } qw(
-        ALL ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION BINARY BOTH CASE
-        CAST CHECK COLLATE COLLATION COLUMN CONCURRENTLY CONSTRAINT CREATE CROSS
+        ALL ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION BERNOULLI BINARY BOTH CASE
+        CAST CHECK COLLATE COLLATION COLUMN CONCURRENTLY CONFLICT CONSTRAINT CREATE CROSS CUBE
         CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER
         DEFAULT DEFERRABLE DESC DISTINCT DO ELSE END EXCEPT FALSE FETCH FOR FOREIGN FREEZE FROM
-        FULL GRANT GROUP HAVING ILIKE IN INITIALLY INNER INTERSECT INTO IS ISNULL JOIN LEADING
-        LEFT LIKE LIMIT LOCALTIME LOCALTIMESTAMP NATURAL NOT NOTNULL NULL ON ONLY OPEN OR
-        ORDER OUTER OVER OVERLAPS PLACING PRIMARY REFERENCES REPLACE RETURNING RIGHT SELECT SESSION_USER
-        SIMILAR SOME SYMMETRIC TABLE THEN TO TRAILING TRUE UNION UNIQUE USER USING VARIADIC
+        FULL GRANT GROUP GROUPING HAVING ILIKE IN INITIALLY INNER INTERSECT INTO IS ISNULL JOIN LEADING
+        LEFT LIKE LIMIT LOCALTIME LOCALTIMESTAMP LOCKED LOGGED NATURAL NOT NOTNULL NULL ON ONLY OPEN OR
+        ORDER OUTER OVER OVERLAPS PLACING POLICY PRIMARY REFERENCES REPLACE RETURNING RIGHT ROLLUP SELECT SESSION_USER
+        SETS SKIP SIMILAR SOME SYMMETRIC TABLE TABLESAMPLE THEN TO TRAILING TRUE UNION UNIQUE USER USING VARIADIC
         VERBOSE WHEN WHERE WINDOW WITH
         );
-
+ 
     my @sql_keywords = map { uc } qw(
         ALTER ADD AUTO_INCREMENT BETWEEN BY BOOLEAN BEGIN CHANGE COLUMNS COMMIT COALESCE CLUSTER
         COPY DATABASES DATABASE DATA DELAYED DESCRIBE DELETE DROP ENCLOSED ESCAPED EXISTS EXPLAIN
@@ -1161,8 +1172,8 @@ sub set_dicts {
         isvertical johab_to_utf8 json_array_elements jsonb_array_elements json_array_elements_text jsonb_array_elements_text
         json_array_length jsonb_array_length json_build_array json_build_object json_each jsonb_each json_each_text
         jsonb_each_text json_extract_path jsonb_extract_path json_extract_path_text jsonb_extract_path_text json_in json_object
-        json_object_keys jsonb_object_keys json_out json_populate_record jsonb_populate_record json_populate_recordset
-        jsonb_populate_recordset json_recv json_send json_typeof jsonb_typeof json_to_record jsonb_to_record json_to_recordset
+        json_object_keys jsonb_object_keys json_out json_populate_record jsonb_populate_record json_populate_recordset jsonb_pretty
+        jsonb_populate_recordset json_recv json_send jsonb_set json_typeof jsonb_typeof json_to_record jsonb_to_record json_to_recordset
         jsonb_to_recordset justify_interval koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8
         lag language_handler_in language_handler_out last_value lastval latin1_to_mic latin2_to_mic latin2_to_win1250
         latin3_to_mic latin4_to_mic lead like_escape likejoinsel
@@ -1233,7 +1244,7 @@ sub set_dicts {
         pg_table_size pg_tablespace_databases pg_tablespace_location pg_tablespace_size pg_terminate_backend pg_timezone_abbrevs pg_timezone_names
         pg_total_relation_size pg_trigger_depth pg_try_advisory_lock pg_try_advisory_lock_shared pg_try_advisory_xact_lock pg_try_advisory_xact_lock_shared
         pg_ts_config_is_visible pg_ts_dict_is_visible pg_ts_parser_is_visible pg_ts_template_is_visible
-        pg_type_is_visible pg_typeof pg_xlog_location_diff pg_xlog_replay_pause pg_xlog_replay_resume pg_xlogfile_name pg_xlogfile_name_offset
+        pg_type_is_visible pg_typeof pg_xact_commit_timestamp pg_last_committed_xact pg_xlog_location_diff pg_xlog_replay_pause pg_xlog_replay_resume pg_xlogfile_name pg_xlogfile_name_offset
         pgp_key_id pgp_pub_decrypt pgp_pub_decrypt_bytea pgp_pub_encrypt pgp_pub_encrypt_bytea pgp_sym_decrypt pgp_sym_decrypt_bytea
         pgp_sym_encrypt pgp_sym_encrypt_bytea pi plainto_tsquery plpgsql_call_handler plpgsql_inline_handler plpgsql_validator
         point point_above point_add point_below point_distance point_div point_eq
