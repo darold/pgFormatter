@@ -352,7 +352,7 @@ sub beautify {
 
         elsif ( $token eq '(' ) {
             $self->_add_token( $token );
-            if ( $self->_next_token ne ')' ) {
+            if ( ($self->_next_token ne ')') && ($self->_next_token ne '*') ) {
 		$self->{ '_has_from' } = 1 if (grep(/^\Q$last\E$/i, @have_from_clause));
                 $self->_new_line;
                 push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
