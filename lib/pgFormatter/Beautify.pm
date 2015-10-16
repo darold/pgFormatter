@@ -363,7 +363,7 @@ sub beautify {
 
         elsif ( $token eq ')' ) {
 	    $self->{ '_has_from' } = 0;
-	    if ($last ne '(') {
+	    if ( ($last ne '(') && ($last ne '*') )  {
 		$self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
 	    }
             $self->_add_token( $token );
