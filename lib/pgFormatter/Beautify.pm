@@ -185,7 +185,7 @@ sub html_highlight_code {
 
     $i = 0;
     my @qcode = ();
-    while ( $code =~ s/('[^\']*')/QCODEY${i}B/s ) {
+    while ( $code =~ s/('.*?(?<!\\)')/QCODEY${i}B/s ) {
         push( @qcode, $1 );
         $i++;
     }
@@ -255,7 +255,7 @@ sub html_highlight_code {
         $code =~ s/QQCODEY${x}A/$qqcode[$x]/s;
     }
 
-    $code =~ s/('[^']*')/<span class="st0">$1<\/span>/gs;
+    $code =~ s/('.*?(?<!\\)')/<span class="st0">$1<\/span>/gs;
     $code =~ s/(`[^`]*`)/<span class="st0">$1<\/span>/gs;
 
     $self->content( $code );
