@@ -1,3 +1,45 @@
+October 17 2015 - v1.5
+
+This release fixes several issues and adds support to new keywords added in
+PostgreSQL 9.5. There's also a major code rewrite by Hubert depesz Lubaczewski,
+pg_format works as previously - handles both CGI and CLI interface, but you
+can get directly to whatever functionality you want by using pgFormatter::*
+modules.
+
+New beautified keywords are: BERNOULLI, CUBE, GROUPING SETS, SKIP LOCKED,
+LOGGED, POLICY, ROLLUP, TABLESAMPLE. And new functions are: jsonb_pretty,
+jsonb_set, pg_last_committed_xact, pg_xact_commit_timestamp.
+
+There is also a useful hint added to documentation to be able to format
+you SQL code from vi by adding a simple line to .vimrc. This hint is taken
+from David Fetter's blog : http://people.planetpostgresql.org/dfetter/index.php?/archives/78-Formatting!.html
+ 
+Here is the complete list of other changes:
+ 
+  - Add useful hint about formating in vi. Thanks to David Fetter for the hint.
+  - Prevent newline after open parenthesis and indent back after close when we have count(*) for example.
+  - Add test query with a backslash before a quote in samples/ex8.sql.
+  - Fix coloring string when the string contained a backslash before a quote. Thanks to Kevin Brannen for the patch.
+  - Add RETURNS keywords.
+  - Remove newline before the FOR keywords.
+  - Add BY to the list of PG keywords to be capitalized.
+  - Add new keywords from PostgreSQL 9.5.
+  - Reformat queries with FOR and USING, for example: CREATE POLICY policy_even_ids_only ON log FOR ALL TO PUBLIC USING (id % 2 = 0);
+  - Fix unescaped character in regex. Thanks to Tom Burnett for the patch.
+  - Fix wrong indentation with function that accept FROM clause. Thanks to Adrian Klaver and Alvaro Herrera for the report.
+  - Add more test samples about json operators.
+  - Add JSON #>> operator and sample. Thanks to Tom Burnett for the patch.
+  - Some more JSON operators. Thanks to Hubert depesz Lubaczewski for the patch.
+  - JSON operators have to be before normal operators as regexp will match first possible string, so -> will match - first, if it's before in tokenizer. Changing order solves the problem reports by Tom Burnett. Thanks to Hubert depesz Lubaczewski for the patch.
+  - Add new json/jsonb functions to list of pg functions.
+  - Add JSON operators. Thanks to Tom Burnett for the report.
+  - Fix anonymizing failure reported in issue #15. Thanks to Niklas Schmidtmer for the report.
+  - Add developer documentation. Thanks to Hubert depesz Lubaczewski for the patch.
+  - Fix Beautify.pm with perl 5.20. Thanks to Hubert depesz Lubaczewski for the patch.
+  - In Beautify.pm we were not considering the possibility of $last being empty in one condition inside a JOIN, and that gives an exception in perl 5.20. Thanks to Pablo Alvarez de Sotomayor Posadillo for the patch.
+  - Split into libraries and programs complete. Thanks to Hubert depesz Lubaczewski for the patch.
+
+
 April 18 2015 - v1.4
 
 This release fixes several issues and adds a useful anonymization option to
