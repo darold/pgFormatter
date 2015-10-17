@@ -88,6 +88,25 @@ INSTALLATION
 
     By default INSTALLDIRS is set to site.
 
+HINTS
+    With pgFormat, you can just add the following line to your ~/.vimrc
+    file:
+
+            au FileType sql setl formatprg=/usr/local/bin/pg_format\ -
+
+    This lets your gq commands use pgFormat automagically. For example if
+    you are on the first line, typing:
+
+            ESC+gq+G
+
+    will format the entire file.
+
+            ESC+gq+2j
+
+    will format the next two line.
+
+    Thanks to David Fetter for the hint.
+
 AUTHORS
     pgFormatter is an original work from Gilles Darold
 
