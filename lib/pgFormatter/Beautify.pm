@@ -905,15 +905,17 @@ sub anonymize {
     $query =~ s/\/\*(.*?)\*\///gs;
 
     # Clean query
-    $query =~ s/\\'//g;
-    $query =~ s/('')+//g;
+    $query =~ s/\\'//gs;
+    $query =~ s/('')+/\$EMPTYSTRING\$/gs;
 
     # Anonymize each values
     $query =~ s{
-        (\S+[\s\(]*)            # before
+        ([^\s\']+[\s\(]*)       # before
         '([^']*)'               # original
         ([\)]*::\w+)?           # after
     }{$1 . "'" . $self->_generate_anonymized_string($1, $2, $3) . "'" . ($3||'')}xeg;
+
+    $query =~ s/\$EMPTYSTRING\$/''/gs;
 
     $self->query( $query );
 }
