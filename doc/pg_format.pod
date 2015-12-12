@@ -40,6 +40,7 @@ Options:
 			    the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
     -o | --output file    : define the filename for the output. Default: stdout.
+    -p | --placeholder re : set regex to find code that must not be changed.
     -s | --spaces size    : change space indent, default 4 spaces.
     -u | --keyword-case N : Change the case of the reserved keyword. Default is
 			    uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
@@ -92,6 +93,8 @@ By default INSTALLDIRS is set to site.
 
 =head1 HINTS
 
+=head2 Formatting from VI
+
 With pgFormat, you can just add the following line to your ~/.vimrc file:
 
 	au FileType sql setl formatprg=/usr/local/bin/pg_format\ -
@@ -108,6 +111,22 @@ will format the entire file.
 will format the next two line.
 
 Thanks to David Fetter for the hint.
+
+=head2 Prevent replacing code snippets
+
+Using -p or --placeholder command line option it is possible to keep code
+untouched by pgFormatter in your SQL queries. For example, in query like:
+
+	SELECT * FROM projects WHERE projectnumber
+		IN <<internalprojects>> AND username = <<loginname>>;
+
+you may want pgFormatter to not interpret << and >> as bit-shift keywords
+and modify your code snippsets. You can use a Perl regular expression to
+instruct pgFormatter to keep some part of the query untouched. For example:
+
+	pg_format samples/ex9.sql -p '<<(?:.*)?>>'
+
+will not format the bit-shift like operators.
 
 =head1 AUTHORS
 

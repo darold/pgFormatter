@@ -86,6 +86,7 @@ sub beautify {
     $args{ 'spaces' }       = $self->{ 'cfg' }->{ 'spaces' };
     $args{ 'uc_keywords' }  = $self->{ 'cfg' }->{ 'keyword-case' };
     $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
+    $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'query' } );
@@ -168,6 +169,7 @@ Options:
                             the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
     -o | --output file    : define the filename for the output. Default: stdout.
+    -p | --placeholder re : set regex to find code that must not be changed.
     -s | --spaces size    : change space indent, default 4 spaces.
     -u | --keyword-case N : Change the case of the reserved keyword. Default is
                             uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
@@ -222,6 +224,7 @@ sub get_command_line_args {
         'help|h!',
         'nocomment|n!',
         'output|o=s',
+        'placeholder|p=s',
         'spaces|s=i',
         'keyword-case|u=i',
         'version|v!',

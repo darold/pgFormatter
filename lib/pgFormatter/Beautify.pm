@@ -73,6 +73,8 @@ Takes options as hash. Following options are recognized:
 
 =item * no_comments - if set to true comments will be removed from query
 
+=item * placeholder - use the specified regex to find code that must not be changed in the query.
+
 =item * query - query to beautify
 
 =item * rules - hash of rules - uses rule semantics from SQL::Beautify
@@ -112,7 +114,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments ) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -121,6 +123,9 @@ sub new {
 
     # Initialize internal stuff.
     $self->{ '_level' } = 0;
+
+    # Array to store placeholders values
+    @{ $self->{ 'placeholder_values' } } = ();
 
     return $self;
 }
@@ -142,6 +147,16 @@ sub query {
     my $new_value = shift;
 
     $self->{ 'query' } = $new_value if defined $new_value;
+
+    # Store values of code that must not be changed following the given placeholder
+    if ($self->{ 'placeholder' }) {
+        my $i = 0;
+        while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/) {
+            push(@{ $self->{ 'placeholder_values' } }, $1);
+            $i++;
+       }
+    }
+
     return $self->{ 'query' };
 }
 
@@ -158,6 +173,12 @@ sub content {
     my $new_value = shift;
 
     $self->{ 'content' } = $new_value if defined $new_value;
+
+    # Replace placeholders by their original values
+    if ($self->{ 'placeholder' }) {
+	$self->{ 'content' } =~ s/PLACEHOLDER(\d+)PLACEHOLDER/$self->{ 'placeholder_values' }[$1]/igs;
+    }
+
     return $self->{ 'content' };
 }
 
@@ -940,6 +961,8 @@ Currently defined defaults:
 
 =item no_comments => 0
 
+=item placeholder => ''
+
 =back
 
 =cut
@@ -958,6 +981,7 @@ sub set_defaults {
     $self->{ 'uc_keywords' }  = 0;
     $self->{ 'uc_functions' } = 0;
     $self->{ 'no_comments' }  = 0;
+    $self->{ 'placeholder' }  = '';
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
     $self->{ 'functions' }    = $self->{ 'dict' }->{ 'pg_functions' };
     return;
