@@ -17,12 +17,12 @@ pgFormatter::CGI - Implementation of CGI-BIN script to format SQL queries.
 
 =head1 VERSION
 
-Version 1.4
+Version 1.5
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 use pgFormatter::Beautify;
 use File::Basename;
