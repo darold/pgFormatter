@@ -327,6 +327,8 @@ sub tokenize_sql {
 		|
 		[\[\]\(\),;.]            # punctuation (parenthesis, comma)
 		|
+		E\'\'(?!\')              # empty single escaped quoted string
+		|
 		\'\'(?!\')              # empty single quoted string
 		|
 		\"\"(?!\"")             # empty double quoted string
@@ -334,6 +336,8 @@ sub tokenize_sql {
 		"(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
 		|
 		`(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
+		|
+		E'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything escaped inside single quotes, ungreedy.
 		|
 		'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything inside single quotes, ungreedy.
 		|
