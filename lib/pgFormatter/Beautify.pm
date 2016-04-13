@@ -493,11 +493,14 @@ sub beautify {
         elsif ( $token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
             $self->_back unless $last and $last eq ')';
 
-            #$self->_new_line,$self->_over if ($token =~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i);
             if ( $token =~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
                 $self->_over if ( $self->{ '_level' } == 0 );
             }
+            if ( ($token =~ /(?:INNER|OUTER)$/i) && ($last !~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i) ) {
+                $self->_new_line;
+                $self->_over if ($self->{_level} == 0);
+            } 
             $self->_add_token( $token );
         }
 
