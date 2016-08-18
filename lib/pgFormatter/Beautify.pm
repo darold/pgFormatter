@@ -323,9 +323,11 @@ sub tokenize_sql {
 		|
 		(?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
 		|
-		(?:<>|<=>|>=|<=|==|=|!=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
+		(?:<>|<=>|>=|<=|==|!=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
 		|
 		[\[\]\(\),;.]            # punctuation (parenthesis, comma)
+		|
+		E\'\'(?!\')              # empty single escaped quoted string
 		|
 		\'\'(?!\')              # empty single quoted string
 		|
@@ -334,6 +336,8 @@ sub tokenize_sql {
 		"(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
 		|
 		`(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
+		|
+		E'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything escaped inside single quotes, ungreedy.
 		|
 		'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything inside single quotes, ungreedy.
 		|
@@ -1398,7 +1402,7 @@ Please report any bugs or feature requests to: https://github.com/darold/pgForma
 
 =head1 COPYRIGHT
 
-Copyright 2012-2015 Gilles Darold. All rights reserved.
+Copyright 2012-2016 Gilles Darold. All rights reserved.
 
 =head1 LICENSE
 
