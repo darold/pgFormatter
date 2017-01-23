@@ -114,7 +114,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder ) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -393,7 +393,6 @@ sub beautify {
             $self->_add_token( $token );
             if ( ($self->_next_token ne ')') && ($self->_next_token ne '*') ) {
 		$self->{ '_has_from' } = 1 if (grep(/^\Q$last\E$/i, @have_from_clause));
-                $self->_new_line;
                 push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
                 $self->_over unless $last and uc( $last ) eq 'WHERE';
 
@@ -417,11 +416,12 @@ sub beautify {
 
         elsif ( $token eq ',' ) {
             $self->_add_token( $token );
-            $self->_new_line;
+            $self->_new_line if (!$self->{ '_has_where' });
         }
 
         elsif ( $token eq ';' ) {
 	    $self->{ '_has_from' } = 0;
+	    $self->{ '_has_where' } = 0;
             $self->_add_token( $token );
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -451,12 +451,19 @@ sub beautify {
 		$self->_new_line if ( ( ( $token ne 'SET' ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
 		$self->_over;
 	    }
+	    if ($token =~ /^WHERE$/i) {
+		$self->{ '_has_where' } = 1;
+	    } else {
+		$self->{ '_has_where' } = 0;
+	    }
+
         }
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT)$/i ) {
             $self->_back;
             $self->_new_line;
             $self->_add_token( $token );
+	    $self->{ '_has_where' } = 0;
         }
 
         elsif ( $token =~ /^(?:BY)$/i ) {
@@ -591,7 +598,9 @@ sub _add_token {
 
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot ) {
         my $sp = $self->_indent;
-        $self->{ 'content' } .= $sp;
+	if ( (!defined($last_token) || $last_token ne '(') && ($token ne ')') && ($token !~ /^::/) ) {
+		$self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
+	}
         $token =~ s/\n/\n$sp/gs;
     }
 
@@ -611,6 +620,7 @@ sub _add_token {
     }
 
     $self->{ 'content' } .= $token;
+    $self->{ 'content' } =~ s/\(\s+\(/\(\(/gs;
 
     # This can't be the beginning of a new line anymore.
     $self->{ '_new_line' } = 0;
