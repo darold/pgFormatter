@@ -416,12 +416,12 @@ sub beautify {
 
         elsif ( $token eq ',' ) {
             $self->_add_token( $token );
-            $self->_new_line if (!$self->{ '_has_where' });
+            $self->_new_line if (!$self->{ '_is_in_where' });
         }
 
         elsif ( $token eq ';' ) {
 	    $self->{ '_has_from' } = 0;
-	    $self->{ '_has_where' } = 0;
+	    $self->{ '_is_in_where' } = 0;
             $self->_add_token( $token );
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -452,9 +452,9 @@ sub beautify {
 		$self->_over;
 	    }
 	    if ($token =~ /^WHERE$/i) {
-		$self->{ '_has_where' } = 1;
+		$self->{ '_is_in_where' } = 1;
 	    } else {
-		$self->{ '_has_where' } = 0;
+		$self->{ '_is_in_where' } = 0;
 	    }
 
         }
@@ -463,7 +463,7 @@ sub beautify {
             $self->_back;
             $self->_new_line;
             $self->_add_token( $token );
-	    $self->{ '_has_where' } = 0;
+	    $self->{ '_is_in_where' } = 0;
         }
 
         elsif ( $token =~ /^(?:BY)$/i ) {
