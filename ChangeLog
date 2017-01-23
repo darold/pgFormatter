@@ -1,3 +1,42 @@
+January 23 2017 - v1.6
+
+This release fixes several issues and adds lot of improvements in
+query formatting.
+
+Command line option --placeholder or -p has been added to be able
+to set regex to find code that must not be formatted. For example,
+in query like:
+
+	SELECT * FROM projects WHERE projectnumber
+		IN <<internalprojects>> AND username = <<loginname>>;
+
+you may want pgFormatter to not interpret << and >> as bit-shift
+keywords and modify your code snippsets. You can use a Perl regular
+expression to instruct pgFormatter to keep some part of the query
+untouched. For example:
+
+        pg_format samples/ex9.sql -p '<<(?:.*)?>>'
+
+will not format the bit-shift like operators.
+
+Here is the complete list of changes:
+
+  - Improve SQL formatting by reducing space with parenthesis and
+    cast with ::.
+  - Add two sample file to test placeholder feature and WITH query.
+  - Fix missing newline after INNER JOIN. Thanks to Julien Rouhaud
+    for the report.
+  - Fix whitespace placed in between the E and the quote character.
+    Thanks to clijunky for the report.
+  - Fix lots of operators reported on issue #22. Thanks to Laurenz
+    Albe for the report and list of missing operators.
+  - Fix version number in lib/pgFormatter library files.
+  - Add -p | --placeholder command line option to prevent pgFormatter
+    to replace some part of the SQL queries. Thanks to jhelberg for
+    the feature request.
+  - Fix bad formatting with anonymized values in queries. Thanks to
+    Pilat66 for the report.
+
 October 17 2015 - v1.5
 
 This release fixes several issues and adds support to new keywords added in
