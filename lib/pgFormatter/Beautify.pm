@@ -416,7 +416,7 @@ sub beautify {
 
         elsif ( $token eq ',' ) {
             $self->_add_token( $token );
-            $self->_new_line if (!$self->{ '_is_in_where' });
+            $self->_new_line if ($self->_next_token !~ /^'/ && !$self->{ '_is_in_where' });
         }
 
         elsif ( $token eq ';' ) {
