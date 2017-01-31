@@ -217,6 +217,8 @@ sub beautify_query {
     $args{ 'uc_keywords' }  = $self->{ 'uc_keyword' };
     $args{ 'uc_functions' } = $self->{ 'uc_function' };
 
+    $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
+
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'content' } );
     $beautifier->anonymize() if $self->{ 'anonymize' };
@@ -224,6 +226,16 @@ sub beautify_query {
 
     $self->{ 'content' } = $beautifier->content();
     return;
+}
+
+sub remove_extra_parenthesis {
+    my $str = shift;
+
+    while ($str =~ s/\(\s*\(([^\(\)]+)\)\s*\)/($1)/gs) {};
+    while ($str =~ s/\(\s*\(([^\(\)]+)\)\s*AND\s*\(([^\(\)]+)\)\s*\)/($1 AND $2)/igs) {};
+    while ($str =~ s/\(\s*\(\s*\(([^\(\)]+\)[^\(\)]+\([^\(\)]+)\)\s*\)\s*\)/(($1))/gs) {};
+
+    return $str;
 }
 
 =head2
@@ -339,10 +351,9 @@ sub print_footer {
 
     print $ad_content;
     print
-qq{ <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.org</a> </div> };
+    qq{ <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.org</a> </div> };
     print " </div> </body> </html>\n";
     return;
-
 }
 
 =head2 _load_optional_file
@@ -401,18 +412,18 @@ $track_content
 $style_content
 </style>
 <script type="text/javascript">
-    <!--
-    var done = 0;
-    function set_bg_color(id, color) {
-        document.getElementById(id).style.background=color;
-    }
-    function maxlength_textarea(objtextarea,maxlength) {
-        if (objtextarea.value.length > maxlength) {
-            objtextarea.value = objtextarea.value.substring(0, maxlength);
-            alert('Hum, with no limit I means up to '+maxlength+' characters!\\nThat should be enough, no ? Content has been truncated.');
-        }
-    }
-    //-->
+<!--
+var done = 0;
+function set_bg_color(id, color) {
+document.getElementById(id).style.background=color;
+}
+function maxlength_textarea(objtextarea,maxlength) {
+if (objtextarea.value.length > maxlength) {
+    objtextarea.value = objtextarea.value.substring(0, maxlength);
+    alert('Hum, with no limit I means up to '+maxlength+' characters!\\nThat should be enough, no ? Content has been truncated.');
+}
+}
+//-->
 </script>
 </head>
 <body>
@@ -460,76 +471,76 @@ the Artistic License 2.0.
 __DATA__
 
 body {
-    background-color:#262626;
-    margin-top:0px;
-    font-family: Lucida Sans, Arial, Helvetica, sans-serif;
-    font-size: 18px;
-    color: #888888;
-    height: 100% !important;
-    background-position:top center;
-    background-attachment:fixed;
+background-color:#262626;
+margin-top:0px;
+font-family: Lucida Sans, Arial, Helvetica, sans-serif;
+font-size: 18px;
+color: #888888;
+height: 100% !important;
+background-position:top center;
+background-attachment:fixed;
 }
 
 a {
-    text-decoration: none;
-    color: #000000;
+text-decoration: none;
+color: #000000;
 }
 
 a:hover {
-    text-decoration:underline;
-    color: #000000;
+text-decoration:underline;
+color: #000000;
 }
 h1 {
-    font-family: Lucida Sans, sans-serif;
-    font-size: 38px;
-    color:#ff7400;
-    font-weight: bold;
-    padding:5px;
-    margin:3px 3px 3px 3px;
-    border-radius:6px;
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    box-shadow:3px 3px 6px 2px #A9A9A9;
-    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
-    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+font-family: Lucida Sans, sans-serif;
+font-size: 38px;
+color:#ff7400;
+font-weight: bold;
+padding:5px;
+margin:3px 3px 3px 3px;
+border-radius:6px;
+-moz-border-radius:10px;
+-webkit-border-radius:10px;
+box-shadow:3px 3px 6px 2px #A9A9A9;
+-moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+-webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
 textarea#sqlcontent {
-    width: 800px;
-    height: 400px;
-    border: 3px solid #cccccc;
-    padding: 5px;
-    font-family: Tahoma, sans-serif;
-    font-size: 14px;
-    background-position: bottom right;
-    background-repeat: no-repeat;
-    background: #f5f3de;
-    border-radius:6px;
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    box-shadow:3px 3px 6px 2px #A9A9A9;
-    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
-    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+width: 800px;
+height: 400px;
+border: 3px solid #cccccc;
+padding: 5px;
+font-family: Tahoma, sans-serif;
+font-size: 14px;
+background-position: bottom right;
+background-repeat: no-repeat;
+background: #f5f3de;
+border-radius:6px;
+-moz-border-radius:10px;
+-webkit-border-radius:10px;
+box-shadow:3px 3px 6px 2px #A9A9A9;
+-moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+-webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
 div#sql {
-    width: 900px;
-    height: 450px;
-    border: 3px solid #cccccc;
-    padding: 5px;
-    overflow: auto;
-    font-family:monospace;
-    font-size: 14px;
-    float: left;
-    text-align: left;
-    background-position: bottom right;
-    background-repeat: no-repeat;
-    background: #f5f3de;
-    white-space: pre;
-    border-radius:6px;
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    box-shadow:3px 3px 6px 2px #A9A9A9;
-    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
-    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+width: 900px;
+height: 450px;
+border: 3px solid #cccccc;
+padding: 5px;
+overflow: auto;
+font-family:monospace;
+font-size: 14px;
+float: left;
+text-align: left;
+background-position: bottom right;
+background-repeat: no-repeat;
+background: #f5f3de;
+white-space: pre;
+border-radius:6px;
+-moz-border-radius:10px;
+-webkit-border-radius:10px;
+box-shadow:3px 3px 6px 2px #A9A9A9;
+-moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+-webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
 .sql .kw1 {color: #993333; font-weight: bold;}
 .sql .kw1_u {color: #993333; font-weight: bold; text-transform: uppercase;}
@@ -554,47 +565,47 @@ div.footer a:hover { color: #eeeeee; }
 div.smaller { font: 11px Helvetica, Arial, sans-serif;clear: both; color: #000000; padding:13px 0px 0 0;margin-left: auto; margin-right: auto; text-align: center; background-color: #ff7400; }
 
 #options {
-    width: 250px;
-    height: 400px;
-    margin:3px 3px 3px 3px;
-    padding:2 2px;
-    font-size: 14px;
-    float: left;
-    text-align: left;
-    color: #2e3436;
-    border-radius:6px;
+width: 250px;
+height: 400px;
+margin:3px 3px 3px 3px;
+padding:2 2px;
+font-size: 14px;
+float: left;
+text-align: left;
+color: #2e3436;
+border-radius:6px;
 }
 
 #options fieldset {
-    border: 1px solid #dddddd;
-    margin:3px 3px 3px 3px;
-    background: #ff7400;
-    border-radius:6px;
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    box-shadow:3px 3px 6px 2px #A9A9A9;
-    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
-    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+border: 1px solid #dddddd;
+margin:3px 3px 3px 3px;
+background: #ff7400;
+border-radius:6px;
+-moz-border-radius:10px;
+-webkit-border-radius:10px;
+box-shadow:3px 3px 6px 2px #A9A9A9;
+-moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+-webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
 
 #options fieldset legend {
-    border: 1px solid #dddddd;
-    margin-bottom: .6em;
-    background: #ff7400;
-    border-radius:6px;
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    box-shadow:3px 3px 6px 2px #A9A9A9;
-    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
-    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+border: 1px solid #dddddd;
+margin-bottom: .6em;
+background: #ff7400;
+border-radius:6px;
+-moz-border-radius:10px;
+-webkit-border-radius:10px;
+box-shadow:3px 3px 6px 2px #A9A9A9;
+-moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+-webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
 #options input, select, button {
-    border: 1px solid #dddddd;
-    background: #f5f3de;
-    border-radius:6px;
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    box-shadow:3px 3px 6px 2px #A9A9A9;
-    -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
-    -webkit-box-shadow:3px 3px 6px #A9A9A9;
+border: 1px solid #dddddd;
+background: #f5f3de;
+border-radius:6px;
+-moz-border-radius:10px;
+-webkit-border-radius:10px;
+box-shadow:3px 3px 6px 2px #A9A9A9;
+-moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+-webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
