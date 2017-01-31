@@ -405,13 +405,15 @@ sub beautify {
 		$self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
 	    }
             $self->_add_token( $token );
+	    my $next_tok = quotemeta($self->_next_token);
             $self->_new_line
                 if ($self->_next_token
                 and $self->_next_token !~ /^AS$/i
                 and $self->_next_token ne ')'
                 and $self->_next_token !~ /::/
                 and $self->_next_token ne ';'
-                and $self->_next_token ne ',' );
+                and $self->_next_token ne ','
+		and !exists $SYMBOLS{$next_tok} );
         }
 
         elsif ( $token eq ',' ) {
@@ -1387,7 +1389,7 @@ sub set_dicts {
 
     my %symbols = (
         '='  => '=', '<'  => '&lt;', '>'  => '&gt;', '\|' => '|', ',' => ',', '\.' => '.', '\+' => '+', '\-' => '-',
-        '\*' => '*', '\/' => '/',    '!=' => '!='
+        '\*' => '*', '\/' => '/',    '!=' => '!=', '\%' => '%'
     );
 
     my @brackets = ( '(', ')' );
