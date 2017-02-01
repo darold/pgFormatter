@@ -176,7 +176,7 @@ sub content {
 
     # Replace placeholders by their original values
     if ($self->{ 'placeholder' }) {
-	$self->{ 'content' } =~ s/PLACEHOLDER(\d+)PLACEHOLDER/$self->{ 'placeholder_values' }[$1]/igs;
+        $self->{ 'content' } =~ s/PLACEHOLDER(\d+)PLACEHOLDER/$self->{ 'placeholder_values' }[$1]/igs;
     }
 
     return $self->{ 'content' };
@@ -297,62 +297,62 @@ sub tokenize_sql {
     my $query = $self->query();
 
     my $re = qr{
-	(
-		(?:--)[\ \t\S]*      # single line comments
-		|
-		(?:\-\|\-) # range operator "is adjacent to"
-		|
-		(?:\->>|\->|\#>>|\#>|\?\&|\?)  # Json Operators
-		|
-		(?:\#<=|\#>=|\#<>|\#<|\#=) # compares tinterval and reltime
-		|
-		(?:>>=|<<=) # inet operators
-		|
-		(?:!!|\@\@\@) # deprecated factorial and full text search  operators
-		|
-		(?:\|\|\/|\|\/) # square root and cube root
-		|
-		(?:\@\-\@|\@\@|\#\#|<\->|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
-				 # Geometric Operators
-		|
-		(?:~<=~|~>=~|~>~|~<~) # string comparison for pattern matching operator families
-		|
-		(?:!~~|!~~\*|~~\*|~~) # LIKE operators
-		|
-		(?:!~\*|!~|~\*) # regular expression operators
-		|
-		(?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
-		|
-		(?:<>|<=>|>=|<=|==|!=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
-		|
-		[\[\]\(\),;.]            # punctuation (parenthesis, comma)
-		|
-		E\'\'(?!\')              # empty single escaped quoted string
-		|
-		\'\'(?!\')              # empty single quoted string
-		|
-		\"\"(?!\"")             # empty double quoted string
-		|
-		"(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
-		|
-		`(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
-		|
-		E'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything escaped inside single quotes, ungreedy.
-		|
-		'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything inside single quotes, ungreedy.
-		|
-		/\*[\ \t\r\n\S]*?\*/      # C style comments
-		|
-		(?:[\w:@]+(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
-		|
-		(?:\$\w+\$)
-		|
-		(?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$ ) # dollar expressions - eg $_$ $3 $$ $BODY$
-		|
-		\n                      # newline
-		|
-		[\t\ ]+                 # any kind of white spaces
-	)
+        (
+                (?:--)[\ \t\S]*      # single line comments
+                |
+                (?:\-\|\-) # range operator "is adjacent to"
+                |
+                (?:\->>|\->|\#>>|\#>|\?\&|\?)  # Json Operators
+                |
+                (?:\#<=|\#>=|\#<>|\#<|\#=) # compares tinterval and reltime
+                |
+                (?:>>=|<<=) # inet operators
+                |
+                (?:!!|\@\@\@) # deprecated factorial and full text search  operators
+                |
+                (?:\|\|\/|\|\/) # square root and cube root
+                |
+                (?:\@\-\@|\@\@|\#\#|<\->|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
+                                 # Geometric Operators
+                |
+                (?:~<=~|~>=~|~>~|~<~) # string comparison for pattern matching operator families
+                |
+                (?:!~~|!~~\*|~~\*|~~) # LIKE operators
+                |
+                (?:!~\*|!~|~\*) # regular expression operators
+                |
+                (?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
+                |
+                (?:<>|<=>|>=|<=|==|!=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
+                |
+                [\[\]\(\),;.]            # punctuation (parenthesis, comma)
+                |
+                E\'\'(?!\')              # empty single escaped quoted string
+                |
+                \'\'(?!\')              # empty single quoted string
+                |
+                \"\"(?!\"")             # empty double quoted string
+                |
+                "(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
+                |
+                `(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
+                |
+                E'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything escaped inside single quotes, ungreedy.
+                |
+                '(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything inside single quotes, ungreedy.
+                |
+                /\*[\ \t\r\n\S]*?\*/      # C style comments
+                |
+                (?:[\w:@]+(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
+                |
+                (?:\$\w+\$)
+                |
+                (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$ ) # dollar expressions - eg $_$ $3 $$ $BODY$
+                |
+                \n                      # newline
+                |
+                [\t\ ]+                 # any kind of white spaces
+        )
     }smx;
 
     my @query = ();
@@ -392,7 +392,7 @@ sub beautify {
         elsif ( $token eq '(' ) {
             $self->_add_token( $token );
             if ( ($self->_next_token ne ')') && ($self->_next_token ne '*') ) {
-		$self->{ '_has_from' } = 1 if (grep(/^\Q$last\E$/i, @have_from_clause));
+                $self->{ '_has_from' } = 1 if (grep(/^\Q$last\E$/i, @have_from_clause));
                 push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
                 $self->_over unless $last and uc( $last ) eq 'WHERE';
 
@@ -400,12 +400,12 @@ sub beautify {
         }
 
         elsif ( $token eq ')' ) {
-	    $self->{ '_has_from' } = 0;
-	    if ( ($last ne '(') && ($last ne '*') )  {
-		$self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
-	    }
+            $self->{ '_has_from' } = 0;
+            if ( ($last ne '(') && ($last ne '*') )  {
+                $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+            }
             $self->_add_token( $token );
-	    my $next_tok = quotemeta($self->_next_token);
+            my $next_tok = quotemeta($self->_next_token);
             $self->_new_line
                 if ($self->_next_token
                 and $self->_next_token !~ /^AS$/i
@@ -413,7 +413,7 @@ sub beautify {
                 and $self->_next_token !~ /::/
                 and $self->_next_token ne ';'
                 and $self->_next_token ne ','
-		and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok } );
+                and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok } );
         }
 
         elsif ( $token eq ',' ) {
@@ -422,9 +422,9 @@ sub beautify {
         }
 
         elsif ( $token eq ';' ) {
-	    $self->{ '_has_from' } = 0;
-	    $self->{ '_is_in_where' } = 0;
-	    $self->{ '_is_in_from' } = 0;
+            $self->{ '_has_from' } = 0;
+            $self->{ '_is_in_where' } = 0;
+            $self->{ '_is_in_from' } = 0;
             $self->_add_token( $token );
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -437,36 +437,36 @@ sub beautify {
 
         elsif ( $token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN|SET)$/i ) {
 
-	    $self->{ 'no_break' } = 0;
+            $self->{ 'no_break' } = 0;
 
-	    if (($token =~ /^FROM$/i) && $self->{ '_has_from' } ) {
-		$self->{ '_has_from' } = 0;
+            if (($token =~ /^FROM$/i) && $self->{ '_has_from' } ) {
+                $self->{ '_has_from' } = 0;
                 $self->_new_line;
-	        $self->_add_token( $token );
+                $self->_add_token( $token );
                 $self->_new_line;
-	    }
-	    else
-	    {
-		# if we're not in a sub-select, make sure these always are
-		# at the far left (col 1)
-		$self->_back if ( $last and $last ne '(' and $last ne 'FOR' );
+            }
+            else
+            {
+                # if we're not in a sub-select, make sure these always are
+                # at the far left (col 1)
+                $self->_back if ( $last and $last ne '(' and $last ne 'FOR' );
 
-		$self->_new_line;
-		$self->_add_token( $token );
-		$self->_new_line if ( ( ( $token ne 'SET' ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
-		$self->_over;
-	    }
-	    if ($token =~ /^WHERE$/i) {
-		$self->{ '_is_in_where' } = 1;
-		$self->{ 'is_in_from' } = 0;
-	    } else {
-		$self->{ '_is_in_where' } = 0;
-		if ($token =~ /^FROM$/i) {
-		    $self->{ 'is_in_from' } = 1;
-		} else {
-		    $self->{ 'is_in_from' } = 0;
-		}
-	    }
+                $self->_new_line;
+                $self->_add_token( $token );
+                $self->_new_line if ( ( ( $token ne 'SET' ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
+                $self->_over;
+            }
+            if ($token =~ /^WHERE$/i) {
+                $self->{ '_is_in_where' } = 1;
+                $self->{ 'is_in_from' } = 0;
+            } else {
+                $self->{ '_is_in_where' } = 0;
+                if ($token =~ /^FROM$/i) {
+                    $self->{ 'is_in_from' } = 1;
+                } else {
+                    $self->{ 'is_in_from' } = 0;
+                }
+            }
 
         }
 
@@ -474,7 +474,7 @@ sub beautify {
             $self->_back;
             $self->_new_line;
             $self->_add_token( $token );
-	    $self->{ '_is_in_where' } = 0;
+            $self->{ '_is_in_where' } = 0;
         }
 
         elsif ( $token =~ /^(?:BY)$/i ) {
@@ -505,7 +505,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT)$/i ) {
-	    $self->{ 'no_break' } = 0;
+            $self->{ 'no_break' } = 0;
             $self->_back unless $last and $last eq '(';
             $self->_new_line;
             $self->_add_token( $token );
@@ -514,7 +514,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
-	    $self->{ 'no_break' } = 0;
+            $self->{ 'no_break' } = 0;
             $self->_back unless $last and $last eq ')';
 
             if ( $token =~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i ) {
@@ -529,7 +529,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:JOIN)$/i ) {
-	    $self->{ 'no_break' } = 0;
+            $self->{ 'no_break' } = 0;
             if ( !$last or $last !~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
             }
@@ -540,7 +540,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:AND|OR)$/i ) {
-	    $self->{ 'no_break' } = 0;
+            $self->{ 'no_break' } = 0;
             if ( !$last or ( $last !~ /^(?:CREATE)$/i ) ) {
                 $self->_new_line;
             }
@@ -568,12 +568,12 @@ sub beautify {
         }
 
         elsif ($token =~ /^USING$/i) {
-	    if (!$self->{ 'is_in_from' }) {
+            if (!$self->{ 'is_in_from' }) {
                 $self->_new_line;
-	    } else {
-		# USING from join clause disable line break
-		$self->{ 'no_break' } = 1;
-	    }
+            } else {
+                # USING from join clause disable line break
+                $self->{ 'no_break' } = 1;
+            }
             $self->_add_token($token);
         }
 
@@ -618,9 +618,9 @@ sub _add_token {
 
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot ) {
         my $sp = $self->_indent;
-	if ( (!defined($last_token) || $last_token ne '(') && ($token ne ')') && ($token !~ /^::/) ) {
-		$self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
-	}
+        if ( (!defined($last_token) || $last_token ne '(') && ($token ne ')') && ($token !~ /^::/) ) {
+            $self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
+        }
         $token =~ s/\n/\n$sp/gs;
     }
 
