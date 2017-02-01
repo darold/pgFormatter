@@ -433,9 +433,10 @@ sub beautify {
             @{ $self->{ '_level_stack' } } = ();
             $self->{ '_level' } = 0;
             $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+
         }
 
-        elsif ( $token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN|SET)$/i ) {
+        elsif ( $token =~ /^(?:SELECT|UPDATE|FROM|WHERE|HAVING|BEGIN|SET)$/i ) {
 
             $self->{ 'no_break' } = 0;
 
@@ -449,13 +450,16 @@ sub beautify {
             {
                 # if we're not in a sub-select, make sure these always are
                 # at the far left (col 1)
-                $self->_back if ( $last and $last ne '(' and uc($last) ne 'FOR' );
+                $self->_back if ( $last and $last ne '(' and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
 
-                $self->_new_line;
+                $self->_new_line  if ( $last and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
                 $self->_add_token( $token );
-                $self->_new_line if ( ( ( $token !~ /^SET$/i ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
+                $self->_new_line if ( ( $token !~ /^SET$/i || $self->{ '_is_an_update' } ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
                 $self->_over;
             }
+            if ($token =~ /^UPDATE$/i and (!$last or $last eq ';')) {
+                $self->{ '_is_an_update' } = 1;
+	    }
             if ($token =~ /^WHERE$/i) {
                 $self->{ '_is_in_where' } = 1;
                 $self->{ 'is_in_from' } = 0;
