@@ -413,17 +413,18 @@ sub beautify {
                 and $self->_next_token !~ /::/
                 and $self->_next_token ne ';'
                 and $self->_next_token ne ','
-		and !exists $SYMBOLS{$next_tok} );
+		and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok } );
         }
 
         elsif ( $token eq ',' ) {
             $self->_add_token( $token );
-            $self->_new_line if ($self->_next_token !~ /^'/ && !$self->{ '_is_in_where' });
+            $self->_new_line if (!$self->{ 'no_break' } && $self->_next_token !~ /^'/ && !$self->{ '_is_in_where' });
         }
 
         elsif ( $token eq ';' ) {
 	    $self->{ '_has_from' } = 0;
 	    $self->{ '_is_in_where' } = 0;
+	    $self->{ '_is_in_from' } = 0;
             $self->_add_token( $token );
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -435,6 +436,8 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:SELECT|FROM|WHERE|HAVING|BEGIN|SET)$/i ) {
+
+	    $self->{ 'no_break' } = 0;
 
 	    if (($token =~ /^FROM$/i) && $self->{ '_has_from' } ) {
 		$self->{ '_has_from' } = 0;
@@ -455,8 +458,14 @@ sub beautify {
 	    }
 	    if ($token =~ /^WHERE$/i) {
 		$self->{ '_is_in_where' } = 1;
+		$self->{ 'is_in_from' } = 0;
 	    } else {
 		$self->{ '_is_in_where' } = 0;
+		if ($token =~ /^FROM$/i) {
+		    $self->{ 'is_in_from' } = 1;
+		} else {
+		    $self->{ 'is_in_from' } = 0;
+		}
 	    }
 
         }
@@ -496,6 +505,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT)$/i ) {
+	    $self->{ 'no_break' } = 0;
             $self->_back unless $last and $last eq '(';
             $self->_new_line;
             $self->_add_token( $token );
@@ -504,6 +514,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
+	    $self->{ 'no_break' } = 0;
             $self->_back unless $last and $last eq ')';
 
             if ( $token =~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i ) {
@@ -518,6 +529,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:JOIN)$/i ) {
+	    $self->{ 'no_break' } = 0;
             if ( !$last or $last !~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
             }
@@ -528,6 +540,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:AND|OR)$/i ) {
+	    $self->{ 'no_break' } = 0;
             if ( !$last or ( $last !~ /^(?:CREATE)$/i ) ) {
                 $self->_new_line;
             }
@@ -554,8 +567,13 @@ sub beautify {
             }
         }
 
-        elsif ($token =~ /^(?:USING)$/i) {
-            $self->_new_line;
+        elsif ($token =~ /^USING$/i) {
+	    if (!$self->{ 'is_in_from' }) {
+                $self->_new_line;
+	    } else {
+		# USING from join clause disable line break
+		$self->{ 'no_break' } = 1;
+	    }
             $self->_add_token($token);
         }
 
