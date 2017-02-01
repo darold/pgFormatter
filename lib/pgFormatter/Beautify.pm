@@ -449,11 +449,11 @@ sub beautify {
             {
                 # if we're not in a sub-select, make sure these always are
                 # at the far left (col 1)
-                $self->_back if ( $last and $last ne '(' and $last ne 'FOR' );
+                $self->_back if ( $last and $last ne '(' and uc($last) ne 'FOR' );
 
                 $self->_new_line;
                 $self->_add_token( $token );
-                $self->_new_line if ( ( ( $token ne 'SET' ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
+                $self->_new_line if ( ( ( $token !~ /^SET$/i ) || $last ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
                 $self->_over;
             }
             if ($token =~ /^WHERE$/i) {
