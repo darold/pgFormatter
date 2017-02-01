@@ -436,7 +436,7 @@ sub beautify {
 
         }
 
-        elsif ( $token =~ /^(?:SELECT|UPDATE|FROM|WHERE|HAVING|BEGIN|SET)$/i ) {
+        elsif ( $token =~ /^(?:SELECT|UPDATE|FROM|WHERE|HAVING|BEGIN|SET|RETURNING)$/i ) {
 
             $self->{ 'no_break' } = 0;
 
@@ -454,7 +454,9 @@ sub beautify {
 
                 $self->_new_line  if ( $last and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
                 $self->_add_token( $token );
-                $self->_new_line if ( ( $token !~ /^SET$/i || $self->{ '_is_an_update' } ) and $self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
+                if ( $token !~ /^SET$/i || $self->{ '_is_an_update' } ) {
+                    $self->_new_line if ($self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
+                }
                 $self->_over;
             }
             if ($token =~ /^UPDATE$/i and (!$last or $last eq ';')) {
