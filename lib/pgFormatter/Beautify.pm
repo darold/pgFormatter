@@ -515,7 +515,7 @@ sub beautify {
             $self->_back unless $last and $last eq '(';
             $self->_new_line;
             $self->_add_token( $token );
-            $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' );
+            $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
             $self->_over;
         }
 
