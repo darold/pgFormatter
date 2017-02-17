@@ -391,6 +391,12 @@ sub beautify {
 
         elsif ( $token eq '(' ) {
             $self->_add_token( $token );
+            $self->_new_line if ($last =~ /^AS$/i);
+            if (!$self->{ '_is_in_function' } && $last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
+                $self->{ '_is_in_function' } = 1;
+            } elsif ($self->{ '_is_in_function' }) {
+                $self->{ '_is_in_function' }++;
+            }
             if ( ($self->_next_token ne ')') && ($self->_next_token ne '*') ) {
                 $self->{ '_has_from' } = 1 if (grep(/^\Q$last\E$/i, @have_from_clause));
                 push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
@@ -401,6 +407,10 @@ sub beautify {
 
         elsif ( $token eq ')' ) {
             $self->{ '_has_from' } = 0;
+            if ($self->{ '_is_in_function' }) {
+                $self->{ '_is_in_function' }--;
+            }
+            $self->_new_line if ($self->_next_token =~ /^SELECT$/i);
             if ( ($last ne '(') && ($last ne '*') )  {
                 $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
             }
@@ -418,7 +428,7 @@ sub beautify {
 
         elsif ( $token eq ',' ) {
             $self->_add_token( $token );
-            $self->_new_line if (!$self->{ 'no_break' } && $self->_next_token !~ /^'/ && !$self->{ '_is_in_where' });
+            $self->_new_line if (!$self->{ 'no_break' } && !$self->{ '_is_in_function' } && $self->_next_token !~ /^'/ && !$self->{ '_is_in_where' });
         }
 
         elsif ( $token eq ';' ) {
@@ -436,7 +446,7 @@ sub beautify {
 
         }
 
-        elsif ( $token =~ /^(?:SELECT|UPDATE|FROM|WHERE|HAVING|BEGIN|SET|RETURNING)$/i ) {
+        elsif ( $token =~ /^(?:SELECT|UPDATE|FROM|WHERE|HAVING|BEGIN|SET|RETURNING|VALUES)$/i ) {
 
             $self->{ 'no_break' } = 0;
 
