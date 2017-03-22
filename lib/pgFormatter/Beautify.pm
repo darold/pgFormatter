@@ -232,16 +232,16 @@ sub html_highlight_code {
 
     for my $k ( sort { length( $b ) <=> length( $a ) } @{ $self->{ 'dict' }->{ 'pg_functions' } } ) {
         if ( $self->{ 'uc_functions' } == 1 ) {
-            $code =~ s/(?<!:)\b$k\b/<span class="kw2_l">$k<\/span>/igs;
+            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2_l">$k<\/span>(/igs;
         }
         elsif ( $self->{ 'uc_functions' } == 2 ) {
-            $code =~ s/(?<!:)\b$k\b/<span class="kw2_u">$k<\/span>/igs;
+            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2_u">$k<\/span>(/igs;
         }
         elsif ( $self->{ 'uc_functions' } == 3 ) {
-            $code =~ s/(?<!:)\b$k\b/<span class="kw2_c">\L$k\E<\/span>/igs;
+            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2_c">\L$k\E<\/span>(/igs;
         }
         else {
-            $code =~ s/(?<!:)\b$k\b/<span class="kw2">$k<\/span>/igs;
+            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2">$k<\/span>(/igs;
         }
     }
 
