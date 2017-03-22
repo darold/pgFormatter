@@ -441,7 +441,7 @@ sub beautify {
 
         elsif ( $token eq ',' ) {
             $self->_add_token( $token );
-            $self->_new_line if (!$self->{ 'no_break' } && !$self->{ '_is_in_function' } && $self->_next_token !~ /^'/ && !$self->{ '_is_in_where' });
+            $self->_new_line if (!$self->{ 'no_break' } && !$self->{ '_is_in_function' } && $self->_next_token !~ /^('|\-\-)/ && !$self->{ '_is_in_where' });
         }
 
         elsif ( $token eq ';' ) {
@@ -1100,10 +1100,10 @@ sub set_dicts {
 
     my @redshift_keywords =  map { uc } qw(
         AES128 AES256 ALLOWOVERWRITE BACKUP BLANKSASNULL BYTEDICT BZIP2 CREDENTIALS CURRENT_USER_ID
-        DEFLATE DEFRAG DELTA DELTA32K DISABLE EMPTYASNULL ENABLE ENCODE ENCRYPT ENCRYPTION EXPLICIT
-        GLOBALDICT256 GLOBALDICT64K GZIP LUN LUNS LZO LZOP MINUS MOSTLY13 MOSTLY32 MOSTLY8 NEW
+        DEFLATE DEFRAG DELTA DELTA32K DISABLE DISTKEY EMPTYASNULL ENABLE ENCODE ENCRYPT ENCRYPTION EXPLICIT
+        GLOBALDICT256 GLOBALDICT64K GZIP INTERLEAVED LUN LUNS LZO LZOP MINUS MOSTLY13 MOSTLY32 MOSTLY8 NEW
         OFFLINE OFFSET OID OLD PARALLEL PERCENT PERMISSIONS RAW READRATIO RECOVER RESPECT REJECTLOG
-        RESORT RESTORE SYSDATE TAG TDES TEXT255 TEXT32K TIMESTAMP TOP TRUNCATECOLUMNS WALLET
+        RESORT RESTORE SORTKEY SYSDATE TAG TDES TEXT255 TEXT32K TIMESTAMP TOP TRUNCATECOLUMNS WALLET
         );
 
 
