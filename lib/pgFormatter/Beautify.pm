@@ -384,14 +384,23 @@ sub beautify {
     while ( defined( my $token = $self->_token ) ) {
         my $rule = $self->_get_rule( $token );
 
+        if ($token =~ /^CREATE$/i) {
+            $self->{ '_is_in_create' } = 1;
+        } elsif ($token =~ /^(AS|IS|RETURN)$/) {
+            $self->{ '_is_in_create' } = 0;
+        }
+
         # Allow custom rules to override defaults.
         if ( $rule ) {
             $self->_process_rule( $rule, $token );
         }
 
         elsif ( $token eq '(' ) {
+	    $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->_add_token( $token );
-            $self->_new_line if ($last =~ /^AS$/i);
+            if ((uc($last) eq 'AS') || ($self->{ '_is_in_create' } == 2)) {
+                $self->_new_line;
+            }
             if (!$self->{ '_is_in_function' } && $last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
                 $self->{ '_is_in_function' } = 1;
             } elsif ($self->{ '_is_in_function' }) {
@@ -406,6 +415,7 @@ sub beautify {
         }
 
         elsif ( $token eq ')' ) {
+            $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
             $self->{ '_has_from' } = 0;
             if ($self->{ '_is_in_function' }) {
                 $self->{ '_is_in_function' }--;
@@ -415,15 +425,18 @@ sub beautify {
                 $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
             }
             $self->_add_token( $token );
-            my $next_tok = quotemeta($self->_next_token);
-            $self->_new_line
-                if ($self->_next_token
-                and $self->_next_token !~ /^AS$/i
-                and $self->_next_token ne ')'
-                and $self->_next_token !~ /::/
-                and $self->_next_token ne ';'
-                and $self->_next_token ne ','
-                and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok } );
+            if ($self->{ '_is_in_create' } <= 1) {
+                my $next_tok = quotemeta($self->_next_token);
+                $self->_new_line
+                    if ($self->_next_token
+                    and $self->_next_token !~ /^AS$/i
+                    and $self->_next_token ne ')'
+                    and $self->_next_token !~ /::/
+                    and $self->_next_token ne ';'
+                    and $self->_next_token ne ','
+                    and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
+                );
+            }
         }
 
         elsif ( $token eq ',' ) {
@@ -435,6 +448,8 @@ sub beautify {
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
+            $self->{ '_is_an_update' } = 0;
+            $self->{ '_is_in_create' } = 0;
             $self->_add_token( $token );
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -635,6 +650,8 @@ sub _add_token {
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot ) {
         my $sp = $self->_indent;
         if ( (!defined($last_token) || $last_token ne '(') && ($token ne ')') && ($token !~ /^::/) ) {
+            $self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
+	} elsif ( ($self->{ '_is_in_create' } == 2) && ($last_token eq '(')) {
             $self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
         }
         $token =~ s/\n/\n$sp/gs;
