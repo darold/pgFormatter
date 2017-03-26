@@ -386,6 +386,7 @@ sub beautify {
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_an_update' } = 0;
     $self->{ '_is_in_create' } = 0;
+    $self->{ '_is_in_declare' } = 0;
 
     my $last;
     $self->tokenize_sql();
@@ -469,15 +470,17 @@ sub beautify {
             $self->_new_line;
 
             # End of statement; remove all indentation.
-            @{ $self->{ '_level_stack' } } = ();
-            $self->{ '_level' } = 0;
-            $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
-
+            if (!$self->{ 'is_in_declare' }) {
+                @{ $self->{ '_level_stack' } } = ();
+                $self->{ '_level' } = 0;
+                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+            }
         }
 
         elsif ( $token =~ /^(?:SELECT|UPDATE|FROM|WHERE|HAVING|BEGIN|SET|RETURNING|VALUES)$/i ) {
 
             $self->{ 'no_break' } = 0;
+            $self->{ 'is_in_declare' } = 0;
 
             if (($token =~ /^FROM$/i) && $self->{ '_has_from' } ) {
                 $self->{ '_has_from' } = 0;
@@ -550,13 +553,14 @@ sub beautify {
             $self->_add_token( $token );
         }
 
-        elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT)$/i ) {
+        elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT|DECLARE)$/i ) {
             $self->{ 'no_break' } = 0;
             $self->_back unless $last and $last eq '(';
             $self->_new_line;
             $self->_add_token( $token );
             $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
             $self->_over;
+            $self->{ 'is_in_declare' } = 1 if (uc($token) eq 'DECLARE');
         }
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
