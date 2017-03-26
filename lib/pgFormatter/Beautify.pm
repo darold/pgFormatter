@@ -449,6 +449,7 @@ sub beautify {
                     and $self->_next_token !~ /::/
                     and $self->_next_token ne ';'
                     and $self->_next_token ne ','
+                    and $self->_next_token ne '||'
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
                 );
             }
