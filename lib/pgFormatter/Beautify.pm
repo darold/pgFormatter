@@ -397,6 +397,8 @@ sub beautify {
             $self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^(AS|IS|RETURN)$/) {
             $self->{ '_is_in_create' } = 0;
+            $self->_new_line if (uc($token) eq 'AS' and defined $last
+                      and $last eq ')' and $self->_next_token eq '(');
         }
 
         # Allow custom rules to override defaults.
