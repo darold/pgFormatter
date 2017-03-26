@@ -197,6 +197,8 @@ sub html_highlight_code {
 
     my $code = $self->content();
 
+    my %comments = _remove_comments(\$code);
+
     my $i      = 0;
     my @qqcode = ();
     while ( $code =~ s/("[^\"]*")/QQCODEY${i}A/s ) {
@@ -278,6 +280,8 @@ sub html_highlight_code {
 
     $code =~ s/('.*?(?<!\\)')/<span class="st0">$1<\/span>/gs;
     $code =~ s/(`[^`]*`)/<span class="st0">$1<\/span>/gs;
+
+    _restore_comments(\$code, \%comments);
 
     $self->content( $code );
 
@@ -1472,6 +1476,74 @@ sub set_dicts {
     $self->{ 'dict' }->{ 'brackets' }      = \@brackets;
     return;
 }
+
+sub _restore_comments
+{
+    my ($content, $comments) = @_;
+
+    while ($$content =~ s/(PGF_COMMENT\d+A)[\n]*/$comments->{$1}\n/s) { delete $comments->{$1}; };
+}
+
+sub _remove_comments
+{
+    my $content = shift;
+
+    my %comments = ();
+    my $idx = 0;
+
+    while ($$content =~ s/(\/\*(.*?)\*\/)/PGF_COMMENT${idx}A/s) {
+        $comments{"PGF_COMMENT${idx}A"} = $1;
+        $idx++;
+    }
+
+    my @lines = split(/\n/, $$content);
+    for (my $j = 0; $j <= $#lines; $j++) {
+        # Extract multiline comments as a single placeholder
+        my $old_j = $j;
+        my $cmt = '';
+        while ($lines[$j] =~ /^(\s*\-\-.*)$/) {
+            $cmt .= "$1\n";
+            $j++;
+        }
+        if ( $j > $old_j ) {
+            chomp($cmt);
+            $lines[$old_j] =~ s/^(\s*\-\-.*)$/PGF_COMMENT${idx}A/;
+            $comments{"PGF_COMMENT${idx}A"} = $cmt;
+            $idx++;
+            $j--;
+            while ($j > $old_j) {
+                delete $lines[$j];
+                $j--;
+            }
+        }
+        if ($lines[$j] =~ s/(\s*\-\-.*)$/PGF_COMMENT${idx}A/) {
+            $comments{"PGF_COMMENT${idx}A"} = $1;
+            chomp($comments{"PGF_COMMENT${idx}A"});
+            $idx++;
+        }
+
+        # Mysql supports differents kinds of comment's starter
+        if ( ($lines[$j] =~ s/(\s*COMMENT\s+'.*)$/PGF_COMMENT${idx}A/) ||
+        ($lines[$j] =~ s/(\s*\# .*)$/PGF_COMMENT${idx}A/) ) {
+            $comments{"PGF_COMMENT${idx}A"} = $1;
+            chomp($comments{"PGF_COMMENT${idx}A"});
+            # Normalize start of comment
+            $comments{"PGF_COMMENT${idx}A"} =~ s/^(\s*)COMMENT/$1\-\- /;
+            $comments{"PGF_COMMENT${idx}A"} =~ s/^(\s*)\#/$1\-\- /;
+            $idx++;
+        }
+    }
+    $$content = join("\n", @lines);
+
+    # Replace subsequent comment by a single one
+    while ($$content =~ s/(PGF_COMMENT\d+A\s*PGF_COMMENT\d+A)/PGF_COMMENT${idx}A/s) {
+        $comments{"PGF_COMMENT${idx}A"} = $1;
+        $idx++;
+    }
+
+    return %comments;
+}
+
 
 =head1 AUTHOR
 
