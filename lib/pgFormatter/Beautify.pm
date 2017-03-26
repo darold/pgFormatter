@@ -481,6 +481,7 @@ sub beautify {
                 $self->_back if ( $last and $last ne '(' and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
 
                 $self->_new_line  if ( $last and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
+		$self->_over if ($last and $token eq 'VALUES' and $last eq ')');
                 $self->_add_token( $token );
                 if ( $token !~ /^SET$/i || $self->{ '_is_an_update' } ) {
                     $self->_new_line if ($self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
