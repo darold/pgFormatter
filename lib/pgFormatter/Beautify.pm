@@ -381,6 +381,11 @@ sub beautify {
     $self->content( '' );
     $self->{ '_level_stack' } = [];
     $self->{ '_new_line' }    = 1;
+    $self->{ '_has_from' } = 0;
+    $self->{ '_is_in_where' } = 0;
+    $self->{ '_is_in_from' } = 0;
+    $self->{ '_is_an_update' } = 0;
+    $self->{ '_is_in_create' } = 0;
 
     my $last;
     $self->tokenize_sql();
@@ -402,7 +407,7 @@ sub beautify {
         elsif ( $token eq '(' ) {
 	    $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->_add_token( $token );
-            if ((uc($last) eq 'AS') || ($self->{ '_is_in_create' } == 2)) {
+            if (defined $last and (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2)) {
                 $self->_new_line;
             }
             if (!$self->{ '_is_in_function' } && $last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
@@ -427,7 +432,7 @@ sub beautify {
             if ($self->{ '_is_in_function' }) {
                 $self->{ '_is_in_function' }--;
             }
-            $self->_new_line if ($self->_next_token =~ /^SELECT$/i);
+            $self->_new_line if (!$self->{ '_is_an_insert' } and $self->_next_token =~ /^SELECT$/i);
             if ( ($last ne '(') && ($last ne '*') )  {
                 $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
             }
