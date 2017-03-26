@@ -415,6 +415,9 @@ sub beautify {
         }
 
         elsif ( $token eq ')' ) {
+            $self->_new_line if ($self->{ '_is_in_create' } > 1
+                    and $self->_next_token
+                    and $self->_next_token eq ';');
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
             $self->{ '_has_from' } = 0;
             if ($self->{ '_is_in_function' }) {
