@@ -302,6 +302,8 @@ sub tokenize_sql {
 
     my $re = qr{
         (
+                (?:\\set|\\i)        # psql meta-command
+                |
                 (?:--)[\ \t\S]*      # single line comments
                 |
                 (?:\-\|\-) # range operator "is adjacent to"
@@ -327,7 +329,7 @@ sub tokenize_sql {
                 |
                 (?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
                 |
-                (?:<>|<=>|>=|<=|==|!=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
+                (?:<>|<=>|>=|<=|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
                 |
                 [\[\]\(\),;.]            # punctuation (parenthesis, comma)
                 |
@@ -387,6 +389,8 @@ sub beautify {
     $self->{ '_is_an_update' } = 0;
     $self->{ '_is_in_create' } = 0;
     $self->{ '_is_in_declare' } = 0;
+    $self->{ '_is_in_block' } = 0;
+    $self->{ '_is_meta_command' } = 0;
 
     my $last;
     $self->tokenize_sql();
@@ -396,10 +400,17 @@ sub beautify {
 
         if ($token =~ /^CREATE$/i) {
             $self->{ '_is_in_create' } = 1;
-        } elsif ($token =~ /^(AS|IS|RETURN)$/) {
+            if ($self->{ '_is_meta_command' }) {
+                $self->_new_line;
+                $self->{ '_is_meta_command' } = 0;
+            }
+        }
+
+        elsif ($token =~ /^(AS|IS|RETURN|RETURNS|DECLARE)$/i) {
             $self->{ '_is_in_create' } = 0;
             $self->_new_line if (uc($token) eq 'AS' and defined $last
                       and $last eq ')' and $self->_next_token eq '(');
+            $self->{ '_is_in_block' } = 0 if ($token =~ /^RETURNS$/i);
         }
 
         # Allow custom rules to override defaults.
@@ -428,8 +439,8 @@ sub beautify {
 
         elsif ( $token eq ')' ) {
             $self->_new_line if ($self->{ '_is_in_create' } > 1
-                and (($self->_next_token
-                and $self->_next_token eq ';') or !$self->_next_token));
+                    and (!$self->_next_token or $self->_next_token eq ';')
+                );
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
             $self->{ '_has_from' } = 0;
             if ($self->{ '_is_in_function' }) {
@@ -446,7 +457,7 @@ sub beautify {
                     if ($self->_next_token
                     and $self->_next_token !~ /^AS$/i
                     and $self->_next_token ne ')'
-                    and $self->_next_token !~ /::/
+                    and $self->_next_token !~ /^:/
                     and $self->_next_token ne ';'
                     and $self->_next_token ne ','
                     and $self->_next_token ne '||'
@@ -471,18 +482,25 @@ sub beautify {
             $self->_new_line;
 
             # End of statement; remove all indentation.
-            if (!$self->{ 'is_in_declare' }) {
+            if (!$self->{ '_is_in_declare' } && !$self->{ '_is_in_block' }) {
                 @{ $self->{ '_level_stack' } } = ();
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
             }
         }
 
-        elsif ( $token =~ /^(?:SELECT|UPDATE|FROM|WHERE|HAVING|BEGIN|SET|RETURNING|VALUES)$/i ) {
+        elsif ( $token =~ /^(?:SELECT|PERFORM|UPDATE|FROM|WHERE|HAVING|BEGIN|SET|RETURNING|VALUES)$/i ) {
 
             $self->{ 'no_break' } = 0;
-            $self->{ 'is_in_declare' } = 0;
+	    if ($token =~ /^BEGIN$/i) {
+                $self->{ '_is_in_declare' } = 0;
+                $self->{ '_is_in_block' }++;
+            }
 
+            if ($self->{ '_is_meta_command' }) {
+                $self->_new_line;
+                $self->{ '_is_meta_command' } = 0;
+            }
             if (($token =~ /^FROM$/i) && $self->{ '_has_from' } ) {
                 $self->{ '_has_from' } = 0;
                 $self->_new_line;
@@ -493,10 +511,14 @@ sub beautify {
             {
                 # if we're not in a sub-select, make sure these always are
                 # at the far left (col 1)
-                $self->_back if ( $last and $last ne '(' and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
-
+                $self->_back if ( $last and $last ne '('
+                                        and uc($last) ne 'FOR'
+                                        and uc($last) ne 'KEY'
+                                        and uc($last) ne 'BEGIN'
+                                );
                 $self->_new_line  if ( $last and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
 		$self->_over if ($last and $token eq 'VALUES' and $last eq ')');
+                $self->_over if (uc($token) eq 'BEGIN' and $self->{ '_is_in_block' } > 1);
                 $self->_add_token( $token );
                 if ( $token !~ /^SET$/i || $self->{ '_is_an_update' } ) {
                     $self->_new_line if ($self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
@@ -520,11 +542,13 @@ sub beautify {
 
         }
 
-        elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT)$/i ) {
+        elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i ) {
             $self->_back;
             $self->_new_line;
             $self->_add_token( $token );
+            $self->_over if ($token =~ /^EXCEPTION$/i);
             $self->{ '_is_in_where' } = 0;
+            $self->{ '_is_in_from' } = 0;
         }
 
         elsif ( $token =~ /^(?:BY)$/i ) {
@@ -538,6 +562,11 @@ sub beautify {
             $self->_over;
         }
 
+        elsif ( $token =~ /^(?:IF)$/i ) {
+            $self->_add_token( $token );
+            $self->_over if ($self->_next_token ne ';');
+        }
+
         elsif ( $token =~ /^(?:WHEN)$/i ) {
             $self->_new_line;
             $self->_add_token( $token );
@@ -549,9 +578,19 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:END)$/i ) {
-            $self->_back;
+            if ( $self->{ '_is_in_block' } and $self->_next_token !~ /(?!IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|,)/i) {
+                $self->{_level} = $self->{ '_is_in_block' };
+            }
+            if ($self->{ '_is_in_block' } == 1) {
+                @{ $self->{ '_level_stack' } } = ();
+                $self->{ '_level' } = 0;
+                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+            } else {
+                $self->_back;
+            }
             $self->_new_line;
             $self->_add_token( $token );
+            $self->{ '_is_in_block' }-- if ($self->_next_token !~ /(?!IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|,)/i);
         }
 
         elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT|DECLARE)$/i ) {
@@ -561,7 +600,10 @@ sub beautify {
             $self->_add_token( $token );
             $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
             $self->_over;
-            $self->{ 'is_in_declare' } = 1 if (uc($token) eq 'DECLARE');
+            if (uc($token) eq 'DECLARE') {
+                $self->{ '_is_in_declare' } = 1;
+                $self->{ '_is_in_block' } = 0;
+            }
         }
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
@@ -626,6 +668,11 @@ sub beautify {
                 $self->{ 'no_break' } = 1;
             }
             $self->_add_token($token);
+	}
+
+        elsif ($token =~ /^\\(set|i)$/i) {
+	    $self->{ '_is_meta_command' } = 1;
+            $self->_add_token( $token );
         }
 
         else {
@@ -671,8 +718,8 @@ sub _add_token {
         my $sp = $self->_indent;
         if ( (!defined($last_token) || $last_token ne '(') && ($token ne ')') && ($token !~ /^::/) ) {
             $self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
-	} elsif ( ($self->{ '_is_in_create' } == 2) && ($last_token eq '(')) {
-            $self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
+	} elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token) && $last_token eq '(') {
+            $self->{ 'content' } .= $sp if ($last_token ne '::');
         }
         $token =~ s/\n/\n$sp/gs;
     }
@@ -1106,16 +1153,16 @@ sub set_dicts {
     # First load it all as "my" variables, to make it simpler to modify/map/grep/add
     # Afterwards, when everything is ready, put it in $self->{'dict'}->{...}
 
-    my @pg_keywords = map { uc } qw(
+    my @pg_keywords = map { uc } qw( 
         ALL ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION BERNOULLI BINARY BOTH BY CASE
         CAST CHECK COLLATE COLLATION COLUMN CONCURRENTLY CONFLICT CONSTRAINT CREATE CROSS CUBE
         CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER
         DEFAULT DEFERRABLE DESC DISTINCT DO ELSE END EXCEPT FALSE FETCH FOR FOREIGN FREEZE FROM
         FULL GRANT GROUP GROUPING HAVING ILIKE IN INITIALLY INNER INTERSECT INTO IS ISNULL JOIN LEADING
         LEFT LIKE LIMIT LOCALTIME LOCALTIMESTAMP LOCKED LOGGED NATURAL NOT NOTNULL NULL ON ONLY OPEN OR
-        ORDER OUTER OVER OVERLAPS PLACING POLICY PRIMARY REFERENCES REPLACE RETURNING RETURNS RIGHT ROLLUP SELECT SESSION_USER
-        SETS SKIP SIMILAR SOME SYMMETRIC TABLE TABLESAMPLE THEN TO TRAILING TRUE UNION UNIQUE USER USING VARIADIC
-        VERBOSE WHEN WHERE WINDOW WITH
+        ORDER OUTER OVER OVERLAPS PERFORM PLACING POLICY PRIMARY REFERENCES REPLACE RETURNING RETURNS
+        RIGHT ROLLUP SELECT SESSION_USER SETS SKIP SIMILAR SOME SYMMETRIC TABLE TABLESAMPLE THEN TO TRAILING
+        TRUE UNION UNIQUE USER USING VARIADIC VERBOSE WHEN WHERE WINDOW WITH
         );
 
     my @redshift_keywords =  map { uc } qw(
@@ -1231,8 +1278,12 @@ sub set_dicts {
         date_gt_timestamptz date_in date_larger date_le date_le_timestamp date_le_timestamptz date_lt
         date_lt_timestamp date_lt_timestamptz date_mi date_mi_interval date_mii date_ne date_ne_timestamp
         date_ne_timestamptz date_out date_pl_interval date_pli date_recv date_send date_smaller
-        date_sortsupport daterange daterange_canonical daterange_subdiff datetime_pl datetimetz_pl dcbrt
-        dearmor decrypt decrypt_iv degrees dense_rank dexp diagonal
+        date_sortsupport daterange daterange_canonical daterange_subdiff datetime_pl datetimetz_pl
+        dblink_connect_u dblink_connect dblink_disconnect dblink_exec dblink_open dblink_fetch dblink_close
+        dblink_get_connections dblink_error_message dblink_send_query dblink_is_busy dblink_get_notify dblink_get_result
+        dblink_cancel_query dblink_get_pkey dblink_build_sql_insert dblink_build_sql_delete dblink_build_sql_update dblink
+
+        dcbrt dearmor decrypt decrypt_iv degrees dense_rank dexp diagonal
         diameter digest dispell_init dispell_lexize dist_cpoly dist_lb dist_pb
         dist_pc dist_pl dist_ppath dist_ps dist_sb dist_sl div
         dlog1 dlog10 domain_in domain_recv dpow dround dsimple_init
