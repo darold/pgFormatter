@@ -302,7 +302,7 @@ sub tokenize_sql {
 
     my $re = qr{
         (
-                (?:\\set|\\i)        # psql meta-command
+                (?:\\set|\\i|\\unset|\\connect|\\cd|\\conninfo|\\copy|\\c|\\g|\\x|\\encoding|\\exec|\\prompt|\\timing|\\setenv|\\password|\\lo_export|\\lo_import|\\lo_list|\\lo_unlink|\\watch|\\crosstabview)        # psql meta-command
                 |
                 (?:--)[\ \t\S]*      # single line comments
                 |
@@ -363,8 +363,9 @@ sub tokenize_sql {
 
     my @query = ();
     @query = grep { /\S/ } $query =~ m{$re}smxg;
-
     $self->{ '_tokens' } = \@query;
+
+    return @query;
 }
 
 =head2 beautify
@@ -380,37 +381,115 @@ Code lifted from SQL::Beautify
 sub beautify {
     my $self = shift;
 
+    # Use to store the token position in the array
+    my $pos = 0;
+
+    # Main variables used to store differents state
     $self->content( '' );
     $self->{ '_level_stack' } = [];
     $self->{ '_new_line' }    = 1;
+    $self->{ '_current_sql_stmt' } = '';
+    $self->{ '_is_meta_command' } = 0;
+    $self->{ '_fct_code_delimiter' } = '';
+    $self->{ '_first_when_in_case' } = 0;
+
     $self->{ '_has_from' } = 0;
     $self->{ '_is_in_where' } = 0;
     $self->{ '_is_in_from' } = 0;
-    $self->{ '_is_an_update' } = 0;
     $self->{ '_is_in_create' } = 0;
     $self->{ '_is_in_declare' } = 0;
-    $self->{ '_is_in_block' } = 0;
-    $self->{ '_is_meta_command' } = 0;
+    $self->{ '_is_in_block' } = -1;
+    $self->{ '_is_in_function' } = 0;
+    $self->{ '_is_in_index' } = 0;
+    $self->{ '_is_in_with' }  = 0;
+    $self->{ '_parenthesis_level' } = 0;
 
     my $last;
-    $self->tokenize_sql();
+    my @token_array = $self->tokenize_sql();
 
     while ( defined( my $token = $self->_token ) ) {
         my $rule = $self->_get_rule( $token );
 
-        if ($token =~ /^CREATE$/i) {
+        # Store function code delimiter
+        if ($self->{ '_fct_code_delimiter' } eq '1') {
+            $self->{ '_fct_code_delimiter' } = $token;
+            $self->_add_token( $token );
+            next;
+        }
+
+        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION)$/i) {
             $self->{ '_is_in_create' } = 1;
-            if ($self->{ '_is_meta_command' }) {
-                $self->_new_line;
-                $self->{ '_is_meta_command' } = 0;
+        }
+
+        # No newline in the statement after parenthesis, comma and AND/OR keywords
+        # This is mainly used in index/constraint statements but also with SET
+        elsif ($token =~ /^(INDEX|PRIMARY|CONSTRAINT|SET)$/i) {
+            $self->{ '_is_in_index' } = 1 if (! $self->{ '_is_in_create' } and $self->{ '_current_sql_stmt' } ne 'UPDATE');
+        }
+        # Same as above but for ALTER FUNCTION/SEQUENCE and WITH in create table statement
+        elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|WITH)$/i) {
+            $self->{ '_is_in_index' } = 1 if (defined $last and uc($last) eq 'ALTER');
+            if ($token =~ /^(FUNCTION|PROCEDURE|WITH)$/i && $self->{ '_is_in_create' }) {
+                $self->{ '_is_in_index' } = 1;
+            }
+            if ($token =~ /^(SEQUENCE|FUNCTION|PROCEDURE)$/i) {
+                $self->{ '_current_sql_stmt' } = uc($1);
+            } elsif ($token =~ /^WITH$/i) {
+		$self->{ '_is_in_with' } = 1;
             }
         }
 
-        elsif ($token =~ /^(AS|IS|RETURN|RETURNS|DECLARE)$/i) {
-            $self->{ '_is_in_create' } = 0;
+        elsif ($token =~ /^(INSERT|DELETE|RAISE|ALTER)$/i) {
+            $self->{ '_current_sql_stmt' } = uc($1);
+        }
+
+        elsif ($token =~ /^UPDATE$/i and ($self->_next_token && $self->_next_token ne ';' && $self->_next_token ne ')')) {
+                $self->{ '_current_sql_stmt' } = 'UPDATE';
+        }
+
+        elsif ($token =~ /^(AS|IS)$/i) {
+            $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
             $self->_new_line if (uc($token) eq 'AS' and defined $last
                       and $last eq ')' and $self->_next_token eq '(');
-            $self->{ '_is_in_block' } = 0 if ($token =~ /^RETURNS$/i);
+            if ($self->{ '_is_in_create' }) {
+                $self->_new_line;
+                @{ $self->{ '_level_stack' } } = ();
+                $self->{ '_level' } = 0;
+                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+                $self->{ '_is_in_create' } = 0;
+            }
+            # Toogle _fct_code_delimiter to force next token to be stored as the function code delimiter
+            if ($token =~ /^AS$/i and !$self->{ '_fct_code_delimiter' } and $self->{ '_current_sql_stmt' } =~ /^FUNCTION|PROCEDURE$/) {
+                $self->{ '_fct_code_delimiter' } = '1';
+                $self->{ '_is_in_create' } = 0;
+            }
+        }
+
+        # Desactivate the block mode when code delimiter is found for the second time
+        elsif ($self->{ '_fct_code_delimiter' } && $token eq $self->{ '_fct_code_delimiter' }) {
+            $self->{ '_is_in_block' } = -1;
+            @{ $self->{ '_level_stack' } } = ();
+            $self->{ '_level' } = 0;
+            $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+            $self->{ '_fct_code_delimiter' } = '';
+            $self->{ '_current_sql_stmt' } = '';
+            $self->_new_line;
+        }
+
+        elsif ($token =~ /^(RETURN|RETURNS)$/i) {
+            $self->{ '_is_in_index' } = 0;
+            if (uc($token) eq 'RETURNS') {
+                $self->_new_line;
+                $self->_over;
+            }
+        }
+
+        # Disable psql meta-command toogle
+        if ($self->{ '_is_meta_command' } and ($self->_is_keyword($token) or $self->_is_function($token))) {
+            $self->{ '_is_meta_command' } = 0;
+            $self->_add_token( $token );
+            $self->_new_line;
+            next;
         }
 
         # Allow custom rules to override defaults.
@@ -418,49 +497,72 @@ sub beautify {
             $self->_process_rule( $rule, $token );
         }
 
-        elsif ( $token eq '(' ) {
-	    $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
+        elsif ($token =~ /^(LANGUAGE|SECURITY|)$/i) {
+            $self->_new_line;
             $self->_add_token( $token );
-            if (defined $last and (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2)) {
-                $self->_new_line;
-            }
-            if (!$self->{ '_is_in_function' } && $last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
-                $self->{ '_is_in_function' } = 1;
-            } elsif ($self->{ '_is_in_function' }) {
-                $self->{ '_is_in_function' }++;
-            }
-            if ( ($self->_next_token ne ')') && ($self->_next_token ne '*') ) {
-                $self->{ '_has_from' } = 1 if (grep(/^\Q$last\E$/i, @have_from_clause));
-                push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
-                $self->_over unless $last and uc( $last ) eq 'WHERE';
+        }
 
+        elsif ($token =~ /^DECLARE$/i) {
+            $self->{ '_is_in_block' } = -1;
+            $self->{ '_is_in_declare' } = 1;
+            $self->_new_line;
+            $self->_add_token( $token );
+            $self->_new_line;
+            $self->_over;
+        }
+
+        elsif ( $token eq '(' ) {
+            $self->{ '_parenthesis_level' }++;
+            $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
+            $self->_add_token( $token, $last );
+            if ( !$self->{ '_is_in_index' } ) {
+                if (defined $last and (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2)) {
+                    $self->_new_line;
+                }
+                if ($last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
+                    $self->{ '_is_in_function' }++;
+                }
+                $self->_over;
             }
         }
 
         elsif ( $token eq ')' ) {
+            $self->{ '_parenthesis_level' }--;
+            if ($self->{ '_is_in_index' }) {
+                $self->_add_token( '' );
+                $self->_add_token( $token );
+                next;
+            }
             $self->_new_line if ($self->{ '_is_in_create' } > 1
                     and (!$self->_next_token or $self->_next_token eq ';')
                 );
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
             $self->{ '_has_from' } = 0;
-            if ($self->{ '_is_in_function' }) {
-                $self->{ '_is_in_function' }--;
-            }
-            $self->_new_line if (!$self->{ '_is_an_insert' } and $self->_next_token =~ /^SELECT$/i);
-            if ( ($last ne '(') && ($last ne '*') )  {
-                $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
-            }
+            $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT' and !$self->{ '_is_in_function' } and $self->_next_token =~ /^(SELECT|WITH)$/i and $last ne ')');
+            $self->{ '_is_in_function' }-- if ($self->{ '_is_in_function' });
+            $self->_back;
             $self->_add_token( $token );
+            if ($self->{ '_is_in_with' } == 2 && !$self->{ '_parenthesis_level' }) {
+                @{ $self->{ '_level_stack' } } = ();
+                $self->{ '_level' } = 0;
+                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+            }
+            # When closing CTE statement go back again
+            if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i) {
+                    $self->_back;
+            }
             if ($self->{ '_is_in_create' } <= 1) {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line
                     if ($self->_next_token
-                    and $self->_next_token !~ /^AS$/i
+                    and $self->_next_token !~ /^AS|THEN|INTO$/i
+                    and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
                     and $self->_next_token ne ';'
                     and $self->_next_token ne ','
                     and $self->_next_token ne '||'
+                    and ($self->_is_keyword($self->_next_token) or $self->_is_function($self->_next_token))
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
                 );
             }
@@ -468,78 +570,142 @@ sub beautify {
 
         elsif ( $token eq ',' ) {
             $self->_add_token( $token );
-            $self->_new_line if (!$self->{ 'no_break' } && !$self->{ '_is_in_function' } && $self->_next_token !~ /^('|\-\-)/ && !$self->{ '_is_in_where' });
+            $self->_new_line if ( !$self->{ 'no_break' }
+                               && !$self->{ '_is_in_function' }
+                               && $self->{ '_current_sql_stmt' } !~ /^INSERT|RAISE$/
+                               && ($self->{ '_current_sql_stmt' } !~ /^FUNCTION|PROCEDURE$/ || $self->{ '_fct_code_delimiter' } ne '')
+                               && !$self->{ '_is_in_where' }
+                               && !$self->{ '_is_in_index' }
+                               && $self->_next_token !~ /^('$|\($|\-\-)/i
+                    );
         }
 
         elsif ( $token eq ';' ) {
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
-            $self->{ '_is_an_update' } = 0;
             $self->{ '_is_in_create' } = 0;
-            $self->_add_token( $token );
+            $self->{ '_is_in_function' } = 0;
+            $self->{ '_is_in_index' } = 0;
+            $self->{ '_is_in_if' } = 0;
+            $self->{ '_current_sql_stmt' } = '';
+            $self->{ '_is_in_with' } = 0;
+            $self->_add_token($token);
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
+            # Add an additional newline after ; when we are not in a function
+            if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' }) {
+                $self->{ '_new_line' } = 0;
+                $self->_new_line;
+            }
+            # End of statement; remove all indentation when we are not in a BEGIN/END block
+            if (!$self->{ '_is_in_declare' } && $self->{ '_is_in_block' } == -1) {
+                @{ $self->{ '_level_stack' } } = ();
+                $self->{ '_level' } = 0;
+                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+            } else {
+                if ($#{ $self->{ '_level_stack' } } == -1) {
+                        $self->{ '_level' } = ($self->{ '_is_in_declare' }) ? 1 : ($self->{ '_is_in_block' }+1);
+                } else {
+                        $self->{ '_level' } = $self->{ '_level_stack' }[-1];
+                }
+            }
+        }
 
-            # End of statement; remove all indentation.
-            if (!$self->{ '_is_in_declare' } && !$self->{ '_is_in_block' }) {
+        elsif ( $token eq 'BEGIN' ) {
+            $self->{ '_is_in_declare' } = 0;
+            if ($self->{ '_is_in_block' } == -1) {
                 @{ $self->{ '_level_stack' } } = ();
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
             }
-        }
-
-        elsif ( $token =~ /^(?:SELECT|PERFORM|UPDATE|FROM|WHERE|HAVING|BEGIN|SET|RETURNING|VALUES)$/i ) {
-
-            $self->{ 'no_break' } = 0;
-	    if ($token =~ /^BEGIN$/i) {
-                $self->{ '_is_in_declare' } = 0;
+            $self->_new_line;
+            $self->_add_token( $token );
+            if (defined $self->_next_token && $self->_next_token ne ';') {
+                $self->_new_line;
+                $self->_over;
                 $self->{ '_is_in_block' }++;
             }
+        }
 
-            if ($self->{ '_is_meta_command' }) {
-                $self->_new_line;
-                $self->{ '_is_meta_command' } = 0;
-            }
-            if (($token =~ /^FROM$/i) && $self->{ '_has_from' } ) {
-                $self->{ '_has_from' } = 0;
-                $self->_new_line;
-                $self->_add_token( $token );
+        elsif ($token =~ /^FOR$/i) {
+            if ($self->_next_token =~ /^(UPDATE|KEY|NO)$/) {
+                $self->_back;
                 $self->_new_line;
             }
-            else
-            {
-                # if we're not in a sub-select, make sure these always are
-                # at the far left (col 1)
-                $self->_back if ( $last and $last ne '('
-                                        and uc($last) ne 'FOR'
-                                        and uc($last) ne 'KEY'
-                                        and uc($last) ne 'BEGIN'
-                                );
-                $self->_new_line  if ( $last and uc($last) ne 'FOR' and uc($last) ne 'KEY' );
-		$self->_over if ($last and $token eq 'VALUES' and $last eq ')');
-                $self->_over if (uc($token) eq 'BEGIN' and $self->{ '_is_in_block' } > 1);
-                $self->_add_token( $token );
-                if ( $token !~ /^SET$/i || $self->{ '_is_an_update' } ) {
-                    $self->_new_line if ($self->_next_token and $self->_next_token ne '(' and $self->_next_token ne ';' );
-                }
+            $self->_add_token( $token );
+            if ($self->_next_token =~ /^SELECT$/) {
+                $self->_new_line;
                 $self->_over;
             }
-            if ($token =~ /^UPDATE$/i and (!$last or $last eq ';')) {
-                $self->{ '_is_an_update' } = 1;
-	    }
+        }
+
+        elsif ( $token =~ /^(?:FROM|WHERE|SET|RETURNING|HAVING|VALUES)$/i ) {
+
+            $self->{ 'no_break' } = 0;
+
+            if (($token =~ /^FROM$/i) && $self->{ '_has_from' } && !$self->{ '_is_in_function' }) {
+                $self->{ '_has_from' } = 0;
+            }
+            if ($token =~ /^FROM$/i) {
+                $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' });
+            }
             if ($token =~ /^WHERE$/i) {
-                $self->{ '_is_in_where' } = 1;
-                $self->{ 'is_in_from' } = 0;
-            } else {
-                $self->{ '_is_in_where' } = 0;
-                if ($token =~ /^FROM$/i) {
-                    $self->{ 'is_in_from' } = 1;
-                } else {
-                    $self->{ 'is_in_from' } = 0;
-                }
+                $self->{ '_is_in_where' }++;
+                $self->{ '_is_in_from' }-- if ($self->{ '_is_in_from' });
+            } elsif (!$self->{ '_is_in_function' }) {
+                $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
             }
 
+            if ($token =~ /^SET$/i and $self->{ '_is_in_create' }) {
+                # Add newline before SET statement in function header
+                $self->_new_line;
+            } elsif ($token =~ /^WHERE$/i and $self->{ '_current_sql_stmt' } eq 'DELETE') {
+                $self->_new_line;
+                $self->_add_token( $token );
+                $self->_over;
+                next;
+            } elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' } and $self->{ '_current_sql_stmt' } ne 'DELETE')) {
+                if ($token !~ /^SET$/i or !$self->{ '_is_in_index' }) {
+                    $self->_back;
+                    $self->_new_line;
+                }
+            } else {
+                $self->_add_token( $token );
+                next;
+            }
+            if ($token =~ /^VALUES$/i and ($self->{ '_current_sql_stmt' } eq 'INSERT' or (defined $last and $last eq '('))) {
+                $self->_over;
+            }
+            $self->_add_token( $token );
+            if ($token =~ /^VALUES$/i and defined $last and $last eq '(') {
+                $self->_over;
+            }
+            elsif ( $token =~ /^SET$/i && $self->{ '_current_sql_stmt' } eq 'UPDATE' ) {
+                    $self->_new_line;
+                    $self->_over;
+            }
+            elsif ( $token !~ /^SET$/i || $self->{ '_current_sql_stmt' } eq 'UPDATE' ) {
+                if ($self->_next_token and $self->_next_token ne '(' && $self->_next_token !~ /^(UPDATE|KEY|NO)$/) {
+                    $self->_new_line;
+                    $self->_over;
+                }
+            }
+        }
+
+        elsif ( $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i ) {
+            $self->{ 'no_break' } = 0;
+
+            if ($token =~ /^UPDATE$/i and defined $last and $last =~ /^(FOR|KEY)$/i) {
+                $self->_add_token( $token );
+            } elsif ($token !~ /^DELETE$/i) {
+                $self->_new_line;
+                $self->_add_token( $token );
+                $self->_new_line;
+                $self->_over;
+            } else {
+                $self->_add_token( $token );
+            }
         }
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i ) {
@@ -547,11 +713,10 @@ sub beautify {
             $self->_new_line;
             $self->_add_token( $token );
             $self->_over if ($token =~ /^EXCEPTION$/i);
-            $self->{ '_is_in_where' } = 0;
-            $self->{ '_is_in_from' } = 0;
+            $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
         }
 
-        elsif ( $token =~ /^(?:BY)$/i ) {
+        elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(INCREMENT|OWNED)$/ ) {
             $self->_add_token( $token );
             $self->_new_line;
             $self->_over;
@@ -559,51 +724,80 @@ sub beautify {
 
         elsif ( $token =~ /^(?:CASE)$/i ) {
             $self->_add_token( $token );
-            $self->_over;
-        }
-
-        elsif ( $token =~ /^(?:IF)$/i ) {
-            $self->_add_token( $token );
-            $self->_over if ($self->_next_token ne ';');
+            # Store current indent position to print END at the right level
+            push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
+            # Mark next WHEN statement as first element of a case
+            # to force indentation only after this element
+            $self->{ '_first_when_in_case' } = 1;
         }
 
         elsif ( $token =~ /^(?:WHEN)$/i ) {
-            $self->_new_line;
+            $self->_new_line if (!defined $last or uc($last) ne 'CASE');
             $self->_add_token( $token );
+            $self->_over if ($self->{ '_first_when_in_case' } or !defined $last or uc($last) eq 'CASE');
+            $self->{ '_first_when_in_case' } = 0;
+        }
+
+        elsif ( $token =~ /^(?:IF|LOOP)$/i ) {
+            $self->_add_token( $token );
+            if (defined $self->_next_token and $self->_next_token ne ';') {
+                $self->_new_line if ($token =~ /^LOOP$/i);
+                $self->_over;
+                push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
+                if ($token =~ /^IF$/i) {
+                    $self->{ '_is_in_if' } = 1;
+                }
+            }
+        }
+
+        elsif ($token =~ /^THEN$/i) {
+            $self->_add_token( $token );
+            $self->_new_line;
+            $self->{ '_is_in_if' } = 0;
         }
 
         elsif ( $token =~ /^(?:ELSE)$/i ) {
+            $self->_back;
             $self->_new_line;
             $self->_add_token( $token );
+            $self->_new_line;
+            $self->_over;
         }
 
         elsif ( $token =~ /^(?:END)$/i ) {
-            if ( $self->{ '_is_in_block' } and $self->_next_token !~ /(?!IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|,)/i) {
-                $self->{_level} = $self->{ '_is_in_block' };
-            }
-            if ($self->{ '_is_in_block' } == 1) {
-                @{ $self->{ '_level_stack' } } = ();
-                $self->{ '_level' } = 0;
-                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+            $self->{ '_first_when_in_case' } = 0;
+            # When we are not in a function code block (0 is the main begin/end block of a function)
+            if ($self->{ '_is_in_block' } == -1) {
+                # END is closing a create function statement so reset position to begining
+                if ($self->_next_token !~ /^(IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|AS|,)$/i) {
+                    @{ $self->{ '_level_stack' } } = ();
+                    $self->{ '_level' } = 0;
+                    $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+                } else {
+                    # otherwise back to last level stored at CASE keyword
+                    $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+                }
+            # We are in code block
             } else {
+                # decrease the block level if this is a END coling a BEGIN block
+                if ($self->_next_token !~ /^(IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|AS|,)$/i) {
+                    $self->{ '_is_in_block' }--;
+                }
+		# Go back to level stored with IF/LOOP block
+                $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
                 $self->_back;
             }
             $self->_new_line;
             $self->_add_token( $token );
-            $self->{ '_is_in_block' }-- if ($self->_next_token !~ /(?!IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|,)/i);
         }
 
-        elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT|DECLARE)$/i ) {
+        elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT)$/i ) {
             $self->{ 'no_break' } = 0;
             $self->_back unless $last and $last eq '(';
             $self->_new_line;
             $self->_add_token( $token );
             $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
-            $self->_over;
-            if (uc($token) eq 'DECLARE') {
-                $self->{ '_is_in_declare' } = 1;
-                $self->{ '_is_in_block' } = 0;
-            }
+            $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
         }
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
@@ -634,7 +828,7 @@ sub beautify {
 
         elsif ( $token =~ /^(?:AND|OR)$/i ) {
             $self->{ 'no_break' } = 0;
-            if ( !$last or ( $last !~ /^(?:CREATE)$/i ) ) {
+            if ( !$self->{ '_is_in_if' } and !$self->{ '_is_in_index' } and (!$last or $last !~ /^(?:CREATE)$/i) ) {
                 $self->_new_line;
             }
             $self->_add_token( $token );
@@ -661,25 +855,59 @@ sub beautify {
         }
 
         elsif ($token =~ /^USING$/i) {
-            if (!$self->{ 'is_in_from' }) {
+            if (!$self->{ '_is_in_from' }) {
                 $self->_new_line;
             } else {
                 # USING from join clause disable line break
                 $self->{ 'no_break' } = 1;
             }
             $self->_add_token($token);
-	}
+        }
 
-        elsif ($token =~ /^\\(set|i)$/i) {
-	    $self->{ '_is_meta_command' } = 1;
+        elsif ($token =~ /^\\(set|unset|i|c|g|x|encoding|exec|watch|crosstabview|prompt|timing|setenv|cd|conninfo|password|connect|copy|lo_export|lo_import|lo_list|lo_unlink)$/) {
+            $self->{ '_is_meta_command' } = 1;
             $self->_add_token( $token );
         }
 
+        elsif ($token =~ /^ADD$/i && ($self->{ '_current_sql_stmt' } eq 'SEQUENCE' || $self->{ '_current_sql_stmt' } eq 'ALTER')) {
+            $self->_new_line;
+            $self->_over;
+            $self->_add_token($token);
+        }
+
+        elsif ($token =~ /^INCREMENT$/i && $self->{ '_current_sql_stmt' } eq 'SEQUENCE') {
+            $self->_new_line;
+            $self->_add_token($token);
+        }
+
+        elsif ($token =~ /^NO$/i and $self->_next_token =~ /^(MINVALUE|MAXVALUE)$/i) {
+            $self->_new_line;
+            $self->_add_token($token);
+        }
+
+        elsif (defined $last and uc($last) ne 'NO' and $token =~ /^(MINVALUE|MAXVALUE)$/i) {
+            $self->_new_line;
+            $self->_add_token($token);
+        }
+
+        elsif ($token =~ /^CACHE$/i) {
+            $self->_new_line;
+            $self->_add_token($token);
+        }
+
         else {
-            $self->_add_token( $token, $last );
+             if ( defined $last and $last =~ /^(?:SEQUENCE)$/i and $self->_next_token !~ /^OWNED$/i) {
+                 $self->_add_token( $token );
+                 $self->_new_line;
+                 $self->_over;
+             }
+             else {
+                 $self->_add_token( $token, $last );
+            }
         }
 
         $last = $token;
+        $pos++;
     }
 
     $self->_new_line;
@@ -716,10 +944,15 @@ sub _add_token {
 
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot ) {
         my $sp = $self->_indent;
-        if ( (!defined($last_token) || $last_token ne '(') && ($token ne ')') && ($token !~ /^::/) ) {
-            $self->{ 'content' } .= $sp if (!defined($last_token) || $last_token ne '::');
-	} elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token) && $last_token eq '(') {
-            $self->{ 'content' } .= $sp if ($last_token ne '::');
+        if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && ($token !~ /^::/) ) {
+            $self->{ 'content' } .= $sp if ($token ne ')'
+                                            && defined($last_token)
+                                            && $last_token ne '::' 
+                                            && ($token ne '(' || !$self->_is_function( $last_token ))
+                );
+            $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
+        } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
+            $self->{ 'content' } .= $sp if ($last_token ne '::' and ($last_token ne '(' || !$self->{ '_is_in_index' }));
         }
         $token =~ s/\n/\n$sp/gs;
     }
@@ -1216,7 +1449,7 @@ sub set_dicts {
     }
 
     my @pg_functions = map { lc } qw(
-        ascii age bit_length btrim char_length character_length convert chr current_date current_time current_timestamp count
+        ascii age bit_length btrim cast char_length character_length convert chr current_date current_time current_timestamp count
         decode date_part date_trunc encode extract get_byte get_bit initcap isfinite interval justify_hours justify_days
         lower length lpad ltrim localtime localtimestamp md5 now octet_length overlay position pg_client_encoding
         quote_ident quote_literal repeat replace rpad rtrim substring split_part strpos substr set_byte set_bit
