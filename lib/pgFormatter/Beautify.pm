@@ -618,7 +618,10 @@ sub beautify {
                 @{ $self->{ '_level_stack' } } = ();
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
-            }
+            } else {
+                # Store current indent position to print END at the right level
+                push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
+	    }
             $self->_new_line;
             $self->_add_token( $token );
             if (defined $self->_next_token && $self->_next_token ne ';') {
@@ -709,10 +712,18 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i ) {
-            $self->_back;
+            if ($token !~ /^EXCEPTION$/i) {
+                $self->_back;
+            } else {
+                $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+            }
             $self->_new_line;
             $self->_add_token( $token );
-            $self->_over if ($token =~ /^EXCEPTION$/i);
+            # Store current indent position to print END at the right level
+            if ($token =~ /^EXCEPTION$/i) {
+                push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
+                $self->_over;
+            }
             $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
         }
 
@@ -779,13 +790,13 @@ sub beautify {
                 }
             # We are in code block
             } else {
-                # decrease the block level if this is a END coling a BEGIN block
+                # decrease the block level if this is a END closing a BEGIN block
                 if ($self->_next_token !~ /^(IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|AS|,)$/i) {
                     $self->{ '_is_in_block' }--;
                 }
-		# Go back to level stored with IF/LOOP block
+		# Go back to level stored with IF/LOOP/BEGIN/EXCEPTION block
                 $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
-                $self->_back;
+                $self->_back if ($self->_next_token =~ /^(IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|AS|,)$/i);
             }
             $self->_new_line;
             $self->_add_token( $token );
