@@ -756,11 +756,11 @@ sub beautify {
             $self->{ '_is_in_if' } = 0;
         }
 
-        elsif ( $token =~ /^(?:ELSE)$/i ) {
+        elsif ( $token =~ /^(?:ELSE|ELSIF)$/i ) {
             $self->_back;
             $self->_new_line;
             $self->_add_token( $token );
-            $self->_new_line;
+            $self->_new_line if ($token !~ /^ELSIF$/i);
             $self->_over;
         }
 
