@@ -34,7 +34,7 @@ SET search_path = public, pg_catalog;
 --
 -- Name: add(integer, integer); Type: FUNCTION; Schema: public; Owner: gilles
 --
-CREATE FUNCTION add (integer, integer)
+CREATE FUNCTION ADD (integer, integer)
     RETURNS integer
     LANGUAGE sql IMMUTABLE STRICT
 AS $_$
@@ -85,7 +85,7 @@ ALTER FUNCTION public.dup (integer, OUT f1 integer, OUT f2 text) OWNER TO gilles
 --
 -- Name: increment(integer); Type: FUNCTION; Schema: public; Owner: gilles
 --
-CREATE FUNCTION increment (i integer)
+CREATE FUNCTION INCREMENT (i integer)
     RETURNS integer
     LANGUAGE plpgsql
 AS $$
@@ -115,7 +115,7 @@ DECLARE
     tuples_a_generer integer;
 BEGIN
     -- vider la table de stock
-    truncate TABLE stock;
+    TRUNCATE TABLE stock;
     -- calculer le nombre d'annees 
     SELECT
         (annee_fin - annee_debut) + 1 INTO annees;
@@ -134,26 +134,26 @@ BEGIN
         annees * contenants * vins INTO tuples_a_generer;
     --on boucle sur tous les millesimes: disons 1930 a 2000
     -- soit 80 annees
-    FOR v_annee IN annee_debut..annee_fin loop
+    FOR v_annee IN annee_debut..annee_fin LOOP
         -- on boucle sur les contenants possibles
-        FOR v_contenant_id IN 1..contenants loop
+        FOR v_contenant_id IN 1..contenants LOOP
             -- idem pour l'id du vin
-            FOR v_vin_id IN 1..vins loop
+            FOR v_vin_id IN 1..vins LOOP
                 -- on prends un nombre de bouteilles compris entre 6 et 18
                 SELECT
                     round(random() * 12) + 6 INTO v_nombre;
                 -- insertion dans la table de stock
-                insert INTO stock (vin_id, contenant_id, annee, nombre)
-                values (v_vin_id, v_contenant_id, v_annee, v_nombre);
-                if (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
+                INSERT INTO stock (vin_id, contenant_id, annee, nombre)
+                VALUES (v_vin_id, v_contenant_id, v_annee, v_nombre);
+                IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
                     raise notice 'stock : % sur % tuples generes', compteur, tuples_a_generer;
-                END if;
+                END IF;
                 compteur := compteur + 1;
-            END loop;
+            END LOOP;
             --fin boucle vin
-        END loop;
+        END LOOP;
         -- fin boucle contenant
-    END loop;
+    END LOOP;
     --fin boucle annee
     RETURN compteur;
 END;
@@ -179,8 +179,8 @@ DECLARE
     compteur bigint := 0;
 BEGIN
     -- vider la table de stock, qui depend de vin, puis vin
-    delete FROM stock;
-    delete FROM vin;
+    DELETE FROM stock;
+    DELETE FROM vin;
     -- compter le nombre de recoltants
     SELECT
         count(*)
@@ -200,23 +200,23 @@ BEGIN
     SELECT
         (recoltants * appellations * types_vins) INTO tuples_a_generer;
     --on boucle sur tous les recoltants
-    FOR v_recoltant_id IN 1..recoltants loop
+    FOR v_recoltant_id IN 1..recoltants LOOP
         -- on boucle sur les appelations
-        FOR v_appellation_id IN 1..appellations loop
+        FOR v_appellation_id IN 1..appellations LOOP
             -- on boucle sur les types de vins
-            FOR v_type_vin_id IN 1..types_vins loop
+            FOR v_type_vin_id IN 1..types_vins LOOP
                 -- insertion dans la table de vin
-                insert INTO vin (recoltant_id, appellation_id, type_vin_id)
-                values (v_recoltant_id, v_appellation_id, v_type_vin_id);
-                if (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
+                INSERT INTO vin (recoltant_id, appellation_id, type_vin_id)
+                VALUES (v_recoltant_id, v_appellation_id, v_type_vin_id);
+                IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
                     raise notice 'vins : % sur % tuples generes', compteur, tuples_a_generer;
-                END if;
+                END IF;
                 compteur := compteur + 1;
-            END loop;
+            END LOOP;
             --fin boucle type vin
-        END loop;
+        END LOOP;
         -- fin boucle appellations
-    END loop;
+    END LOOP;
     --fin boucle recoltants
     RETURN compteur;
 END;
@@ -275,7 +275,7 @@ BEGIN
         annee_max;
     -- on fait une boucle correspondant a 1% des tuples 
     -- de la table stock
-    FOR v_tuples IN 1..echantillon loop
+    FOR v_tuples IN 1..echantillon LOOP
         -- selection d'identifiant, au hasard
         --select round(random()*contenants_disponibles) into v_contenant_id;
         v_contenant_id := round(random() * contenants_disponibles);
@@ -283,14 +283,14 @@ BEGIN
         v_vin_id := round(random() * vins_disponibles);
         v_annee := round(random() * (annee_max - annee_min)) + (annee_min);
         -- si le tuple est deja efface, ce n'est pas grave..
-        delete FROM stock
+        DELETE FROM stock
         WHERE contenant_id = v_contenant_id
             AND vin_id = v_vin_id
             AND annee = v_annee;
-        if (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
+        IF (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
             raise notice 'stock : % sur % echantillon effaces', v_tuples, echantillon;
-        END if;
-    END loop;
+        END IF;
+    END LOOP;
     --fin boucle v_tuples
     RETURN echantillon;
 END;
@@ -325,20 +325,20 @@ BEGIN
     raise NOTICE 'taille de l''echantillon %', echantillon;
     -- on fait une boucle correspondant a 10% des tuples 
     -- de la table vin
-    FOR v_tuples IN 1..echantillon loop
+    FOR v_tuples IN 1..echantillon LOOP
         -- selection d'identifiant, au hasard
         v_vin_id := round(random() * vin_total);
         -- si le tuple est deja efface, ce n'est pas grave..
         -- TODO remplacer ce delete par un trigger on delete cascade
         --      voir dans druid le schema???
-        delete FROM stock
+        DELETE FROM stock
         WHERE vin_id = v_vin_id;
-        delete FROM vin
+        DELETE FROM vin
         WHERE id = v_vin_id;
-        if (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
+        IF (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
             raise notice 'vin : % sur % echantillon effaces', v_tuples, echantillon;
-        END if;
-    END loop;
+        END IF;
+    END LOOP;
     --fin boucle v_tuples
     RETURN echantillon;
 END;

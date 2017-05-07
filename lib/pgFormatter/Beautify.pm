@@ -435,7 +435,7 @@ sub beautify {
             if ($token =~ /^(SEQUENCE|FUNCTION|PROCEDURE)$/i) {
                 $self->{ '_current_sql_stmt' } = uc($1);
             } elsif ($token =~ /^WITH$/i) {
-		$self->{ '_is_in_with' } = 1;
+                $self->{ '_is_in_with' } = 1;
             }
         }
 
@@ -621,7 +621,7 @@ sub beautify {
             } else {
                 # Store current indent position to print END at the right level
                 push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
-	    }
+            }
             $self->_new_line;
             $self->_add_token( $token );
             if (defined $self->_next_token && $self->_next_token ne ';') {
@@ -794,7 +794,7 @@ sub beautify {
                 if ($self->_next_token !~ /^(IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|AS|,)$/i) {
                     $self->{ '_is_in_block' }--;
                 }
-		# Go back to level stored with IF/LOOP/BEGIN/EXCEPTION block
+                # Go back to level stored with IF/LOOP/BEGIN/EXCEPTION block
                 $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
                 $self->_back if ($self->_next_token =~ /^(IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|AS|,)$/i);
             }
@@ -1398,56 +1398,51 @@ sub set_dicts {
     # Afterwards, when everything is ready, put it in $self->{'dict'}->{...}
 
     my @pg_keywords = map { uc } qw( 
-        ALL ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION BERNOULLI BINARY BOTH BY CASE
-        CAST CHECK COLLATE COLLATION COLUMN CONCURRENTLY CONFLICT CONSTRAINT CREATE CROSS CUBE
-        CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER
-        DEFAULT DEFERRABLE DESC DISTINCT DO ELSE END EXCEPT FALSE FETCH FOR FOREIGN FREEZE FROM
-        FULL GRANT GROUP GROUPING HAVING ILIKE IN INITIALLY INNER INTERSECT INTO IS ISNULL JOIN LEADING
-        LEFT LIKE LIMIT LOCALTIME LOCALTIMESTAMP LOCKED LOGGED NATURAL NOT NOTNULL NULL ON ONLY OPEN OR
-        ORDER OUTER OVER OVERLAPS PERFORM PLACING POLICY PRIMARY REFERENCES REPLACE RETURNING RETURNS
-        RIGHT ROLLUP SELECT SESSION_USER SETS SKIP SIMILAR SOME SYMMETRIC TABLE TABLESAMPLE THEN TO TRAILING
-        TRUE UNION UNIQUE USER USING VARIADIC VERBOSE WHEN WHERE WINDOW WITH
+        ADD AFTER ALL ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION AUTO_INCREMENT
+        BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY BY CACHE CASCADE CASE CAST CHECK CHECKPOINT
+        CLOSE CLUSTER COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT
+        CONSTRAINT CONTINUE COPY COST CREATE CROSS CUBE CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP
+        CURRENT_USER CURSOR CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER
+        DESC DISTINCT DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE
+        FETCH FIRST FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GRANT GROUP GROUPING HAVING IF ILIKE IMMUTABLE IN
+        INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD INTERSECT INTO INVOKER IS ISNULL
+        ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING LEAKPROOF LEFT LIKE LIMIT LISTEN LOAD
+        LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN LOOP MAPPING MAXVALUE MINVALUE MOVE NATURAL NEXT
+        NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OIDS ON ONLY OPEN OPERATOR OR ORDER
+        OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE
+        REASSIGN RECURSIVE REFERENCES REINDEX RENAME REPEATABLE REPLACE REPLICA RESET RESTART RETURN RETURNING
+        RETURNS RETURNS REVOKE RIGHT ROLE ROLLBACK ROLLUP ROWS RULE SAVEPOINT SCHEMA SCROLL SECURITY SELECT SEQUENCE
+        SEQUENCE SERIALIZABLE SERVER SESSION_USER SET SETOF SETS SHOW SIMILAR SKIP SNAPSHOT SOME STABLE START STRICT
+        SYMMETRIC SYSTEM TABLE TABLESAMPLE TABLESPACE TEMPLATE TEMPORARY THEN TO TRAILING TRANSACTION TRIGGER TRUE
+        TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
+        VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH XOR ZEROFILL
+        );
+
+    my @sql_keywords = map { uc } qw(
+        ABORT ABSOLUTE ACCESS ACTION ADMIN AGGREGATE ALSO ALWAYS ASSERTION ASSIGNMENT AT ATTRIBUTE BIGINT BOOLEAN
+        CALLED CASCADED CATALOG CHAIN CHANGE CHARACTER CHARACTERISTICS COALESCE COLUMNS COMMENTS CONFIGURATION
+        CONNECTION CONSTRAINTS CONTENT CONVERSION CSV CURRENT DATA DATABASES DAY DEC DECIMAL DEFAULTS DELAYED
+        DELIMITERS DESCRIBE DICTIONARY DISABLE DISCARD DOCUMENT DOUBLE ENABLE ENCLOSED ENCRYPTED ENUM ESCAPE ESCAPED
+        EXCLUDE EXCLUSIVE EXTERNAL FIELD FIELDS FLOAT FLUSH FOLLOWING FORCE FUNCTIONS GLOBAL GRANTED GREATEST HANDLER
+        HEADER HOLD HOUR IDENTIFIED IDENTITY IGNORE IMMEDIATE IMPLICIT INDEXES INFILE INHERIT INLINE INPUT INSENSITIVE
+        INT INTEGER KEYS KILL LABEL LARGE LEAST LEVEL LINES LOCAL LOW_PRIORITY MATCH MINUTE MODE MODIFY MONTH NAMES
+        NATIONAL NCHAR NONE NOTHING NULLIF NULLS OBJECT OF OFF OPERATOR OPTIMIZE OPTION OPTIONALLY OPTIONS OUT OUTFILE
+        OWNED PARSER PARTIAL PASSING PLANS PRECISION PREPARED PRESERVE PRIOR PRIVILEGES PROCEDURAL QUOTE RANGE READ
+        REAL RECHECK REF REGEXP RELATIVE RELEASE RESTRICT RLIKE ROW SEARCH SECOND SEQUENCES SESSION SHARE SIMPLE
+        SMALLINT SONAME STANDALONE STATEMENT STATISTICS STATUS STORAGE STRAIGHT_JOIN SYSID TABLES TEMP TERMINATED
+        TREAT TRUSTED TYPES UNENCRYPTED UNKNOWN UNSIGNED UNTIL USE VALID VALIDATE VALIDATOR VALUE VARIABLES VARYING
+        WHITESPACE WITHOUT WORK WRAPPER WRITE XMLATTRIBUTES YEAR YES ZONE
         );
 
     my @redshift_keywords =  map { uc } qw(
-        AES128 AES256 ALLOWOVERWRITE BACKUP BLANKSASNULL BYTEDICT BZIP2 CREDENTIALS CURRENT_USER_ID
-        DEFLATE DEFRAG DELTA DELTA32K DISABLE DISTKEY EMPTYASNULL ENABLE ENCODE ENCRYPT ENCRYPTION EXPLICIT
-        GLOBALDICT256 GLOBALDICT64K GZIP INTERLEAVED LUN LUNS LZO LZOP MINUS MOSTLY13 MOSTLY32 MOSTLY8 NEW
-        OFFLINE OFFSET OID OLD PARALLEL PERCENT PERMISSIONS RAW READRATIO RECOVER RESPECT REJECTLOG
-        RESORT RESTORE SORTKEY SYSDATE TAG TDES TEXT255 TEXT32K TIMESTAMP TOP TRUNCATECOLUMNS WALLET
+        AES128 AES256 ALLOWOVERWRITE BACKUP BLANKSASNULL BYTEDICT BZIP2 CREDENTIALS CURRENT_USER_ID DEFLATE DEFRAG
+        DELTA DELTA32K DISABLE DISTKEY EMPTYASNULL ENABLE ENCODE ENCRYPT ENCRYPTION EXPLICIT GLOBALDICT256
+        GLOBALDICT64K GZIP INTERLEAVED LUN LUNS LZO LZOP MINUS MOSTLY13 MOSTLY32 MOSTLY8 NEW OFFLINE OFFSET OID OLD
+        PARALLEL PERCENT PERMISSIONS RAW READRATIO RECOVER REJECTLOG RESORT RESPECT RESTORE SORTKEY SYSDATE TAG TDES
+        TEXT255 TEXT32K TIMESTAMP TOP TRUNCATECOLUMNS WALLET
         );
 
 
-    my @sql_keywords = map { uc } qw(
-        ALTER ADD AUTO_INCREMENT BETWEEN BY BOOLEAN BEGIN CHANGE COLUMNS COMMIT COALESCE CLUSTER
-        COPY DATABASES DATABASE DATA DELAYED DESCRIBE DELETE DROP ENCLOSED ESCAPED EXISTS EXPLAIN
-        FIELDS FIELD FLUSH FUNCTION GREATEST IGNORE INDEX INFILE INSERT IDENTIFIED IF INHERIT
-        KEYS KILL KEY LINES LOAD LOCAL LOCK LOW_PRIORITY LANGUAGE LEAST LOGIN MODIFY
-        NULLIF NOSUPERUSER NOCREATEDB NOCREATEROLE OPTIMIZE OPTION OPTIONALLY OUTFILE OWNER PROCEDURE
-        PROCEDURAL READ REGEXP RENAME RETURN REVOKE RLIKE ROLE ROLLBACK SHOW SONAME STATUS
-        STRAIGHT_JOIN SET SEQUENCE TABLES TEMINATED TRUNCATE TEMPORARY TRIGGER TRUSTED UNLOCK
-        USE UPDATE UNSIGNED VALUES VARIABLES VIEW VACUUM WRITE ZEROFILL XOR
-        ABORT ABSOLUTE ACCESS ACTION ADMIN AFTER AGGREGATE ALSO ALWAYS ASSERTION ASSIGNMENT AT ATTRIBUTE
-        BACKWARD BEFORE BIGINT CACHE CALLED CASCADE CASCADED CATALOG CHAIN CHARACTER CHARACTERISTICS
-        CHECKPOINT CLOSE COMMENT COMMENTS COMMITTED CONFIGURATION CONNECTION CONSTRAINTS CONTENT
-        CONTINUE CONVERSION COST CSV CURRENT CURSOR CYCLE DAY DEALLOCATE DEC DECIMAL DECLARE DEFAULTS
-        DEFERRED DEFINER DELIMITER DELIMITERS DICTIONARY DISABLE DISCARD DOCUMENT DOMAIN DOUBLE EACH
-        ENABLE ENCODING ENCRYPTED ENUM ESCAPE EXCLUDE EXCLUDING EXCLUSIVE EXECUTE EXTENSION EXTERNAL
-        FIRST FLOAT FOLLOWING FORCE FORWARD FUNCTIONS GLOBAL GRANTED HANDLER HEADER HOLD
-        HOUR IDENTITY IMMEDIATE IMMUTABLE IMPLICIT INCLUDING INCREMENT INDEXES INHERITS INLINE INOUT INPUT
-        INSENSITIVE INSTEAD INT INTEGER INVOKER ISOLATION LABEL LARGE LAST LATERAL LC_COLLATE LC_CTYPE
-        LEAKPROOF LEVEL LISTEN LOCATION LOOP MAPPING MATCH MAXVALUE MINUTE MINVALUE MODE MONTH MOVE NAMES
-        NATIONAL NCHAR NEXT NO NONE NOTHING NOTIFY NOWAIT NULLS OBJECT OF OFF OIDS OPERATOR OPTIONS
-        OUT OWNED PARSER PARTIAL PARTITION PASSING PASSWORD PLANS PRECEDING PRECISION PREPARE
-        PREPARED PRESERVE PRIOR PRIVILEGES QUOTE RANGE REAL REASSIGN RECHECK RECURSIVE REF REINDEX RELATIVE
-        RELEASE REPEATABLE REPLICA RESET RESTART RESTRICT RETURNS ROW ROWS RULE SAVEPOINT SCHEMA SCROLL SEARCH
-        SECOND SECURITY SEQUENCES SERIALIZABLE SERVER SESSION SETOF SHARE SIMPLE SMALLINT SNAPSHOT STABLE
-        STANDALONE START STATEMENT STATISTICS STORAGE STRICT SYSID SYSTEM TABLESPACE TEMP
-        TEMPLATE TRANSACTION TREAT TYPE TYPES UNBOUNDED UNCOMMITTED UNENCRYPTED
-        UNKNOWN UNLISTEN UNLOGGED UNTIL VALID VALIDATE VALIDATOR VALUE VARYING VOLATILE
-        WHITESPACE WITHOUT WORK WRAPPER XMLATTRIBUTES XMLCONCAT XMLELEMENT XMLEXISTS XMLFOREST XMLPARSE
-        XMLPI XMLROOT XMLSERIALIZE YEAR YES ZONE
-        );
 
     for my $k ( @pg_keywords ) {
         next if grep { $k eq $_ } @sql_keywords;
@@ -1516,8 +1511,7 @@ sub set_dicts {
         concat_ws contjoinsel contsel convert_from convert_to corr cos
         cot covar_pop covar_samp crypt cstring_in cstring_out cstring_recv
         cstring_send cume_dist current_database current_query current_schema current_schemas current_setting
-        current_user currtid currtid2 currval cursor_to_xml cursor_to_xmlschema database_to_xml
-        database_to_xml_and_xmlschema database_to_xmlschema date date_cmp date_cmp_timestamp date_cmp_timestamptz date_eq
+        current_user currtid currtid2 currval date date_cmp date_cmp_timestamp date_cmp_timestamptz date_eq
         date_eq_timestamp date_eq_timestamptz date_ge date_ge_timestamp date_ge_timestamptz date_gt date_gt_timestamp
         date_gt_timestamptz date_in date_larger date_le date_le_timestamp date_le_timestamptz date_lt
         date_lt_timestamp date_lt_timestamptz date_mi date_mi_interval date_mii date_ne date_ne_timestamp
@@ -1687,7 +1681,7 @@ sub set_dicts {
         poly_out poly_overabove poly_overbelow poly_overlap poly_overleft poly_overright poly_recv
         poly_right poly_same poly_send polygon popen positionjoinsel positionsel
         postgresql_fdw_validator pow power prsd_end prsd_headline prsd_lextype prsd_nexttoken
-        prsd_start pt_contained_circle pt_contained_poly query_to_xml query_to_xml_and_xmlschema query_to_xmlschema querytree
+        prsd_start pt_contained_circle pt_contained_poly querytree
         quote_nullable radians radius random range_adjacent range_after range_before
         range_cmp range_contained_by range_contains range_contains_elem range_eq range_ge range_gist_compress
         range_gist_consistent range_gist_decompress range_gist_penalty range_gist_picksplit range_gist_same range_gist_union range_gt
@@ -1704,7 +1698,7 @@ sub set_dicts {
         regr_syy regtypein regtypeout regtyperecv regtypesend reltime reltimeeq
         reltimege reltimegt reltimein reltimele reltimelt reltimene reltimeout
         reltimerecv reltimesend reverse round row_number row_to_json
-        scalargtjoinsel scalargtsel scalarltjoinsel scalarltsel schema_to_xml schema_to_xml_and_xmlschema schema_to_xmlschema
+        scalargtjoinsel scalargtsel scalarltjoinsel scalarltsel
         session_user set_config set_masklen setseed setval setweight shell_in
         shell_out shift_jis_2004_to_euc_jis_2004 shift_jis_2004_to_utf8 shobj_description sign similar_escape sin
         sjis_to_euc_jp sjis_to_mic sjis_to_utf8 slope smgreq smgrin smgrne
@@ -1713,8 +1707,8 @@ sub set_dicts {
         spg_text_picksplit spgbeginscan spgbuild spgbuildempty spgbulkdelete spgcanreturn spgcostestimate
         spgendscan spggetbitmap spggettuple spginsert spgmarkpos spgoptions spgrescan
         spgrestrpos spgvacuumcleanup sqrt statement_timestamp stddev stddev_pop stddev_samp
-        string_agg string_agg_finalfn string_agg_transfn string_to_array strip sum table_to_xml
-        table_to_xml_and_xmlschema table_to_xmlschema tan text text_ge text_gt text_larger
+        string_agg string_agg_finalfn string_agg_transfn string_to_array strip sum
+        tan text text_ge text_gt text_larger
         text_le text_lt text_pattern_ge text_pattern_gt text_pattern_le text_pattern_lt text_smaller
         textanycat textcat texteq texticlike texticnlike texticregexeq texticregexne
         textin textlen textlike textne textnlike textout textrecv
@@ -1761,8 +1755,11 @@ sub set_dicts {
         varchartypmodout variance version void_in void_out void_recv void_send
         width width_bucket win1250_to_latin2 win1250_to_mic win1251_to_iso win1251_to_koi8r win1251_to_mic
         win1251_to_win866 win866_to_iso win866_to_koi8r win866_to_mic win866_to_win1251 win_to_utf8 xideq
-        xideqint4 xidin xidout xidrecv xidsend xml xml_in
-        xml_is_well_formed xml_is_well_formed_content xml_is_well_formed_document xml_out xml_recv xml_send xmlagg
+        xideqint4 xidin xidout xidrecv xidsend xml xml_in xmlcomment xpath xpath_exists table_to_xmlschema
+        query_to_xmlschema cursor_to_xmlschema table_to_xml_and_xmlschema query_to_xml_and_xmlschema
+        schema_to_xml schema_to_xmlschema schema_to_xml_and_xmlschema database_to_xml database_to_xmlschema xmlroot
+        database_to_xml_and_xmlschema table_to_xml query_to_xmlcursor_to_xml xmlcomment xmlconcat xmlelement xmlforest
+        xml_is_well_formed_content xml_is_well_formed_document xml_is_well_formed xml_out xml_recv xml_send xmlagg xmlpi
         );
 
     my @copy_keywords = ( 'STDIN', 'STDOUT' );
