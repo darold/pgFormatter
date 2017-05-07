@@ -23,12 +23,12 @@ pgFormatter::Beautify - Library for pretty-printing SQL queries
 
 =head1 VERSION
 
-Version 1.6
+Version 2.0
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '1.6';
+our $VERSION = '2.0';
 
 # Inclusion of code from Perl package SQL::Beautify
 # Copyright (C) 2009 by Jonas Kramer

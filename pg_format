@@ -37,7 +37,7 @@ local $SIG{ __WARN__ } = sub {
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
-our $VERSION = '1.6';
+our $VERSION = '2.0';
 
 # Find out whether current run should be treated as CGI or CLI
 my $program;

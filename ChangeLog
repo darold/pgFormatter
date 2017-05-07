@@ -1,4 +1,36 @@
-January 23 2017 - v1.6
+May 07 2017 - v2.0
+
+This major release adds a plpgsql code beautifier. This makes pgFormatter
+the best free tool to rewrite and beautify any SQL and PLPGSQL code. This
+release also fixes several issues and adds lot of improvements in code
+formatting.
+
+    - Add PLPGSQL beautifier.
+    - Fix case sensitivity of plpgsql keywords when using the -u command line
+      option. Thanks to Hubert Depesz Lubaczewski for the report.
+    - Add regression tests script regress_test.pl, more test files and expected
+      results.
+    - Do not append newline before a concatenation operator.
+    - Fix unitialized variable issue and remove newline in insert statement
+      after a close parenthesis.
+    - Remove comment before HTML beautifier and restore them after to prevent
+      beautifying keywords in comments.
+    - Improve formatting of UPDATE and DELETE statement.
+    - Improve all DDL statements formatting.
+    - Only format functions when name is followed by an open parenthesis.
+    - Add support for AWS Redshift keywords. Thanks to cavanaug for the feature
+      request.
+    - Prevent new line after a comma in parameters function.
+    - Add LATERAL keyword.
+    - Remove new line between UNION and ALL.
+    - Add RETURNING as far left keyword.
+    - Fix some potential case sensitivity issues.
+    - Replace tabulation with space for better indentation.
+    - Prevent newline in USING clause of JOIN.
+    - Prevent newline after a closing parenthesis but before an operator.
+    - Prevent new line when a comma is followed by a quote
+
+January 23 2017 - v2.0
 
 This release fixes several issues and adds lot of improvements in
 query formatting.
