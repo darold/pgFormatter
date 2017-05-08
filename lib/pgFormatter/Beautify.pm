@@ -1420,7 +1420,7 @@ sub set_dicts {
 
     my @sql_keywords = map { uc } qw(
         ABORT ABSOLUTE ACCESS ACTION ADMIN AGGREGATE ALSO ALWAYS ASSERTION ASSIGNMENT AT ATTRIBUTE BIGINT BOOLEAN
-        CALLED CASCADED CATALOG CHAIN CHANGE CHARACTER CHARACTERISTICS COALESCE COLUMNS COMMENTS CONFIGURATION
+        CALLED CASCADED CATALOG CHAIN CHANGE CHARACTER CHARACTERISTICS COLUMNS COMMENTS CONFIGURATION
         CONNECTION CONSTRAINTS CONTENT CONVERSION CSV CURRENT DATA DATABASES DAY DEC DECIMAL DEFAULTS DELAYED
         DELIMITERS DESCRIBE DICTIONARY DISABLE DISCARD DOCUMENT DOUBLE ENABLE ENCLOSED ENCRYPTED ENUM ESCAPE ESCAPED
         EXCLUDE EXCLUSIVE EXTERNAL FIELD FIELDS FLOAT FLUSH FOLLOWING FORCE FUNCTIONS GLOBAL GRANTED GREATEST HANDLER
@@ -1455,8 +1455,8 @@ sub set_dicts {
     }
 
     my @pg_functions = map { lc } qw(
-        ascii age bit_length btrim cast char_length character_length convert chr current_date current_time current_timestamp count
-        decode date_part date_trunc encode extract get_byte get_bit initcap isfinite interval justify_hours justify_days
+        ascii age bit_length btrim cast char_length character_length coalesce convert chr current_date current_time current_timestamp
+        count decode date_part date_trunc encode extract get_byte get_bit initcap isfinite interval justify_hours justify_days
         lower length lpad ltrim localtime localtimestamp md5 now octet_length overlay position pg_client_encoding
         quote_ident quote_literal repeat replace rpad rtrim substring split_part strpos substr set_byte set_bit
         trim to_ascii to_hex translate to_char to_date to_timestamp to_number timeofday upper
