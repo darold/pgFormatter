@@ -35,7 +35,7 @@ local $SIG{ __WARN__ } = sub {
 
 # Find libraries path (should be in lib/ directory of where binary is, or on system perl library directory
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::RealBin/lib";
 
 our $VERSION = '2.0';
 
