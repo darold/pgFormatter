@@ -652,6 +652,10 @@ sub beautify {
 
             $self->{ 'no_break' } = 0;
 
+            if (defined $last and uc($last) eq 'DISTINCT' and $token =~ /^FROM$/i) {
+                $self->_add_token( $token );
+                next;
+            }
             if (($token =~ /^FROM$/i) && $self->{ '_has_from' } && !$self->{ '_is_in_function' }) {
                 $self->{ '_has_from' } = 0;
             }
