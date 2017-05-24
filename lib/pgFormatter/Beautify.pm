@@ -617,7 +617,7 @@ sub beautify {
             }
         }
 
-        elsif ( $token eq 'BEGIN' ) {
+        elsif ( uc($token) eq 'BEGIN' ) {
             $self->{ '_is_in_declare' } = 0;
             if ($self->{ '_is_in_block' } == -1) {
                 @{ $self->{ '_level_stack' } } = ();
