@@ -403,6 +403,7 @@ sub beautify {
     $self->{ '_is_in_index' } = 0;
     $self->{ '_is_in_with' }  = 0;
     $self->{ '_parenthesis_level' } = 0;
+    $self->{ '_is_in_grant' }  = 0;
 
     my $last;
     my @token_array = $self->tokenize_sql();
@@ -438,12 +439,14 @@ sub beautify {
                 $self->{ '_is_in_with' } = 1;
             }
         }
-
-        elsif ($token =~ /^(INSERT|DELETE|RAISE|ALTER)$/i) {
+        elsif ($token =~ /^(GRANT|REVOKE)$/i) {
+            $self->{ '_is_in_grant' } = uc($1);
+        }
+        elsif (!$self->{ '_is_in_grant' } and $token =~ /^(INSERT|DELETE|RAISE|ALTER)$/i) {
             $self->{ '_current_sql_stmt' } = uc($1);
         }
 
-        elsif ($token =~ /^UPDATE$/i and ($self->_next_token && $self->_next_token ne ';' && $self->_next_token ne ')')) {
+        elsif (!$self->{ '_is_in_grant' } and $token =~ /^UPDATE$/i and ($self->_next_token && $self->_next_token ne ';' && $self->_next_token ne ')')) {
                 $self->{ '_current_sql_stmt' } = 'UPDATE';
         }
 
@@ -576,6 +579,7 @@ sub beautify {
                                && ($self->{ '_current_sql_stmt' } !~ /^FUNCTION|PROCEDURE$/ || $self->{ '_fct_code_delimiter' } ne '')
                                && !$self->{ '_is_in_where' }
                                && !$self->{ '_is_in_index' }
+                               && !$self->{ '_is_in_grant' }
                                && $self->_next_token !~ /^('$|\($|\-\-)/i
                     );
         }
@@ -590,6 +594,7 @@ sub beautify {
             $self->{ '_is_in_if' } = 0;
             $self->{ '_current_sql_stmt' } = '';
             $self->{ '_is_in_with' } = 0;
+            $self->{ '_is_in_grant' } = 0;
             $self->_add_token($token);
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -696,7 +701,7 @@ sub beautify {
             }
         }
 
-        elsif ( $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i ) {
+        elsif ( !$self->{ '_is_in_grant' } and $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i ) {
             $self->{ 'no_break' } = 0;
 
             if ($token =~ /^UPDATE$/i and defined $last and $last =~ /^(FOR|KEY)$/i) {
