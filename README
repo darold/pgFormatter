@@ -40,6 +40,7 @@ DESCRIPTION
         -o | --output file    : define the filename for the output. Default: stdout.
         -p | --placeholder re : set regex to find code that must not be changed.
         -s | --spaces size    : change space indent, default 4 spaces.
+        -S | --separator STR  : dynamic code separator, default to single quote.
         -u | --keyword-case N : Change the case of the reserved keyword. Default is
                                 uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                                 2=>uppercase, 3=>capitalize.
@@ -125,6 +126,16 @@ HINTS
             pg_format samples/ex9.sql -p '<<(?:.*)?>>'
 
     will not format the bit-shift like operators.
+
+  Prevent dynamic code formatting
+    By default pgFormatter takes all code between single quote as string
+    constant and do not perform any formatting on this code. It is common to
+    use a string as code separator to avoid doubling single quote in dynamic
+    code generation, in this case pgFormatter can fail to auto detect the
+    code separator. By default it will search for any string after the
+    EXECUTE keyword starting with dollar sign. If it can not auto detect
+    your code separator you can use the command line option -S or
+    --separator to set the code separator that must be used.
 
 AUTHORS
     pgFormatter is an original work from Gilles Darold

@@ -116,6 +116,7 @@ sub set_config {
     $self->{ 'service_url' }  = '';
     $self->{ 'download_url' } = 'http://sourceforge.net/projects/pgformatter/';
     $self->{ 'anonymize' }    = 0;
+    $self->{ 'separator' }    = '';
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -154,7 +155,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize ) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator ) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -190,6 +191,7 @@ sub sanitize_params {
     $self->{ 'uc_function' }  = 0 if $self->{ 'uc_function' } && ( $self->{ 'uc_function' } !~ /^(0|1|2|3)$/ );
     $self->{ 'nocomment' }    = 0 if $self->{ 'nocomment' } !~ /^(0|1)$/;
     $self->{ 'show_example' } = 0 if $self->{ 'show_example' } !~ /^(0|1)$/;
+    $self->{ 'separator' }    = '' if ($self->{ 'separator' } eq "'" or length($self->{ 'separator' }) > 6);
 
     if ( $self->{ 'show_example' } ) {
         $self->{ 'content' } = q{
@@ -216,6 +218,7 @@ sub beautify_query {
     $args{ 'spaces' }       = $self->{ 'spaces' };
     $args{ 'uc_keywords' }  = $self->{ 'uc_keyword' };
     $args{ 'uc_functions' } = $self->{ 'uc_function' };
+    $args{ 'separator' }    = $self->{ 'separator' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 

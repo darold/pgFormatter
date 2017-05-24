@@ -85,6 +85,8 @@ Takes options as hash. Following options are recognized:
 
 =item * uc_functions - what to do with function names:
 
+=item * separator - string used as dynamic code separator, default is single quote.
+
 =over
 
 =item 0 - do not change
@@ -114,7 +116,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder ) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator ) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -126,6 +128,9 @@ sub new {
 
     # Array to store placeholders values
     @{ $self->{ 'placeholder_values' } } = ();
+
+    # Hash to store dynamic code
+    %{ $self->{ 'dynamic_code' } } = ();
 
     return $self;
 }
@@ -157,6 +162,9 @@ sub query {
        }
     }
 
+    # Replace dynamic code with placeholder
+    $self->_remove_dynamic_code( \$self->{ 'query' }, $self->{ 'separator' } );
+
     return $self->{ 'query' };
 }
 
@@ -173,6 +181,9 @@ sub content {
     my $new_value = shift;
 
     $self->{ 'content' } = $new_value if defined $new_value;
+
+    # Replace placeholders with their original dynamic code
+    $self->_restore_dynamic_code( \$self->{ 'content' } );
 
     # Replace placeholders by their original values
     if ($self->{ 'placeholder' }) {
@@ -234,16 +245,16 @@ sub html_highlight_code {
 
     for my $k ( sort { length( $b ) <=> length( $a ) } @{ $self->{ 'dict' }->{ 'pg_functions' } } ) {
         if ( $self->{ 'uc_functions' } == 1 ) {
-            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2_l">$k<\/span>(/igs;
+            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2_l">$k<\/span>(/igs;
         }
         elsif ( $self->{ 'uc_functions' } == 2 ) {
-            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2_u">$k<\/span>(/igs;
+            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2_u">$k<\/span>(/igs;
         }
         elsif ( $self->{ 'uc_functions' } == 3 ) {
-            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2_c">\L$k\E<\/span>(/igs;
+            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2_c">\L$k\E<\/span>(/igs;
         }
         else {
-            $code =~ s/(?<!:)\b$k\s*(/<span class="kw2">$k<\/span>(/igs;
+            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2">$k<\/span>(/igs;
         }
     }
 
@@ -1367,6 +1378,8 @@ Currently defined defaults:
 
 =item placeholder => ''
 
+=item separator => ''
+
 =back
 
 =cut
@@ -1388,6 +1401,7 @@ sub set_defaults {
     $self->{ 'placeholder' }  = '';
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
     $self->{ 'functions' }    = $self->{ 'dict' }->{ 'pg_functions' };
+    $self->{ 'separator' }  = '';
     return;
 }
 
@@ -1788,6 +1802,38 @@ sub set_dicts {
     $self->{ 'dict' }->{ 'symbols' }       = \%symbols;
     $self->{ 'dict' }->{ 'brackets' }      = \@brackets;
     return;
+}
+
+sub _remove_dynamic_code
+{
+    my ($self, $str, $code_sep) = @_;
+
+    my @dynsep = ();
+    push(@dynsep, $code_sep) if ($code_sep && $code_sep ne "'");
+
+    # Try to auto detect the string separator if none are provided.
+    # Note that default single quote separtor is natively supported.
+    if ($#dynsep == -1) {
+	# if a dollar sign is found after EXECUTE then the following string
+	# until an other dollar is found will be understand as a text delimiter
+	@dynsep = $$str =~ /EXECUTE\s+(\$[^\$\s]*\$)/igs;
+    }
+
+    my $idx = 0;
+    foreach my $sep (@dynsep) {
+        while ($$str =~ s/(\Q$sep\E.*?\Q$sep\E)/TEXTVALUE$idx/s) {
+            $self->{dynamic_code}{$idx} = $1;
+            $idx++;
+        }
+    }
+}
+
+sub _restore_dynamic_code
+{
+        my ($self, $str) = @_;
+
+        $$str =~ s/TEXTVALUE(\d+)/$self->{dynamic_code}{$1}/gs;
+
 }
 
 sub _restore_comments

@@ -87,6 +87,7 @@ sub beautify {
     $args{ 'uc_keywords' }  = $self->{ 'cfg' }->{ 'keyword-case' };
     $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
     $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
+    $args{ 'separator' }  = $self->{ 'cfg' }->{ 'separator' };
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'query' } );
@@ -171,6 +172,7 @@ Options:
     -o | --output file    : define the filename for the output. Default: stdout.
     -p | --placeholder re : set regex to find code that must not be changed.
     -s | --spaces size    : change space indent, default 4 spaces.
+    -S | --separator STR  : dynamic code separator, default to single quote.
     -u | --keyword-case N : Change the case of the reserved keyword. Default is
                             uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
@@ -225,6 +227,7 @@ sub get_command_line_args {
         'nocomment|n!',
         'output|o=s',
         'placeholder|p=s',
+        'separator|S=s',
         'spaces|s=i',
         'keyword-case|u=i',
         'version|v!',
