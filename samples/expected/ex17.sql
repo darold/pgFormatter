@@ -164,7 +164,7 @@ ALTER FUNCTION public.peuple_stock (annee_debut integer, annee_fin integer) OWNE
 --
 -- Name: peuple_vin(); Type: FUNCTION; Schema: public; Owner: userdb
 --
-CREATE FUNCTION peuple_vin ()
+CREATE FUNCTION peuple_vin () 
     RETURNS bigint
     LANGUAGE plpgsql
 AS $$
@@ -222,12 +222,12 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION public.peuple_vin ()OWNER TO userdb;
+ALTER FUNCTION public.peuple_vin () OWNER TO userdb;
 
 --
 -- Name: trous_stock(); Type: FUNCTION; Schema: public; Owner: userdb
 --
-CREATE FUNCTION trous_stock ()
+CREATE FUNCTION trous_stock () 
     RETURNS bigint
     LANGUAGE plpgsql
 AS $$
@@ -296,12 +296,12 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION public.trous_stock ()OWNER TO userdb;
+ALTER FUNCTION public.trous_stock () OWNER TO userdb;
 
 --
 -- Name: trous_vin(); Type: FUNCTION; Schema: public; Owner: userdb
 --
-CREATE FUNCTION trous_vin ()
+CREATE FUNCTION trous_vin () 
     RETURNS bigint
     LANGUAGE plpgsql
 AS $$
@@ -344,7 +344,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION public.trous_vin ()OWNER TO userdb;
+ALTER FUNCTION public.trous_vin () OWNER TO userdb;
 
 SET default_tablespace = '';
 

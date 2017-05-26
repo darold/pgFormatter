@@ -545,6 +545,9 @@ sub beautify {
             if ($self->{ '_is_in_index' }) {
                 $self->_add_token( '' );
                 $self->_add_token( $token );
+                if ($self->_is_keyword($self->_next_token)) {
+		   $self->_add_token( ' ', $last ) if ($last eq '(');
+                }
                 next;
             }
             $self->_new_line if ($self->{ '_is_in_create' } > 1

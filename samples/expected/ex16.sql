@@ -11,11 +11,11 @@ CREATE TABLE new_table_test (
     migrated varchar(1)
 );
 
-COMMENT ON TABLE new_table_test IS E'Associação dos produtos as Unidades de Estrutura responsável';
+COMMENT ON TABLE new_table_test IS E'AssociaÃ§Ã£o dos produtos as Unidades de Estrutura responsÃ¡vel';
 
-COMMENT ON COLUMN new_table_test.end_date IS E'Data fim da associação da unidade. ';
+COMMENT ON COLUMN new_table_test.end_date IS E'Data fim da associaÃ§Ã£o da unidade. ';
 
-COMMENT ON COLUMN new_table_test.migrated IS E'Indica se o registro foi migrado. Valores possíveis:  S - Sim, N - Não.';
+COMMENT ON COLUMN new_table_test.migrated IS E'Indica se o registro foi migrado. Valores possÃ­veis:  S - Sim, N - NÃ£o.';
 
 CREATE INDEX ni_ansu_3 ON new_table_test (fk_product_id, start_date);
 
