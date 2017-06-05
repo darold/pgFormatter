@@ -564,6 +564,9 @@ sub beautify {
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
             }
+            # Do not go further if this is the last token
+            next if (not defined $self->_next_token);
+
             # When closing CTE statement go back again
             if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i) {
                     $self->_back;
