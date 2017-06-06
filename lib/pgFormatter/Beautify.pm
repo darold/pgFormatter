@@ -551,11 +551,11 @@ sub beautify {
                 next;
             }
             $self->_new_line if ($self->{ '_is_in_create' } > 1
-                    and (!$self->_next_token or $self->_next_token eq ';')
+                    and (not defined $self->_next_token or $self->_next_token eq ';')
                 );
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
             $self->{ '_has_from' } = 0;
-            $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT' and !$self->{ '_is_in_function' } and $self->_next_token =~ /^(SELECT|WITH)$/i and $last ne ')');
+            $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT' and !$self->{ '_is_in_function' } and (defined $self->_next_token and $self->_next_token =~ /^(SELECT|WITH)$/i) and $last ne ')');
             $self->{ '_is_in_function' }-- if ($self->{ '_is_in_function' });
             $self->_back;
             $self->_add_token( $token );
