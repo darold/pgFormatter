@@ -85,8 +85,6 @@ Takes options as hash. Following options are recognized:
 
 =item * uc_functions - what to do with function names:
 
-=item * separator - string used as dynamic code separator, default is single quote.
-
 =over
 
 =item 0 - do not change
@@ -99,9 +97,21 @@ Takes options as hash. Following options are recognized:
 
 =back
 
+=item * separator - string used as dynamic code separator, default is single quote.
+
 =item * uc_keywords - what to do with keywords - meaning of value like with uc_functions
 
 =item * wrap - wraps given keywords in pre- and post- markup. Specific docs in SQL::Beautify
+
+=item * comma - set comma at beginning or end of a line in a parameter list
+
+=over
+
+=item end - put comma at end of the list (default)
+
+=item start - put comma at beginning of the list
+
+=back
 
 =back
 
@@ -116,7 +126,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator ) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma ) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -132,6 +142,13 @@ sub new {
     # Hash to store dynamic code
     %{ $self->{ 'dynamic_code' } } = ();
 
+    # Check comma value, when invalid set to default: end
+    if (lc($self->{ 'comma' }) ne 'start') {
+        $self->{ 'comma' } = 'end';
+    } else {
+        $self->{ 'comma' } = lc($self->{ 'comma' });
+    }
+    
     return $self;
 }
 
@@ -589,8 +606,8 @@ sub beautify {
         }
 
         elsif ( $token eq ',' ) {
-            $self->_add_token( $token );
-            $self->_new_line if ( !$self->{ 'no_break' }
+            my $add_newline = 0;
+            $add_newline = 1 if ( !$self->{ 'no_break' }
                                && !$self->{ '_is_in_function' }
                                && $self->{ '_current_sql_stmt' } !~ /^INSERT|RAISE$/
                                && ($self->{ '_current_sql_stmt' } !~ /^FUNCTION|PROCEDURE$/ || $self->{ '_fct_code_delimiter' } ne '')
@@ -599,6 +616,9 @@ sub beautify {
                                && !$self->{ '_is_in_grant' }
                                && $self->_next_token !~ /^('$|\($|\-\-)/i
                     );
+            $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'start');
+            $self->_add_token( $token );
+            $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'end');
         }
 
         elsif ( $token eq ';' ) {
@@ -1256,6 +1276,9 @@ Code lifted from SQL::Beautify
 
 sub _is_punctuation {
     my ( $self, $token ) = @_;
+    if  ($self->{ 'comma' } eq 'start' and $token eq ',') {
+	return 0;
+    }
     return ( $token =~ /^[,;.]$/ );
 }
 
@@ -1386,6 +1409,8 @@ Currently defined defaults:
 
 =item separator => ''
 
+=item comma => 'end'
+
 =back
 
 =cut
@@ -1407,7 +1432,9 @@ sub set_defaults {
     $self->{ 'placeholder' }  = '';
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
     $self->{ 'functions' }    = $self->{ 'dict' }->{ 'pg_functions' };
-    $self->{ 'separator' }  = '';
+    $self->{ 'separator' }    = '';
+    $self->{ 'comma' }        = 'end';
+
     return;
 }
 

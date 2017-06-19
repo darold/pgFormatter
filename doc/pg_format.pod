@@ -15,44 +15,45 @@ Keywords highlighting will only be available in CGI context.
 
 =head2 Terminal/console execution
 
-Usage: pg_format [options] file.sql [...]
+Usage: pg_format [options] file.sql
 
-	PostgreSQL SQL queries and PL/PGSQL code beautifier.
+    PostgreSQL SQL queries and PL/PGSQL code beautifier.
 
 Arguments:
 
-    file.sql can be a file or use - to send a query using stdin. Use a single
-    dot in a line to terminate the stdin input or EOF.
+    file.sql can be a file or use - to read query from stdin.
 
-    Returning the SQL formatted to stdout or into a file specified with the
-    -o | --output option.
+    Returning the SQL formatted to stdout or into a file specified with
+    the -o | --ouput option.
 
 Options:
 
     -a | --anonymize      : obscure all literals in queries, useful to hide
                             confidential data before formatting.
+    -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -d | --debug          : enable debug mode. Disabled by default.
+    -e | --comma-end      : in a parameters list, end with the comma (default)
     -f | --function-case N: Change the case of the reserved keyword. Default is
-			    unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
-			    2=>uppercase, 3=>capitalize.
+                            unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
     -h | --help           : show this message and exit.
-    -m | --maxlength SIZE : maximum length of a query, it will be cut above
-			    the given size. Default: no truncate.
+    -m | --maxlength SIZE : maximum length of a query, it will be cutted above
+                            the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
     -o | --output file    : define the filename for the output. Default: stdout.
     -p | --placeholder re : set regex to find code that must not be changed.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
     -u | --keyword-case N : Change the case of the reserved keyword. Default is
-			    uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
-			    2=>uppercase, 3=>capitalize.
+                            uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
     -v | --version        : show pg_format version and exit.
 
 Examples:
 
-    cat samples/ex1.sql | /usr/local/bin/pg_format -
-    /usr/local/bin/pg_format -n samples/ex1.sql
-    /usr/local/bin/pg_format -f 2 -n samples/ex1.sql -o result.sql
+    cat samples/ex1.sql | pg_format -
+    pg_format -n samples/ex1.sql
+    pg_format -f 2 -n -o result.sql samples/ex1.sql
 
 =head2 CGI context
 
