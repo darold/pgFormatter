@@ -858,15 +858,15 @@ sub beautify {
             $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
         }
 
-        elsif ( $token =~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
+        elsif ( $token =~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
             $self->{ 'no_break' } = 0;
             $self->_back unless $last and $last eq ')';
 
-            if ( $token =~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i ) {
+            if ( $token =~ /(?:LEFT|RIGHT|FULL|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
                 $self->_over if ( $self->{ '_level' } == 0 );
             }
-            if ( ($token =~ /(?:INNER|OUTER)$/i) && ($last !~ /(?:LEFT|RIGHT|CROSS|NATURAL)$/i) ) {
+            if ( ($token =~ /(?:INNER|OUTER)$/i) && ($last !~ /(?:LEFT|RIGHT|CROSS|NATURAL|FULL)$/i) ) {
                 $self->_new_line;
                 $self->_over if ($self->{_level} == 0);
             } 
@@ -875,7 +875,7 @@ sub beautify {
 
         elsif ( $token =~ /^(?:JOIN)$/i ) {
             $self->{ 'no_break' } = 0;
-            if ( !$last or $last !~ /^(?:LEFT|RIGHT|INNER|OUTER|CROSS|NATURAL)$/i ) {
+            if ( !$last or $last !~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
             }
             $self->_add_token( $token );
