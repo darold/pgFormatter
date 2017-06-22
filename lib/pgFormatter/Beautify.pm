@@ -580,6 +580,7 @@ sub beautify {
                 @{ $self->{ '_level_stack' } } = ();
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+		$self->{ '_is_in_with' } = 0;
             }
             # Do not go further if this is the last token
             next if (not defined $self->_next_token);
