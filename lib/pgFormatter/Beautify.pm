@@ -408,6 +408,7 @@ sub beautify {
     $self->{ '_is_in_where' } = 0;
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_in_create' } = 0;
+    $self->{ '_is_in_type' } = 0;
     $self->{ '_is_in_declare' } = 0;
     $self->{ '_is_in_block' } = -1;
     $self->{ '_is_in_function' } = 0;
@@ -429,8 +430,10 @@ sub beautify {
             next;
         }
 
-        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION)$/i) {
+        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE)$/i) {
             $self->{ '_is_in_create' } = 1;
+        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
+            $self->{ '_is_in_type' } = 1;
         }
 
         # No newline in the statement after parenthesis, comma and AND/OR keywords
@@ -536,7 +539,13 @@ sub beautify {
                 if ($last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
                     $self->{ '_is_in_function' }++;
                 }
-                $self->_over;
+                if ($self->{ '_is_in_type' } == 1) {
+                    $self->_over;
+                    next;
+		} else {
+                    $self->_over;
+                }
+                $self->{ '_is_in_type' }++ if ($self->{ '_is_in_type' });
             }
         }
 
@@ -553,7 +562,11 @@ sub beautify {
             $self->_new_line if ($self->{ '_is_in_create' } > 1
                     and (not defined $self->_next_token or $self->_next_token eq ';')
                 );
+            $self->_new_line if ($self->{ '_is_in_type' } == 1
+                    and (not defined $self->_next_token or $self->_next_token eq ';')
+                );
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
+            $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
             $self->{ '_has_from' } = 0;
             $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT' and !$self->{ '_is_in_function' } and (defined $self->_next_token and $self->_next_token =~ /^(SELECT|WITH)$/i) and $last ne ')');
             $self->{ '_is_in_function' }-- if ($self->{ '_is_in_function' });
@@ -606,6 +619,7 @@ sub beautify {
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_create' } = 0;
+            $self->{ '_is_in_type' } = 0;
             $self->{ '_is_in_function' } = 0;
             $self->{ '_is_in_index' } = 0;
             $self->{ '_is_in_if' } = 0;
