@@ -40,3 +40,7 @@ FROM
     a
     FULL OUTER JOIN b USING (c);
 
+CREATE TYPE jwt_token AS (
+    token TEXT, field: TEXT
+);
+
