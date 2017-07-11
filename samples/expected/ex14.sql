@@ -28,3 +28,15 @@ SELECT
 FROM
     one;
 
+SELECT
+    *
+FROM
+    a
+    FULL JOIN b USING (c);
+
+SELECT
+    *
+FROM
+    a
+    FULL OUTER JOIN b USING (c);
+
