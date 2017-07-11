@@ -117,6 +117,7 @@ sub set_config {
     $self->{ 'download_url' } = 'http://sourceforge.net/projects/pgformatter/';
     $self->{ 'anonymize' }    = 0;
     $self->{ 'separator' }    = '';
+    $self->{ 'comma' }        = 'end';
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -155,7 +156,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator ) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma ) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -192,6 +193,7 @@ sub sanitize_params {
     $self->{ 'nocomment' }    = 0 if $self->{ 'nocomment' } !~ /^(0|1)$/;
     $self->{ 'show_example' } = 0 if $self->{ 'show_example' } !~ /^(0|1)$/;
     $self->{ 'separator' }    = '' if ($self->{ 'separator' } eq "'" or length($self->{ 'separator' }) > 6);
+    $self->{ 'comma' }        = 'end' if ($self->{ 'comma' } ne 'start');
 
     if ( $self->{ 'show_example' } ) {
         $self->{ 'content' } = q{
@@ -219,6 +221,7 @@ sub beautify_query {
     $args{ 'uc_keywords' }  = $self->{ 'uc_keyword' };
     $args{ 'uc_functions' } = $self->{ 'uc_function' };
     $args{ 'separator' }    = $self->{ 'separator' };
+    $args{ 'comma' }        = $self->{ 'comma' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
@@ -253,6 +256,7 @@ sub print_body {
     my $chk_nocomment = $self->{ 'nocomment' } ? 'checked="checked" ' : '';
     my $chk_colorize  = $self->{ 'colorize' }  ? 'checked="checked" ' : '';
     my $chk_anonymize = $self->{ 'anonymize' } ? 'checked="checked" ' : '';
+    my $chk_comma     = $self->{ 'comma' } eq 'start' ? 'checked="checked" ' : '';
 
     my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
     $kw_toggle{ $self->{ 'uc_keyword' } } = ' selected="selected"';
@@ -276,6 +280,9 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_anonymize" name="anonymize" value="1" $chk_anonymize/>
       <label for="id_anonymize">Anonymize values in queries</label>
+      <br />
+      <input type="checkbox" id="id_comma" name="comma" value="start" $chk_comma/>
+      <label for="id_comma">comma at beginning</label>
       </div>
     </fieldset>
       <br />

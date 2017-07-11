@@ -88,6 +88,7 @@ sub beautify {
     $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
     $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
     $args{ 'separator' }  = $self->{ 'cfg' }->{ 'separator' };
+    $args{ 'comma' }  = $self->{ 'cfg' }->{ 'comma' };
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'query' } );
@@ -161,7 +162,9 @@ Options:
 
     -a | --anonymize      : obscure all literals in queries, useful to hide
                             confidential data before formatting.
+    -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -d | --debug          : enable debug mode. Disabled by default.
+    -e | --comma-end      : in a parameters list, end with the comma (default)
     -f | --function-case N: Change the case of the reserved keyword. Default is
                             unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
@@ -221,6 +224,8 @@ sub get_command_line_args {
     my %cfg;
     my @options = (
         'anonymize|a!',
+        'comma-start|b!',
+        'comma-end|e!',
         'debug|d!',
         'function-case|f=i',
         'help|h!',
@@ -246,6 +251,7 @@ sub get_command_line_args {
     $cfg{ 'output' }        //= '-';
     $cfg{ 'function-case' } //= 0;
     $cfg{ 'keyword-case' }  //= 2;
+    $cfg{ 'comma' }           = 'end';
 
     $cfg{ 'input' } = $ARGV[ 0 ] // '-';
     $self->{ 'cfg' } = \%cfg;
@@ -283,6 +289,14 @@ sub validate_args {
         open my $fh, '>', $self->{ 'cfg' }->{ 'output' };
         $self->{ 'output' } = $fh;
     }
+
+    if ($self->{ 'cfg' }->{ 'comma-end' }) {
+        $self->{ 'cfg' }->{ 'comma' } = 'end';
+    }
+    elsif ($self->{ 'cfg' }->{ 'comma-start' }) {
+        $self->{ 'cfg' }->{ 'comma' } = 'start';
+    }
+
     return;
 }
 
