@@ -330,7 +330,7 @@ sub tokenize_sql {
 
     my $re = qr{
         (
-                (?:\\set|\\i|\\unset|\\connect|\\cd|\\conninfo|\\copy|\\c|\\g|\\x|\\encoding|\\exec|\\prompt|\\timing|\\setenv|\\password|\\lo_export|\\lo_import|\\lo_list|\\lo_unlink|\\watch|\\crosstabview)        # psql meta-command
+                (?:\\set|\\ir|\\i|\\unset|\\connect|\\cd|\\conninfo|\\copy|\\c|\\g|\\x|\\encoding|\\exec|\\prompt|\\timing|\\setenv|\\password|\\lo_export|\\lo_import|\\lo_list|\\lo_unlink|\\watch|\\crosstabview|\\if|\\elif|\\else|\\endif)        # psql meta-command
                 |
                 (?:--)[\ \t\S]*      # single line comments
                 |
