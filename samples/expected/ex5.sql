@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION inserta_esquema_pago_backup () 
+CREATE OR REPLACE FUNCTION inserta_esquema_pago_backup ()
     RETURNS TRIGGER
 AS $BODY$
 BEGIN

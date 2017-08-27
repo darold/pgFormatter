@@ -433,6 +433,7 @@ sub beautify {
     $self->{ '_is_in_with' }  = 0;
     $self->{ '_parenthesis_level' } = 0;
     $self->{ '_is_in_grant' }  = 0;
+    $self->{ '_has_order_by' }  = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -444,6 +445,7 @@ sub beautify {
         if ($self->{ '_fct_code_delimiter' } eq '1') {
             $self->{ '_fct_code_delimiter' } = $token;
             $self->_add_token( $token );
+            $last = $token;
             next;
         }
 
@@ -476,9 +478,10 @@ sub beautify {
         elsif (!$self->{ '_is_in_grant' } and $token =~ /^(INSERT|DELETE|RAISE|ALTER)$/i) {
             $self->{ '_current_sql_stmt' } = uc($1);
         }
-
         elsif (!$self->{ '_is_in_grant' } and $token =~ /^UPDATE$/i and ($self->_next_token && $self->_next_token ne ';' && $self->_next_token ne ')')) {
                 $self->{ '_current_sql_stmt' } = 'UPDATE';
+	} elsif ($token =~ /^(string_agg|group_concat)$/i) {
+		$self->{ '_has_order_by' } = 1;
         }
 
         elsif ($token =~ /^(AS|IS)$/i) {
@@ -522,6 +525,7 @@ sub beautify {
             $self->{ '_is_meta_command' } = 0;
             $self->_add_token( $token );
             $self->_new_line;
+            $last = $token;
             next;
         }
 
@@ -555,11 +559,10 @@ sub beautify {
                 if ($last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
                     $self->{ '_is_in_function' }++;
                 }
+                $self->_over;
                 if ($self->{ '_is_in_type' } == 1) {
-                    $self->_over;
+                    $last = $token;
                     next;
-		} else {
-                    $self->_over;
                 }
                 $self->{ '_is_in_type' }++ if ($self->{ '_is_in_type' });
             }
@@ -567,12 +570,14 @@ sub beautify {
 
         elsif ( $token eq ')' ) {
             $self->{ '_parenthesis_level' }--;
+	    $self->{ '_has_order_by' } = 0;
             if ($self->{ '_is_in_index' }) {
                 $self->_add_token( '' );
                 $self->_add_token( $token );
                 if ($self->_is_keyword($self->_next_token)) {
-		   $self->_add_token( ' ', $last ) if ($last eq '(');
+		   #$self->_add_token( ' ', $last ) if ($last eq '(');
                 }
+                $last = $token;
                 next;
             }
             $self->_new_line if ($self->{ '_is_in_create' } > 1
@@ -595,7 +600,10 @@ sub beautify {
 		$self->{ '_is_in_with' } = 0;
             }
             # Do not go further if this is the last token
-            next if (not defined $self->_next_token);
+            if (not defined $self->_next_token) {
+                $last = $token;
+                next;
+            }
 
             # When closing CTE statement go back again
             if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i) {
@@ -646,6 +654,7 @@ sub beautify {
             $self->{ '_current_sql_stmt' } = '';
             $self->{ '_is_in_with' } = 0;
             $self->{ '_is_in_grant' } = 0;
+	    $self->{ '_has_order_by' } = 0;
             $self->_add_token($token);
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -705,6 +714,7 @@ sub beautify {
 
             if (uc($last) eq 'DISTINCT' and $token =~ /^FROM$/i) {
                 $self->_add_token( $token );
+                $last = $token;
                 next;
             }
             if (($token =~ /^FROM$/i) && $self->{ '_has_from' } && !$self->{ '_is_in_function' }) {
@@ -727,6 +737,7 @@ sub beautify {
                 $self->_new_line;
                 $self->_add_token( $token );
                 $self->_over;
+                $last = $token;
                 next;
             } elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' } and $self->{ '_current_sql_stmt' } ne 'DELETE')) {
                 if ($token !~ /^SET$/i or !$self->{ '_is_in_index' }) {
@@ -735,6 +746,7 @@ sub beautify {
                 }
             } else {
                 $self->_add_token( $token );
+                $last = $token;
                 next;
             }
             if ($token =~ /^VALUES$/i and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '(')) {
@@ -772,6 +784,11 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i ) {
+	    if ($self->{ '_has_order_by' } and $self->_next_token =~ /^BY$/i) {
+		$self->_add_token( $token );
+                $last = $token;
+                next;
+            }
             if ($token !~ /^EXCEPTION$/i) {
                 $self->_back;
             } else {
@@ -788,9 +805,14 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(INCREMENT|OWNED)$/ ) {
-            $self->_add_token( $token );
-            $self->_new_line;
-            $self->_over;
+	    if ($self->{ '_has_order_by' } and uc($last) eq 'ORDER') {
+		$self->_add_token( $token );
+                $self->{ '_has_order_by' } = 0;
+            } else {
+                $self->_add_token( $token );
+                $self->_new_line;
+                $self->_over;
+            }
         }
 
         elsif ( $token =~ /^(?:CASE)$/i ) {
@@ -1019,11 +1041,13 @@ sub _add_token {
             $self->{ 'content' } .= $sp if ($token ne ')'
                                             && defined($last_token)
                                             && $last_token ne '::' 
-                                            && ($token ne '(' || !$self->_is_function( $last_token ))
+                                            && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
                 );
             $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
         } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
             $self->{ 'content' } .= $sp if ($last_token ne '::' and ($last_token ne '(' || !$self->{ '_is_in_index' }));
+	} elsif (defined $last_token) {
+            $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
         }
         $token =~ s/\n/\n$sp/gs;
     }
