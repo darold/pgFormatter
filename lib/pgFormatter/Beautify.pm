@@ -434,7 +434,7 @@ sub beautify {
     $self->{ '_parenthesis_level' } = 0;
     $self->{ '_is_in_grant' }  = 0;
 
-    my $last;
+    my $last = '';
     my @token_array = $self->tokenize_sql();
 
     while ( defined( my $token = $self->_token ) ) {
@@ -460,7 +460,7 @@ sub beautify {
         }
         # Same as above but for ALTER FUNCTION/SEQUENCE and WITH in create table statement
         elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|WITH)$/i) {
-            $self->{ '_is_in_index' } = 1 if (defined $last and uc($last) eq 'ALTER');
+            $self->{ '_is_in_index' } = 1 if (uc($last) eq 'ALTER');
             if ($token =~ /^(FUNCTION|PROCEDURE|WITH)$/i && $self->{ '_is_in_create' }) {
                 $self->{ '_is_in_index' } = 1;
             }
@@ -483,8 +483,7 @@ sub beautify {
 
         elsif ($token =~ /^(AS|IS)$/i) {
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
-            $self->_new_line if (uc($token) eq 'AS' and defined $last
-                      and $last eq ')' and $self->_next_token eq '(');
+            $self->_new_line if (uc($token) eq 'AS' and $last eq ')' and $self->_next_token eq '(');
             if ($self->{ '_is_in_create' }) {
                 $self->_new_line;
                 @{ $self->{ '_level_stack' } } = ();
@@ -550,7 +549,7 @@ sub beautify {
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->_add_token( $token, $last );
             if ( !$self->{ '_is_in_index' } ) {
-                if (defined $last and (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2)) {
+                if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2) {
                     $self->_new_line;
                 }
                 if ($last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
@@ -704,7 +703,7 @@ sub beautify {
 
             $self->{ 'no_break' } = 0;
 
-            if (defined $last and uc($last) eq 'DISTINCT' and $token =~ /^FROM$/i) {
+            if (uc($last) eq 'DISTINCT' and $token =~ /^FROM$/i) {
                 $self->_add_token( $token );
                 next;
             }
@@ -738,11 +737,11 @@ sub beautify {
                 $self->_add_token( $token );
                 next;
             }
-            if ($token =~ /^VALUES$/i and ($self->{ '_current_sql_stmt' } eq 'INSERT' or (defined $last and $last eq '('))) {
+            if ($token =~ /^VALUES$/i and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '(')) {
                 $self->_over;
             }
             $self->_add_token( $token );
-            if ($token =~ /^VALUES$/i and defined $last and $last eq '(') {
+            if ($token =~ /^VALUES$/i and $last eq '(') {
                 $self->_over;
             }
             elsif ( $token =~ /^SET$/i && $self->{ '_current_sql_stmt' } eq 'UPDATE' ) {
@@ -760,7 +759,7 @@ sub beautify {
         elsif ( !$self->{ '_is_in_grant' } and $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i ) {
             $self->{ 'no_break' } = 0;
 
-            if ($token =~ /^UPDATE$/i and defined $last and $last =~ /^(FOR|KEY)$/i) {
+            if ($token =~ /^UPDATE$/i and $last =~ /^(FOR|KEY)$/i) {
                 $self->_add_token( $token );
             } elsif ($token !~ /^DELETE$/i) {
                 $self->_new_line;
@@ -804,9 +803,9 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:WHEN)$/i ) {
-            $self->_new_line if (!defined $last or uc($last) ne 'CASE');
+            $self->_new_line if (!$last or uc($last) ne 'CASE');
             $self->_add_token( $token );
-            $self->_over if ($self->{ '_first_when_in_case' } or !defined $last or uc($last) eq 'CASE');
+            $self->_over if ($self->{ '_first_when_in_case' } or !$last or uc($last) eq 'CASE');
             $self->{ '_first_when_in_case' } = 0;
         }
 
@@ -957,7 +956,7 @@ sub beautify {
             $self->_add_token($token);
         }
 
-        elsif (defined $last and uc($last) ne 'NO' and $token =~ /^(MINVALUE|MAXVALUE)$/i) {
+        elsif (uc($last) ne 'NO' and $token =~ /^(MINVALUE|MAXVALUE)$/i) {
             $self->_new_line;
             $self->_add_token($token);
         }
@@ -968,7 +967,7 @@ sub beautify {
         }
 
         else {
-             if ( defined $last and $last =~ /^(?:SEQUENCE)$/i and $self->_next_token !~ /^OWNED$/i) {
+             if ($last =~ /^(?:SEQUENCE)$/i and $self->_next_token !~ /^OWNED$/i) {
                  $self->_add_token( $token );
                  $self->_new_line;
                  $self->_over;
