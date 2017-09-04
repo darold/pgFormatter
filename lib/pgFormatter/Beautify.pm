@@ -330,7 +330,7 @@ sub tokenize_sql {
 
     my $re = qr{
         (
-                (?:\\set|\\ir|\\i|\\unset|\\connect|\\cd|\\conninfo|\\copy|\\c|\\g|\\x|\\encoding|\\exec|\\prompt|\\timing|\\setenv|\\password|\\lo_export|\\lo_import|\\lo_list|\\lo_unlink|\\watch|\\crosstabview|\\if|\\elif|\\else|\\endif)        # psql meta-command
+                (?:\\(?:copyright|errverbose|g|gx|gexec|gset|q|crosstabview|watch|\?|h|e|ef|ev|p|r|s|w|copy|echo|i|ir|o|qecho|if|elif|else|endif|d(?:[aAbcCdDfFgilLmnoOpstTuvExy]|dp|et|es|eu|ew|fa|fn|ft|fw|Fd|Fp|Ft|rds|Rp|Rs)?S?\+?|l\+?|sf\+?|sv\+?|z|a|C|f|H|pset|t|T|x|c|connect|encoding|password|conninfo|cd|setenv|timing|\!|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink))(?:[\n]|[\ \t](?:(?!\\\\)[\ \t\S])*)        # psql meta-command
                 |
                 (?:--)[\ \t\S]*      # single line comments
                 |
@@ -642,7 +642,7 @@ sub beautify {
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'end');
         }
 
-        elsif ( $token eq ';' ) {
+        elsif ( $token eq ';' or $token =~ /^\\\S/ ) { # statement separator or psql meta command 
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
@@ -956,8 +956,7 @@ sub beautify {
             }
             $self->_add_token($token);
         }
-
-        elsif ($token =~ /^\\(set|unset|i|c|g|x|encoding|exec|watch|crosstabview|prompt|timing|setenv|cd|conninfo|password|connect|copy|lo_export|lo_import|lo_list|lo_unlink)$/) {
+        elsif ($token =~ /^\\\S/) { # treat everything starting with a \ and at least one character as psql meta command. 
             $self->{ '_is_meta_command' } = 1;
             $self->_add_token( $token );
         }
