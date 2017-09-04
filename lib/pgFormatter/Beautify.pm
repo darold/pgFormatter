@@ -330,7 +330,7 @@ sub tokenize_sql {
 
     my $re = qr{
         (
-                (?:\\(?:copyright|errverbose|g|gx|gexec|gset|q|crosstabview|watch|\?|h|e|ef|ev|p|r|s|w|copy|echo|i|ir|o|qecho|if|elif|else|endif|d(?:[aAbcCdDfFgilLmnoOpstTuvExy]|dp|et|es|eu|ew|fa|fn|ft|fw|Fd|Fp|Ft|rds|Rp|Rs)?S?\+?|l\+?|sf\+?|sv\+?|z|a|C|f|H|pset|t|T|x|c|connect|encoding|password|conninfo|cd|setenv|timing|\!|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink))(?:[\n]|[\ \t](?:(?!\\\\)[\ \t\S])*)        # psql meta-command
+                (?:\\(?:copyright|errverbose|g|gx|gexec|gset|q|crosstabview|watch|\?|h|e|ef|ev|p|r|s|w|copy|echo|i|ir|o|qecho|if|elif|else|endif|d(?:[aAbcCdDfFgilLmnoOpstTuvExy]|dp|et|es|eu|ew|fa|fn|ft|fw|Fd|Fp|Ft|rds|Rp|Rs)?S?\+?|l\+?|sf\+?|sv\+?|z|a|C|f|H|pset|t|T|x|c|connect|encoding|password|conninfo|cd|setenv|timing|\!|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink))(?:$|[\n]|[\ \t](?:(?!\\\\)[\ \t\S])*)        # psql meta-command
                 |
                 (?:--)[\ \t\S]*      # single line comments
                 |
@@ -520,15 +520,6 @@ sub beautify {
             }
         }
 
-        # Disable psql meta-command toogle
-        if ($self->{ '_is_meta_command' } and ($self->_is_keyword($token) or $self->_is_function($token))) {
-            $self->{ '_is_meta_command' } = 0;
-            $self->_add_token( $token );
-            $self->_new_line;
-            $last = $token;
-            next;
-        }
-
         # Allow custom rules to override defaults.
         if ( $rule ) {
             $self->_process_rule( $rule, $token );
@@ -642,7 +633,7 @@ sub beautify {
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'end');
         }
 
-        elsif ( $token eq ';' or $token =~ /^\\\S/ ) { # statement separator or psql meta command 
+        elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) { # statement separator or executing psql meta command (prefix 'g' includes all its variants)
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
@@ -957,8 +948,8 @@ sub beautify {
             $self->_add_token($token);
         }
         elsif ($token =~ /^\\\S/) { # treat everything starting with a \ and at least one character as psql meta command. 
-            $self->{ '_is_meta_command' } = 1;
             $self->_add_token( $token );
+            $self->_new_line;
         }
 
         elsif ($token =~ /^ADD$/i && ($self->{ '_current_sql_stmt' } eq 'SEQUENCE' || $self->{ '_current_sql_stmt' } eq 'ALTER')) {
