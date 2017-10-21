@@ -34,6 +34,7 @@ DESCRIPTION
         -f | --function-case N: Change the case of the reserved keyword. Default is
                                 unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                                 2=>uppercase, 3=>capitalize.
+        -F | --format STR     : output format: text or html. Default: text.
         -h | --help           : show this message and exit.
         -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                                 the given size. Default: no truncate.
@@ -93,12 +94,12 @@ INSTALLATION
 
 HINTS
   Formatting from VI
-    With pgFormat, you can just add the following line to your ~/.vimrc
+    With pgFormatter, you can just add the following line to your ~/.vimrc
     file:
 
             au FileType sql setl formatprg=/usr/local/bin/pg_format\ -
 
-    This lets your gq commands use pgFormat automagically. For example if
+    This lets your gq commands use pgFormatter automagically. For example if
     you are on the first line, typing:
 
             ESC+gq+G
@@ -139,7 +140,8 @@ HINTS
     --separator to set the code separator that must be used.
 
 AUTHORS
-    pgFormatter is an original work from Gilles Darold
+    pgFormatter is an original work from Gilles Darold with major code
+    refactoring by Hubert depesz Lubaczewski.
 
 COPYRIGHT
     Copyright 2012-2017 Gilles Darold. All rights reserved.

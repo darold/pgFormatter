@@ -93,7 +93,11 @@ sub beautify {
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'query' } );
     $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
-    $beautifier->beautify();
+    if (lc($self->{ 'cfg' }->{ 'format' }) eq 'text') {
+        $beautifier->beautify();
+    } elsif (lc($self->{ 'cfg' }->{ 'format' }) eq 'html') {
+        $beautifier->html_highlight_code();
+    }
 
     $self->{ 'ready' } = $beautifier->content();
     return;
@@ -168,6 +172,7 @@ Options:
     -f | --function-case N: Change the case of the reserved keyword. Default is
                             unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
+    -F | --format STR     : output format: text or html. Default: text.
     -h | --help           : show this message and exit.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
@@ -227,6 +232,7 @@ sub get_command_line_args {
         'comma-start|b!',
         'comma-end|e!',
         'debug|d!',
+	'format|F=s',
         'function-case|f=i',
         'help|h!',
         'nocomment|n!',
@@ -252,6 +258,12 @@ sub get_command_line_args {
     $cfg{ 'function-case' } //= 0;
     $cfg{ 'keyword-case' }  //= 2;
     $cfg{ 'comma' }           = 'end';
+    $cfg{ 'format' }        //= 'text';
+
+    if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
+        printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
+        exit 0;
+    }
 
     $cfg{ 'input' } = $ARGV[ 0 ] // '-';
     $self->{ 'cfg' } = \%cfg;
