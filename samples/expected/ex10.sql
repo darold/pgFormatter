@@ -6,7 +6,7 @@ WITH a AS (
     FROM
         twelve
         JOIN nine ON a = 2
-        AND b = a),
+            AND b = a),
 b AS (
     SELECT
         *

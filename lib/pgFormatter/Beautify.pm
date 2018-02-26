@@ -424,6 +424,7 @@ sub beautify {
     $self->{ '_has_from' } = 0;
     $self->{ '_is_in_where' } = 0;
     $self->{ '_is_in_from' } = 0;
+    $self->{ '_is_in_join' } = 0;
     $self->{ '_is_in_create' } = 0;
     $self->{ '_is_in_type' } = 0;
     $self->{ '_is_in_declare' } = 0;
@@ -637,6 +638,7 @@ sub beautify {
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
+	    $self->{ '_is_in_join' } = 0;
             $self->{ '_is_in_create' } = 0;
             $self->{ '_is_in_type' } = 0;
             $self->{ '_is_in_function' } = 0;
@@ -717,6 +719,7 @@ sub beautify {
             if ($token =~ /^WHERE$/i) {
                 $self->{ '_is_in_where' }++;
                 $self->{ '_is_in_from' }-- if ($self->{ '_is_in_from' });
+	        $self->{ '_is_in_join' } = 0;
             } elsif (!$self->{ '_is_in_function' }) {
                 $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
             }
@@ -729,6 +732,7 @@ sub beautify {
                 $self->_add_token( $token );
                 $self->_over;
                 $last = $token;
+		$self->{ '_is_in_join' } = 0;
                 next;
             } elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' } and $self->{ '_current_sql_stmt' } ne 'DELETE')) {
                 if ($token !~ /^SET$/i or !$self->{ '_is_in_index' }) {
@@ -775,6 +779,7 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i ) {
+	    $self->{ '_is_in_join' } = 0;
 	    if ($self->{ '_has_order_by' } and $self->_next_token =~ /^BY$/i) {
 		$self->_add_token( $token );
                 $last = $token;
@@ -882,6 +887,7 @@ sub beautify {
             $self->_add_token( $token );
             $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
             $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
+	    $self->{ '_is_in_from' } = 0;
         }
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
@@ -905,13 +911,13 @@ sub beautify {
                 $self->_new_line;
             }
             $self->_add_token( $token );
-            if ( $last && $last =~ /^(?:INNER|OUTER)$/i ) {
-                $self->_over;
-            }
+	    $self->{ '_is_in_join' } = 1;
         }
 
         elsif ( $token =~ /^(?:AND|OR)$/i ) {
             $self->{ 'no_break' } = 0;
+            $self->_over if ($self->{ '_is_in_join' });
+	    $self->{ '_is_in_join' } = 0;
             if ( !$self->{ '_is_in_if' } and !$self->{ '_is_in_index' } and (!$last or $last !~ /^(?:CREATE)$/i) ) {
                 $self->_new_line;
             }
