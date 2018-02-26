@@ -89,6 +89,7 @@ sub beautify {
     $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
     $args{ 'separator' }  = $self->{ 'cfg' }->{ 'separator' };
     $args{ 'comma' }  = $self->{ 'cfg' }->{ 'comma' };
+    $args{ 'comma_break' }  = $self->{ 'cfg' }->{ 'comma-break' };
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'query' } );
@@ -167,6 +168,7 @@ Options:
     -a | --anonymize      : obscure all literals in queries, useful to hide
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
+    -B | --comma-break    : in insert statement, add a newline after each comma
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
     -f | --function-case N: Change the case of the reserved keyword. Default is
@@ -230,6 +232,7 @@ sub get_command_line_args {
     my @options = (
         'anonymize|a!',
         'comma-start|b!',
+        'comma-break|B!',
         'comma-end|e!',
         'debug|d!',
 	'format|F=s',
@@ -259,6 +262,7 @@ sub get_command_line_args {
     $cfg{ 'keyword-case' }  //= 2;
     $cfg{ 'comma' }           = 'end';
     $cfg{ 'format' }        //= 'text';
+    $cfg{ 'comma-break' }   //= 0;
 
     if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
         printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";

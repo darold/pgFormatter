@@ -67,6 +67,18 @@ Takes options as hash. Following options are recognized:
 
 =item * break - String that is used for linebreaks. Default is "\n".
 
+=item * comma - set comma at beginning or end of a line in a parameter list
+
+=over
+
+=item end - put comma at end of the list (default)
+
+=item start - put comma at beginning of the list
+
+=back
+
+=item * comma_break - add new-line after each comma in INSERT statements
+
 =item * functions - list (arrayref) of strings that are function names
 
 =item * keywords - list (arrayref) of strings that are keywords
@@ -103,16 +115,6 @@ Takes options as hash. Following options are recognized:
 
 =item * wrap - wraps given keywords in pre- and post- markup. Specific docs in SQL::Beautify
 
-=item * comma - set comma at beginning or end of a line in a parameter list
-
-=over
-
-=item end - put comma at end of the list (default)
-
-=item start - put comma at beginning of the list
-
-=back
-
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -126,7 +128,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma ) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -622,7 +624,8 @@ sub beautify {
             my $add_newline = 0;
             $add_newline = 1 if ( !$self->{ 'no_break' }
                                && !$self->{ '_is_in_function' }
-                               && $self->{ '_current_sql_stmt' } !~ /^INSERT|RAISE$/
+                               && ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } !~ /^INSERT$/)
+                               && ($self->{ '_current_sql_stmt' } !~ /^RAISE$/)
                                && ($self->{ '_current_sql_stmt' } !~ /^FUNCTION|PROCEDURE$/ || $self->{ '_fct_code_delimiter' } ne '')
                                && !$self->{ '_is_in_where' }
                                && !$self->{ '_is_in_index' }

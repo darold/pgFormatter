@@ -253,10 +253,11 @@ Outputs body of the page.
 sub print_body {
     my $self = shift;
 
-    my $chk_nocomment = $self->{ 'nocomment' } ? 'checked="checked" ' : '';
-    my $chk_colorize  = $self->{ 'colorize' }  ? 'checked="checked" ' : '';
-    my $chk_anonymize = $self->{ 'anonymize' } ? 'checked="checked" ' : '';
-    my $chk_comma     = $self->{ 'comma' } eq 'start' ? 'checked="checked" ' : '';
+    my $chk_nocomment   = $self->{ 'nocomment' } ? 'checked="checked" ' : '';
+    my $chk_colorize    = $self->{ 'colorize' }  ? 'checked="checked" ' : '';
+    my $chk_anonymize   = $self->{ 'anonymize' } ? 'checked="checked" ' : '';
+    my $chk_comma       = $self->{ 'comma' } eq 'start' ? 'checked="checked" ' : '';
+    my $chk_comma_break = $self->{ 'comma_break' } ? 'checked="checked" ' : '';
 
     my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
     $kw_toggle{ $self->{ 'uc_keyword' } } = ' selected="selected"';
@@ -282,7 +283,10 @@ sub print_body {
       <label for="id_anonymize">Anonymize values in queries</label>
       <br />
       <input type="checkbox" id="id_comma" name="comma" value="start" $chk_comma/>
-      <label for="id_comma">comma at beginning</label>
+      <label for="id_comma">Comma at beginning</label>
+      <br />
+      <input type="checkbox" id="id_comma_break" name="comma_break" value="1" $chk_comma_break/>
+      <label for="id_comma_break">New-line after comma (insert)</label>
       </div>
     </fieldset>
       <br />
