@@ -98,6 +98,7 @@ sub set_config {
     my $self = shift;
 
     $self->{ 'program_name' } = basename( $0 );
+    $self->{ 'program_name' } =~ s/\.[^\.]+$//;
 
     $self->{ 'maxlength' }    = 10000;
     $self->{ 'spaces' }       = 4;
