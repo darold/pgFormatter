@@ -31,6 +31,7 @@ Options:
     -a | --anonymize      : obscure all literals in queries, useful to hide
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
+    -B | --comma-break    : in insert statement, add a newline after each comma
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
     -f | --function-case N: Change the case of the reserved keyword. Default is
