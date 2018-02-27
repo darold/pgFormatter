@@ -574,6 +574,7 @@ box-shadow:3px 3px 6px 2px #A9A9A9;
 .sql .kw3_l {color: #993333; text-transform: lowercase;}
 .sql .kw3_c {color: #993333; text-transform: capitalize;}
 .sql .br0 {color: #66cc66;}
+.sql .br1 {color: #3b3ba2;}
 .sql .sy0 {color: #000000;}
 .sql .st0 {color: #ff0000;}
 .sql .nu0 {color: #cc66cc;}

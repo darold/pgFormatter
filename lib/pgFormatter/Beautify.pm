@@ -305,6 +305,12 @@ sub highlight_code {
 	return $token;
     }
 
+    # Colorize comment
+    if ( $self->_is_comment( $token ) ) {
+        $token = '<span class="br1">' . $token . '</span>';
+	return $token;
+    }
+
     # Colorize numbers
     $token =~ s/\b(\d+)\b/<span class="nu0">$1<\/span>/igs;
 
