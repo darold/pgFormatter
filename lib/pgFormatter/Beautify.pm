@@ -424,6 +424,7 @@ sub beautify {
     $self->{ '_first_when_in_case' } = 0;
 
     $self->{ '_has_from' } = 0;
+    $self->{ '_is_in_case' } = 0;
     $self->{ '_is_in_where' } = 0;
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_in_join' } = 0;
@@ -547,7 +548,7 @@ sub beautify {
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->_add_token( $token, $last );
             if ( !$self->{ '_is_in_index' } ) {
-                if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2) {
+                if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
                 if ($last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
@@ -821,6 +822,7 @@ sub beautify {
             # Mark next WHEN statement as first element of a case
             # to force indentation only after this element
             $self->{ '_first_when_in_case' } = 1;
+            $self->{ '_is_in_case' }++;
         }
 
         elsif ( $token =~ /^(?:WHEN)$/i ) {
@@ -858,8 +860,12 @@ sub beautify {
 
         elsif ( $token =~ /^(?:END)$/i ) {
             $self->{ '_first_when_in_case' } = 0;
+	    if ($self->{ '_is_in_case' }) {
+		$self->{ '_is_in_case' }--;
+		$self->_back;
+	    }
             # When we are not in a function code block (0 is the main begin/end block of a function)
-            if ($self->{ '_is_in_block' } == -1) {
+            elsif ($self->{ '_is_in_block' } == -1) {
                 # END is closing a create function statement so reset position to begining
                 if ($self->_next_token !~ /^(IF|LOOP|CASE|INTO|FROM|END|ELSE|AND|OR|WHEN|AS|,)$/i) {
                     @{ $self->{ '_level_stack' } } = ();
