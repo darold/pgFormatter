@@ -87,20 +87,18 @@ sub beautify {
     $args{ 'uc_keywords' }  = $self->{ 'cfg' }->{ 'keyword-case' };
     $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
     $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
-    $args{ 'separator' }  = $self->{ 'cfg' }->{ 'separator' };
-    $args{ 'comma' }  = $self->{ 'cfg' }->{ 'comma' };
+    $args{ 'separator' }    = $self->{ 'cfg' }->{ 'separator' };
+    $args{ 'comma' }        = $self->{ 'cfg' }->{ 'comma' };
     $args{ 'comma_break' }  = $self->{ 'cfg' }->{ 'comma-break' };
+    $args{ 'format' }       = $self->{ 'cfg' }->{ 'format' };
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'query' } );
     $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
-    if (lc($self->{ 'cfg' }->{ 'format' }) eq 'text') {
-        $beautifier->beautify();
-    } elsif (lc($self->{ 'cfg' }->{ 'format' }) eq 'html') {
-        $beautifier->html_highlight_code();
-    }
+    $beautifier->beautify();
 
     $self->{ 'ready' } = $beautifier->content();
+
     return;
 }
 

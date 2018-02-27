@@ -48,24 +48,28 @@ Example usage:
     $beautifier->beautify();
     my $nice_txt = $beautifier->content();
 
-    $beautifier->html_highlight_code();
+    $beautifier->format('html');
+    $beautifier->beautify();
     my $nice_html = $beautifier->content();
 
+    $beautifier->format('html');
     $beautifier->anonymize();
-    $beautifier->html_highlight_code();
+    $beautifier->beautify();
     my $nice_anonymized_html = $beautifier->content();
 
 =head1 FUNCTIONS
 
 =head2 new
 
-Generic constructur - creates object, sets defaults, and reads config from given hash with options.
+Generic constructor - creates object, sets defaults, and reads config from given hash with options.
 
 Takes options as hash. Following options are recognized:
 
 =over
 
 =item * break - String that is used for linebreaks. Default is "\n".
+
+=item * colorize - if set to false CSS style will not be applied to html output. Used internally to display errors in CGI mode withour style.
 
 =item * comma - set comma at beginning or end of a line in a parameter list
 
@@ -78,6 +82,16 @@ Takes options as hash. Following options are recognized:
 =back
 
 =item * comma_break - add new-line after each comma in INSERT statements
+
+=item * format - set beautify format to apply to the content (default: text)
+
+=over
+
+=item text - output content as plain/text (command line mode default)
+
+=item html - output text/html with CSS style applied to content (CGI mode default)
+
+=back
 
 =item * functions - list (arrayref) of strings that are function names
 
@@ -128,7 +142,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -150,7 +164,10 @@ sub new {
     } else {
         $self->{ 'comma' } = lc($self->{ 'comma' });
     }
-    
+
+    $self->{ 'format' } //= 'text';
+    $self->{ 'colorize' } //= 1;
+
     return $self;
 }
 
@@ -189,9 +206,10 @@ sub query {
 
 =head2 content
 
-Accessor to content of results.
+Accessor to content of results. Must be called after $object->beautify().
 
-This can be either plain text (after $object->beautify()), or html, if client code called $object->html_highlight_code()
+This can be either plain text or html following the format asked by the
+client with the $object->format() method.
 
 =cut
 
@@ -201,8 +219,14 @@ sub content {
 
     $self->{ 'content' } = $new_value if defined $new_value;
 
+    # Hide comment beside a placeholder for easy parsing
+    #$self->_remove_comments( \$self->{ 'content' } );
+
     # Replace placeholders with their original dynamic code
     $self->_restore_dynamic_code( \$self->{ 'content' } );
+
+    # Restore comments inplace
+    #$self->_restore_comments(\$self->{ 'content' });
 
     # Replace placeholders by their original values
     if ($self->{ 'placeholder' }) {
@@ -212,110 +236,83 @@ sub content {
     return $self->{ 'content' };
 }
 
-=head2 html_highlight_code
+=head2 highlight_code
 
-Makes result (in $object->content()) html with styles set for highlighting.
-
-Internally it calls L<beautify()> method, and then reformats output to HTML form.
+Makes result html with styles set for highlighting.
 
 =cut
 
-sub html_highlight_code {
-    my $self = shift;
+sub highlight_code {
+    my ($self, $token, $last_token, $next_token) = @_;
 
-    $self->beautify();
+    # Do not use uninitialized variable
+    $last_token //= '';
+    $next_token //= '';
 
-    my $code = $self->content();
-
-    my %comments = _remove_comments(\$code);
-
-    my $i      = 0;
-    my @qqcode = ();
-    while ( $code =~ s/("[^\"]*")/QQCODEY${i}A/s ) {
-        push( @qqcode, $1 );
-        $i++;
-    }
-
-    $i = 0;
-    my @qcode = ();
-    while ( $code =~ s/('.*?(?<!\\)')/QCODEY${i}B/s ) {
-        push( @qcode, $1 );
-        $i++;
-    }
-
+    # Colorize operators
     while ( my ( $k, $v ) = each %{ $self->{ 'dict' }->{ 'symbols' } } ) {
-        $code =~ s/$k/\$\$STYLESY0A\$\$$v\$\$STYLESY0B\$\$/gs;
+        if ($token eq $k) {
+            $token = '<span class="sy0">' . $v . '</span>';
+	    return $token;
+	}
     }
 
-    for my $k ( sort { length( $b ) <=> length( $a ) } @{ $self->{ 'dict' }->{ 'sql_keywords' } } ) {
-        if ( $self->{ 'uc_keywords' } == 1 ) {
-            $code =~ s/(?<!STYLESY0B\$\$)\b$k\b/<span class="kw1_l">$k<\/span>/igs;
-        }
-        elsif ( $self->{ 'uc_keywords' } == 2 ) {
-            $code =~ s/(?<!STYLESY0B\$\$)\b$k\b/<span class="kw1_u">$k<\/span>/igs;
-        }
-        elsif ( $self->{ 'uc_keywords' } == 3 ) {
-            $code =~ s/(?<!STYLESY0B\$\$)\b$k\b/<span class="kw1_c">\L$k\E<\/span>/igs;
-        }
-        else {
-            $code =~ s/(?<!STYLESY0B\$\$)\b$k\b/<span class="kw1">$k<\/span>/igs;
-        }
+    # lowercase/uppercase keywords
+    if ( $self->_is_keyword( $token ) ) {
+	if ( $self->{ 'uc_keywords' } == 1 ) {
+		$token = '<span class="kw1_l">' . $token . '</span>';
+	} elsif ( $self->{ 'uc_keywords' } == 2 ) {
+		$token = '<span class="kw1_u">' . $token . '</span>';
+	} elsif ( $self->{ 'uc_keywords' } == 3 ) {
+		$token = '<span class="kw1_c">' . $token . '</span>';
+	} else {
+		$token = '<span class="kw1">' . $token . '</span>';
+	}
+	return $token;
     }
 
-    for my $k ( sort { length( $b ) <=> length( $a ) } @{ $self->{ 'dict' }->{ 'pg_functions' } } ) {
-        if ( $self->{ 'uc_functions' } == 1 ) {
-            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2_l">$k<\/span>(/igs;
-        }
-        elsif ( $self->{ 'uc_functions' } == 2 ) {
-            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2_u">$k<\/span>(/igs;
-        }
-        elsif ( $self->{ 'uc_functions' } == 3 ) {
-            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2_c">\L$k\E<\/span>(/igs;
-        }
-        else {
-            $code =~ s/(?<!:)\b$k\s*\(/<span class="kw2">$k<\/span>(/igs;
-        }
+    # lowercase/uppercase known functions or words followed by an open parenthesis if the token is not an open parenthesis
+    if ($self->_is_function( $token ) || (!$self->_is_keyword( $token ) && $next_token eq '(' && $token ne '(' && !$self->_is_comment( $token )) ) {
+	if ($self->{ 'uc_functions' } == 1) {
+		$token = '<span class="kw2_l">' . $token . '</span>';
+	} elsif ($self->{ 'uc_functions' } == 2) {
+		$token = '<span class="kw2_u">' . $token . '</span>';
+	} elsif ($self->{ 'uc_functions' } == 3) {
+		$token = '<span class="kw2_c">' . $token . '</span>';
+	} else {
+		$token = '<span class="kw2">' . $token . '</span>';
+	}
+	return $token;
     }
 
-    for my $k ( sort { length( $b ) <=> length( $a ) } @{ $self->{ 'dict' }->{ 'copy_keywords' } } ) {
-        if ( $self->{ 'uc_keywords' } == 1 ) {
-            $code =~ s/\b$k\b/<span class="kw3_l">$k<\/span>/igs;
-        }
-        elsif ( $self->{ 'uc_keywords' } == 2 ) {
-            $code =~ s/\b$k\b/<span class="kw3_u">$k<\/span>/igs;
-        }
-        elsif ( $self->{ 'uc_keywords' } == 3 ) {
-            $code =~ s/\b$k\b/<span class="kw3_c">\L$k\E<\/span>/igs;
-        }
-        else {
-            $code =~ s/\b$k\b/<span class="kw3">$k<\/span>/igs;
-        }
+    # Colorize STDIN/STDOUT in COPY statement
+    if ( grep(/^\Q$token\E$/i, @{ $self->{ 'dict' }->{ 'copy_keywords' } }) ) {
+	if ($self->{ 'uc_keywords' } == 1) {
+		$token = '<span class="kw3_!">' . $token . '</span>';
+	} elsif ($self->{ 'uc_keywords' } == 2) {
+		$token = '<span class="kw3_u">' . $token . '</span>';
+	} elsif ($self->{ 'uc_keywords' } == 3) {
+		$token = '<span class="kw3_c">' . $token . '</span>';
+	} else {
+		$token = '<span class="kw3">' . $token . '</span>';
+	}
+	return $token;
     }
 
-    for my $k ( sort { length( $b ) <=> length( $a ) } @{ $self->{ 'dict' }->{ 'brackets' } } ) {
-        $code =~ s/(\Q$k\E)/<span class="br0">$1<\/span>/igs;
+    # Colorize parenthesis
+    if ( grep(/^\Q$token\E$/i, @{ $self->{ 'dict' }->{ 'brackets' } }) ) {
+        $token = '<span class="br0">' . $token . '</span>';
+	return $token;
     }
 
-    $code =~ s/\$\$STYLESY0A\$\$([^\$]+)\$\$STYLESY0B\$\$/<span class="sy0">$1<\/span>/gs;
+    # Colorize numbers
+    $token =~ s/\b(\d+)\b/<span class="nu0">$1<\/span>/igs;
 
-    $code =~ s/\b(\d+)\b/<span class="nu0">$1<\/span>/igs;
+    # Colorize string
+    $token =~ s/('.*?(?<!\\)')/<span class="st0">$1<\/span>/gs;
+    $token =~ s/(`[^`]*`)/<span class="st0">$1<\/span>/gs;
 
-    for ( my $x = 0 ; $x <= $#qcode ; $x++ ) {
-        $code =~ s/QCODEY${x}B/$qcode[$x]/s;
-    }
-
-    for ( my $x = 0 ; $x <= $#qqcode ; $x++ ) {
-        $code =~ s/QQCODEY${x}A/$qqcode[$x]/s;
-    }
-
-    $code =~ s/('.*?(?<!\\)')/<span class="st0">$1<\/span>/gs;
-    $code =~ s/(`[^`]*`)/<span class="st0">$1<\/span>/gs;
-
-    _restore_comments(\$code, \%comments);
-
-    $self->content( $code );
-
-    return;
+    return $token;
 }
 
 =head2 tokenize_sql
@@ -939,6 +936,8 @@ sub beautify {
                 $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
                 $self->_new_line;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+            } else {
+                $self->_new_line;
             }
         }
 
@@ -1057,19 +1056,24 @@ sub _add_token {
         $token =~ s/\n/\n$sp/gs;
     }
 
-    # uppercase keywords
+    # lowercase/uppercase keywords
     if ( $self->{ 'uc_keywords' } && $self->_is_keyword( $token ) ) {
         $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
         $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );
         $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_keywords' } == 3 );
     }
 
-    # uppercase functions
+    # lowercase/uppercase functions
     if ( $self->{ 'uc_functions' } && ( my $fct = $self->_is_function( $token ) ) ) {
         $token =~ s/$fct/\L$fct\E/i if ( $self->{ 'uc_functions' } == 1 );
         $token =~ s/$fct/\U$fct\E/i if ( $self->{ 'uc_functions' } == 2 );
         $fct = ucfirst( lc( $fct ) );
         $token =~ s/$fct/$fct/i if ( $self->{ 'uc_functions' } == 3 );
+    }
+
+    # Add formatting for HTML output
+    if ( $self->{ 'colorize' } && $self->{ 'format' } eq 'html' ) {
+	$token = $self->highlight_code($token, $last_token, $self->_next_token);
     }
 
     $self->{ 'content' } .= $token;
@@ -1182,6 +1186,21 @@ sub _is_keyword {
     my ( $self, $token ) = @_;
 
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } };
+}
+
+=head2 _is_comment
+
+Check if a token is a SQL or C style comment
+
+=cut
+
+
+sub _is_comment {
+    my ( $self, $token ) = @_;
+
+    return 1 if ( $token =~ m#^((?:--)[\ \t\S]*|/\*[\ \t\r\n\S]*?\*/)$#s );
+
+    return 0;
 }
 
 =head2 _is_function
@@ -1454,6 +1473,10 @@ Currently defined defaults:
 
 =item comma => 'end'
 
+=item format => 'text'
+
+=item colorize => 1
+
 =back
 
 =cut
@@ -1477,8 +1500,29 @@ sub set_defaults {
     $self->{ 'functions' }    = $self->{ 'dict' }->{ 'pg_functions' };
     $self->{ 'separator' }    = '';
     $self->{ 'comma' }        = 'end';
+    $self->{ 'format' }       = 'text';
+    $self->{ 'colorize' }     = 1;
 
     return;
+}
+
+=head2 format
+
+Set output format - possible values: 'text' and 'html'
+
+Default is text output. Returns 0 in case or wrong format and use default.
+
+=cut
+
+sub format {
+    my $self  = shift;
+    my $format  = shift;
+
+    if ( grep(/^$format$/i, 'text', 'html') ) {
+        $self->{ 'format' } = lc($format);
+	return 1;
+    }
+    return 0;
 }
 
 =head2 set_dicts
@@ -1540,8 +1584,6 @@ sub set_dicts {
         PARALLEL PERCENT PERMISSIONS RAW READRATIO RECOVER REJECTLOG RESORT RESPECT RESTORE SORTKEY SYSDATE TAG TDES
         TEXT255 TEXT32K TIMESTAMP TOP TRUNCATECOLUMNS WALLET
         );
-
-
 
     for my $k ( @pg_keywords ) {
         next if grep { $k eq $_ } @sql_keywords;
@@ -1864,8 +1906,8 @@ sub set_dicts {
     my @copy_keywords = ( 'STDIN', 'STDOUT' );
 
     my %symbols = (
-        '='  => '=', '<'  => '&lt;', '>'  => '&gt;', '\|' => '|', ',' => ',', '\.' => '.', '\+' => '+', '\-' => '-',
-        '\*' => '*', '\/' => '/',    '!=' => '!=', '\%' => '%'
+        '='  => '=', '<'  => '&lt;', '>' => '&gt;', '|' => '|', ',' => ',', '.' => '.', '+' => '+', '-' => '-',
+        '*' => '*', '/' => '/', '!=' => '!=', '%' => '%', '<=' => '&lt;=', '>=' => '&gt;=', '<>' => '&lt;&gt;'
     );
 
     my @brackets = ( '(', ')' );
@@ -1877,8 +1919,16 @@ sub set_dicts {
     $self->{ 'dict' }->{ 'copy_keywords' } = \@copy_keywords;
     $self->{ 'dict' }->{ 'symbols' }       = \%symbols;
     $self->{ 'dict' }->{ 'brackets' }      = \@brackets;
+
     return;
 }
+
+=head2 _remove_dynamic_code
+
+Internal function used to hide dynamic code in plpgsql to the parser.
+The original values are restored with function _restore_dynamic_code().
+
+=cut
 
 sub _remove_dynamic_code
 {
@@ -1904,6 +1954,13 @@ sub _remove_dynamic_code
     }
 }
 
+=head2 _restore_dynamic_code
+
+Internal function used to restore plpgsql dynamic code in plpgsql
+that was removed by the _remove_dynamic_code() method.
+
+=cut
+
 sub _restore_dynamic_code
 {
         my ($self, $str) = @_;
@@ -1912,27 +1969,28 @@ sub _restore_dynamic_code
 
 }
 
-sub _restore_comments
-{
-    my ($content, $comments) = @_;
+=head2 _remove_comments
 
-    while ($$content =~ s/(PGF_COMMENT\d+A)[\n]*/$comments->{$1}\n/s) { delete $comments->{$1}; };
-}
+Internal function used to remove comments in SQL code
+to simplify the work of the parser. Comments are restored
+with the _restore_comments() method.
+
+=cut
 
 sub _remove_comments
 {
-    my $content = shift;
+    my ($self, $content) = @_;
 
-    my %comments = ();
     my $idx = 0;
 
     while ($$content =~ s/(\/\*(.*?)\*\/)/PGF_COMMENT${idx}A/s) {
-        $comments{"PGF_COMMENT${idx}A"} = $1;
+        $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
         $idx++;
     }
 
     my @lines = split(/\n/, $$content);
     for (my $j = 0; $j <= $#lines; $j++) {
+	$lines[$j] //= '';
         # Extract multiline comments as a single placeholder
         my $old_j = $j;
         my $cmt = '';
@@ -1943,7 +2001,7 @@ sub _remove_comments
         if ( $j > $old_j ) {
             chomp($cmt);
             $lines[$old_j] =~ s/^(\s*\-\-.*)$/PGF_COMMENT${idx}A/;
-            $comments{"PGF_COMMENT${idx}A"} = $cmt;
+            $self->{'comments'}{"PGF_COMMENT${idx}A"} = $cmt;
             $idx++;
             $j--;
             while ($j > $old_j) {
@@ -1952,19 +2010,19 @@ sub _remove_comments
             }
         }
         if ($lines[$j] =~ s/(\s*\-\-.*)$/PGF_COMMENT${idx}A/) {
-            $comments{"PGF_COMMENT${idx}A"} = $1;
-            chomp($comments{"PGF_COMMENT${idx}A"});
+            $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
+            chomp($self->{'comments'}{"PGF_COMMENT${idx}A"});
             $idx++;
         }
 
         # Mysql supports differents kinds of comment's starter
         if ( ($lines[$j] =~ s/(\s*COMMENT\s+'.*)$/PGF_COMMENT${idx}A/) ||
         ($lines[$j] =~ s/(\s*\# .*)$/PGF_COMMENT${idx}A/) ) {
-            $comments{"PGF_COMMENT${idx}A"} = $1;
-            chomp($comments{"PGF_COMMENT${idx}A"});
+            $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
+            chomp($self->{'comments'}{"PGF_COMMENT${idx}A"});
             # Normalize start of comment
-            $comments{"PGF_COMMENT${idx}A"} =~ s/^(\s*)COMMENT/$1\-\- /;
-            $comments{"PGF_COMMENT${idx}A"} =~ s/^(\s*)\#/$1\-\- /;
+            $self->{'comments'}{"PGF_COMMENT${idx}A"} =~ s/^(\s*)COMMENT/$1\-\- /;
+            $self->{'comments'}{"PGF_COMMENT${idx}A"} =~ s/^(\s*)\#/$1\-\- /;
             $idx++;
         }
     }
@@ -1972,12 +2030,25 @@ sub _remove_comments
 
     # Replace subsequent comment by a single one
     while ($$content =~ s/(PGF_COMMENT\d+A\s*PGF_COMMENT\d+A)/PGF_COMMENT${idx}A/s) {
-        $comments{"PGF_COMMENT${idx}A"} = $1;
+        $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
         $idx++;
     }
-
-    return %comments;
 }
+
+=head2 _restore_comments
+
+Internal function used to restore comments in SQL code
+that was removed by the _remove_comments() method.
+
+=cut
+
+sub _restore_comments
+{
+    my ($self, $content) = @_;
+
+    while ($$content =~ s/(PGF_COMMENT\d+A)[\n]*/$self->{'comments'}{$1}\n/s) { delete $self->{'comments'}{$1}; };
+}
+
 
 
 =head1 AUTHOR

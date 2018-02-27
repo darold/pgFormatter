@@ -118,6 +118,7 @@ sub set_config {
     $self->{ 'anonymize' }    = 0;
     $self->{ 'separator' }    = '';
     $self->{ 'comma' }        = 'end';
+    $self->{ 'format' }       = 'html';
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -164,7 +165,7 @@ sub get_params {
     return unless $filename;
 
     my $type = $cgi->uploadInfo( $filename )->{ 'Content-Type' };
-    if ( $type eq 'text/plain' ) {
+    if ( $type eq 'text/plain' || $type eq 'text/x-sql' ) {
         local $/ = undef;
         my $fh = $cgi->upload( 'filetoload' );
         $self->{ 'content' } = <$fh>;
@@ -172,7 +173,7 @@ sub get_params {
     else {
         $self->{ 'colorize' }   = 0;
         $self->{ 'uc_keyword' } = 0;
-        $self->{ 'content' }    = "FATAL: Only text/plain files are supported!";
+        $self->{ 'content' }    = "FATAL: Only text/plain files are supported! Found $type";
     }
 
     return;
@@ -222,15 +223,18 @@ sub beautify_query {
     $args{ 'uc_functions' } = $self->{ 'uc_function' };
     $args{ 'separator' }    = $self->{ 'separator' };
     $args{ 'comma' }        = $self->{ 'comma' };
+    $args{ 'format' }       = $self->{ 'format' };
+    $args{ 'colorize' }     = $self->{ 'colorize' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'content' } );
     $beautifier->anonymize() if $self->{ 'anonymize' };
-    $beautifier->html_highlight_code();
+    $beautifier->beautify();
 
     $self->{ 'content' } = $beautifier->content();
+
     return;
 }
 
@@ -316,10 +320,11 @@ sub print_body {
         <div class="smaller">(set it to 0 to obtain a single line statement)</div>
       </div>
     </fieldset>
-    <p align="center"><input type="button" value="Reset all" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/></p>
+    <p align="center"><input type="button" value="Reset all" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/>
     <input type="hidden" name="show_example" value="0" />
     <br />
-    <p align="center"><input type="button" value="Load an example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();"/></p>
+    <br />
+    <input type="button" value="Load an example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();"/></p>
     <input type="hidden" name="load_from_file" value="0" />
     <p align="center">
     <span style="position: relative">
@@ -365,7 +370,7 @@ sub print_footer {
 
     print $ad_content;
     print
-    qq{ <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.org</a> </div> };
+    qq{<p>&nbsp;</p> <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.org</a> </div> };
     print " </div> </body> </html>\n";
     return;
 }
