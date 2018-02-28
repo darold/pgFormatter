@@ -1,3 +1,78 @@
+Febuary 28 2018 - v3.0
+
+This major release fixes some issues reported by users during the
+last six months and adds several new features.
+
+  * Add colorization of comments.
+  * Add detection and colorization of user defined function in the SQL
+    code. Until now only PostgreSQL internal function was highlighted.
+  * Add new option -B | --comma-break and in CGI the checkbox
+    "New-line after comma (insert)" to force a newline after each
+    comma in INSERT statements, columns and values parts.
+  * Add command line option: -F | --format to be able to change the
+    output format in CLI mode. At now there is two possible format,
+    text the default or html. More format can be added in the future.
+  * Add support to all psql meta commands up to v1O.
+
+There is also some improvement in SQL code formatting. Here is the
+complete list of changes:
+
+  - Add information on how to customize CSS in CGI to change the HTML
+    style.
+  - Update documentation and add a pointer to the Node.js wrapper
+    written by Gajus Kuizinas.
+  - Remove program extention from $self->{program_name} used as title
+    of the CGI interface.
+  - Remove html_highlight_code() method to apply HTML formatting style
+    at token level instead of full SQL content like before. You just
+    have to call the $object->beautify() method, the HTML formatting
+    will be called internally if you have set the out format to HTML
+    with the call to $object->format('html'). This call is now done
+    internally by pg_format when it is called with the -F html option
+    or in CGI mode. This compatibility break justify a change of the
+    major version number.
+    
+    Note that this breaks backward compatibility if you are using your
+    own custom scripts. With a complete upgrade and the use of the
+    pg_format script and libraries everything should work as before.
+    
+  - Improve the CGI interface where the footer bar overlaps.
+  - The CGI library also support a new internal parameter/option
+    $self->{ 'colorize' } used to disable HTML output formatting
+    to avoid applying colorization to error messages returned by the
+    Perl package pgFormatter::CGI.pm
+  - Improve documentation of the Perl Package.
+  - Add detection of user defined function in the SQL code. Until now
+    only PostgreSQL known function was highlighted. Thanks to Gajus
+    Kuizinas for the feature request.
+  - Add option -B | --comma-break to documentation.
+  - Add regression test to CASE formating.
+  - Fix poorly formatted output when using CASE statements within
+    function params. Thanks to Kale Davis for the report.
+  - Add new option -B | --comma-break and in CGI the checkbox
+    "New-line after comma (insert)" to force a newline after each
+    comma in INSERT statements, columns and values parts. Thanks
+    to Troy Johnson for the feature request.
+  - Add sample of insert statement to test new -B option
+  - Improve formatting of multiple join.
+  - Add new regression test on JOIN formatting.
+  - Add command line option: -F | --format to be able to change the
+    output format in CLI mode. At now there is two possible format,
+    text the default or html. More format can be added in the future.
+    This allow embedded call to pg_format from any other program and
+    send a more sophisticated format than simple text to be able to
+    detect keywords, function and punctuation in that program.
+  - Add Hubert depesz Lubaczewski to the main authors list.
+  - Add simple regression test on psql meta command.
+  - Add support to all psql meta commands, thanks to Tobias Bussmann
+    the patch.
+  - Remove regexp pragma for negative look backward (use re '/aa';)
+    it is no more necessary since html_highlight_code() method is
+    gone. The requirement of minimal Perl version 5.14 should no
+    more needed but it is preserved for now. The demo isite is working
+    well on Perl 5.10.
+
+
 September 02 2017 - v2.1
 
 This minor release fixes several issues reported by users since four
