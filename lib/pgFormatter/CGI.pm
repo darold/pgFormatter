@@ -125,6 +125,7 @@ sub set_config {
     # HTML head and the bottom of the HTML page.
     $self->{ 'bottom_ad_file' }  = 'bottom_ad_file.txt';
     $self->{ 'head_track_file' } = 'head_track_file.txt';
+    # CSS file to load if exists to override default style
     $self->{ 'css_file' }        = 'custom_css_file.css';
 
     return;
@@ -476,7 +477,7 @@ Please report any bugs or feature requests to: https://github.com/darold/pgForma
 
 =head1 COPYRIGHT
 
-Copyright 2012-2017 Gilles Darold. All rights reserved.
+Copyright 2012-2018 Gilles Darold. All rights reserved.
 
 =head1 LICENSE
 
