@@ -93,7 +93,7 @@ sub beautify {
     $args{ 'format' }       = $self->{ 'cfg' }->{ 'format' };
     $args{ 'maxlength' }    = $self->{ 'cfg' }->{ 'maxlength' };
 
-    if ($self->{ 'query' } && (length($self->{ 'query' }) > $args{ 'maxlength' })) {
+    if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
     }
 
@@ -267,6 +267,7 @@ sub get_command_line_args {
     $cfg{ 'comma' }           = 'end';
     $cfg{ 'format' }        //= 'text';
     $cfg{ 'comma-break' }   //= 0;
+    $cfg{ 'maxlength' }     //= 0;
 
     if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
         printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
