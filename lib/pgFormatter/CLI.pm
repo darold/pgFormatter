@@ -91,6 +91,11 @@ sub beautify {
     $args{ 'comma' }        = $self->{ 'cfg' }->{ 'comma' };
     $args{ 'comma_break' }  = $self->{ 'cfg' }->{ 'comma-break' };
     $args{ 'format' }       = $self->{ 'cfg' }->{ 'format' };
+    $args{ 'maxlength' }    = $self->{ 'cfg' }->{ 'maxlength' };
+
+    if ($self->{ 'query' } && (length($self->{ 'query' }) > $args{ 'maxlength' })) {
+        $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
+    }
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     $beautifier->query( $self->{ 'query' } );
@@ -236,6 +241,7 @@ sub get_command_line_args {
 	'format|F=s',
         'function-case|f=i',
         'help|h!',
+        'maxlength|m=i',
         'nocomment|n!',
         'output|o=s',
         'placeholder|p=s',
