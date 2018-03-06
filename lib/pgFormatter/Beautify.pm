@@ -465,16 +465,15 @@ sub beautify {
             $self->{ '_is_in_index' } = 1 if (! $self->{ '_is_in_create' } and $self->{ '_current_sql_stmt' } ne 'UPDATE');
         }
         # Same as above but for ALTER FUNCTION/SEQUENCE and WITH in create table statement
-        elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|WITH)$/i) {
+        elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE)$/i) {
+            $self->{ '_current_sql_stmt' } = uc($1);
             $self->{ '_is_in_index' } = 1 if (uc($last) eq 'ALTER');
-            if ($token =~ /^(FUNCTION|PROCEDURE|WITH)$/i && $self->{ '_is_in_create' }) {
+            if ($token =~ /^(FUNCTION|PROCEDURE)$/i && $self->{ '_is_in_create' }) {
                 $self->{ '_is_in_index' } = 1;
             }
-            if ($token =~ /^(SEQUENCE|FUNCTION|PROCEDURE)$/i) {
-                $self->{ '_current_sql_stmt' } = uc($1);
-            } elsif ($token =~ /^WITH$/i) {
-                $self->{ '_is_in_with' } = 1;
-            }
+        }
+	elsif ($token =~ /^WITH$/i) {
+            $self->{ '_is_in_with' } = 1;
         }
         elsif ($token =~ /^(GRANT|REVOKE)$/i) {
             $self->{ '_is_in_grant' } = uc($1);

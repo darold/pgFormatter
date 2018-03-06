@@ -358,7 +358,9 @@ CREATE TABLE appellation (
     libelle text NOT NULL,
     region_id integer
 )
-WITH (autovacuum_enabled = off);
+WITH (
+    autovacuum_enabled = off
+);
 
 ALTER TABLE appellation OWNER TO userdb;
 
@@ -387,7 +389,10 @@ CREATE TABLE contenant (
     contenance real NOT NULL,
     libelle text
 )
-WITH (autovacuum_enabled = off, fillfactor = '20');
+WITH (
+    autovacuum_enabled = off,
+    fillfactor = '20'
+);
 
 ALTER TABLE contenant OWNER TO userdb;
 
@@ -416,7 +421,9 @@ CREATE TABLE recoltant (
     nom text,
     adresse text
 )
-WITH (autovacuum_enabled = off);
+WITH (
+    autovacuum_enabled = off
+);
 
 ALTER TABLE recoltant OWNER TO userdb;
 
@@ -444,7 +451,9 @@ CREATE TABLE region (
     id integer NOT NULL,
     libelle text NOT NULL
 )
-WITH (autovacuum_enabled = off);
+WITH (
+    autovacuum_enabled = off
+);
 
 ALTER TABLE region OWNER TO userdb;
 
@@ -474,7 +483,9 @@ CREATE TABLE stock (
     annee integer NOT NULL,
     nombre integer NOT NULL
 )
-WITH (autovacuum_enabled = off);
+WITH (
+    autovacuum_enabled = off
+);
 
 ALTER TABLE stock OWNER TO userdb;
 
@@ -485,7 +496,9 @@ CREATE TABLE type_vin (
     id integer NOT NULL,
     libelle text NOT NULL
 )
-WITH (autovacuum_enabled = off);
+WITH (
+    autovacuum_enabled = off
+);
 
 ALTER TABLE type_vin OWNER TO userdb;
 
@@ -515,7 +528,9 @@ CREATE TABLE vin (
     appellation_id integer NOT NULL,
     type_vin_id integer NOT NULL
 )
-WITH (autovacuum_enabled = off);
+WITH (
+    autovacuum_enabled = off
+);
 
 ALTER TABLE vin OWNER TO userdb;
 
