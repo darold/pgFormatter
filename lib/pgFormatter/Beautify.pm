@@ -601,7 +601,7 @@ sub beautify {
 
             # When closing CTE statement go back again
             if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i) {
-                    $self->_back;
+                $self->_back;
             }
             if ($self->{ '_is_in_create' } <= 1) {
                 my $next_tok = quotemeta($self->_next_token);
@@ -764,6 +764,12 @@ sub beautify {
                     $self->_over;
                 }
             }
+        }
+
+        # Add newline before INSERT and DELETE if last token was AS (prepared statement)
+        elsif (defined $last and $token =~ /^INSERT|DELETE$/i and uc($last) eq 'AS') {
+                $self->_new_line;
+                $self->_add_token( $token );
         }
 
         elsif ( !$self->{ '_is_in_grant' } and $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i ) {
