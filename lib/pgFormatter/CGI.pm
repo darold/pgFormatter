@@ -98,7 +98,7 @@ sub set_config {
     $self->{ 'program_name' } = basename( $0 );
     $self->{ 'program_name' } =~ s/\.[^\.]+$//;
 
-    $self->{ 'maxlength' }    = 10000;
+    $self->{ 'maxlength' }    = 100000;
     $self->{ 'spaces' }       = 4;
     $self->{ 'outfile' }      = '';
     $self->{ 'outdir' }       = '';
