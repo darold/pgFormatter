@@ -829,9 +829,11 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:WHEN)$/i ) {
+            $self->_back if (!$self->{ '_first_when_in_case' } and $last and uc($last) ne 'CASE');
             $self->_new_line if (!$last or uc($last) ne 'CASE');
             $self->_add_token( $token );
-            $self->_over if ($self->{ '_first_when_in_case' } or !$last or uc($last) eq 'CASE');
+	    #$self->_over if ($self->{ '_first_when_in_case' } or !$last or uc($last) eq 'CASE');
+            $self->_over;
             $self->{ '_first_when_in_case' } = 0;
         }
 
