@@ -4,9 +4,7 @@ package pgFormatter::CGI;
 use v5.14;    # It was released in 2011, so I guess we can assume anything should have it by now.
 use strict;
 use warnings;
-use warnings qw( FATAL utf8 );
-use utf8;
-use open qw( :std :utf8 );
+use warnings qw( FATAL );
 use Encode qw( decode );
 
 # UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
@@ -167,10 +165,11 @@ sub get_params {
     return unless $filename;
 
     my $type = $cgi->uploadInfo( $filename )->{ 'Content-Type' };
-    if ( $type eq 'text/plain' || $type eq 'text/x-sql' ) {
+    if ( $type eq 'text/plain' || $type eq 'text/x-sql' || $type eq 'application/sql') {
         local $/ = undef;
         my $fh = $cgi->upload( 'filetoload' );
-        $self->{ 'content' } = <$fh>;
+	binmode $fh;
+        $self->{ 'content' } = <$fh>; 
     }
     else {
         $self->{ 'colorize' }   = 0;
@@ -406,7 +405,7 @@ Outputs page headers - both HTTP level headers, and HTML.
 
 sub print_headers {
     my $self = shift;
-    print $self->{ 'cgi' }->header();
+    print $self->{ 'cgi' }->header(-charset => 'utf-8');
 
     my $date = localtime( time );
 
@@ -425,7 +424,7 @@ sub print_headers {
 <meta HTTP-EQUIV="Expires" CONTENT="$date">
 <meta HTTP-EQUIV="Generator" CONTENT="$self->{ 'program_name'} v$VERSION">
 <meta HTTP-EQUIV="Date" CONTENT="$date">
-<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="description" content="Free online sql formatting tool, beautify sql code instantly for PostgreSQL, SQL-92, SQL-99, SQL-2003, SQL-2008 and SQL-2011" />
 <meta name="keywords" content="sql formatter,sql beautifier,format sql,formatting sql" />
 $track_content
