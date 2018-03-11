@@ -5,9 +5,9 @@ SELECT
     pg_catalog.pg_get_function_arguments(p.oid) AS "Argument data types",
     CASE WHEN p.proisagg THEN
         'agg'
-        WHEN p.proiswindow THEN
+    WHEN p.proiswindow THEN
         'window'
-        WHEN p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype THEN
+    WHEN p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype THEN
         'trigger'
     ELSE
         'normal'
