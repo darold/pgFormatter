@@ -1,13 +1,9 @@
 package pgFormatter::CGI;
 
-# UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
-use v5.14;    # It was released in 2011, so I guess we can assume anything should have it by now.
 use strict;
 use warnings;
 use warnings qw( FATAL );
 use Encode qw( decode );
-
-# UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
 
 =head1 NAME
 
