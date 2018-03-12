@@ -906,7 +906,7 @@ sub beautify {
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
             $self->{ 'no_break' } = 0;
-            $self->_back unless $last and $last eq ')';
+            $self->_back unless ($self->{ '_is_in_join' } or ($last and $last eq ')'));
 
             if ( $token =~ /(?:LEFT|RIGHT|FULL|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
