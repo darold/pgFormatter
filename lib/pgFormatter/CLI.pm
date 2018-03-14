@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 # UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
-use warnings qw( FATAL utf8 );
+use warnings qw( FATAL );
 use utf8;
-use open qw( :std :utf8 );
+use open qw( :std );
 use Encode qw( decode );
 
 =head1 NAME
