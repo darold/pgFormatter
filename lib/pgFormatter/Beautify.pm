@@ -432,6 +432,7 @@ sub beautify {
     $self->{ '_parenthesis_level' } = 0;
     $self->{ '_is_in_grant' }  = 0;
     $self->{ '_has_order_by' }  = 0;
+    $self->{ '_has_over_in_join' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -645,6 +646,7 @@ sub beautify {
             $self->{ '_is_in_with' } = 0;
             $self->{ '_is_in_grant' } = 0;
 	    $self->{ '_has_order_by' } = 0;
+            $self->{ '_has_over_in_join' } = 0;
             $self->_add_token($token);
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -714,9 +716,11 @@ sub beautify {
                 $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' });
             }
             if ($token =~ /^WHERE$/i) {
+		$self->_back() if ($self->{ '_has_over_in_join' });
                 $self->{ '_is_in_where' }++;
                 $self->{ '_is_in_from' }-- if ($self->{ '_is_in_from' });
 	        $self->{ '_is_in_join' } = 0;
+		$self->{ '_has_over_in_join' } = 0;
             } elsif (!$self->{ '_is_in_function' }) {
                 $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
             }
@@ -902,7 +906,9 @@ sub beautify {
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
             $self->{ 'no_break' } = 0;
-            $self->_back unless ($self->{ '_is_in_join' } or ($last and $last eq ')'));
+	    unless ($self->{ '_is_in_join' } or ($last and $last eq ')') ) {
+		$self->_back;
+	    }
 
             if ( $token =~ /(?:LEFT|RIGHT|FULL|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
@@ -919,6 +925,8 @@ sub beautify {
             $self->{ 'no_break' } = 0;
             if ( !$last or $last !~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
+		$self->_back if ($self->{ '_has_over_in_join' });
+		$self->{ '_has_over_in_join' } = 0;
             }
             $self->_add_token( $token );
 	    $self->{ '_is_in_join' } = 1;
@@ -926,7 +934,10 @@ sub beautify {
 
         elsif ( $token =~ /^(?:AND|OR)$/i ) {
             $self->{ 'no_break' } = 0;
-            $self->_over if ($self->{ '_is_in_join' });
+            if ($self->{ '_is_in_join' }) {
+		$self->_over;
+		$self->{ '_has_over_in_join' } = 1;
+	    }
 	    $self->{ '_is_in_join' } = 0;
             if ( !$self->{ '_is_in_if' } and !$self->{ '_is_in_index' } and (!$last or $last !~ /^(?:CREATE)$/i) ) {
                 $self->_new_line;
