@@ -602,7 +602,7 @@ sub beautify {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line
                     if ($self->_next_token
-                    and $self->_next_token !~ /^AS|THEN|INTO$/i
+                    and $self->_next_token !~ /^AS|THEN|INTO|BETWEEN$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
@@ -933,6 +933,11 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:AND|OR)$/i ) {
+	    # Try to detect AND in BETWEEN clause to prevent newline insert
+            if (uc($token) eq 'AND' and $self->_next_token() =~ /^\d+$/){
+	        $self->_add_token( $token );
+		next;
+	    }
             $self->{ 'no_break' } = 0;
             if ($self->{ '_is_in_join' }) {
 		$self->_over;
