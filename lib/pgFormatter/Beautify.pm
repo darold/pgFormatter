@@ -912,11 +912,11 @@ sub beautify {
 
             if ( $token =~ /(?:LEFT|RIGHT|FULL|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
-                $self->_over if ( $self->{ '_level' } == 0 );
+		$self->_over if ( $self->{ '_level' } == 0 );
             }
             if ( ($token =~ /(?:INNER|OUTER)$/i) && ($last !~ /(?:LEFT|RIGHT|CROSS|NATURAL|FULL)$/i) ) {
                 $self->_new_line;
-                $self->_over if ($self->{_level} == 0);
+                $self->_over if (!$self->{ '_is_in_join' });
             } 
             $self->_add_token( $token );
         }
