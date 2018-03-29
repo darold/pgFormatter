@@ -114,6 +114,7 @@ sub set_config {
     $self->{ 'separator' }    = '';
     $self->{ 'comma' }        = 'end';
     $self->{ 'format' }       = 'html';
+    $self->{ 'comma_break' }  = 0;
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -153,7 +154,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma ) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -192,6 +193,7 @@ sub sanitize_params {
     $self->{ 'show_example' } = 0 if $self->{ 'show_example' } !~ /^(0|1)$/;
     $self->{ 'separator' }    = '' if ($self->{ 'separator' } eq "'" or length($self->{ 'separator' }) > 6);
     $self->{ 'comma' }        = 'end' if ($self->{ 'comma' } ne 'start');
+    $self->{ 'comma_break' }  = 0 if ($self->{ 'comma_break' } !~ /^(0|1)$/);
 
     if ( $self->{ 'show_example' } ) {
         $self->{ 'content' } = q{
@@ -222,6 +224,7 @@ sub beautify_query {
     $args{ 'comma' }        = $self->{ 'comma' };
     $args{ 'format' }       = $self->{ 'format' };
     $args{ 'colorize' }     = $self->{ 'colorize' };
+    $args{ 'comma_break' }  = $self->{ 'comma_break' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
