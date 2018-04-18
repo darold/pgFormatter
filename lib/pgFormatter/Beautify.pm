@@ -624,7 +624,7 @@ sub beautify {
             $self->{ '_parenthesis_level' }++;
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->_add_token( $token, $last );
-            if ( !$self->{ '_is_in_index' } ) {
+            if ( !$self->{ '_is_in_index' }) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
@@ -636,7 +636,6 @@ sub beautify {
                     $last = $token;
                     next;
                 }
-		#$self->{ '_is_in_type' }++ if ($self->{ '_is_in_type' });
             }
         }
 
@@ -939,7 +938,11 @@ sub beautify {
 
         elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT)$/i ) {
             $self->{ 'no_break' } = 0;
-            $self->_back unless $last and $last eq '(';
+	    if ($self->{ '_is_in_join' }) {
+		$self->_back;
+		$self->{ '_is_in_join' } = 0;
+	    }
+	    $self->_back unless $last and $last eq '(';
             $self->_new_line;
             $self->_add_token( $token );
             $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
