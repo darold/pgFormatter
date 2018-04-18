@@ -952,7 +952,11 @@ sub beautify {
 
         elsif ( $token =~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
             $self->{ 'no_break' } = 0;
-	    unless ($self->{ '_is_in_join' } or ($last and $last eq ')') ) {
+	    if (!$self->{ '_is_in_join' } and ($last and $last ne ')') ) {
+		$self->_back;
+	    }
+	    if ($self->{ '_has_over_in_join' }) {
+		$self->{ '_has_over_in_join' } = 0;
 		$self->_back;
 	    }
 
