@@ -85,9 +85,9 @@ $f$;
             FROM (
                 SELECT
                     pk_col_ary AS i) AS f,
-                generate_series(array_lower(pk_col_ary, 1), array_upper(pk_col_ary, 1)) AS a LOOP
-                    func := func || $f$ rec.$f$ || colrec.pknm || $f$, $f$;
-                END LOOP;
+            generate_series(array_lower(pk_col_ary, 1), array_upper(pk_col_ary, 1)) AS a LOOP
+                func := func || $f$ rec.$f$ || colrec.pknm || $f$, $f$;
+            END LOOP;
             func := func || E'sqlerrm;\n';
             func := func || indent || E'END;\n';
         END LOOP;

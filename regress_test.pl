@@ -3,7 +3,9 @@ chomp(@files);
 
 foreach my $f (@files) {
 	print "Running test on file $f...\n";
-	my $cmd = "./pg_format -u 2 $f >/tmp/output.sql";
+	my $opt = '';
+	$opt = "-S '\$f\$'" if ($f =~ m#/ex19.sql$#);
+	my $cmd = "./pg_format $opt -u 2 $f >/tmp/output.sql";
 	`$cmd`;
 	$f =~ s/\//\/expected\//;
 	if (lc($ARGV[0]) eq 'update') {
