@@ -411,6 +411,7 @@ sub beautify {
     # Main variables used to store differents state
     $self->content( '' );
     $self->{ '_level_stack' } = [];
+    $self->{ '_level_parenthesis' } = [];
     $self->{ '_new_line' }    = 1;
     $self->{ '_current_sql_stmt' } = '';
     $self->{ '_is_meta_command' } = 0;
@@ -439,6 +440,17 @@ sub beautify {
     while ( defined( my $token = $self->_token ) ) {
         my $rule = $self->_get_rule( $token );
 
+	# Set open parenthesis position to know if we are in subqueries
+	if ( $token eq ')' ) {
+	    $self->{ '_parenthesis_level' }--;
+        }
+	elsif ( $token eq '(' ) {
+	    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
+		    push(@{ $self->{ '_level_parenthesis' } } , $self->{ '_level' });
+	    }
+	    $self->{ '_parenthesis_level' }++;
+	}
+
 	####
 	# Control case where we have to add a newline, go back and
 	# reset indentation after the last ) in the WITH statement
@@ -450,7 +462,6 @@ sub beautify {
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
         }
 	elsif ( $token eq ')' ) {
-	    $self->{ '_parenthesis_level' }--;
 	    $self->{ '_has_order_by' } = 0;
             $self->{ '_has_from' } = 0;
             if ($self->{ '_is_in_with' } == 2 && !$self->{ '_parenthesis_level' }) {
@@ -621,7 +632,6 @@ sub beautify {
         }
 
         elsif ( $token eq '(' ) {
-            $self->{ '_parenthesis_level' }++;
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->_add_token( $token, $last );
             if ( !$self->{ '_is_in_index' }) {
@@ -706,6 +716,7 @@ sub beautify {
         }
 
         elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) { # statement separator or executing psql meta command (prefix 'g' includes all its variants)
+	    # Initialize most of statement related variables
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
@@ -719,6 +730,7 @@ sub beautify {
             $self->{ '_is_in_with' } = 0;
 	    $self->{ '_has_order_by' } = 0;
             $self->{ '_has_over_in_join' } = 0;
+            $self->{ '_parenthesis_level' } = 0;
             $self->_add_token($token);
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -1069,6 +1081,11 @@ sub beautify {
                  $self->_over;
              }
              else {
+		if ($last && $last eq ')' && $self->_next_token ne ';') {
+		    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
+			    $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis' } }) || 1;
+		    }
+	        }
                  $self->_add_token( $token, $last );
             }
         }
