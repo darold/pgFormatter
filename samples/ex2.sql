@@ -14,3 +14,4 @@ WHERE p.proname ~ '^(version)$'
   AND pg_catalog.pg_function_is_visible(p.oid)
 ORDER BY 1, 2, 4;
 
+SELECT CASE WHEN (FALSE) THEN 0 WHEN (TRUE) THEN 2 END AS dummy1 FROM my_table;

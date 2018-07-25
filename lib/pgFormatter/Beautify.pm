@@ -653,9 +653,6 @@ sub beautify {
             if ($self->{ '_is_in_index' }) {
                 $self->_add_token( '' );
                 $self->_add_token( $token );
-                if ($self->_is_keyword($self->_next_token)) {
-		   #$self->_add_token( ' ', $last ) if ($last eq '(');
-                }
                 $last = $token;
                 next;
             }
@@ -684,7 +681,7 @@ sub beautify {
             if ($self->{ '_is_in_create' } <= 1) {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line
-                    if ($self->_next_token
+                    if (defined $self->_next_token
                     and $self->_next_token !~ /^AS|THEN|INTO|BETWEEN$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
@@ -821,7 +818,7 @@ sub beautify {
                     $self->_over;
             }
             elsif ( $token !~ /^SET$/i || $self->{ '_current_sql_stmt' } eq 'UPDATE' ) {
-                if ($self->_next_token and $self->_next_token ne '(' && $self->_next_token !~ /^(UPDATE|KEY|NO)$/) {
+                if (defined $self->_next_token and $self->_next_token ne '(' && $self->_next_token !~ /^(UPDATE|KEY|NO)$/) {
                     $self->_new_line;
                     $self->_over;
                 }
@@ -883,10 +880,9 @@ sub beautify {
         }
 
         elsif ( $token =~ /^(?:WHEN)$/i ) {
-            $self->_back if (!$self->{ '_first_when_in_case' } and $last and uc($last) ne 'CASE');
-            $self->_new_line if (!$last or uc($last) ne 'CASE');
+            $self->_back if (!$self->{ '_first_when_in_case' } and defined $last and uc($last) ne 'CASE');
+            $self->_new_line if (not defined $last or uc($last) ne 'CASE');
             $self->_add_token( $token );
-	    #$self->_over if ($self->{ '_first_when_in_case' } or !$last or uc($last) eq 'CASE');
             $self->_over;
             $self->{ '_first_when_in_case' } = 0;
         }
@@ -954,10 +950,10 @@ sub beautify {
 		$self->_back;
 		$self->{ '_is_in_join' } = 0;
 	    }
-	    $self->_back unless $last and $last eq '(';
+	    $self->_back unless defined $last and $last eq '(';
             $self->_new_line;
             $self->_add_token( $token );
-            $self->_new_line if ( $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
+            $self->_new_line if ( defined $self->_next_token and $self->_next_token ne '(' and $self->_next_token !~ /^ALL$/i );
             $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
 	    $self->{ '_is_in_from' } = 0;
         }
@@ -985,7 +981,7 @@ sub beautify {
 
         elsif ( $token =~ /^(?:JOIN)$/i ) {
             $self->{ 'no_break' } = 0;
-            if ( !$last or $last !~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
+            if ( not defined $last or $last !~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) {
                 $self->_new_line;
 		$self->_back if ($self->{ '_has_over_in_join' });
 		$self->{ '_has_over_in_join' } = 0;
@@ -1081,7 +1077,7 @@ sub beautify {
                  $self->_over;
              }
              else {
-		if ($last && $last eq ')' && $self->_next_token ne ';') {
+		if (defined $last && $last eq ')' && $self->_next_token ne ';') {
 		    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
 			    $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis' } }) || 1;
 		    }

@@ -23,3 +23,12 @@ ORDER BY
     2,
     4;
 
+SELECT
+    CASE WHEN (FALSE) THEN
+        0
+    WHEN (TRUE) THEN
+        2
+    END AS dummy1
+FROM
+    my_table;
+
