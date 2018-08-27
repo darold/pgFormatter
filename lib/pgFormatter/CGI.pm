@@ -91,7 +91,7 @@ configuration for pgFormatter::Beautify module.
 sub set_config {
     my $self = shift;
 
-    $self->{ 'program_name' } = basename( $0 );
+    $self->{ 'program_name' } = 'pgFormatter';
     $self->{ 'program_name' } =~ s/\.[^\.]+$//;
 
     $self->{ 'maxlength' }    = 100000;
@@ -424,11 +424,24 @@ sub print_headers {
 <meta HTTP-EQUIV="Generator" CONTENT="$self->{ 'program_name'} v$VERSION">
 <meta HTTP-EQUIV="Date" CONTENT="$date">
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="shortcut icon" href="icon_pgformatter.ico" />
 <meta name="description" content="Free online sql formatting tool, beautify sql code instantly for PostgreSQL, SQL-92, SQL-99, SQL-2003, SQL-2008 and SQL-2011" />
 <meta name="keywords" content="sql formatter,sql beautifier,format sql,formatting sql" />
 $track_content
 <style type="text/css">
 $style_content
+.logopart {
+font-size:32px;
+font-weight:bold;
+font-color:#ff7400;
+font-family: Lucida Sans, Arial, Helvetica, sans-serif;
+overflow: hidden;
+padding-left: 100px;
+}
+.logo {
+float: left;
+margin-left: -100px;
+}
 </style>
 <script type="text/javascript">
 <!--
@@ -447,14 +460,16 @@ if (objtextarea.value.length > maxlength) {
 </head>
 <body>
 <div id="content">
-
-<a href="$self->{ 'service_url' }"><h1 id="top">$self->{ 'program_name' }</h1></a>
-<p>
-Free Online version of $self->{ 'program_name' } a PostgreSQL SQL syntax beautifier (no line limit here up to $self->{ 'maxlength' } characters).
-</p>
-<p>
-This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords. May works with any other databases too.
-</p>
+<table>
+<tr><td width="330">
+<div class="logopart">
+<a href="$self->{ 'service_url' }"><img class="logo" src="logo_pgformatter.png"/></a><p>pgFormatter</p>
+</div>
+</td><td width="1000">
+Free Online version of $self->{ 'program_name' } a PostgreSQL SQL syntax beautifier (no line limit here up to $self->{ 'maxlength' } characters).  This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords.  May works with any other databases too.
+</td>
+</tr>
+</table>
 _END_OF_HTML_HEADER_
     return;
 }
@@ -524,7 +539,7 @@ box-shadow:3px 3px 6px 2px #A9A9A9;
 -webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
 textarea#sqlcontent {
-width: 800px;
+width: 1000px;
 height: 400px;
 border: 3px solid #cccccc;
 padding: 5px;

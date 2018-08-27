@@ -61,7 +61,8 @@ Examples:
 
 Install pg_format into your cgi-bin folder, grant execution on it as a CGI
 script (maybe you should add the .cgi extension) and get it from your favorite
-browser.
+browser. Copy files logo_pgformatter.png and icon_pgformatter.ico in the CGI
+directory, pg_format.cgi look for them in the same repository.
 
 You have a live example without limitation than ten thousand characters in
 your SQL query here:
