@@ -455,7 +455,7 @@ sub beautify {
 	# Control case where we have to add a newline, go back and
 	# reset indentation after the last ) in the WITH statement
 	####
-	if ($token =~ /^WITH$/i) {
+	if ($token =~ /^WITH$/i && (!defined $last || $last ne ')')) {
             $self->{ '_is_in_with' } = 1;
         }
         elsif ($token =~ /^(AS|IS)$/i) {
@@ -641,6 +641,11 @@ sub beautify {
                 if ($last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
                     $self->{ '_is_in_function' }++;
                 }
+		if ($self->{ '_is_in_with' } == 1) {
+                    $self->_over;
+                    $self->_new_line;
+                    next;
+		}
                 $self->_over;
                 if ($self->{ '_is_in_type' } == 1) {
                     $last = $token;
@@ -650,6 +655,12 @@ sub beautify {
         }
 
         elsif ( $token eq ')' ) {
+	    if ($self->{ '_is_in_with' } == 1) {
+                $self->_back;
+                $self->_new_line;
+                $self->_add_token( $token );
+                next;
+	    }
             if ($self->{ '_is_in_index' }) {
                 $self->_add_token( '' );
                 $self->_add_token( $token );

@@ -1,7 +1,8 @@
-WITH RECURSIVE employee_recursive (distance,
+WITH RECURSIVE employee_recursive (
+    distance,
     employee_name,
-    manager_name)
-AS (
+    manager_name
+) AS (
     SELECT
         1,
         employee_name,
@@ -26,8 +27,9 @@ SELECT
 FROM
     employee_recursive;
 
-WITH RECURSIVE t (nombre)
-AS (
+WITH RECURSIVE t (
+    nombre
+) AS (
     VALUES (2)
     UNION ALL
     SELECT

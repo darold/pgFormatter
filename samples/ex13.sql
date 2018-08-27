@@ -1,4 +1,4 @@
-WITH RECURSIVE employee_recursive(distance, employee_name, manager_name) AS (
+WITH RECURSIVE employee_recursive (distance, employee_name, manager_name) AS (
     SELECT 1, employee_name, manager_name
     FROM employee
     WHERE manager_name = 'Mary'
