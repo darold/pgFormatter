@@ -320,11 +320,12 @@ sub print_body {
         <div class="smaller">(set it to 0 to obtain a single line statement)</div>
       </div>
     </fieldset>
-    <p align="center"><input type="button" value="Reset all" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/>
+    <p align="center">
+    <input type="button" value="Clear code" onclick="document.forms[0].submit();"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/>
     <input type="hidden" name="show_example" value="0" />
     <br />
     <br />
-    <input type="button" value="Load an example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();"/></p>
+    <input type="button" value="&nbsp;&nbsp;Reset all&nbsp;&nbsp;" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Load an example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();"/></p>
     <input type="hidden" name="load_from_file" value="0" />
     <p align="center">
     <span style="position: relative">
@@ -448,6 +449,9 @@ margin-left: -100px;
 var done = 0;
 function set_bg_color(id, color) {
 document.getElementById(id).style.background=color;
+}
+function clear_content(id, msg) {
+document.getElementById(id).value=msg;
 }
 function maxlength_textarea(objtextarea,maxlength) {
 if (objtextarea.value.length > maxlength) {
