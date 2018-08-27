@@ -117,6 +117,39 @@ will format the next two line.
 
 Thanks to David Fetter for the hint.
 
+=head2 Formatting from Atom
+
+If you use atom as your favorite editor you can install the pg-formatter
+package which is a Node.js wrapper of pgFormatter.
+
+Features:
+
+  * Format selected text or a whole file via keyboard shortcut or command.
+  * Format SQL files on save.
+
+Installation:
+
+Search for pg-formatter in Atom UI or get it via command line:
+
+    apm install pg-formatter
+
+Usage:
+
+Hit Ctrl-Alt-F to format selected text (or a whole file) or define
+your shortcut:
+
+    'ctrl-alt-p': 'pg-formatter:format'
+
+Also, you can automatically format SQL files on save (disabled by default).
+
+You can download the package from url:
+
+	https://atom.io/packages/pg-formatter
+
+the sources are available at https://github.com/gajus/pg-formatter
+
+Thanks to Alex Fedoseev for the atom package.
+
 =head2 Prevent replacing code snippets
 
 Using -p or --placeholder command line option it is possible to keep code
