@@ -458,7 +458,7 @@ sub beautify {
 	if ($token =~ /^WITH$/i && (!defined $last || $last ne ')')) {
             $self->{ '_is_in_with' } = 1;
         }
-        elsif ($token =~ /^(AS|IS)$/i) {
+        elsif ($token =~ /^(AS|IS)$/i && defined $self->_next_token && $self->_next_token eq '(') {
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
         }
 	elsif ( $token eq ')' ) {
@@ -1088,7 +1088,7 @@ sub beautify {
                  $self->_over;
              }
              else {
-		if (defined $last && $last eq ')' && $self->_next_token ne ';') {
+		if (defined $last && $last eq ')' && (!defined $self->_next_token || $self->_next_token ne ';')) {
 		    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
 			    $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis' } }) || 1;
 		    }
