@@ -38,8 +38,8 @@ CREATE FUNCTION ADD (integer, integer)
     RETURNS integer
     LANGUAGE sql IMMUTABLE STRICT
 AS $_$
-SELECT
-    $1 + $2;
+    SELECT
+        $1 + $2;
 $_$;
 
 ALTER FUNCTION public.add (integer, integer) OWNER TO gilles;
@@ -75,9 +75,9 @@ CREATE FUNCTION dup (integer, OUT f1 integer, OUT f2 text)
     RETURNS record
     LANGUAGE sql
 AS $_$
-SELECT
-    $1,
-    CAST($1 AS text) || ' is text'
+    SELECT
+        $1,
+        CAST($1 AS text) || ' is text'
 $_$;
 
 ALTER FUNCTION public.dup (integer, OUT f1 integer, OUT f2 text) OWNER TO gilles;

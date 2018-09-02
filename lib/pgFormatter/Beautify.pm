@@ -483,7 +483,7 @@ sub beautify {
 	    my $k_stmt = uc($1);
 	    # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')')) {
-                $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/);
+                $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i);
 	    }
         }
 
@@ -544,7 +544,7 @@ sub beautify {
 	####
         # Toogle _fct_code_delimiter to force next token to be stored as the function code delimiter
         if (uc($token) eq 'AS' and !$self->{ '_fct_code_delimiter' }
-		and $self->{ '_current_sql_stmt' } =~ /^(FUNCTION|PROCEDURE)$/) {
+		and $self->{ '_current_sql_stmt' } =~ /^(FUNCTION|PROCEDURE)$/i) {
 
             if ($self->{ '_is_in_create' }) {
                 $self->_new_line;
@@ -563,6 +563,8 @@ sub beautify {
             $self->{ '_fct_code_delimiter' } = $token;
             $self->_add_token( $token );
             $last = $token;
+            $self->_new_line;
+            $self->_over if (defined $self->_next_token && $self->_next_token !~ /^(DECLARE|BEGIN)$/i);
             next;
         }
         # Desactivate the block mode when code delimiter is found for the second time
@@ -638,8 +640,12 @@ sub beautify {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
-                if ($last && grep(/^\Q$last\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
-                    $self->{ '_is_in_function' }++;
+                if (defined $last && $last) {
+		    my $word = $last;
+		    $word =~ s/^[^\.]+\.//;
+		    if ($word && grep(/^\Q$word\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
+		        $self->{ '_is_in_function' }++;
+		    }
                 }
 		if ($self->{ '_is_in_with' } == 1) {
                     $self->_over;
@@ -761,12 +767,12 @@ sub beautify {
             }
         }
         elsif ($token =~ /^FOR$/i) {
-            if ($self->_next_token =~ /^(UPDATE|KEY|NO)$/) {
+            if ($self->_next_token =~ /^(UPDATE|KEY|NO)$/i) {
                 $self->_back;
                 $self->_new_line;
             }
             $self->_add_token( $token );
-            if ($self->_next_token =~ /^SELECT$/) {
+            if ($self->_next_token =~ /^SELECT$/i) {
                 $self->_new_line;
                 $self->_over;
             }
@@ -829,7 +835,7 @@ sub beautify {
                     $self->_over;
             }
             elsif ( $token !~ /^SET$/i || $self->{ '_current_sql_stmt' } eq 'UPDATE' ) {
-                if (defined $self->_next_token and $self->_next_token ne '(' && $self->_next_token !~ /^(UPDATE|KEY|NO)$/) {
+                if (defined $self->_next_token and $self->_next_token ne '(' and ($self->_next_token !~ /^(UPDATE|KEY|NO)$/i || uc($token) eq 'WHERE')) {
                     $self->_new_line;
                     $self->_over;
                 }
