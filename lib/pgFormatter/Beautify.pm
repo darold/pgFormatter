@@ -746,9 +746,10 @@ sub beautify {
                                && !$self->{ '_is_in_where' }
                                && !$self->{ '_is_in_index' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
-                               && $self->_next_token !~ /^('$|\($|\-\-)/i
+                               && $self->_next_token !~ /^('$|\-\-)/i
 			       && !$self->{ '_parenthesis_function_level' }
                     );
+
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
                     $add_newline = 1;
             }
