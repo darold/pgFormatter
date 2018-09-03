@@ -431,6 +431,7 @@ sub beautify {
     $self->{ '_is_in_index' } = 0;
     $self->{ '_is_in_with' }  = 0;
     $self->{ '_parenthesis_level' } = 0;
+    $self->{ '_parenthesis_function_level' } = 0;
     $self->{ '_has_order_by' }  = 0;
     $self->{ '_has_over_in_join' } = 0;
 
@@ -440,16 +441,41 @@ sub beautify {
     while ( defined( my $token = $self->_token ) ) {
         my $rule = $self->_get_rule( $token );
 
-	# Set open parenthesis position to know if we are in subqueries
-	if ( $token eq ')' ) {
-	    $self->{ '_parenthesis_level' }--;
-        }
-	elsif ( $token eq '(' ) {
-	    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
-		    push(@{ $self->{ '_level_parenthesis' } } , $self->{ '_level' });
+	####
+	# Find if the current keyword is a known function name
+	####
+        if (defined $last && $last && defined $self->_next_token and $self->_next_token eq '(') {
+	    my $word = $token;
+	    $word =~ s/^[^\.]+\.//;
+	    if ($word && grep(/^\Q$word\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
+	        $self->{ '_is_in_function' }++;
 	    }
-	    $self->{ '_parenthesis_level' }++;
-	}
+        }
+
+	####
+        # Set open parenthesis position to know if we
+	# are in subqueries or function parameters
+	####
+        if ( $token eq ')')
+        {
+            if (!$self->{ '_is_in_function' }) {
+                $self->{ '_parenthesis_level' }--;
+            } else {
+                $self->{ '_parenthesis_function_level' }--;
+            }
+            $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
+        }
+        elsif ( $token eq '(')
+        {
+            if ($self->{ '_is_in_function' }) {
+                $self->{ '_parenthesis_function_level' }++;
+            } else {
+                if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
+                    push(@{ $self->{ '_level_parenthesis' } } , $self->{ '_level' });
+                }
+                $self->{ '_parenthesis_level' }++;
+            }
+        }
 
 	####
 	# Control case where we have to add a newline, go back and
@@ -471,11 +497,13 @@ sub beautify {
                 @{ $self->{ '_level_stack' } } = ();
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
-		if (defined $self->_next_token && $self->_next_token eq ',') {
+		if ($self->{ '_is_in_with' }) {
+		    if (defined $self->_next_token && $self->_next_token eq ',') {
 			$self->{ '_is_in_with' } = 1;
-		} else {
+		    } else {
 			$self->{ '_is_in_with' } = 0;
-		}
+		    }
+	        }
 		next;
             }
 	}
@@ -644,13 +672,6 @@ sub beautify {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
-                if (defined $last && $last) {
-		    my $word = $last;
-		    $word =~ s/^[^\.]+\.//;
-		    if ($word && grep(/^\Q$word\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
-		        $self->{ '_is_in_function' }++;
-		    }
-                }
 		if ($self->{ '_is_in_with' } == 1) {
                     $self->_over;
                     $self->_new_line;
@@ -686,7 +707,6 @@ sub beautify {
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
             $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
             $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT' and !$self->{ '_is_in_function' } and (defined $self->_next_token and $self->_next_token =~ /^(SELECT|WITH)$/i) and $last ne ')');
-            $self->{ '_is_in_function' }-- if ($self->{ '_is_in_function' });
             $self->_back;
             $self->_add_token( $token );
             # Do not go further if this is the last token
@@ -727,10 +747,11 @@ sub beautify {
                                && !$self->{ '_is_in_index' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\($|\-\-)/i
+			       && !$self->{ '_parenthesis_function_level' }
                     );
-            if ($self->{ '_is_in_with' } == 1 && !$self->{ '_parenthesis_level' }) {
-		    $add_newline = 1;
-	    }
+            if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
+                    $add_newline = 1;
+            }
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'end');
@@ -752,6 +773,7 @@ sub beautify {
 	    $self->{ '_has_order_by' } = 0;
             $self->{ '_has_over_in_join' } = 0;
             $self->{ '_parenthesis_level' } = 0;
+	    $self->{ '_parenthesis_function_level' } = 0;
             $self->_add_token($token);
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
@@ -1060,6 +1082,7 @@ sub beautify {
             } else {
                 # USING from join clause disable line break
                 $self->{ 'no_break' } = 1;
+		$self->{ '_is_in_function' }++;
             }
             $self->_add_token($token);
         }
