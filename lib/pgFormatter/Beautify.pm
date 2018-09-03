@@ -464,14 +464,18 @@ sub beautify {
 	elsif ( $token eq ')' ) {
 	    $self->{ '_has_order_by' } = 0;
             $self->{ '_has_from' } = 0;
-            if ($self->{ '_is_in_with' } == 2 && !$self->{ '_parenthesis_level' }) {
+            if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' }) {
 		$self->_new_line;
                 $self->_back;
                 $self->_add_token( $token );
                 @{ $self->{ '_level_stack' } } = ();
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
-		$self->{ '_is_in_with' } = 0;
+		if (defined $self->_next_token && $self->_next_token eq ',') {
+			$self->{ '_is_in_with' } = 1;
+		} else {
+			$self->{ '_is_in_with' } = 0;
+		}
 		next;
             }
 	}
@@ -724,6 +728,9 @@ sub beautify {
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\($|\-\-)/i
                     );
+            if ($self->{ '_is_in_with' } == 1 && !$self->{ '_parenthesis_level' }) {
+		    $add_newline = 1;
+	    }
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'end');
