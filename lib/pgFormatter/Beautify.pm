@@ -210,13 +210,13 @@ sub content {
 
     $self->{ 'content' } = $new_value if defined $new_value;
 
-    # Hide comment beside a placeholder for easy parsing
+    # Hide comment beside a placeholder for easy parsing: OBSOLETE
     #$self->_remove_comments( \$self->{ 'content' } );
 
     # Replace placeholders with their original dynamic code
     $self->_restore_dynamic_code( \$self->{ 'content' } );
 
-    # Restore comments inplace
+    # Restore comments inplace: OBSOLETE
     #$self->_restore_comments(\$self->{ 'content' });
 
     # Replace placeholders by their original values
@@ -1170,8 +1170,9 @@ sub _add_token {
 
     my $last_is_dot = defined( $last_token ) && $last_token eq '.';
 
-    if ( !$self->_is_punctuation( $token ) and !$last_is_dot ) {
-        my $sp = $self->_indent;
+    my $sp = $self->_indent;
+
+    if ( !$self->_is_punctuation( $token ) and !$last_is_dot and !$self->_is_comment( $token ) ) {
         if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && ($token !~ /^::/) ) {
             $self->{ 'content' } .= $sp if ($token ne ')'
                                             && defined($last_token)
@@ -1185,6 +1186,12 @@ sub _add_token {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
         }
         $token =~ s/\n/\n$sp/gs;
+    } elsif ( $self->_is_comment( $token ) ) {
+        $token =~ s/^--/$sp--/;
+        $token =~ s/^\/\*/$sp\/\*/;
+	if ($token =~ /[\n\r]\s*\*\/$/s) {
+		$token =~ s/\*\/$/$sp\*\//s;
+	}
     }
 
     # lowercase/uppercase keywords
@@ -2100,7 +2107,7 @@ sub _restore_dynamic_code
 
 }
 
-=head2 _remove_comments
+=head2 _remove_comments (OBSOLETE)
 
 Internal function used to remove comments in SQL code
 to simplify the work of the parser. Comments are restored
@@ -2166,7 +2173,7 @@ sub _remove_comments
     }
 }
 
-=head2 _restore_comments
+=head2 _restore_comments (OBSOLETE)
 
 Internal function used to restore comments in SQL code
 that was removed by the _remove_comments() method.
