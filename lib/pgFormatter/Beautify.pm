@@ -1185,10 +1185,22 @@ sub _add_token {
 	} elsif (defined $last_token) {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
         }
-        $token =~ s/\n/\n$sp/gs;
+	if ($self->_is_comment($token)) {
+		my @lines = split(/\n/, $token);
+		for (my $i = 1; $i <= $#lines; $i++) {
+			if ($lines[$i] =~ /^\s*\*/) {
+				$lines[$i] =~ s/^\s*\*/$sp */;
+			} elsif ($lines[$i] =~ /^\s+[^\*]/) {
+				$lines[$i] =~ s/^\s+/$sp /;
+			}
+		}
+		$token = join("\n", @lines);
+	} else {
+		$token =~ s/\n/\n$sp/gs;
+	}
     }
 
-    # lowercase/uppercase keywords
+    #lowercase/uppercase keywords
     if ( $self->{ 'uc_keywords' } && $self->_is_keyword( $token ) ) {
         $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
         $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );

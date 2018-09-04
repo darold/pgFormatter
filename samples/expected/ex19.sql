@@ -33,10 +33,10 @@ BEGIN
         pk_col_ary = array_append(pk_col_ary, quote_ident(pkc.attname));
     END LOOP;
     /*
-    * This is the function header.  It's basically a constant string, with the
-    * table name replaced a couple of times and the primary key columns replaced
-    * once.  Make sure we don't fail if there's no primary key.
-    */
+     * This is the function header.  It's basically a constant string, with the
+     * table name replaced a couple of times and the primary key columns replaced
+     * once.  Make sure we don't fail if there's no primary key.
+     */
     IF pkcols <> '' THEN
         pkcols = ', ' || pkcols;
         pkformat = ', PK=( ' || pkformat || ' )';

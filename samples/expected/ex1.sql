@@ -29,10 +29,10 @@ SELECT
     max(price.col5) AS col5,
     max(price.col6) AS col6,
     /*******************    
-    * This is a block  *        
-    * comment within a *     
-    * SQL statement    *   
-    *******************/
+     * This is a block  *        
+     * comment within a *     
+     * SQL statement    *   
+     *******************/
     max(price.col7) AS col7
 FROM (
     SELECT
@@ -94,10 +94,10 @@ FROM (
                         concat(alllibrarysales.column7)) AS column5
                 FROM
                     /*******************     
-                    * This is a block  *    
-                    * comment within a *       
-                    * SQL statement    *  
-                    *******************/
+                     * This is a block  *    
+                     * comment within a *       
+                     * SQL statement    *  
+                     *******************/
                     (
                         SELECT
                             libraryprod.column1,
@@ -105,10 +105,10 @@ FROM (
                             libraryprod.column3,
                             libraryprod.column4,
                             /*******************   
-                            * This is a block  *      
-                            * comment within a *     
-                            * SQL statement    *     
-                            *******************/
+                             * This is a block  *      
+                             * comment within a *     
+                             * SQL statement    *     
+                             *******************/
                             libraryprod.column5,
                             libraryprod.column6,
                             libraryprod.column7
@@ -140,10 +140,10 @@ FROM (
             OR (librarystat.column4 = library.column4
                 AND librarystat.column5 = library.column5)
             /*******************        
-            * This is a block  *       
-            * comment within a *        
-            * SQL statement    *     
-            *******************/
+             * This is a block  *       
+             * comment within a *        
+             * SQL statement    *     
+             *******************/
             AND (librarystat.column5 = 'I'
                 OR librarystat.column4 = 'Gold'
                 OR librarystat.column5 = 'Bold')
@@ -152,19 +152,19 @@ WHERE
     price.column1 < 'R45'
     OR (price.column2 = 'R46'
         /*******************   
-        * This is a block  *  
-        * comment within a *   
-        * SQL statement    *        
-        *******************/
+         * This is a block  *  
+         * comment within a *   
+         * SQL statement    *        
+         *******************/
         AND price.column3 = 6)
 GROUP BY
     price.column1,
     price.column2,
     /*******************   
-    * This is a block  *  
-    * comment within a *   
-    * SQL statement    *        
-    *******************/
+     * This is a block  *  
+     * comment within a *   
+     * SQL statement    *        
+     *******************/
     price.column3,
     price.column4,
     price.column5,
