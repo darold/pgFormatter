@@ -24,3 +24,17 @@ SELECT
 SELECT
     substring(firstname FROM 1 FOR 10) AS sname;
 
+SELECT
+    *
+FROM (
+    SELECT
+        1 i) a
+    INNER JOIN (
+        SELECT
+            1 i) b ON (a.i = b.i)
+    INNER JOIN (
+        SELECT
+            1 i) ON (c.i = a.i)
+WHERE
+    a.i = 1;
+

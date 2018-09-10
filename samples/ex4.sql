@@ -6,3 +6,4 @@ SELECT extract( year from school_day ) AS year;
 
 SELECT substring( firstname from 1 for 10 ) AS sname;
 
+select * from (select 1 i) a INNER JOIN (select 1 i) b ON (a.i=b.i) inner join (select 1 i) ON (c.i=a.i) where a.i=1 ;
