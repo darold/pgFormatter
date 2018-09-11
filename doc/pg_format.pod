@@ -1,6 +1,6 @@
-=head1 ABSTRACT
+=head1 NAME
 
-pgFormatter - PostgreSQL SQL syntax beautifier
+pg_format - PostgreSQL SQL syntax beautifier
 
 =head1 DESCRIPTION
 
