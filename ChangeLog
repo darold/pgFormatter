@@ -1,3 +1,72 @@
+September 12 2018 - v3.1
+
+This minor release fixes several issues reported by users since six
+months.  This release also adds some improvements in code formatting.
+
+  * Function code in other language tha SQL or PLPGSQL is now kept
+    untouched.
+  * Make formatting output of function/procedure more compliant with
+    the pg_dump PostgreSQL format.
+  * Add information about atom package integration of pgFormatter.
+  * Add a "Clear code" button to reset text area and preserve
+    options changes.
+  * Add a logo to the project and change title and style of the CGI
+    part.
+  * Add application/sql content-type support in CGI mode.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Add preprocessing to autodetect function language before entering
+    the tokenizer. If the language is not SQL or PLPGSQL the code is
+    kept untouched. Thanks to Philip Trauner for the report.
+  - Fix whatis entry of POD manpage. Thanks to Christoph Berg
+    for the patch.
+  - Add more regression tests.
+  - Remove newline between sub query and ON keyworks in JOIN clause.
+    Thanks to Christophe Courtois for the report.
+  - Fix indentation of multiline comments. Thanks to Philip Trauner
+    for the report.
+  - Fix missing newline after comma in some select statement,
+    especially from the online example.
+  - Fix formatting of query with multiple CTE. Thanks to Christophe
+    Courtois for the report.
+  - Fix plv8 syntax. Thanks to Aaron Reisman for the report.
+  - Fix undefined value crash when formatting query not terminated
+    by a semi colon. Thanks to David Luzar for the report.
+  - Add newline and indentation after WITH [RECURSIVE] ... (
+  - Fix bad indentation on case statements with 0 value. Thanks to
+    John Dimm for the report.
+  - Add regression test for sub queries followed by a join.
+  - Set the code separator for ex19.sql regression test.
+  - Fix indentation in join when previous instruction is a sub
+    select. Thanks to Christophe Courtois for the report.
+  - Fix indentdation of INNER JOINS when a previous JOIN use AND/OR
+    operator. Thanks to David Vogt for the report.
+  - Fix indentation problem with sub-select and UNION. Thanks to
+    Christophe Courtois for the report.
+  - Fix handling of newline after comma in CGI mode for insert
+    queries.
+  - Cleanup some code with comment addition.
+  - Prevent newline before BETWEEN operator.
+  - Fix JOIN formatting with AND/OR operator.
+  - Fix utf8 uncaught exception on CLI mode.
+  - Remove requirement to Perl v5.14 minimum.
+  - Avoid backward indentation in multiple JOIN clauses.
+  - Set default CGI maxlength to 100KB
+  - Fix unwanted indentation of WHEN in CASE statement.
+  - Remove use of UTF8 Perl pragma in CGI mode, it is not
+    recommended and it breaks CGI when not utf8 encoding.
+    Thanks to Christophe Courtois for the report.
+  - Fix PREPARE and INSERT|DELETE formatting. Thanks to Tom
+    Halson for the report.
+  - Fix formatting of WITH inside CREATE TABLE statement that was
+    wrongly formatting TIMESTAMP WITH TIME ZONE. Thanks to James
+    Bourne for the report.
+  - Fix uninitialized maxlength. Thanks to Steve Wainstead for
+    the report.
+  - Reactivate -m | --maxlength in CLI mode that was removed in
+    version 2.0. Thanks to Steve Wainstead for the report.
+
 Febuary 28 2018 - v3.0
 
 This major release fixes some issues reported by users during the
