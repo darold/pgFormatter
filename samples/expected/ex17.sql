@@ -36,8 +36,9 @@ SET search_path = public, pg_catalog;
 --
 CREATE FUNCTION ADD (integer, integer)
     RETURNS integer
-    LANGUAGE sql IMMUTABLE STRICT
-AS $_$
+    LANGUAGE sql
+    IMMUTABLE STRICT
+    AS $_$
     SELECT
         $1 + $2;
 $_$;
@@ -52,7 +53,7 @@ CREATE FUNCTION check_password (uname1 text, pass1 text, uname2 text, pass2 text
     LANGUAGE plpgsql
     SECURITY DEFINER
     SET search_path TO admin, pg_temp
-AS $_$
+    AS $_$
 DECLARE
     passed BOOLEAN;
 BEGIN
@@ -74,11 +75,7 @@ ALTER FUNCTION public.check_password (uname1 text, pass1 text, uname2 text, pass
 CREATE FUNCTION dup (integer, OUT f1 integer, OUT f2 text)
     RETURNS record
     LANGUAGE sql
-AS $_$
-    SELECT
-        $1,
-        CAST($1 AS text) || ' is text'
-$_$;
+    AS $_$ SELECT $1, CAST($1 AS text) || ' is text' $_$;
 
 ALTER FUNCTION public.dup (integer, OUT f1 integer, OUT f2 text) OWNER TO gilles;
 
@@ -88,7 +85,7 @@ ALTER FUNCTION public.dup (integer, OUT f1 integer, OUT f2 text) OWNER TO gilles
 CREATE FUNCTION INCREMENT (i integer)
     RETURNS integer
     LANGUAGE plpgsql
-AS $$
+    AS $$
 BEGIN
     RETURN i + 1;
 END;
@@ -102,7 +99,7 @@ ALTER FUNCTION public.increment (i integer) OWNER TO gilles;
 CREATE FUNCTION peuple_stock (annee_debut integer, annee_fin integer)
     RETURNS bigint
     LANGUAGE plpgsql
-AS $$
+    AS $$
 DECLARE
     v_annee integer;
     v_nombre integer;
@@ -167,7 +164,7 @@ ALTER FUNCTION public.peuple_stock (annee_debut integer, annee_fin integer) OWNE
 CREATE FUNCTION peuple_vin ()
     RETURNS bigint
     LANGUAGE plpgsql
-AS $$
+    AS $$
 DECLARE
     v_recoltant_id integer;
     v_appellation_id integer;
@@ -230,7 +227,7 @@ ALTER FUNCTION public.peuple_vin () OWNER TO userdb;
 CREATE FUNCTION trous_stock ()
     RETURNS bigint
     LANGUAGE plpgsql
-AS $$
+    AS $$
 DECLARE
     stock_total integer;
     echantillon integer;
@@ -304,7 +301,7 @@ ALTER FUNCTION public.trous_stock () OWNER TO userdb;
 CREATE FUNCTION trous_vin ()
     RETURNS bigint
     LANGUAGE plpgsql
-AS $$
+    AS $$
 DECLARE
     vin_total integer;
     echantillon integer;

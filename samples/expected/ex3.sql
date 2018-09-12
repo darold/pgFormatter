@@ -7,7 +7,7 @@ INSERT INTO test
 
 CREATE FUNCTION fonction_reference (refcursor)
     RETURNS refcursor
-AS $$
+    AS $$
 BEGIN
     OPEN $1 FOR
         SELECT

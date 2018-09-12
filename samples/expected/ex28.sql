@@ -2,10 +2,11 @@ BEGIN;
 
 CREATE FUNCTION basename (path text)
     RETURNS text
-AS $$
-    RETURN path.replace(/.* / /, '');
+    AS $$
+  return path.replace(/.*\//, '');
 $$
-LANGUAGE 'plv8' IMMUTABLE;
+LANGUAGE 'plv8'
+IMMUTABLE;
 
 COMMIT;
 

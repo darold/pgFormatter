@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION toastcheck_writer (text)
     RETURNS void
     LANGUAGE plpgsql
-AS $ff$
+    AS $ff$
 DECLARE
     func text;
     funcname text;
