@@ -71,4 +71,5 @@ CREATE TABLE IF NOT EXISTS foo (
         /* this is the end*/
 );
 
+ALTER TABLE app_public.users ENABLE ROW LEVEL SECURITY;
 

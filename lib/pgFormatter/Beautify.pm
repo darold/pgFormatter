@@ -725,7 +725,7 @@ sub beautify {
 
         elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i)
 	{
-            $self->_new_line;
+            $self->_new_line if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
             $self->_add_token( $token );
         }
 
