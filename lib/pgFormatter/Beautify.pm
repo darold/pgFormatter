@@ -463,6 +463,7 @@ sub beautify {
     $self->{ '_is_in_join' } = 0;
     $self->{ '_is_in_create' } = 0;
     $self->{ '_is_in_alter' } = 0;
+    $self->{ '_is_in_publication' } = 0;
     $self->{ '_is_in_type' } = 0;
     $self->{ '_is_in_declare' } = 0;
     $self->{ '_is_in_block' } = -1;
@@ -565,10 +566,12 @@ sub beautify {
         # Mark that we are in CREATE statement that need newline
         # after a comma in the parameter, declare or column lists.
         ####
-        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE)$/i) {
+        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION)$/i) {
             $self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
             $self->{ '_is_in_type' } = 1;
+        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^PUBLICATION$/i) {
+            $self->{ '_is_in_publication' } = 1;
         } elsif ($token =~ /^ALTER$/i){
             $self->{ '_is_in_alter' } = 1;
         }
@@ -820,6 +823,7 @@ sub beautify {
                                && !$self->{ '_is_in_where' }
                                && !$self->{ '_is_in_index' }
 			       && !$self->{ '_is_in_alter' }
+			       && !$self->{ '_is_in_publication' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\-\-)/i
                    && !$self->{ '_parenthesis_function_level' }
@@ -841,6 +845,7 @@ sub beautify {
             $self->{ '_is_in_join' } = 0;
             $self->{ '_is_in_create' } = 0;
             $self->{ '_is_in_alter' } = 0;
+            $self->{ '_is_in_publication' } = 0;
             $self->{ '_is_in_type' } = 0;
             $self->{ '_is_in_function' } = 0;
             $self->{ '_is_in_index' } = 0;
