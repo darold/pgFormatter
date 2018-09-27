@@ -462,6 +462,7 @@ sub beautify {
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_in_join' } = 0;
     $self->{ '_is_in_create' } = 0;
+    $self->{ '_is_in_alter' } = 0;
     $self->{ '_is_in_type' } = 0;
     $self->{ '_is_in_declare' } = 0;
     $self->{ '_is_in_block' } = -1;
@@ -568,6 +569,8 @@ sub beautify {
             $self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
             $self->{ '_is_in_type' } = 1;
+        } elsif ($token =~ /^ALTER$/i){
+            $self->{ '_is_in_alter' } = 1;
         }
 
         ####
@@ -812,10 +815,11 @@ sub beautify {
                                && !$self->{ '_is_in_function' }
                                && ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT')
                                && ($self->{ '_current_sql_stmt' } ne 'RAISE')
-                               && ($self->{ '_current_sql_stmt' } !~ /^FUNCTION|PROCEDURE$/
+                               && ($self->{ '_current_sql_stmt' } !~ /^(FUNCTION|PROCEDURE)$/
 				       || $self->{ '_fct_code_delimiter' } ne '')
                                && !$self->{ '_is_in_where' }
                                && !$self->{ '_is_in_index' }
+			       && !$self->{ '_is_in_alter' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\-\-)/i
                    && !$self->{ '_parenthesis_function_level' }
@@ -836,6 +840,7 @@ sub beautify {
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_join' } = 0;
             $self->{ '_is_in_create' } = 0;
+            $self->{ '_is_in_alter' } = 0;
             $self->{ '_is_in_type' } = 0;
             $self->{ '_is_in_function' } = 0;
             $self->{ '_is_in_index' } = 0;
