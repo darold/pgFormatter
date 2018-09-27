@@ -532,7 +532,7 @@ sub beautify {
 	{
             $self->{ '_has_order_by' } = 0;
             $self->{ '_has_from' } = 0;
-            if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' }) {
+            if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' } && !$self->{ '_is_in_alter' }) {
                 $self->_new_line;
                 $self->_back;
                 $self->_add_token( $token );
@@ -726,7 +726,7 @@ sub beautify {
             $self->_process_rule( $rule, $token );
         }
 
-        elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i)
+        elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i && !$self->{ '_is_in_alter' })
 	{
             $self->_new_line if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
             $self->_add_token( $token );
@@ -760,7 +760,7 @@ sub beautify {
                 $self->_add_token( $token );
                 next;
             }
-            if ($self->{ '_is_in_index' }) {
+            if ($self->{ '_is_in_index' } || $self->{ '_is_in_alter' }) {
                 $self->_add_token( '' );
                 $self->_add_token( $token );
                 $last = $token;
@@ -896,12 +896,15 @@ sub beautify {
 
             $self->{ 'no_break' } = 0;
 
-            if (uc($last) eq 'DISTINCT' and $token =~ /^FROM$/i)
+            if ($token =~ /^FROM$/i)
 	    {
-                $self->_add_token( $token );
-                $last = $token;
-                next;
-            }
+		    if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_alter' })
+		    {
+			$self->_add_token( $token );
+			$last = $token;
+			next;
+		    }
+	    }
             if (($token =~ /^FROM$/i) && $self->{ '_has_from' } && !$self->{ '_is_in_function' })
 	    {
                 $self->{ '_has_from' } = 0;
