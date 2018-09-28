@@ -521,7 +521,7 @@ sub beautify {
         # Control case where we have to add a newline, go back and
         # reset indentation after the last ) in the WITH statement
         ####
-        if ($token =~ /^WITH$/i && (!defined $last || $last ne ')'))
+        if (!$self->{ '_is_in_publication' } && $token =~ /^WITH$/i && (!defined $last || $last ne ')'))
 	{
             $self->{ '_is_in_with' } = 1;
         }
@@ -739,7 +739,7 @@ sub beautify {
 	{
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->_add_token( $token, $last );
-            if ( !$self->{ '_is_in_index' }) {
+            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
