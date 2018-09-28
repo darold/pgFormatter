@@ -464,6 +464,7 @@ sub beautify {
     $self->{ '_is_in_create' } = 0;
     $self->{ '_is_in_alter' } = 0;
     $self->{ '_is_in_publication' } = 0;
+    $self->{ '_is_in_call' } = 0;
     $self->{ '_is_in_type' } = 0;
     $self->{ '_is_in_declare' } = 0;
     $self->{ '_is_in_block' } = -1;
@@ -575,6 +576,13 @@ sub beautify {
         } elsif ($token =~ /^ALTER$/i){
             $self->{ '_is_in_alter' } = 1;
         }
+
+	####
+	# Mark that we are in a CALL statement to remove any new line
+	####
+	if ($token =~ /^CALL/i) {
+	    $self->{ '_is_in_call' } = 1;
+	}
 
         ####
         # Mark that we are in index/constraint creation statement to
@@ -824,6 +832,7 @@ sub beautify {
                                && !$self->{ '_is_in_index' }
 			       && !$self->{ '_is_in_alter' }
 			       && !$self->{ '_is_in_publication' }
+			       && !$self->{ '_is_in_call' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\-\-)/i
                    && !$self->{ '_parenthesis_function_level' }
@@ -846,6 +855,7 @@ sub beautify {
             $self->{ '_is_in_create' } = 0;
             $self->{ '_is_in_alter' } = 0;
             $self->{ '_is_in_publication' } = 0;
+            $self->{ '_is_in_call' } = 0;
             $self->{ '_is_in_type' } = 0;
             $self->{ '_is_in_function' } = 0;
             $self->{ '_is_in_index' } = 0;
