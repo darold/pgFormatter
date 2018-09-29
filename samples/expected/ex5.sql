@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION inserta_esquema_pago_backup ()
     AS $BODY$
 BEGIN
     INSERT INTO educaciondistancia.esquema_pago_backup (curso, numpago, montopagar, estatus, usuario, fecha)
-    VALUES (NEW.curso, NEW.numpago, NEW.montopagar, NEW.estatus, NEW.usuario, NEW.fecha);
+        VALUES (NEW.curso, NEW.numpago, NEW.montopagar, NEW.estatus, NEW.usuario, NEW.fecha);
     RETURN NEW;
 END;
 $BODY$

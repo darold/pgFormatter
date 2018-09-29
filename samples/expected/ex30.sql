@@ -50,7 +50,11 @@ $_$;
 CREATE FUNCTION dup (integer, OUT f1 integer, OUT f2 text)
     RETURNS record
     LANGUAGE sql
-    AS $_$ SELECT $1, CAST($1 AS text) || ' is text' $_$;
+    AS $_$
+    SELECT
+        $1,
+        CAST($1 AS text) || ' is text'
+$_$;
 
 CREATE TABLE IF NOT EXISTS foo (
         id bigint PRIMARY KEY,

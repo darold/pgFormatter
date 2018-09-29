@@ -75,7 +75,11 @@ ALTER FUNCTION public.check_password (uname1 text, pass1 text, uname2 text, pass
 CREATE FUNCTION dup (integer, OUT f1 integer, OUT f2 text)
     RETURNS record
     LANGUAGE sql
-    AS $_$ SELECT $1, CAST($1 AS text) || ' is text' $_$;
+    AS $_$
+    SELECT
+        $1,
+        CAST($1 AS text) || ' is text'
+$_$;
 
 ALTER FUNCTION public.dup (integer, OUT f1 integer, OUT f2 text) OWNER TO gilles;
 
@@ -141,7 +145,7 @@ BEGIN
                     round(random() * 12) + 6 INTO v_nombre;
                 -- insertion dans la table de stock
                 INSERT INTO stock (vin_id, contenant_id, annee, nombre)
-                VALUES (v_vin_id, v_contenant_id, v_annee, v_nombre);
+                    VALUES (v_vin_id, v_contenant_id, v_annee, v_nombre);
                 IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
                     raise notice 'stock : % sur % tuples generes', compteur, tuples_a_generer;
                 END IF;
@@ -204,7 +208,7 @@ BEGIN
             FOR v_type_vin_id IN 1..types_vins LOOP
                 -- insertion dans la table de vin
                 INSERT INTO vin (recoltant_id, appellation_id, type_vin_id)
-                VALUES (v_recoltant_id, v_appellation_id, v_type_vin_id);
+                    VALUES (v_recoltant_id, v_appellation_id, v_type_vin_id);
                 IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
                     raise notice 'vins : % sur % tuples generes', compteur, tuples_a_generer;
                 END IF;

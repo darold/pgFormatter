@@ -1,7 +1,6 @@
 PREPARE demo AS
 INSERT INTO demo
-    VALUES (1, 2, 3, 4);
-
+        VALUES (1, 2, 3, 4);
 PREPARE demo AS
 SELECT
     *
