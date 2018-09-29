@@ -196,7 +196,7 @@ sub query {
                 $language = lc($1);
             }
             # if the function language is not SQL or PLPGSQL
-            if ($language !~ /^(?:plpg)sql$/) {
+            if ($language !~ /^(?:plpg)?sql$/) {
                 # Try to find the code separator
                 my $tmp_str = $temp_content[$j];
                 while ($tmp_str =~ s/\s+AS\s+([^\s]+)\s+//is) {
@@ -469,12 +469,14 @@ sub beautify {
     $self->{ '_is_in_declare' } = 0;
     $self->{ '_is_in_block' } = -1;
     $self->{ '_is_in_function' } = 0;
+    $self->{ '_is_in_procedure' } = 0;
     $self->{ '_is_in_index' } = 0;
     $self->{ '_is_in_with' }  = 0;
     $self->{ '_parenthesis_level' } = 0;
     $self->{ '_parenthesis_function_level' } = 0;
     $self->{ '_has_order_by' }  = 0;
     $self->{ '_has_over_in_join' } = 0;
+    $self->{ '_insert_values' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -599,13 +601,19 @@ sub beautify {
         # we are in a CREATE FUNCTION/PROCEDURE statement
         elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE)$/i) {
             $self->{ '_is_in_index' } = 1 if (uc($last) eq 'ALTER');
-            if ($token =~ /^(FUNCTION|PROCEDURE)$/i && $self->{ '_is_in_create' }) {
+            if ($token =~ /^FUNCTION$/i && $self->{ '_is_in_create' }) {
                 $self->{ '_is_in_index' } = 1;
+	    } elsif ($token =~ /^PROCEDURE$/i && $self->{ '_is_in_create' }) {
+                $self->{ '_is_in_index' } = 1;
+		$self->{ '_is_in_procedure' } = 1;
             }
         }
         # Desactivate index like formatting when RETURN(S) keyword is found
         elsif ($token =~ /^(RETURN|RETURNS)$/i) {
             $self->{ '_is_in_index' } = 0;
+        } elsif ($token =~ /^AS$/i) {
+            $self->{ '_is_in_index' } = 0;
+	    $self->{ '_is_in_block' } = 1 if ($self->{ '_is_in_procedure' });
         }
     
         ####
@@ -858,6 +866,7 @@ sub beautify {
             $self->{ '_is_in_call' } = 0;
             $self->{ '_is_in_type' } = 0;
             $self->{ '_is_in_function' } = 0;
+            $self->{ '_is_in_prodedure' } = 0;
             $self->{ '_is_in_index' } = 0;
             $self->{ '_is_in_if' } = 0;
             $self->{ '_current_sql_stmt' } = '';
@@ -867,6 +876,23 @@ sub beautify {
             $self->{ '_parenthesis_level' } = 0;
             $self->{ '_parenthesis_function_level' } = 0;
             $self->_add_token($token);
+	    if ( $self->{ '_insert_values' } )
+	    {
+		if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
+		{
+		    @{ $self->{ '_level_stack' } } = ();
+		    $self->{ '_level' } = 0;
+		    $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+		}
+		else
+		{
+
+		    $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+	        }
+		$self->_new_line;
+		$self->{ '_insert_values' } = 0;
+		next;
+	    }
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
             # Add an additional newline after ; when we are not in a function
@@ -973,6 +999,11 @@ sub beautify {
             if ($token =~ /^VALUES$/i and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
 	    {
                 $self->_over;
+		if ($self->{ '_current_sql_stmt' } eq 'INSERT') {
+	            $self->{ '_insert_values' } = 1;
+                    push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
+		    $self->_over;
+	        }
             }
             $self->_add_token( $token );
             if ($token =~ /^VALUES$/i and $last eq '(')
