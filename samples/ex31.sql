@@ -33,3 +33,5 @@ CREATE PUBLICATION insert_only FOR
 	publish = 'insert'
     );
 
+SELECT my_func(p_type_cd => t.type_cd) AS my_func_result FROM tab t WHERE t.id=12;
+

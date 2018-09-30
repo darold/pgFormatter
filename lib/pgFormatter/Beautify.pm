@@ -391,7 +391,7 @@ sub tokenize_sql {
                 |
                 (?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
                 |
-                (?:<>|<=>|>=|<=|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
+                (?:<>|<=>|>=|<=|=>|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
                 |
                 [\[\]\(\),;.]            # punctuation (parenthesis, comma)
                 |
