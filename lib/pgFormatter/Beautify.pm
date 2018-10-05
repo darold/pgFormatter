@@ -477,6 +477,7 @@ sub beautify {
     $self->{ '_has_order_by' }  = 0;
     $self->{ '_has_over_in_join' } = 0;
     $self->{ '_insert_values' } = 0;
+    $self->{ '_is_in_constraint' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -596,7 +597,10 @@ sub beautify {
             $self->{ '_is_in_index' } = 1;
         } elsif (! $self->{ '_is_in_create' } and uc($token) eq 'SET') {
             $self->{ '_is_in_index' } = 1 if ($self->{ '_current_sql_stmt' } ne 'UPDATE');
-        }
+        } elsif ($self->{ '_is_in_create' } and (uc($token) eq 'UNIQUE' or (uc($token) eq 'PRIMARY' and uc($self->_next_token) eq 'KEY'))) {
+		$self->{ '_is_in_constraint' } = 1;
+	}
+
         # Same as above but for ALTER FUNCTION/PROCEDURE/SEQUENCE or when
         # we are in a CREATE FUNCTION/PROCEDURE statement
         elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE)$/i) {
@@ -754,6 +758,7 @@ sub beautify {
         elsif ( $token eq '(' )
 	{
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
+            $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
             if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
@@ -772,7 +777,12 @@ sub beautify {
             }
         }
 
-        elsif ( $token eq ')' ) {
+        elsif ( $token eq ')' )
+	{
+	    if ($self->{ '_is_in_constraint' } and defined $self->_next_token
+			    and ($self->_next_token eq ',' or $self->_next_token eq ')')) {
+		$self->{ '_is_in_constraint' } = 0;
+	    }
             if ($self->{ '_is_in_with' } == 1) {
                 $self->_back;
                 $self->_new_line;
@@ -830,6 +840,7 @@ sub beautify {
 
         elsif ( $token eq ',' ) {
             my $add_newline = 0;
+	    $self->{ '_is_in_constraint' } = 0 if ($self->{ '_is_in_constraint' } == 1);
             $add_newline = 1 if ( !$self->{ 'no_break' }
                                && !$self->{ '_is_in_function' }
                                && ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT')
@@ -841,6 +852,7 @@ sub beautify {
 			       && !$self->{ '_is_in_alter' }
 			       && !$self->{ '_is_in_publication' }
 			       && !$self->{ '_is_in_call' }
+			       && ($self->{ '_is_in_constraint' } <= 1)
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\-\-)/i
                    && !$self->{ '_parenthesis_function_level' }
@@ -875,6 +887,7 @@ sub beautify {
             $self->{ '_has_over_in_join' } = 0;
             $self->{ '_parenthesis_level' } = 0;
             $self->{ '_parenthesis_function_level' } = 0;
+	    $self->{ '_is_in_constraint' } = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
