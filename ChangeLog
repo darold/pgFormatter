@@ -1,3 +1,29 @@
+October 08 2018 - v3.2
+
+This minor release adds support to PostgreSQL v11.0 new keywords
+and fixes several issues reported by users since last release.
+
+  * Add new PostgreSQL v11 keywords CALL, GROUPS, INCLUDE, OTHERS,
+    PROCEDURES, ROUTINE, ROUTINES, TIES.
+  * Add formatting of CREATE PUBLICATION.
+  * Add formatting of CREATE PROCEDURE code.
+  * Add formatting of ALTER PROCEDURE/ROUTINE, all on a single line.
+  * Add an indentation before VALUES of INSERT statements.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix weird formatting on UNIQUE and PRIMARY KEY constraints in
+    CREATE TABLE statements. Thanks to Aaron Reisman for the report.
+  - Add operator for name convention,  ":=" was changed to "=>".
+    Thanks to snailshell-321 for the report.
+  - Fix missing formatting in SQL function with a single SELECT.
+  - Remove any new line in CALL statement.
+  - Never add newline after comma in ALTER statements.
+  - Prevent new line between ROW LEVEL SECURITY. Thanks to madflow
+    for the report.
+  - Update samples with last formatting changes.
+
+
 September 12 2018 - v3.1
 
 This minor release fixes several issues reported by users since six
