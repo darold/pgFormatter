@@ -22,7 +22,7 @@ DESCRIPTION
         file.sql can be a file or use - to read query from stdin.
 
         Returning the SQL formatted to stdout or into a file specified with
-        the -o | --ouput option.
+        the -o | --output option.
 
     Options:
 
@@ -157,7 +157,7 @@ HINTS
                     IN <<internalprojects>> AND username = <<loginname>>;
 
     you may want pgFormatter to not interpret << and >> as bit-shift
-    keywords and modify your code snippsets. You can use a Perl regular
+    keywords and modify your code snippets. You can use a Perl regular
     expression to instruct pgFormatter to keep some part of the query
     untouched. For example:
 
@@ -182,7 +182,7 @@ HINTS
   Customize CSS for the CGI output
     You can change the HTML style rendered through the default CSS style by
     creating a file named custom_css_file.css into the pgFormatter CGI
-    script directory. The default CSS will be fully overriden by this custom
+    script directory. The default CSS will be fully overridden by this custom
     file content. You have to look at the generated HTML output to get the
     default CSS code used.
 
