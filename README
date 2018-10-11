@@ -1,5 +1,5 @@
-ABSTRACT
-    pgFormatter - PostgreSQL SQL syntax beautifier
+NAME
+    pg_format - PostgreSQL SQL syntax beautifier
 
 DESCRIPTION
     This SQL formatter/beautifier supports keywords from SQL-92, SQL-99,
@@ -182,9 +182,9 @@ HINTS
   Customize CSS for the CGI output
     You can change the HTML style rendered through the default CSS style by
     creating a file named custom_css_file.css into the pgFormatter CGI
-    script directory. The default CSS will be fully overridden by this custom
-    file content. You have to look at the generated HTML output to get the
-    default CSS code used.
+    script directory. The default CSS will be fully overridden by this
+    custom file content. You have to look at the generated HTML output to
+    get the default CSS code used.
 
 AUTHORS
     pgFormatter is an original work from Gilles Darold with major code
