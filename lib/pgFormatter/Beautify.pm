@@ -478,6 +478,7 @@ sub beautify {
     $self->{ '_has_over_in_join' } = 0;
     $self->{ '_insert_values' } = 0;
     $self->{ '_is_in_constraint' } = 0;
+    $self->{ '_is_in_distinct' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -537,6 +538,10 @@ sub beautify {
 	{
             $self->{ '_has_order_by' } = 0;
             $self->{ '_has_from' } = 0;
+	    if ($self->{ '_is_in_distinct' }) {
+		    $self->_over;
+		    $self->{ '_is_in_distinct' } = 0;
+	    }
             if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' } && !$self->{ '_is_in_alter' }) {
                 $self->_new_line;
                 $self->_back;
@@ -744,6 +749,12 @@ sub beautify {
             $self->_over;
         }
 
+	# Treated DISTINCT as a modifier of the whole select clause, not only the firt column only
+	if (uc($token) eq 'ON' && defined $last && uc($last) eq 'DISTINCT')
+	{
+            $self->{ '_is_in_distinct' } = 1;
+        }
+
         if ( $rule )
 	{
             $self->_process_rule( $rule, $token );
@@ -760,7 +771,7 @@ sub beautify {
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
-            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }) {
+            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_distinct' }) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
@@ -843,6 +854,7 @@ sub beautify {
 	    $self->{ '_is_in_constraint' } = 0 if ($self->{ '_is_in_constraint' } == 1);
             $add_newline = 1 if ( !$self->{ 'no_break' }
                                && !$self->{ '_is_in_function' }
+			       && !$self->{ '_is_in_distinct' }
                                && ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT')
                                && ($self->{ '_current_sql_stmt' } ne 'RAISE')
                                && ($self->{ '_current_sql_stmt' } !~ /^(FUNCTION|PROCEDURE)$/
@@ -888,6 +900,7 @@ sub beautify {
             $self->{ '_parenthesis_level' } = 0;
             $self->{ '_parenthesis_function_level' } = 0;
 	    $self->{ '_is_in_constraint' } = 0;
+	    $self->{ '_is_in_distinct' } = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
