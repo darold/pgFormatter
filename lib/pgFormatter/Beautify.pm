@@ -539,8 +539,10 @@ sub beautify {
             $self->{ '_has_order_by' } = 0;
             $self->{ '_has_from' } = 0;
 	    if ($self->{ '_is_in_distinct' }) {
-		    $self->_over;
+                    $self->_add_token( $token );
+                    $self->_new_line;
 		    $self->{ '_is_in_distinct' } = 0;
+		    next;
 	    }
             if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' } && !$self->{ '_is_in_alter' }) {
                 $self->_new_line;
@@ -753,6 +755,14 @@ sub beautify {
 	if (uc($token) eq 'ON' && defined $last && uc($last) eq 'DISTINCT')
 	{
             $self->{ '_is_in_distinct' } = 1;
+            $self->_over;
+        }
+        elsif (uc($token) eq 'DISTINCT' && defined $last && uc($last) eq 'SELECT' && defined $self->_next_token && $self->_next_token !~ /^ON$/i)
+        {
+            $self->_add_token( $token );
+            $self->_new_line;
+            $self->_over;
+	    next;
         }
 
         if ( $rule )
@@ -1068,7 +1078,7 @@ sub beautify {
 	    {
                 $self->_add_token( $token );
             }
-	    elsif ($token !~ /^DELETE$/i)
+	    elsif ($token !~ /^DELETE$/i && (!defined $self->_next_token || $self->_next_token !~ /^DISTINCT$/i))
 	    {
                 $self->_new_line;
                 $self->_add_token( $token );
