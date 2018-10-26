@@ -12,8 +12,8 @@ SELECT
 FROM
     my_table;
 
-SELECT
-    DISTINCT ON (a, b) a,
+SELECT DISTINCT ON (a, b)
+    a,
     b,
     c
 FROM
@@ -23,8 +23,8 @@ ORDER BY
     b,
     c;
 
-SELECT
-    DISTINCT a,
+SELECT DISTINCT
+    a,
     b,
     b,
     c

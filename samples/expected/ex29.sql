@@ -1,5 +1,5 @@
-SELECT
-    DISTINCT (current_database())::information_schema.sql_identifier AS view_catalog,
+SELECT DISTINCT
+    (current_database())::information_schema.sql_identifier AS view_catalog,
     (nv.nspname)::information_schema.sql_identifier AS view_schema,
     (v.relname)::information_schema.sql_identifier AS view_name,
     (current_database())::information_schema.sql_identifier AS table_catalog,
