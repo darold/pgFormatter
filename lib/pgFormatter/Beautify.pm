@@ -288,56 +288,56 @@ sub highlight_code {
 
     # lowercase/uppercase keywords
     if ( $self->_is_keyword( $token ) ) {
-    if ( $self->{ 'uc_keywords' } == 1 ) {
-        $token = '<span class="kw1_l">' . $token . '</span>';
-    } elsif ( $self->{ 'uc_keywords' } == 2 ) {
-        $token = '<span class="kw1_u">' . $token . '</span>';
-    } elsif ( $self->{ 'uc_keywords' } == 3 ) {
-        $token = '<span class="kw1_c">' . $token . '</span>';
-    } else {
-        $token = '<span class="kw1">' . $token . '</span>';
-    }
-    return $token;
+        if ( $self->{ 'uc_keywords' } == 1 ) {
+            $token = '<span class="kw1_l">' . $token . '</span>';
+        } elsif ( $self->{ 'uc_keywords' } == 2 ) {
+            $token = '<span class="kw1_u">' . $token . '</span>';
+        } elsif ( $self->{ 'uc_keywords' } == 3 ) {
+            $token = '<span class="kw1_c">' . $token . '</span>';
+        } else {
+            $token = '<span class="kw1">' . $token . '</span>';
+        }
+        return $token;
     }
 
     # lowercase/uppercase known functions or words followed by an open parenthesis if the token is not an open parenthesis
     if ($self->_is_function( $token ) || (!$self->_is_keyword( $token ) && $next_token eq '(' && $token ne '(' && !$self->_is_comment( $token )) ) {
-    if ($self->{ 'uc_functions' } == 1) {
-        $token = '<span class="kw2_l">' . $token . '</span>';
-    } elsif ($self->{ 'uc_functions' } == 2) {
-        $token = '<span class="kw2_u">' . $token . '</span>';
-    } elsif ($self->{ 'uc_functions' } == 3) {
-        $token = '<span class="kw2_c">' . $token . '</span>';
-    } else {
-        $token = '<span class="kw2">' . $token . '</span>';
-    }
-    return $token;
+        if ($self->{ 'uc_functions' } == 1) {
+            $token = '<span class="kw2_l">' . $token . '</span>';
+        } elsif ($self->{ 'uc_functions' } == 2) {
+            $token = '<span class="kw2_u">' . $token . '</span>';
+        } elsif ($self->{ 'uc_functions' } == 3) {
+            $token = '<span class="kw2_c">' . $token . '</span>';
+        } else {
+            $token = '<span class="kw2">' . $token . '</span>';
+        }
+        return $token;
     }
 
     # Colorize STDIN/STDOUT in COPY statement
     if ( grep(/^\Q$token\E$/i, @{ $self->{ 'dict' }->{ 'copy_keywords' } }) ) {
-    if ($self->{ 'uc_keywords' } == 1) {
-        $token = '<span class="kw3_!">' . $token . '</span>';
-    } elsif ($self->{ 'uc_keywords' } == 2) {
-        $token = '<span class="kw3_u">' . $token . '</span>';
-    } elsif ($self->{ 'uc_keywords' } == 3) {
-        $token = '<span class="kw3_c">' . $token . '</span>';
-    } else {
-        $token = '<span class="kw3">' . $token . '</span>';
-    }
-    return $token;
+        if ($self->{ 'uc_keywords' } == 1) {
+            $token = '<span class="kw3_!">' . $token . '</span>';
+        } elsif ($self->{ 'uc_keywords' } == 2) {
+            $token = '<span class="kw3_u">' . $token . '</span>';
+        } elsif ($self->{ 'uc_keywords' } == 3) {
+            $token = '<span class="kw3_c">' . $token . '</span>';
+        } else {
+            $token = '<span class="kw3">' . $token . '</span>';
+        }
+        return $token;
     }
 
     # Colorize parenthesis
     if ( grep(/^\Q$token\E$/i, @{ $self->{ 'dict' }->{ 'brackets' } }) ) {
         $token = '<span class="br0">' . $token . '</span>';
-    return $token;
+        return $token;
     }
 
     # Colorize comment
     if ( $self->_is_comment( $token ) ) {
         $token = '<span class="br1">' . $token . '</span>';
-    return $token;
+        return $token;
     }
 
     # Colorize numbers
