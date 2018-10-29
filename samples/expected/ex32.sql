@@ -14,3 +14,9 @@ CREATE TABLE projects (
     PRIMARY KEY id
 );
 
+CREATE TABLE sample (
+    fkey integer REFERENCES other (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    other integer,
+    columns integer
+);
+

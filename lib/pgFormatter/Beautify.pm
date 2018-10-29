@@ -566,10 +566,13 @@ sub beautify {
         # Set the current kind of statement parsed
         ####
         if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE)$/i) {
+
             my $k_stmt = uc($1);
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')')) {
-                $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i);
+                if ($k_stmt !~ /^UPDATE|DELETE$/i || !$self->{ '_is_in_create' }) {
+                    $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i);
+                }
             }
         }
 
@@ -1074,6 +1077,11 @@ sub beautify {
 	{
             $self->{ 'no_break' } = 0;
 
+            # case of ON DELETE/UPDATE clause in create table statements
+	    if ($token =~ /^UPDATE|DELETE$/i && $self->{ '_is_in_create' }) {
+                $self->_add_token( $token );
+		next;
+            }
             if ($token =~ /^UPDATE$/i and $last =~ /^(FOR|KEY)$/i)
 	    {
                 $self->_add_token( $token );
