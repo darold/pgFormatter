@@ -1959,7 +1959,7 @@ sub set_dicts {
         CONSTRAINT CONTINUE COPY COST CREATE CROSS CUBE CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP
         CURRENT_USER CURSOR CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER
         DESC DISTINCT DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE
-        FETCH FIRST FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GRANT GROUP GROUPING HAVING IF ILIKE IMMUTABLE IN
+        FETCH FILTER FIRST FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GRANT GROUP GROUPING HAVING IF ILIKE IMMUTABLE IN
         INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD INTERSECT INTO INVOKER IS ISNULL
         ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING LEAKPROOF LEFT LIKE LIMIT LISTEN LOAD
         LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN LOOP MAPPING MAXVALUE MINVALUE MOVE NATURAL NEXT
@@ -2150,10 +2150,10 @@ sub set_dicts {
         interval_pl_timetz interval_recv interval_send interval_smaller interval_transform interval_um intervaltypmodin
         intervaltypmodout intinterval isclosed isempty ishorizontal iso8859_1_to_utf8 iso8859_to_utf8
         iso_to_koi8r iso_to_mic iso_to_win1251 iso_to_win866 isopen isparallel isperp
-        isvertical johab_to_utf8 json_array_elements jsonb_array_elements json_array_elements_text jsonb_array_elements_text
+        isvertical johab_to_utf8 json_agg jsonb_agg json_array_elements jsonb_array_elements json_array_elements_text jsonb_array_elements_text
         json_array_length jsonb_array_length json_build_array json_build_object json_each jsonb_each json_each_text
         jsonb_each_text json_extract_path jsonb_extract_path json_extract_path_text jsonb_extract_path_text json_in json_object
-        json_object_keys jsonb_object_keys json_out json_populate_record jsonb_populate_record json_populate_recordset jsonb_pretty
+        json_object_agg jsonb_object_agg json_object_keys jsonb_object_keys json_out json_populate_record jsonb_populate_record json_populate_recordset jsonb_pretty
         jsonb_populate_recordset json_recv json_send jsonb_set json_typeof jsonb_typeof json_to_record jsonb_to_record json_to_recordset
         jsonb_to_recordset justify_interval koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8
         lag language_handler_in language_handler_out last_value lastval latin1_to_mic latin2_to_mic latin2_to_win1250
@@ -2170,7 +2170,7 @@ sub set_dicts {
         macaddr_send makeaclitem masklen max mic_to_ascii mic_to_big5 mic_to_euc_cn
         mic_to_euc_jp mic_to_euc_kr mic_to_euc_tw mic_to_iso mic_to_koi8r mic_to_latin1 mic_to_latin2
         mic_to_latin3 mic_to_latin4 mic_to_sjis mic_to_win1250 mic_to_win1251 mic_to_win866 min
-        mktinterval mod money mul_d_interval name nameeq namege
+        mktinterval mode mod money mul_d_interval name nameeq namege
         namegt nameiclike nameicnlike nameicregexeq nameicregexne namein namele
         namelike namelt namene namenlike nameout namerecv nameregexeq
         nameregexne namesend neqjoinsel neqsel netmask network network_cmp
@@ -2190,7 +2190,7 @@ sub set_dicts {
         opaque_in opaque_out overlaps path path_add path_add_pt path_center
         path_contain_pt path_distance path_div_pt path_in path_inter path_length path_mul_pt
         path_n_eq path_n_ge path_n_gt path_n_le path_n_lt path_npoints path_out
-        path_recv path_send path_sub_pt pclose percent_rank pg_advisory_lock pg_advisory_lock_shared
+        path_recv path_send path_sub_pt pclose percent_rank percentile_cont percentile_disc pg_advisory_lock pg_advisory_lock_shared
         pg_advisory_unlock pg_advisory_unlock_all pg_advisory_unlock_shared pg_advisory_xact_lock pg_advisory_xact_lock_shared
         pg_available_extension_versions pg_available_extensions pg_backend_pid pg_cancel_backend pg_char_to_encoding pg_collation_for
         pg_collation_is_visible pg_column_size pg_conf_load_time pg_conversion_is_visible pg_create_restore_point pg_current_xlog_insert_location
