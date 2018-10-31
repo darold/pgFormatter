@@ -1445,27 +1445,28 @@ sub _add_token {
             $self->{ 'content' } .= $sp if ($token ne ')'
                                             && defined($last_token)
                                             && $last_token ne '::' 
+                                            && $last_token ne '[' 
                                             && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
                 );
             $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
         } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
             $self->{ 'content' } .= $sp if ($last_token ne '::' and ($last_token ne '(' || !$self->{ '_is_in_index' }));
-    } elsif (defined $last_token) {
+        } elsif (defined $last_token) {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
         }
-    if ($self->_is_comment($token)) {
-        my @lines = split(/\n/, $token);
-        for (my $i = 1; $i <= $#lines; $i++) {
-            if ($lines[$i] =~ /^\s*\*/) {
-                $lines[$i] =~ s/^\s*\*/$sp */;
-            } elsif ($lines[$i] =~ /^\s+[^\*]/) {
-                $lines[$i] =~ s/^\s+/$sp /;
+        if ($self->_is_comment($token)) {
+            my @lines = split(/\n/, $token);
+            for (my $i = 1; $i <= $#lines; $i++) {
+                if ($lines[$i] =~ /^\s*\*/) {
+                    $lines[$i] =~ s/^\s*\*/$sp */;
+                } elsif ($lines[$i] =~ /^\s+[^\*]/) {
+                    $lines[$i] =~ s/^\s+/$sp /;
+                }
             }
+            $token = join("\n", @lines);
+        } else {
+            $token =~ s/\n/\n$sp/gs;
         }
-        $token = join("\n", @lines);
-    } else {
-        $token =~ s/\n/\n$sp/gs;
-    }
     }
 
     #lowercase/uppercase keywords
@@ -1753,7 +1754,7 @@ sub _is_punctuation {
     if  ($self->{ 'comma' } eq 'start' and $token eq ',') {
     return 0;
     }
-    return ( $token =~ /^[,;.]$/ );
+    return ( $token =~ /^[,;.\[\]]$/ );
 }
 
 =head2 _generate_anonymized_string
