@@ -479,6 +479,7 @@ sub beautify {
     $self->{ '_insert_values' } = 0;
     $self->{ '_is_in_constraint' } = 0;
     $self->{ '_is_in_distinct' } = 0;
+    $self->{ '_is_in_array' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -534,6 +535,14 @@ sub beautify {
 	{
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
         }
+        elsif ( $token eq '[' )
+	{
+            $self->{ '_is_in_array' } = 1;
+        }
+        elsif ( $token eq ']' )
+	{
+            $self->{ '_is_in_array' } = 0;
+	}
         elsif ( $token eq ')' )
 	{
             $self->{ '_has_order_by' } = 0;
@@ -868,6 +877,7 @@ sub beautify {
             $add_newline = 1 if ( !$self->{ 'no_break' }
                                && !$self->{ '_is_in_function' }
 			       && !$self->{ '_is_in_distinct' }
+			       && !$self->{ '_is_in_array' }
                                && ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT')
                                && ($self->{ '_current_sql_stmt' } ne 'RAISE')
                                && ($self->{ '_current_sql_stmt' } !~ /^(FUNCTION|PROCEDURE)$/
@@ -914,6 +924,7 @@ sub beautify {
             $self->{ '_parenthesis_function_level' } = 0;
 	    $self->{ '_is_in_constraint' } = 0;
 	    $self->{ '_is_in_distinct' } = 0;
+	    $self->{ '_is_in_array' } = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
