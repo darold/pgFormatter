@@ -28,16 +28,13 @@ SELECT
     '{"a":1, "b":2}'::jsonb ? 'b';
 
 SELECT
-    '{"a":1, "b":2, "c":3}'::jsonb ? | ARRAY [ 'b',
-    'c' ];
+    '{"a":1, "b":2, "c":3}'::jsonb ? | ARRAY['b', 'c'];
 
 SELECT
-    '{"a":1, "b":2, "c":3}'::jsonb ? | ARRAY [ 'b',
-    'c' ];
+    '{"a":1, "b":2, "c":3}'::jsonb ? | ARRAY['b', 'c'];
 
 SELECT
-    '["a", "b"]'::jsonb ?& ARRAY [ 'a',
-    'b' ];
+    '["a", "b"]'::jsonb ?& ARRAY['a', 'b'];
 
 SELECT
     '{"a": {"b":{"c": "foo"}}}'::json #> '{a,b}',

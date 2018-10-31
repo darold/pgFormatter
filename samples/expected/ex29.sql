@@ -24,7 +24,7 @@ WHERE ((((((((((((((nv.oid = v.relnamespace)
                     AND (dt.refclassid = ('pg_class'::regclass)::oid))
                 AND (dt.refobjid = t.oid))
             AND (t.relnamespace = nt.oid))
-        AND (t.relkind = ANY (ARRAY [ 'r'::"char", 'v'::"char" ])))
+        AND (t.relkind = ANY (ARRAY['r'::"char", 'v'::"char"])))
     AND pg_has_role(t.relowner, 'USAGE'::text))
 ORDER BY
     (current_database())::information_schema.sql_identifier,

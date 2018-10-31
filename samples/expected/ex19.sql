@@ -12,7 +12,7 @@ DECLARE
     pkcols text;
     pkformat text;
     detoast_funcname text;
-    pk_col_ary text [ ];
+    pk_col_ary text[];
 BEGIN
     pkcols = '';
     pkformat = '';
@@ -81,7 +81,7 @@ $f$;
             /* This iterates zero times if there are no PK columns */
             FOR colrec IN
             SELECT
-                f.i [ a ] AS pknm
+                f.i[a] AS pknm
             FROM (
                 SELECT
                     pk_col_ary AS i) AS f,
