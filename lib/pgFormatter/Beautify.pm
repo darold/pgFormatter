@@ -489,6 +489,11 @@ sub beautify {
     while ( defined( my $token = $self->_token ) ) {
         my $rule = $self->_get_rule( $token );
 
+	# Replace concat operator found in some SGBD into || for normalization
+	if (lc($token) eq 'concat' && defined $self->_next_token() && $self->_next_token ne '(') {
+		$token = '||';
+	}
+
         ####
         # Find if the current keyword is a known function name
         ####

@@ -55,22 +55,19 @@ FROM (
 ,
             CASE library.column4
             WHEN cheap THEN
-                digits (library.column27)
-                concat library.column28
+                digits (library.column27) || library.column28
             ELSE
                 123456
             END AS column4,
             CASE library.column5
             WHEN expensive THEN
-                digits (library.column27)
-                concat library.column28
+                digits (library.column27) || library.column28
             ELSE
                 123456
             END AS library.column6,
             CASE column7
             WHEN free THEN
-                digits (library.column27)
-                concat library.column28
+                digits (library.column27) || library.column28
             ELSE
                 123456
             END AS column7,
@@ -88,10 +85,7 @@ FROM (
                     alllibrarysales.column1,
                     alllibrarysales.column2,
                     max(alllibrarysales.column3) AS alllibrarysales.column3,
-                    max(char(alllibrarysales.column4, iso)
-                        concat char(alllibrarysales.column5, iso)
-                        concat digits (alllibrarysales.column6)
-                        concat(alllibrarysales.column7)) AS column5
+                    max(char(alllibrarysales.column4, iso) || char(alllibrarysales.column5, iso) || digits (alllibrarysales.column6) concat(alllibrarysales.column7)) AS column5
                 FROM
                     /*******************     
                      * This is a block  *    
@@ -116,8 +110,7 @@ FROM (
                             SELECT
                                 tv.column1,
                                 tv.column2,
-                                max(digits (tv.column3)
-                                    concat digits (tv.column4)) AS librarymax
+                                max(digits (tv.column3) || digits (tv.column4)) AS librarymax
                             FROM
                                 db1.v_table1 tv
                             WHERE
