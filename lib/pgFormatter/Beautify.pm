@@ -482,6 +482,7 @@ sub beautify {
     $self->{ '_is_in_array' } = 0;
     $self->{ '_is_in_filter' } = 0;
     $self->{ '_is_in_within' } = 0;
+    $self->{ '_is_in_grouping' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -577,9 +578,11 @@ sub beautify {
                 next;
             }
 	}
-	elsif (uc($token) eq 'FILTER' && defined $self->_next_token && $self->_next_token eq '(')
+	elsif (defined $self->_next_token && $self->_next_token eq '(')
 	{
-            $self->{ '_is_in_filter' } = 1;
+            $self->{ '_is_in_filter' } = 1 if (uc($token) eq 'FILTER');
+	    $self->{ '_is_in_grouping' } = 1 if ($token =~ /^GROUPING|ROLLUP$/i);
+            
         }
 
         ####
@@ -804,7 +807,7 @@ sub beautify {
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
-            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }) {
+            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' } && !$self->{ '_is_in_grouping' }) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
@@ -854,13 +857,12 @@ sub beautify {
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
 			    and $last ne ')'
 	        );
-                $self->_back;
+                $self->_back if (!$self->{ '_is_in_grouping' });
 	    }
-	    if ($self->{ '_is_in_filter' } && !$self->{ '_parenthesis_level' }) {
+	    if (!$self->{ '_parenthesis_level' }) {
                 $self->{ '_is_in_filter' } = 0;
-            } 
-	    if ($self->{ '_is_in_within' } && !$self->{ '_parenthesis_level' }) {
                 $self->{ '_is_in_within' } = 0;
+                $self->{ '_is_in_grouping' } = 0;
             } 
             $self->_add_token( $token );
             # Do not go further if this is the last token
@@ -890,7 +892,8 @@ sub beautify {
             }
         }
 
-        elsif ( $token eq ',' ) {
+        elsif ( $token eq ',' )
+	{
             my $add_newline = 0;
 	    $self->{ '_is_in_constraint' } = 0 if ($self->{ '_is_in_constraint' } == 1);
             $add_newline = 1 if ( !$self->{ 'no_break' }
@@ -906,10 +909,11 @@ sub beautify {
 			       && !$self->{ '_is_in_alter' }
 			       && !$self->{ '_is_in_publication' }
 			       && !$self->{ '_is_in_call' }
+			       && !$self->{ '_is_in_grouping' }
 			       && ($self->{ '_is_in_constraint' } <= 1)
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\-\-)/i
-                   && !$self->{ '_parenthesis_function_level' }
+                               && !$self->{ '_parenthesis_function_level' }
                     );
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
