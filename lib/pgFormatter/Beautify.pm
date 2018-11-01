@@ -480,6 +480,7 @@ sub beautify {
     $self->{ '_is_in_constraint' } = 0;
     $self->{ '_is_in_distinct' } = 0;
     $self->{ '_is_in_array' } = 0;
+    $self->{ '_is_in_filter' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -505,9 +506,9 @@ sub beautify {
         if ( $token eq ')')
         {
             if (!$self->{ '_is_in_function' }) {
-                $self->{ '_parenthesis_level' }--;
+                $self->{ '_parenthesis_level' }-- if ($self->{ '_parenthesis_level' } > 0);
             } else {
-                $self->{ '_parenthesis_function_level' }--;
+                $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
             }
             $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
         }
@@ -569,6 +570,10 @@ sub beautify {
                 }
                 next;
             }
+	}
+	elsif (uc($token) eq 'FILTER' && defined $self->_next_token && $self->_next_token eq '(')
+	{
+            $self->{ '_is_in_filter' } = 1;
         }
 
         ####
@@ -793,7 +798,7 @@ sub beautify {
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
-            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_distinct' }) {
+            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
@@ -828,21 +833,26 @@ sub beautify {
                 $last = $token;
                 next;
             }
-            $self->_new_line if ($self->{ '_is_in_create' } > 1
+	    if (defined $self->_next_token && uc($self->_next_token) ne 'FILTER') {
+                $self->_new_line if ($self->{ '_is_in_create' } > 1
                     and (not defined $self->_next_token or $self->_next_token eq ';')
                 );
-            $self->_new_line if ($self->{ '_is_in_type' } == 1
+                $self->_new_line if ($self->{ '_is_in_type' } == 1
                     and (not defined $self->_next_token or $self->_next_token eq ';')
                 );
-            $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
-            $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
-            $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT'
+                $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
+                $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
+                $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT'
 			    and !$self->{ '_is_in_function' }
 			    and (defined $self->_next_token 
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
 			    and $last ne ')'
-	    );
-            $self->_back;
+	        );
+                $self->_back;
+	    }
+	    if ($self->{ '_is_in_filter' } && !$self->{ '_parenthesis_level' }) {
+                $self->{ '_is_in_filter' } = 0;
+            } 
             $self->_add_token( $token );
             # Do not go further if this is the last token
             if (not defined $self->_next_token) {
@@ -865,6 +875,7 @@ sub beautify {
                     and $self->_next_token ne ';'
                     and $self->_next_token ne ','
                     and $self->_next_token ne '||'
+	            and uc($self->_next_token) ne 'FILTER'
                     and ($self->_is_keyword($self->_next_token) or $self->_is_function($self->_next_token))
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
                 );
@@ -925,6 +936,7 @@ sub beautify {
 	    $self->{ '_is_in_constraint' } = 0;
 	    $self->{ '_is_in_distinct' } = 0;
 	    $self->{ '_is_in_array' } = 0;
+            $self->{ '_is_in_filter' } = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -985,7 +997,7 @@ sub beautify {
         elsif ( $token =~ /^(?:FROM|WHERE|SET|RETURNING|HAVING|VALUES)$/i )
 	{
 
-            $self->{ 'no_break' } = 0;
+	    $self->{ 'no_break' } = 0;
 
             if ($token =~ /^FROM$/i)
 	    {
@@ -1004,7 +1016,7 @@ sub beautify {
 	    {
                 $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' });
             }
-            if ($token =~ /^WHERE$/i)
+            if ($token =~ /^WHERE$/i && !$self->{ '_is_in_filter' })
 	    {
                 $self->_back() if ($self->{ '_has_over_in_join' });
                 $self->{ '_is_in_where' }++;
@@ -1034,7 +1046,7 @@ sub beautify {
 	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }
 				    and $self->{ '_current_sql_stmt' } ne 'DELETE'))
 	    {
-                if ($token !~ /^SET$/i or !$self->{ '_is_in_index' })
+                if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
                     $self->_back;
                     $self->_new_line;
@@ -1046,6 +1058,7 @@ sub beautify {
                 $last = $token;
                 next;
             }
+
             if ($token =~ /^VALUES$/i and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
 	    {
                 $self->_over;
@@ -1055,7 +1068,11 @@ sub beautify {
 		    $self->_over;
 	        }
             }
-            $self->_add_token( $token );
+	    if (uc($token) eq 'WHERE') {
+                $self->_add_token( $token, $last );
+            } else {
+                $self->_add_token( $token );
+            }
             if ($token =~ /^VALUES$/i and $last eq '(')
 	    {
                 $self->_over;
@@ -1065,7 +1082,7 @@ sub beautify {
                     $self->_new_line;
                     $self->_over;
             }
-            elsif ( $token !~ /^SET$/i || $self->{ '_current_sql_stmt' } eq 'UPDATE' )
+            elsif ( !$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or $self->{ '_current_sql_stmt' } eq 'UPDATE') )
 	    {
                 if (defined $self->_next_token and $self->_next_token ne '('
 				and ($self->_next_token !~ /^(UPDATE|KEY|NO)$/i || uc($token) eq 'WHERE'))
@@ -1497,7 +1514,7 @@ sub _add_token {
 
     # Add formatting for HTML output
     if ( $self->{ 'colorize' } && $self->{ 'format' } eq 'html' ) {
-    $token = $self->highlight_code($token, $last_token, $self->_next_token);
+        $token = $self->highlight_code($token, $last_token, $self->_next_token);
     }
 
     $self->{ 'content' } .= $token;
