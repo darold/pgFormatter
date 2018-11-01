@@ -481,6 +481,7 @@ sub beautify {
     $self->{ '_is_in_distinct' } = 0;
     $self->{ '_is_in_array' } = 0;
     $self->{ '_is_in_filter' } = 0;
+    $self->{ '_is_in_within' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -649,10 +650,10 @@ sub beautify {
         # as statement that can have an ORDER BY clause inside the call to
         # prevent applying order by formatting.
         ####
-        if ($token =~ /^(string_agg|group_concat)$/i) {
+        if ($token =~ /^(string_agg|group_concat|array_agg)$/i) {
             $self->{ '_has_order_by' } = 1;
         } elsif ( $self->{ '_has_order_by' } and uc($token) eq 'ORDER' and $self->_next_token =~ /^BY$/i) {
-            $self->_add_token( $token );
+            $self->_add_token( $token, $last );
             $last = $token;
             next;
         } elsif ($self->{ '_has_order_by' } and uc($token) eq 'BY') {
@@ -853,6 +854,9 @@ sub beautify {
 	    if ($self->{ '_is_in_filter' } && !$self->{ '_parenthesis_level' }) {
                 $self->{ '_is_in_filter' } = 0;
             } 
+	    if ($self->{ '_is_in_within' } && !$self->{ '_parenthesis_level' }) {
+                $self->{ '_is_in_within' } = 0;
+            } 
             $self->_add_token( $token );
             # Do not go further if this is the last token
             if (not defined $self->_next_token) {
@@ -868,14 +872,13 @@ sub beautify {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line
                     if (defined $self->_next_token
-                    and $self->_next_token !~ /^AS|THEN|INTO|BETWEEN|ON$/i
+                    and $self->_next_token !~ /^AS|THEN|INTO|BETWEEN|ON|FILTER$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
                     and $self->_next_token ne ';'
                     and $self->_next_token ne ','
                     and $self->_next_token ne '||'
-	            and uc($self->_next_token) ne 'FILTER'
                     and ($self->_is_keyword($self->_next_token) or $self->_is_function($self->_next_token))
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
                 );
@@ -1127,8 +1130,21 @@ sub beautify {
             }
         }
 
+        elsif ( $token =~ /^(?:WITHIN)$/i )
+	{
+		$self->{ '_is_in_within' } = 1;
+                $self->{ '_has_order_by' } = 1;
+                $self->_add_token( $token );
+		next;
+
+        }
+
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i )
 	{
+	    if ($self->{ '_is_in_within' } && uc($token) eq 'GROUP') {
+                $self->_add_token( $token );
+		next;
+	    }
             $self->{ '_is_in_join' } = 0;
             if ($token !~ /^EXCEPTION$/i) {
                 $self->_back;
@@ -1999,7 +2015,7 @@ sub set_dicts {
         SEQUENCE SERIALIZABLE SERVER SESSION_USER SET SETOF SETS SHOW SIMILAR SKIP SNAPSHOT SOME STABLE START STRICT
         SYMMETRIC SYSTEM TABLE TABLESAMPLE TABLESPACE TEMPLATE TEMPORARY THEN TO TRAILING TRANSACTION TRIGGER TRUE
         TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
-        VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH XOR ZEROFILL
+        VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH WITHIN XOR ZEROFILL
 	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES
         );
 
