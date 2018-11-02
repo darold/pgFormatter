@@ -20,12 +20,12 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
@@ -117,7 +117,7 @@ DECLARE
 BEGIN
     -- vider la table de stock
     TRUNCATE TABLE stock;
-    -- calculer le nombre d'annees 
+    -- calculer le nombre d'annees
     SELECT
         (annee_fin - annee_debut) + 1 INTO annees;
     -- nombre de contenants
@@ -274,7 +274,7 @@ BEGIN
     FROM
         stock INTO annee_min,
         annee_max;
-    -- on fait une boucle correspondant a 1% des tuples 
+    -- on fait une boucle correspondant a 1% des tuples
     -- de la table stock
     FOR v_tuples IN 1..echantillon LOOP
         -- selection d'identifiant, au hasard
@@ -324,7 +324,7 @@ BEGIN
     SELECT
         round(vin_total / 10) INTO echantillon;
     raise NOTICE 'taille de l''echantillon %', echantillon;
-    -- on fait une boucle correspondant a 10% des tuples 
+    -- on fait une boucle correspondant a 10% des tuples
     -- de la table vin
     FOR v_tuples IN 1..echantillon LOOP
         -- selection d'identifiant, au hasard

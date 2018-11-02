@@ -366,7 +366,7 @@ sub tokenize_sql {
         (
                 (?:\\(?:copyright|errverbose|g|gx|gexec|gset|q|crosstabview|watch|\?|h|e|ef|ev|p|r|s|w|copy|echo|i|ir|o|qecho|if|elif|else|endif|d(?:[aAbcCdDfFgilLmnoOpstTuvExy]|dp|et|es|eu|ew|fa|fn|ft|fw|Fd|Fp|Ft|rds|Rp|Rs)?S?\+?|l\+?|sf\+?|sv\+?|z|a|C|f|H|pset|t|T|x|c|connect|encoding|password|conninfo|cd|setenv|timing|\!|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink))(?:$|[\n]|[\ \t](?:(?!\\\\)[\ \t\S])*)        # psql meta-command
                 |
-                (?:--)[\ \t\S]*      # single line comments
+                (?:\s*--)[\ \t\S]*      # single line comments
                 |
                 (?:\-\|\-) # range operator "is adjacent to"
                 |
@@ -912,12 +912,12 @@ sub beautify {
 			       && !$self->{ '_is_in_grouping' }
 			       && ($self->{ '_is_in_constraint' } <= 1)
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
-                               && $self->_next_token !~ /^('$|\-\-)/i
+                               && $self->_next_token !~ /^('$|\s*\-\-)/i
                                && !$self->{ '_parenthesis_function_level' }
                     );
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
-                    $add_newline = 1;
+                $add_newline = 1;
             }
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
@@ -1432,6 +1432,20 @@ sub beautify {
 
         else
 	{
+	    # special case with comment
+	     if ($token =~ /(?:\s*--)[\ \t\S]*/)
+	     {
+		 $token =~ s/^(\s*)(--.*)/$2/;
+		 my $start = $1;
+		 if ($start =~ /\n/) {
+		     $self->_new_line;
+		 }
+		 $token =~ s/\s*$//;
+                 $self->_add_token( $token );
+                 $self->_new_line if ($start);
+		 next;
+	     }
+
              if ($last =~ /^(?:SEQUENCE)$/i and $self->_next_token !~ /^OWNED$/i)
 	     {
                  $self->_add_token( $token );

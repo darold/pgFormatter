@@ -37,21 +37,22 @@ SELECT
 FROM (
     SELECT
         store.column1,
-        CAST(store.column2 AS integer) AS column2, -- inline comment     
-        store.columnwe34r3 AS column3, -- inline comment     
-        store.column4_prod AS column4, -- inline comment     
-        store.column5_pre_prod_first AS column5, -- inline comment     
-        substr(store.column6, 11, 1) AS column6, -- inline comment     
-        store.column7 AS column7 -- inline comment     
+        CAST(store.column2 AS integer) AS column2, -- inline comment
+        store.columnwe34r3 AS column3, -- inline comment
+        store.column4_prod AS column4, -- inline comment
+        store.column5_pre_prod_first AS column5, -- inline comment
+        substr(store.column6, 11, 1) AS column6, -- inline comment
+        store.column7 AS column7 -- inline comment
     FROM (
         SELECT
-            library.column1, ---------------------    
-            -- This is a line  --     
-            -- comment in a    --     
-            -- SQL statement   --    
-            ---------------------     
+            library.column1,
+            ---------------------
+            -- This is a line  --
+            -- comment in a    --
+            -- SQL statement   --
+            ---------------------
             library.column2,
-            library.column3 -- inline comment     
+            library.column3 -- inline comment
 ,
             CASE library.column4
             WHEN cheap THEN
