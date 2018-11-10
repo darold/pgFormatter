@@ -3,6 +3,7 @@
 -- Please click the button <Format>
 -- or "ctrl+F"
 ------------------------------------------
+
 SELECT
     price.col1 AS col1,
     price.col2 AS col2,

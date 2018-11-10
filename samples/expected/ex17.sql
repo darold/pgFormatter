@@ -3,6 +3,7 @@
 --
 -- Dumped from database version 9.6.2
 -- Dumped by pg_dump version 9.6.2
+
 SET statement_timeout = 0;
 
 SET lock_timeout = 0;
@@ -22,11 +23,13 @@ SET row_security = off;
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
+
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 --
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
+
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 SET search_path = public, pg_catalog;
@@ -34,6 +37,7 @@ SET search_path = public, pg_catalog;
 --
 -- Name: add(integer, integer); Type: FUNCTION; Schema: public; Owner: gilles
 --
+
 CREATE FUNCTION ADD (integer, integer)
     RETURNS integer
     LANGUAGE sql
@@ -48,6 +52,7 @@ ALTER FUNCTION public.add (integer, integer) OWNER TO gilles;
 --
 -- Name: check_password(text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text, text); Type: FUNCTION; Schema: public; Owner: gilles
 --
+
 CREATE FUNCTION check_password (uname1 text, pass1 text, uname2 text, pass2 text, uname3 text, pass3 text, uname4 text, pass4 text, uname5 text, pass5 text, uname6 text, pass6 text, uname7 text, pass7 text, uname8 text, pass8 text, uname9 text, pass9 text)
     RETURNS boolean
     LANGUAGE plpgsql
@@ -72,6 +77,7 @@ ALTER FUNCTION public.check_password (uname1 text, pass1 text, uname2 text, pass
 --
 -- Name: dup(integer); Type: FUNCTION; Schema: public; Owner: gilles
 --
+
 CREATE FUNCTION dup (integer, OUT f1 integer, OUT f2 text)
     RETURNS record
     LANGUAGE sql
@@ -86,6 +92,7 @@ ALTER FUNCTION public.dup (integer, OUT f1 integer, OUT f2 text) OWNER TO gilles
 --
 -- Name: increment(integer); Type: FUNCTION; Schema: public; Owner: gilles
 --
+
 CREATE FUNCTION INCREMENT (i integer)
     RETURNS integer
     LANGUAGE plpgsql
@@ -100,6 +107,7 @@ ALTER FUNCTION public.increment (i integer) OWNER TO gilles;
 --
 -- Name: peuple_stock(integer, integer); Type: FUNCTION; Schema: public; Owner: userdb
 --
+
 CREATE FUNCTION peuple_stock (annee_debut integer, annee_fin integer)
     RETURNS bigint
     LANGUAGE plpgsql
@@ -165,6 +173,7 @@ ALTER FUNCTION public.peuple_stock (annee_debut integer, annee_fin integer) OWNE
 --
 -- Name: peuple_vin(); Type: FUNCTION; Schema: public; Owner: userdb
 --
+
 CREATE FUNCTION peuple_vin ()
     RETURNS bigint
     LANGUAGE plpgsql
@@ -228,6 +237,7 @@ ALTER FUNCTION public.peuple_vin () OWNER TO userdb;
 --
 -- Name: trous_stock(); Type: FUNCTION; Schema: public; Owner: userdb
 --
+
 CREATE FUNCTION trous_stock ()
     RETURNS bigint
     LANGUAGE plpgsql
@@ -302,6 +312,7 @@ ALTER FUNCTION public.trous_stock () OWNER TO userdb;
 --
 -- Name: trous_vin(); Type: FUNCTION; Schema: public; Owner: userdb
 --
+
 CREATE FUNCTION trous_vin ()
     RETURNS bigint
     LANGUAGE plpgsql
@@ -354,6 +365,7 @@ SET default_with_oids = FALSE;
 --
 -- Name: appellation; Type: TABLE; Schema: public; Owner: userdb
 --
+
 CREATE TABLE appellation (
     id integer NOT NULL,
     libelle text NOT NULL,
@@ -368,6 +380,7 @@ ALTER TABLE appellation OWNER TO userdb;
 --
 -- Name: appellation_id_seq; Type: SEQUENCE; Schema: public; Owner: userdb
 --
+
 CREATE SEQUENCE appellation_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -380,11 +393,13 @@ ALTER TABLE appellation_id_seq OWNER TO userdb;
 --
 -- Name: appellation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: userdb
 --
+
 ALTER SEQUENCE appellation_id_seq OWNED BY appellation.id;
 
 --
 -- Name: contenant; Type: TABLE; Schema: public; Owner: userdb
 --
+
 CREATE TABLE contenant (
     id integer NOT NULL,
     contenance real NOT NULL,
@@ -400,6 +415,7 @@ ALTER TABLE contenant OWNER TO userdb;
 --
 -- Name: contenant_id_seq; Type: SEQUENCE; Schema: public; Owner: userdb
 --
+
 CREATE SEQUENCE contenant_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -412,11 +428,13 @@ ALTER TABLE contenant_id_seq OWNER TO userdb;
 --
 -- Name: contenant_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: userdb
 --
+
 ALTER SEQUENCE contenant_id_seq OWNED BY contenant.id;
 
 --
 -- Name: recoltant; Type: TABLE; Schema: public; Owner: userdb
 --
+
 CREATE TABLE recoltant (
     id integer NOT NULL,
     nom text,
@@ -431,6 +449,7 @@ ALTER TABLE recoltant OWNER TO userdb;
 --
 -- Name: recoltant_id_seq; Type: SEQUENCE; Schema: public; Owner: userdb
 --
+
 CREATE SEQUENCE recoltant_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -443,11 +462,13 @@ ALTER TABLE recoltant_id_seq OWNER TO userdb;
 --
 -- Name: recoltant_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: userdb
 --
+
 ALTER SEQUENCE recoltant_id_seq OWNED BY recoltant.id;
 
 --
 -- Name: region; Type: TABLE; Schema: public; Owner: userdb
 --
+
 CREATE TABLE region (
     id integer NOT NULL,
     libelle text NOT NULL
@@ -461,6 +482,7 @@ ALTER TABLE region OWNER TO userdb;
 --
 -- Name: region_id_seq; Type: SEQUENCE; Schema: public; Owner: userdb
 --
+
 CREATE SEQUENCE region_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -473,11 +495,13 @@ ALTER TABLE region_id_seq OWNER TO userdb;
 --
 -- Name: region_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: userdb
 --
+
 ALTER SEQUENCE region_id_seq OWNED BY region.id;
 
 --
 -- Name: stock; Type: TABLE; Schema: public; Owner: userdb
 --
+
 CREATE TABLE stock (
     vin_id integer NOT NULL,
     contenant_id integer NOT NULL,
@@ -493,6 +517,7 @@ ALTER TABLE stock OWNER TO userdb;
 --
 -- Name: type_vin; Type: TABLE; Schema: public; Owner: userdb
 --
+
 CREATE TABLE type_vin (
     id integer NOT NULL,
     libelle text NOT NULL
@@ -506,6 +531,7 @@ ALTER TABLE type_vin OWNER TO userdb;
 --
 -- Name: type_vin_id_seq; Type: SEQUENCE; Schema: public; Owner: userdb
 --
+
 CREATE SEQUENCE type_vin_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -518,11 +544,13 @@ ALTER TABLE type_vin_id_seq OWNER TO userdb;
 --
 -- Name: type_vin_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: userdb
 --
+
 ALTER SEQUENCE type_vin_id_seq OWNED BY type_vin.id;
 
 --
 -- Name: vin; Type: TABLE; Schema: public; Owner: userdb
 --
+
 CREATE TABLE vin (
     id integer NOT NULL,
     recoltant_id integer,
@@ -538,6 +566,7 @@ ALTER TABLE vin OWNER TO userdb;
 --
 -- Name: vin_id_seq; Type: SEQUENCE; Schema: public; Owner: userdb
 --
+
 CREATE SEQUENCE vin_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -550,119 +579,140 @@ ALTER TABLE vin_id_seq OWNER TO userdb;
 --
 -- Name: vin_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: userdb
 --
+
 ALTER SEQUENCE vin_id_seq OWNED BY vin.id;
 
 --
 -- Name: appellation id; Type: DEFAULT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY appellation ALTER COLUMN id SET DEFAULT nextval('appellation_id_seq'::regclass);
 
 --
 -- Name: contenant id; Type: DEFAULT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY contenant ALTER COLUMN id SET DEFAULT nextval('contenant_id_seq'::regclass);
 
 --
 -- Name: recoltant id; Type: DEFAULT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY recoltant ALTER COLUMN id SET DEFAULT nextval('recoltant_id_seq'::regclass);
 
 --
 -- Name: region id; Type: DEFAULT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY region ALTER COLUMN id SET DEFAULT nextval('region_id_seq'::regclass);
 
 --
 -- Name: type_vin id; Type: DEFAULT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY type_vin ALTER COLUMN id SET DEFAULT nextval('type_vin_id_seq'::regclass);
 
 --
 -- Name: vin id; Type: DEFAULT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY vin ALTER COLUMN id SET DEFAULT nextval('vin_id_seq'::regclass);
 
 --
 -- Name: appellation appellation_libelle_key; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY appellation
     ADD CONSTRAINT appellation_libelle_key UNIQUE (libelle);
 
 --
 -- Name: appellation appellation_pkey; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY appellation
     ADD CONSTRAINT appellation_pkey PRIMARY KEY (id);
 
 --
 -- Name: contenant contenant_pkey; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY contenant
     ADD CONSTRAINT contenant_pkey PRIMARY KEY (id);
 
 --
 -- Name: recoltant recoltant_pkey; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY recoltant
     ADD CONSTRAINT recoltant_pkey PRIMARY KEY (id);
 
 --
 -- Name: region region_pkey; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY region
     ADD CONSTRAINT region_pkey PRIMARY KEY (id);
 
 --
 -- Name: stock stock_pkey; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY stock
     ADD CONSTRAINT stock_pkey PRIMARY KEY (vin_id, contenant_id, annee);
 
 --
 -- Name: type_vin type_vin_pkey; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY type_vin
     ADD CONSTRAINT type_vin_pkey PRIMARY KEY (id);
 
 --
 -- Name: vin vin_pkey; Type: CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY vin
     ADD CONSTRAINT vin_pkey PRIMARY KEY (id);
 
 --
 -- Name: appellation appellation_region_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY appellation
     ADD CONSTRAINT appellation_region_id_fkey FOREIGN KEY (region_id) REFERENCES region (id) ON DELETE CASCADE;
 
 --
 -- Name: stock stock_contenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY stock
     ADD CONSTRAINT stock_contenant_id_fkey FOREIGN KEY (contenant_id) REFERENCES contenant (id) ON DELETE CASCADE;
 
 --
 -- Name: stock stock_vin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY stock
     ADD CONSTRAINT stock_vin_id_fkey FOREIGN KEY (vin_id) REFERENCES vin (id) ON DELETE CASCADE;
 
 --
 -- Name: vin vin_appellation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY vin
     ADD CONSTRAINT vin_appellation_id_fkey FOREIGN KEY (appellation_id) REFERENCES appellation (id) ON DELETE CASCADE;
 
 --
 -- Name: vin vin_recoltant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY vin
     ADD CONSTRAINT vin_recoltant_id_fkey FOREIGN KEY (recoltant_id) REFERENCES recoltant (id) ON DELETE CASCADE;
 
 --
 -- Name: vin vin_type_vin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: userdb
 --
+
 ALTER TABLE ONLY vin
     ADD CONSTRAINT vin_type_vin_id_fkey FOREIGN KEY (type_vin_id) REFERENCES type_vin (id) ON DELETE CASCADE;
 

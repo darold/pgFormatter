@@ -1443,6 +1443,12 @@ sub beautify {
 		 $token =~ s/\s*$//;
                  $self->_add_token( $token );
                  $self->_new_line if ($start);
+		 # Add extra newline after the last comment if we are not in a block or a statement
+		 if (defined $self->_next_token and $self->_next_token !~ /^\s*--/) {
+                     $self->{ 'content' } .= "\n" if ($self->{ '_is_in_block' } == -1
+				     and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' }
+		                     and !$self->{ '_current_sql_stmt' });
+		 }
 		 next;
 	     }
 

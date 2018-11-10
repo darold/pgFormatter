@@ -18,6 +18,7 @@ SELECT
     '{"a":[1,2,3],"b":[4,5,6]}'::json #>> '{a,2}';
 
 -- From 9.4 JSON page - jsonb examples
+
 SELECT
     '{"a":1, "b":2}'::jsonb @> '{"b":2}'::jsonb;
 
