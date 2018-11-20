@@ -1,3 +1,42 @@
+November 20 2018 - v3.3
+
+This minor release fixes several issues reported by users since last
+release, adds and improves some code formatting:
+
+  * Add formatting of GROUPING and ROLLUP clause.
+  * Replace concat operator from some SGBD with operator ||.
+  * Add formatting of FILTER and WITHIN GROUP clause.
+  * Fix several wrong formatting with comment.
+  * Improve arrays formatting.
+  * Treat DISTINCT as a modifier of the whole select clause.
+  * Fix formatting of ON UPDATE/DELETE in create table statements.
+  * Add DETACH,ATTACH,LIST,HASH,MODULUS and REMINDER to keywords list.
+  * Add formatting of CREATE PARTITION STATEMENT.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Add extra newline after a comment when it is not in a block or a
+    statement. Thanks to Aaron Reisman for the report.
+  - Fix inline comments that was wrongly moved after a new line in
+    some case.
+  - Fix case where comments that was not moved to next line.
+  - Trim trailing space in comment. Thanks to Aaron Reisman for the
+    report.
+  - Add formatting of FILTER clause. Thanks to Leonardo Rochael
+    Almeida for the report.
+  - Update regression test expected on queries using ARRAY[...].
+  - Remove newline after comma in ARRAY[...] definition.
+  - Remove space before and after array braket. Thanks to Peter
+    Boromissza for the report.
+  - Add FILTER keyword and some missing aggregate functions. Thanks
+    to Leonardo Rochael Almeida for the report.
+  - Fix formatting of ON UPDATE/DELETE in create table statements.
+    Thanks to Peter Boromissza for the report.
+  - Update regression tests with last changes.
+  - Treat DISTINCT as a modifier of the whole select clause not only
+    the fisrt column. Thanks to report of Leonardo Rochael Almeida.
+  - Fix some typo in documentation. Thanks to 0xflotus for the patch.
+
 October 08 2018 - v3.2
 
 This minor release adds support to PostgreSQL v11.0 new keywords
