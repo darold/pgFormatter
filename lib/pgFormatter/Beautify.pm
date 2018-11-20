@@ -483,6 +483,7 @@ sub beautify {
     $self->{ '_is_in_filter' } = 0;
     $self->{ '_is_in_within' } = 0;
     $self->{ '_is_in_grouping' } = 0;
+    $self->{ '_is_in_partition' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -535,7 +536,7 @@ sub beautify {
         # Control case where we have to add a newline, go back and
         # reset indentation after the last ) in the WITH statement
         ####
-        if (!$self->{ '_is_in_publication' } && $token =~ /^WITH$/i && (!defined $last || $last ne ')'))
+        if (!$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' } && $token =~ /^WITH$/i && (!defined $last || $last ne ')'))
 	{
             $self->{ '_is_in_with' } = 1;
         }
@@ -801,13 +802,24 @@ sub beautify {
             $self->_new_line if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
             $self->_add_token( $token );
         }
+        elsif ($token =~ /^PARTITION$/i)
+	{
+	    $self->{ '_is_in_partition' } = 1;
+            if ($self->{ '_is_in_create' } && defined $last and $last eq ')')
+	    {
+                $self->_new_line;
+                $self->_add_token( $token );
+            }
+        }
 
         elsif ( $token eq '(' )
 	{
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
-            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' } && !$self->{ '_is_in_grouping' }) {
+            if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }
+		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
+		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
@@ -836,7 +848,7 @@ sub beautify {
                 $self->_add_token( $token );
                 next;
             }
-            if ($self->{ '_is_in_index' } || $self->{ '_is_in_alter' }) {
+            if ($self->{ '_is_in_index' } || $self->{ '_is_in_alter' } || $self->{ '_is_in_partition' }) {
                 $self->_add_token( '' );
                 $self->_add_token( $token );
                 $last = $token;
@@ -844,7 +856,7 @@ sub beautify {
             }
 	    if (defined $self->_next_token && uc($self->_next_token) ne 'FILTER') {
                 $self->_new_line if ($self->{ '_is_in_create' } > 1
-                    and (not defined $self->_next_token or $self->_next_token eq ';')
+                    and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i)
                 );
                 $self->_new_line if ($self->{ '_is_in_type' } == 1
                     and (not defined $self->_next_token or $self->_next_token eq ';')
@@ -910,6 +922,7 @@ sub beautify {
 			       && !$self->{ '_is_in_publication' }
 			       && !$self->{ '_is_in_call' }
 			       && !$self->{ '_is_in_grouping' }
+			       && !$self->{ '_is_in_partition' }
 			       && ($self->{ '_is_in_constraint' } <= 1)
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\s*\-\-)/i
@@ -949,6 +962,7 @@ sub beautify {
 	    $self->{ '_is_in_distinct' } = 0;
 	    $self->{ '_is_in_array' } = 0;
             $self->{ '_is_in_filter' } = 0;
+            $self->{ '_is_in_partition' } = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -993,7 +1007,7 @@ sub beautify {
         }
         elsif ($token =~ /^FOR$/i)
 	{
-            if ($self->_next_token =~ /^(UPDATE|KEY|NO)$/i)
+            if ($self->_next_token =~ /^(UPDATE|KEY|NO|VALUES)$/i)
 	    {
                 $self->_back;
                 $self->_new_line;
@@ -1011,6 +1025,20 @@ sub beautify {
 
 	    $self->{ 'no_break' } = 0;
 
+	    # special cases for create partition statement
+            if ($token =~ /^VALUES$/i && defined $last and uc($last) eq 'FOR')
+	    {
+		$self->_add_token( $token );
+		$last = $token;
+		next;
+	    } elsif ($token =~ /^FROM$/i && defined $last and uc($last) eq 'VALUES')
+	    {
+		$self->_add_token( $token );
+		$last = $token;
+		next;
+	    }
+
+	    # Case of DISTINCT FROM clause
             if ($token =~ /^FROM$/i)
 	    {
 		    if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_alter' })
@@ -1020,13 +1048,14 @@ sub beautify {
 			next;
 		    }
 	    }
+
             if (($token =~ /^FROM$/i) && $self->{ '_has_from' } && !$self->{ '_is_in_function' })
 	    {
                 $self->{ '_has_from' } = 0;
             }
             if ($token =~ /^FROM$/i)
 	    {
-                $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' });
+                $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' } && !$self->{ '_is_in_partition' });
             }
             if ($token =~ /^WHERE$/i && !$self->{ '_is_in_filter' })
 	    {
@@ -1171,7 +1200,7 @@ sub beautify {
             $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
         }
 
-        elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(INCREMENT|OWNED)$/ )
+        elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(INCREMENT|OWNED|PARTITION)$/ )
 	{
             $self->_add_token( $token );
             $self->_new_line;
@@ -1418,7 +1447,7 @@ sub beautify {
             $self->_add_token($token);
         }
 
-        elsif (uc($last) ne 'NO' and $token =~ /^(MINVALUE|MAXVALUE)$/i)
+        elsif ($last !~ /^(\(|NO)$/i and $token =~ /^(MINVALUE|MAXVALUE)$/i)
 	{
             $self->_new_line;
             $self->_add_token($token);
@@ -1514,7 +1543,7 @@ sub _add_token {
     my $sp = $self->_indent;
 
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot) {
-        if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && ($token !~ /^::/) ) {
+        if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ ) {
             $self->{ 'content' } .= $sp if ($token ne ')'
                                             && defined($last_token)
                                             && $last_token ne '::' 
@@ -1523,7 +1552,10 @@ sub _add_token {
                 );
             $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
         } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
-            $self->{ 'content' } .= $sp if ($last_token ne '::' and ($last_token ne '(' || !$self->{ '_is_in_index' }));
+            $self->{ 'content' } .= $sp if ($last_token ne '::'
+		    					and !$self->{ '_is_in_partition' }
+							and ($last_token ne '(' || !$self->{ '_is_in_index' })
+				);
         } elsif (defined $last_token) {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
         }
