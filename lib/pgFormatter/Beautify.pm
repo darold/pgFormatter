@@ -809,6 +809,10 @@ sub beautify {
 	    {
                 $self->_new_line;
                 $self->_add_token( $token );
+	    }
+	    else
+	    {
+                $self->_add_token( $token );
             }
 	}
 
