@@ -95,6 +95,10 @@ INSTALLATION
 
     By default INSTALLDIRS is set to site.
 
+    If you have docker installed then just use it as 
+
+            echo file.sql | docker run --rm -a stdin -a stdout -i darold/pgformatter -
+
 HINTS
   Formatting from VI
     With pgFormatter, you can just add the following line to your ~/.vimrc
