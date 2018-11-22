@@ -484,6 +484,7 @@ sub beautify {
     $self->{ '_is_in_within' } = 0;
     $self->{ '_is_in_grouping' } = 0;
     $self->{ '_is_in_partition' } = 0;
+    $self->{ '_is_in_over' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -560,6 +561,7 @@ sub beautify {
                     $self->_add_token( $token );
                     $self->_new_line;
 		    $self->{ '_is_in_distinct' } = 0;
+		    $last = $token;
 		    next;
 	    }
             if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' } && !$self->{ '_is_in_alter' }) {
@@ -576,6 +578,7 @@ sub beautify {
                         $self->{ '_is_in_with' } = 0;
                     }
                 }
+		$last = $token;
                 next;
             }
 	}
@@ -667,9 +670,17 @@ sub beautify {
             next;
         } elsif ($self->{ '_has_order_by' } and uc($token) eq 'BY') {
             $self->_add_token( $token );
-            $self->{ '_has_order_by' } = 0;
+            $last = $token;
             next;
         }
+        elsif ($token =~ /^OVER$/i)
+	{
+            $self->_add_token( $token );
+	    $self->{ '_is_in_over' } = 1;
+	    $self->{ '_has_order_by' } = 1;
+            $last = $token;
+            next;
+	}
 
         ####
         # Set function code delimiter, it can be any string found after
@@ -695,6 +706,7 @@ sub beautify {
                 $self->{ '_fct_code_delimiter' } = '1';
 	    }
             $self->{ '_is_in_create' } = 0;
+            $last = $token;
             next;
         }
 
@@ -724,6 +736,7 @@ sub beautify {
             $self->{ '_current_sql_stmt' } = '';
             $self->_new_line;
             $self->_add_token( $token );
+            $last = $token;
             next;
         }
 
@@ -741,6 +754,7 @@ sub beautify {
             $self->_add_token( $token );
             $self->_new_line;
             $self->_over;
+            $last = $token;
             next;
         }
         elsif ( uc($token) eq 'BEGIN' )
@@ -761,6 +775,7 @@ sub beautify {
                 $self->_over;
                 $self->{ '_is_in_block' }++;
             }
+            $last = $token;
             next;
         }
 
@@ -789,6 +804,7 @@ sub beautify {
             $self->_add_token( $token );
             $self->_new_line;
             $self->_over;
+            $last = $token;
 	    next;
         }
 
@@ -802,7 +818,7 @@ sub beautify {
             $self->_new_line if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
             $self->_add_token( $token );
         }
-        elsif ($token =~ /^PARTITION$/i)
+        elsif ($token =~ /^PARTITION$/i && !$self->{ '_is_in_over' })
 	{
 	    $self->{ '_is_in_partition' } = 1;
             if ($self->{ '_is_in_create' } && defined $last and $last eq ')')
@@ -814,7 +830,7 @@ sub beautify {
 	    {
                 $self->_add_token( $token );
             }
-	}
+        }
 
         elsif ( $token eq '(' )
 	{
@@ -823,7 +839,9 @@ sub beautify {
             $self->_add_token( $token, $last );
             if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }
 		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
-		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }) {
+		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
+		    && !$self->{ '_is_in_over' }
+	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
                 }
@@ -852,9 +870,13 @@ sub beautify {
                 $self->_add_token( $token );
                 next;
             }
-            if ($self->{ '_is_in_index' } || $self->{ '_is_in_alter' } || $self->{ '_is_in_partition' }) {
+            if ($self->{ '_is_in_index' } || $self->{ '_is_in_alter' }
+		    || $self->{ '_is_in_partition' } || $self->{ '_is_in_partition' }
+		    || (defined $self->_next_token and $self->_next_token =~ /^OVER$/i)
+	    ) {
                 $self->_add_token( '' );
                 $self->_add_token( $token );
+		$self->{ '_is_in_over' } = 0 if (!$self->{ '_parenthesis_level' });
                 $last = $token;
                 next;
             }
@@ -879,6 +901,8 @@ sub beautify {
                 $self->{ '_is_in_filter' } = 0;
                 $self->{ '_is_in_within' } = 0;
                 $self->{ '_is_in_grouping' } = 0;
+                $self->{ '_is_in_over' } = 0;
+                $self->{ '_has_order_by' } = 0;
             } 
             $self->_add_token( $token );
             # Do not go further if this is the last token
@@ -967,6 +991,7 @@ sub beautify {
 	    $self->{ '_is_in_array' } = 0;
             $self->{ '_is_in_filter' } = 0;
             $self->{ '_is_in_partition' } = 0;
+            $self->{ '_is_in_over' } = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -983,6 +1008,7 @@ sub beautify {
 	        }
 		$self->_new_line;
 		$self->{ '_insert_values' } = 0;
+                $last = $token;
 		next;
 	    }
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
@@ -1086,6 +1112,7 @@ sub beautify {
                 $self->_over;
                 $last = $token;
                 $self->{ '_is_in_join' } = 0;
+                $last = $token;
                 next;
             }
 	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }
@@ -1153,6 +1180,7 @@ sub beautify {
             # case of ON DELETE/UPDATE clause in create table statements
 	    if ($token =~ /^UPDATE|DELETE$/i && $self->{ '_is_in_create' }) {
                 $self->_add_token( $token );
+                $last = $token;
 		next;
             }
             if ($token =~ /^UPDATE$/i and $last =~ /^(FOR|KEY)$/i)
@@ -1177,14 +1205,16 @@ sub beautify {
 		$self->{ '_is_in_within' } = 1;
                 $self->{ '_has_order_by' } = 1;
                 $self->_add_token( $token );
+                $last = $token;
 		next;
 
         }
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i )
 	{
-	    if ($self->{ '_is_in_within' } && uc($token) eq 'GROUP') {
+	    if (($self->{ '_is_in_within' } && uc($token) eq 'GROUP') || ($self->{ '_is_in_over' } && uc($token) eq 'ORDER')) {
                 $self->_add_token( $token );
+                $last = $token;
 		next;
 	    }
             $self->{ '_is_in_join' } = 0;
@@ -1204,11 +1234,13 @@ sub beautify {
             $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
         }
 
-        elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(?:INCREMENT|OWNED|PARTITION)$/i )
+        elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(?:INCREMENT|OWNED|PARTITION)$/i)
 	{
             $self->_add_token( $token );
-            $self->_new_line;
-            $self->_over;
+	    if (!$self->{ '_has_order_by' }) {
+                $self->_new_line;
+                $self->_over;
+	    }
         }
 
         elsif ( $token =~ /^(?:CASE)$/i )
@@ -1362,9 +1394,10 @@ sub beautify {
         elsif ( $token =~ /^(?:AND|OR)$/i )
 	{
             # Try to detect AND in BETWEEN clause to prevent newline insert
-            if (uc($token) eq 'AND' and $self->_next_token() =~ /^\d+$/)
+            if (uc($token) eq 'AND' and ($self->_next_token() =~ /^\d+$/ || (defined $last && $last =~ /^(PRECEDING|FOLLOWING|ROW)$/i)))
 	    {
                 $self->_add_token( $token );
+                $last = $token;
                 next;
             }
             $self->{ 'no_break' } = 0;
@@ -1482,6 +1515,7 @@ sub beautify {
 				     and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' }
 		                     and !$self->{ '_current_sql_stmt' });
 		 }
+                 $last = $token;
 		 next;
 	     }
 
@@ -2066,17 +2100,17 @@ sub set_dicts {
         ADD AFTER ALL ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
         BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY CACHE CASCADE CASE CAST CHECK CHECKPOINT
         CLOSE CLUSTER COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT
-        CONSTRAINT CONTINUE COPY COST CREATE CROSS CUBE CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP
+        CONSTRAINT CONTINUE COPY COST CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP
         CURRENT_USER CURSOR CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER
         DESC DETACH DISTINCT DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE
-        FETCH FILTER FIRST FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GRANT GROUP GROUPING HAVING HASH IF ILIKE IMMUTABLE IN
+        FETCH FILTER FIRST FOLLOWING FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GRANT GROUP GROUPING HAVING HASH IF ILIKE IMMUTABLE IN
         INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD INTERSECT INTO INVOKER IS ISNULL
         ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING LEAKPROOF LEFT LIKE LIMIT LIST LISTEN LOAD
         LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN LOOP MAPPING MAXVALUE MINVALUE MODULUS MOVE NATURAL NEXT
         NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OF OIDS ON ONLY OPEN OPERATOR OR ORDER
         OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE RANGE
         REASSIGN RECURSIVE REFERENCES REINDEX REMAINDER RENAME REPEATABLE REPLACE REPLICA RESET RESTART RETURN RETURNING
-        RETURNS RETURNS REVOKE RIGHT ROLE ROLLBACK ROLLUP ROWS RULE SAVEPOINT SCHEMA SCROLL SECURITY SELECT SEQUENCE
+        RETURNS RETURNS REVOKE RIGHT ROLE ROLLBACK ROLLUP ROWS ROW RULE SAVEPOINT SCHEMA SCROLL SECURITY SELECT SEQUENCE
         SEQUENCE SERIALIZABLE SERVER SESSION_USER SET SETOF SETS SHOW SIMILAR SKIP SNAPSHOT SOME STABLE START STRICT
         SYMMETRIC SYSTEM TABLE TABLESAMPLE TABLESPACE TEMPLATE TEMPORARY THEN TO TRAILING TRANSACTION TRIGGER TRUE
         TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
