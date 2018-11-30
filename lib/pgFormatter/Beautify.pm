@@ -887,8 +887,6 @@ sub beautify {
                 $self->_new_line if ($self->{ '_is_in_type' } == 1
                     and (not defined $self->_next_token or $self->_next_token eq ';')
                 );
-                $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
-                $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
                 $self->_new_line if ($self->{ '_current_sql_stmt' } ne 'INSERT'
 			    and !$self->{ '_is_in_function' }
 			    and (defined $self->_next_token 
@@ -896,6 +894,8 @@ sub beautify {
 			    and $last ne ')'
 	        );
                 $self->_back if (!$self->{ '_is_in_grouping' });
+                $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
+                $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
 	    }
 	    if (!$self->{ '_parenthesis_level' }) {
                 $self->{ '_is_in_filter' } = 0;
@@ -1590,12 +1590,12 @@ sub _add_token {
                 );
             $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
         } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
-            $self->{ 'content' } .= $sp if ($last_token ne '::'
-		    					and !$self->{ '_is_in_partition' }
-							and ($last_token ne '(' || !$self->{ '_is_in_index' })
-				);
+             $self->{ 'content' } .= $sp if ($last_token ne '::' and !$self->{ '_is_in_partition' }
+						and ($last_token ne '(' || !$self->{ '_is_in_index' }));
         } elsif (defined $last_token) {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
+        } elsif ($token eq ')' and $self->{ '_is_in_block' } >= 0 && $self->{ '_is_in_create' }) {
+                $self->{ 'content' } .= $sp;
         }
         if ($self->_is_comment($token)) {
             my @lines = split(/\n/, $token);
