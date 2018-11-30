@@ -27,3 +27,18 @@ CREATE TABLE kbln (
 )
 PARTITION BY LIST (id);
 
+SELECT
+    id,
+    for_group,
+    some_val,
+    sum(some_val) OVER (PARTITION BY for_group ORDER BY id) AS sum_so_far_in_group,
+    sum(some_val) OVER (PARTITION BY for_group) AS sum_in_group,
+    sum(some_val) OVER (PARTITION BY for_group ORDER BY id RANGE 3 PRECEDING) AS sum_current_and_3_preceeding,
+    sum(some_val) OVER (PARTITION BY for_group ORDER BY id RANGE BETWEEN 3 PRECEDING AND 3 FOLLOWING) AS sum_current_and_3_preceeding_and_3_following,
+    sum(some_val) OVER (PARTITION BY for_group ORDER BY id RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) AS sum_current_and_all_following
+FROM
+    test
+ORDER BY
+    for_group,
+    id;
+
