@@ -485,6 +485,7 @@ sub beautify {
     $self->{ '_is_in_grouping' } = 0;
     $self->{ '_is_in_partition' } = 0;
     $self->{ '_is_in_over' } = 0;
+    $self->{ '_is_in_policy' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -537,7 +538,8 @@ sub beautify {
         # Control case where we have to add a newline, go back and
         # reset indentation after the last ) in the WITH statement
         ####
-        if (!$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' } && $token =~ /^WITH$/i && (!defined $last || $last ne ')'))
+        if (!$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_policy' }
+		&& $token =~ /^WITH$/i && (!defined $last || $last ne ')'))
 	{
             $self->{ '_is_in_with' } = 1;
         }
@@ -564,7 +566,8 @@ sub beautify {
 		    $last = $token;
 		    next;
 	    }
-            if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' } && !$self->{ '_is_in_alter' }) {
+            if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' }
+		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' }) {
                 $self->_new_line;
                 $self->_back;
                 $self->_add_token( $token );
@@ -831,7 +834,13 @@ sub beautify {
                 $self->_add_token( $token );
             }
         }
-
+        elsif ($token =~ /^POLICY$/i)
+	{
+            $self->{ '_is_in_policy' } = 1;
+            $self->_add_token( $token );
+            $last = $token;
+	    next;
+        }
         elsif ( $token eq '(' )
 	{
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
@@ -840,7 +849,7 @@ sub beautify {
             if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }
 		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
-		    && !$self->{ '_is_in_over' }
+		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_policy' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
@@ -871,7 +880,7 @@ sub beautify {
                 next;
             }
             if ($self->{ '_is_in_index' } || $self->{ '_is_in_alter' }
-		    || $self->{ '_is_in_partition' } || $self->{ '_is_in_partition' }
+		    || $self->{ '_is_in_partition' } || $self->{ '_is_in_policy' }
 		    || (defined $self->_next_token and $self->_next_token =~ /^OVER$/i)
 	    ) {
                 $self->_add_token( '' );
@@ -903,6 +912,7 @@ sub beautify {
                 $self->{ '_is_in_grouping' } = 0;
                 $self->{ '_is_in_over' } = 0;
                 $self->{ '_has_order_by' } = 0;
+                $self->{ '_is_in_policy' } = 0;
             } 
             $self->_add_token( $token );
             # Do not go further if this is the last token
@@ -912,7 +922,7 @@ sub beautify {
             }
 
             # When closing CTE statement go back again
-            if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i) {
+            if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i && !$self->{ '_is_in_policy' }) {
                 $self->_back;
             }
             if ($self->{ '_is_in_create' } <= 1) {
@@ -949,6 +959,7 @@ sub beautify {
 			       && !$self->{ '_is_in_alter' }
 			       && !$self->{ '_is_in_publication' }
 			       && !$self->{ '_is_in_call' }
+			       && !$self->{ '_is_in_policy' }
 			       && !$self->{ '_is_in_grouping' }
 			       && !$self->{ '_is_in_partition' }
 			       && ($self->{ '_is_in_constraint' } <= 1)
@@ -992,6 +1003,7 @@ sub beautify {
             $self->{ '_is_in_filter' } = 0;
             $self->{ '_is_in_partition' } = 0;
             $self->{ '_is_in_over' } = 0;
+	    $self->{ '_is_in_policy' } = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -1035,7 +1047,7 @@ sub beautify {
                 }
             }
         }
-        elsif ($token =~ /^FOR$/i)
+        elsif ($token =~ /^FOR$/i && !$self->{ '_is_in_policy' })
 	{
             if ($self->_next_token =~ /^(UPDATE|KEY|NO|VALUES)$/i)
 	    {
@@ -1173,7 +1185,9 @@ sub beautify {
         }
 
         elsif ( $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
-			and $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i )
+			and $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i
+			and !$self->{ '_is_in_policy' }
+       	)
 	{
             $self->{ 'no_break' } = 0;
 
@@ -1443,7 +1457,7 @@ sub beautify {
             }
         }
 
-        elsif ($token =~ /^USING$/i)
+        elsif ($token =~ /^USING$/i && !$self->{ '_is_in_policy' })
 	{
             if (!$self->{ '_is_in_from' })
 	    {
@@ -1591,6 +1605,7 @@ sub _add_token {
             $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
         } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
              $self->{ 'content' } .= $sp if ($last_token ne '::' and !$self->{ '_is_in_partition' }
+		     				and !$self->{ '_is_in_policy' }
 						and ($last_token ne '(' || !$self->{ '_is_in_index' }));
         } elsif (defined $last_token) {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
