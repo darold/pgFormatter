@@ -483,6 +483,7 @@ sub beautify {
     $self->{ '_is_in_partition' } = 0;
     $self->{ '_is_in_over' } = 0;
     $self->{ '_is_in_policy' } = 0;
+    $self->{ '_is_in_using' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -535,10 +536,11 @@ sub beautify {
         # Control case where we have to add a newline, go back and
         # reset indentation after the last ) in the WITH statement
         ####
-        if (!$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' } && !$self->{ '_is_in_policy' }
-		&& $token =~ /^WITH$/i && (!defined $last || $last ne ')'))
+        if ($token =~ /^WITH$/i && (!defined $last || $last ne ')')
+		&& !$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' }
+		&& !$self->{ '_is_in_policy' })
 	{
-            $self->{ '_is_in_with' } = 1;
+		$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' });
         }
         elsif ($token =~ /^(AS|IS)$/i && defined $self->_next_token && $self->_next_token eq '(')
 	{
@@ -563,6 +565,9 @@ sub beautify {
 		    $last = $token;
 		    next;
 	    }
+
+            $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } && !$self->{ '_parenthesis_level' });
+
             if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' }
 		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' }) {
                 $self->_new_line;
@@ -1024,6 +1029,7 @@ sub beautify {
             $self->{ '_is_in_over' } = 0;
 	    $self->{ '_is_in_policy' } = 0;
 	    $self->{'_is_in_trigger'} = 0;
+	    $self->{'_is_in_using'} = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -1482,8 +1488,10 @@ sub beautify {
             }
         }
 
-        elsif ($token =~ /^USING$/i && !$self->{ '_is_in_policy' })
+	#elsif ($token =~ /^USING$/i and !$self->{ '_is_in_policy' } and (not defined $last || uc($last) ne 'EXCLUDE'))
+        elsif ($token =~ /^USING$/i and !$self->{ '_is_in_policy' })
 	{
+	    $self->{ '_is_in_using' } = 1;
             if (!$self->{ '_is_in_from' })
 	    {
                 $self->_new_line;
@@ -1496,6 +1504,12 @@ sub beautify {
             }
             $self->_add_token($token);
         }
+
+	elsif ($token =~ /^EXCLUDE$/i)
+	{
+	    $self->{ '_is_in_using' } = 1;
+        }
+
         elsif ($token =~ /^\\\S/)
 	{
 	    # treat everything starting with a \ and at least one character as psql meta command. 
