@@ -240,20 +240,15 @@ client with the $object->format() method.
 
 =cut
 
-sub content {
+sub content
+{
     my $self      = shift;
     my $new_value = shift;
 
     $self->{ 'content' } = $new_value if defined $new_value;
 
-    # Hide comment beside a placeholder for easy parsing: OBSOLETE
-    #$self->_remove_comments( \$self->{ 'content' } );
-
     # Replace placeholders with their original dynamic code
     $self->_restore_dynamic_code( \$self->{ 'content' } );
-
-    # Restore comments inplace: OBSOLETE
-    #$self->_restore_comments(\$self->{ 'content' });
 
     # Replace placeholders by their original values
     if ($#{ $self->{ 'placeholder_values' } } >= 0)
@@ -271,7 +266,8 @@ Makes result html with styles set for highlighting.
 
 =cut
 
-sub highlight_code {
+sub highlight_code
+{
     my ($self, $token, $last_token, $next_token) = @_;
 
     # Do not use uninitialized variable
@@ -282,8 +278,8 @@ sub highlight_code {
     while ( my ( $k, $v ) = each %{ $self->{ 'dict' }->{ 'symbols' } } ) {
         if ($token eq $k) {
             $token = '<span class="sy0">' . $v . '</span>';
-        return $token;
-    }
+            return $token;
+        }
     }
 
     # lowercase/uppercase keywords
@@ -595,7 +591,7 @@ sub beautify {
         ####
         # Set the current kind of statement parsed
         ####
-        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE)$/i) {
+        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT)$/i) {
 
             my $k_stmt = uc($1);
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
@@ -889,7 +885,7 @@ sub beautify {
                 $last = $token;
                 next;
             }
-	    if (defined $self->_next_token && uc($self->_next_token) ne 'FILTER') {
+	    if (defined $self->_next_token && $self->_next_token !~ /FILTER/i) {
                 $self->_new_line if ($self->{ '_is_in_create' } > 1
                     and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i)
                 );
@@ -929,7 +925,7 @@ sub beautify {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line
                     if (defined $self->_next_token
-                    and $self->_next_token !~ /^AS|THEN|INTO|BETWEEN|ON|FILTER$/i
+                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
@@ -2526,7 +2522,7 @@ sub _remove_dynamic_code
     }
 
     # Replace any COMMENT constant between single quote 
-    while ($$str =~ s/IS\s+('[^;]+);/IS TEXTVALUE$idx;/s) {
+    while ($$str =~ s/IS\s+('(?:.*?)')\s*;/IS TEXTVALUE$idx;/s) {
         $self->{dynamic_code}{$idx} = $1;
         $idx++;
     }
