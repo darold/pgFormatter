@@ -459,6 +459,7 @@ sub beautify {
     $self->{ '_is_in_join' } = 0;
     $self->{ '_is_in_create' } = 0;
     $self->{ '_is_in_alter' } = 0;
+    $self->{ '_is_in_trigger' } = 0;
     $self->{ '_is_in_publication' } = 0;
     $self->{ '_is_in_call' } = 0;
     $self->{ '_is_in_type' } = 0;
@@ -837,6 +838,28 @@ sub beautify {
             $last = $token;
 	    next;
         }
+        elsif ($token =~ /^TRIGGER$/i and defined $last and uc($last) eq 'CREATE')
+	{
+            $self->{ '_is_in_trigger' } = 1;
+            $self->_add_token( $token );
+            $last = $token;
+	    next;
+        }
+        elsif ($token =~ /^(BEFORE|AFTER)$/i and $self->{ '_is_in_trigger' })
+	{
+            $self->_new_line;
+            $self->_over;
+            $self->_add_token( $token );
+            $last = $token;
+	    next;
+        }
+        elsif ($token =~ /^EXECUTE$/i and $self->{ '_is_in_trigger' })
+	{
+            $self->_new_line;
+            $self->_add_token( $token );
+            $last = $token;
+	    next;
+        }
         elsif ( $token eq '(' )
 	{
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
@@ -845,7 +868,7 @@ sub beautify {
             if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }
 		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
-		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_policy' }
+		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_policy' } && !$self->{ '_is_in_trigger' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
@@ -1000,6 +1023,7 @@ sub beautify {
             $self->{ '_is_in_partition' } = 0;
             $self->{ '_is_in_over' } = 0;
 	    $self->{ '_is_in_policy' } = 0;
+	    $self->{'_is_in_trigger'} = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -1050,6 +1074,10 @@ sub beautify {
                 $self->_back;
                 $self->_new_line;
             }
+	    elsif ($self->_next_token =~ /^EACH$/ and $self->{ '_is_in_trigger' })
+	    {
+                $self->_new_line;
+	    }
             $self->_add_token( $token );
             if ($self->_next_token =~ /^SELECT$/i)
 	    {
@@ -1264,9 +1292,10 @@ sub beautify {
             $self->{ '_is_in_case' }++;
         }
 
-        elsif ( $token =~ /^(?:WHEN)$/i )
+        elsif ( $token =~ /^(?:WHEN)$/i)
 	{
-            $self->_back if (!$self->{ '_first_when_in_case' } and defined $last and uc($last) ne 'CASE');
+            $self->_back if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
+			    and defined $last and uc($last) ne 'CASE');
             $self->_new_line if (not defined $last or uc($last) ne 'CASE');
             $self->_add_token( $token );
             $self->_over;
@@ -1602,6 +1631,7 @@ sub _add_token {
         } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
              $self->{ 'content' } .= $sp if ($last_token ne '::' and !$self->{ '_is_in_partition' }
 		     				and !$self->{ '_is_in_policy' }
+					        and !$self->{ '_is_in_trigger' }
 						and ($last_token ne '(' || !$self->{ '_is_in_index' }));
         } elsif (defined $last_token) {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
