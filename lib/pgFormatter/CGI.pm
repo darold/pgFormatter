@@ -115,6 +115,7 @@ sub set_config {
     $self->{ 'comma' }        = 'end';
     $self->{ 'format' }       = 'html';
     $self->{ 'comma_break' }  = 0;
+    $self->{ 'format_type' }  = 0;
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -154,7 +155,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break format_type) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -194,6 +195,7 @@ sub sanitize_params {
     $self->{ 'separator' }    = '' if ($self->{ 'separator' } eq "'" or length($self->{ 'separator' }) > 6);
     $self->{ 'comma' }        = 'end' if ($self->{ 'comma' } ne 'start');
     $self->{ 'comma_break' }  = 0 if ($self->{ 'comma_break' } !~ /^(0|1)$/);
+    $self->{ 'format_type' }  = 0 if ($self->{ 'format_type' } !~ /^(0|1)$/);
 
     if ( $self->{ 'show_example' } ) {
         $self->{ 'content' } = q{
@@ -225,6 +227,7 @@ sub beautify_query {
     $args{ 'format' }       = $self->{ 'format' };
     $args{ 'colorize' }     = $self->{ 'colorize' };
     $args{ 'comma_break' }  = $self->{ 'comma_break' };
+    $args{ 'format_type' }  = $self->{ 'format_type' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
@@ -262,6 +265,7 @@ sub print_body {
     my $chk_anonymize   = $self->{ 'anonymize' } ? 'checked="checked" ' : '';
     my $chk_comma       = $self->{ 'comma' } eq 'start' ? 'checked="checked" ' : '';
     my $chk_comma_break = $self->{ 'comma_break' } ? 'checked="checked" ' : '';
+    my $chk_format_type  = $self->{ 'format_type' } ? 'checked="checked" ' : '';
 
     my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
     $kw_toggle{ $self->{ 'uc_keyword' } } = ' selected="selected"';
@@ -291,6 +295,9 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_comma_break" name="comma_break" value="1" $chk_comma_break/>
       <label for="id_comma_break">New-line after comma (insert)</label>
+      <br />
+      <input type="checkbox" id="id_format_type" name="format_type" value="0" $chk_format_type/>
+      <label for="id_format_type">Another format type</label>
       </div>
     </fieldset>
       <br />

@@ -102,6 +102,8 @@ Takes options as hash. Following options are recognized:
 
 =item * uc_functions - what to do with function names:
 
+=item * format_type - Try an other formatting
+
 =over
 
 =item 0 - do not change
@@ -133,7 +135,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -158,6 +160,8 @@ sub new {
 
     $self->{ 'format' } //= 'text';
     $self->{ 'colorize' } //= 1;
+
+    $self->{ 'format_type' } //= 0;
 
     return $self;
 }
@@ -873,7 +877,8 @@ sub beautify {
             if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }
 		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
-		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_policy' } && !$self->{ '_is_in_trigger' }
+		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_trigger' }
+		    && !$self->{ '_is_in_policy' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
                     $self->_new_line;
@@ -1073,7 +1078,7 @@ sub beautify {
                 }
             }
         }
-        elsif ($token =~ /^FOR$/i && !$self->{ '_is_in_policy' })
+        elsif ($token =~ /^FOR$/i && (!$self->{ '_is_in_policy' } || $self->{ 'format_type' }))
 	{
             if ($self->_next_token =~ /^(UPDATE|KEY|NO|VALUES)$/i)
 	    {
@@ -1084,12 +1089,25 @@ sub beautify {
 	    {
                 $self->_new_line;
 	    }
-            $self->_add_token( $token );
-            if ($self->_next_token =~ /^SELECT$/i)
+            if (!$self->{ 'format_type' })
 	    {
-                $self->_new_line;
-                $self->_over;
+                $self->_add_token( $token );
+		# cover FOR in cursor
+                $self->_over if (uc($self->_next_token) eq 'SELECT' && !$self->{ '_is_in_policy' } && !$self->{ '_is_in_publication' });
+                $last = $token;
+                next;
+	    }
+            if ($self->_next_token =~ /^SELECT|UPDATE|DELETE|INSERT|TABLE|ALL$/i)
+	    {
+		# cover FOR in cursor and in policy or publication statements
+                $self->_over if (uc($self->_next_token) eq 'SELECT' || $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' });
             }
+            if ($self->{ 'format_type' } && $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' }) {
+		$self->_new_line;
+	    }
+            $self->_add_token( $token );
+            $last = $token;
+            next;
         }
 
         elsif ( $token =~ /^(?:FROM|WHERE|SET|RETURNING|HAVING|VALUES)$/i )
@@ -1216,10 +1234,15 @@ sub beautify {
 
         elsif ( $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
 			and $token =~ /^(?:SELECT|PERFORM|UPDATE|DELETE)$/i
-			and !$self->{ '_is_in_policy' }
+			and (!$self->{ '_is_in_policy' } || $self->{ 'format_type' })
        	)
 	{
             $self->{ 'no_break' } = 0;
+
+	    if ($token =~ /^SELECT|UPDATE|DELETE|INSERT$/i && $self->{ '_is_in_policy' } && $self->{ 'format_type' })
+	    {
+                $self->_over();
+	    }
 
             # case of ON DELETE/UPDATE clause in create table statements
 	    if ($token =~ /^UPDATE|DELETE$/i && $self->{ '_is_in_create' }) {
@@ -1231,7 +1254,7 @@ sub beautify {
 	    {
                 $self->_add_token( $token );
             }
-	    elsif ($token !~ /^DELETE$/i && (!defined $self->_next_token || $self->_next_token !~ /^DISTINCT$/i))
+	    elsif (!$self->{ '_is_in_policy' } && $token !~ /^DELETE$/i && (!defined $self->_next_token || $self->_next_token !~ /^DISTINCT$/i))
 	    {
                 $self->_new_line;
                 $self->_add_token( $token );
@@ -1244,6 +1267,14 @@ sub beautify {
             }
         }
 
+        elsif ( $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
+			and uc($token) eq 'INSERT' 
+			and $self->{ '_is_in_policy' } && $self->{ 'format_type' })
+	{
+                $self->_add_token( $token );
+                $self->_new_line;
+                $self->_over;
+	}
         elsif ( $token =~ /^(?:WITHIN)$/i )
 	{
 		$self->{ '_is_in_within' } = 1;
@@ -1488,8 +1519,7 @@ sub beautify {
             }
         }
 
-	#elsif ($token =~ /^USING$/i and !$self->{ '_is_in_policy' } and (not defined $last || uc($last) ne 'EXCLUDE'))
-        elsif ($token =~ /^USING$/i and !$self->{ '_is_in_policy' })
+        elsif ($token =~ /^USING$/i and (!$self->{ '_is_in_policy' } || $self->{ 'format_type' }))
 	{
 	    $self->{ '_is_in_using' } = 1;
             if (!$self->{ '_is_in_from' })
@@ -2088,6 +2118,7 @@ Currently defined defaults:
 
 =item colorize => 1
 
+=item format_type => 0
 =back
 
 =cut
@@ -2113,6 +2144,7 @@ sub set_defaults {
     $self->{ 'comma' }        = 'end';
     $self->{ 'format' }       = 'text';
     $self->{ 'colorize' }     = 1;
+    $self->{ 'format_type' }  = 0;
 
     return;
 }

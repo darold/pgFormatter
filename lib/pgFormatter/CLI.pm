@@ -90,6 +90,7 @@ sub beautify {
     $args{ 'comma_break' }  = $self->{ 'cfg' }->{ 'comma-break' };
     $args{ 'format' }       = $self->{ 'cfg' }->{ 'format' };
     $args{ 'maxlength' }    = $self->{ 'cfg' }->{ 'maxlength' };
+    $args{ 'format_type' }  = $self->{ 'cfg' }->{ 'format-type' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -184,6 +185,7 @@ Options:
     -p | --placeholder re : set regex to find code that must not be changed.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
+    -t | --format-type    : try another formatting type for some statements.
     -u | --keyword-case N : Change the case of the reserved keyword. Default is
                             uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
@@ -245,6 +247,7 @@ sub get_command_line_args {
         'placeholder|p=s',
         'separator|S=s',
         'spaces|s=i',
+        'format-type|t!',
         'keyword-case|u=i',
         'version|v!',
     );
@@ -266,6 +269,7 @@ sub get_command_line_args {
     $cfg{ 'format' }        //= 'text';
     $cfg{ 'comma-break' }   //= 0;
     $cfg{ 'maxlength' }     //= 0;
+    $cfg{ 'format_type' }   //= 0;
 
     if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
         printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
