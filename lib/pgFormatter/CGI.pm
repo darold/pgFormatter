@@ -227,7 +227,7 @@ sub beautify_query {
     $args{ 'format' }       = $self->{ 'format' };
     $args{ 'colorize' }     = $self->{ 'colorize' };
     $args{ 'comma_break' }  = $self->{ 'comma_break' };
-    $args{ 'format_type' }  = $self->{ 'format_type' };
+    $args{ 'format_type' }  = 1 if ($self->{ 'format_type' });
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
@@ -296,7 +296,7 @@ sub print_body {
       <input type="checkbox" id="id_comma_break" name="comma_break" value="1" $chk_comma_break/>
       <label for="id_comma_break">New-line after comma (insert)</label>
       <br />
-      <input type="checkbox" id="id_format_type" name="format_type" value="0" $chk_format_type/>
+      <input type="checkbox" id="id_format_type" name="format_type" value="1" $chk_format_type/>
       <label for="id_format_type">Another format type</label>
       </div>
     </fieldset>
