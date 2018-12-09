@@ -22,7 +22,7 @@ DESCRIPTION
         file.sql can be a file or use - to read query from stdin.
 
         Returning the SQL formatted to stdout or into a file specified with
-        the -o | --output option.
+        the -o | --ouput option.
 
     Options:
 
@@ -44,6 +44,7 @@ DESCRIPTION
         -p | --placeholder re : set regex to find code that must not be changed.
         -s | --spaces size    : change space indent, default 4 spaces.
         -S | --separator STR  : dynamic code separator, default to single quote.
+        -t | --format-type    : try another formatting type for some statements.
         -u | --keyword-case N : Change the case of the reserved keyword. Default is
                                 uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                                 2=>uppercase, 3=>capitalize.
@@ -147,6 +148,14 @@ HINTS
     the sources are available at https://github.com/gajus/pg-formatter
 
     Thanks to Alex Fedoseev for the atom package.
+
+  Formatting from Visual Studio
+    Thanks to Brady Holt a Visual Studio Code extension is available to
+    formats PostgresSQL SQL using pgFormatter.
+
+            https://marketplace.visualstudio.com/items?itemName=bradymholt.pgformatter
+
+    For installation and use have a look at URL above.
 
   Prevent replacing code snippets
     Using -p or --placeholder command line option it is possible to keep
