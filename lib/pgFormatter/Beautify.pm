@@ -617,7 +617,7 @@ sub beautify {
         # after a comma in the parameter, declare or column lists.
         ####
         if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION)$/i) {
-            $self->{ '_is_in_create' } = 1;
+		$self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
             $self->{ '_is_in_type' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^PUBLICATION$/i) {
@@ -665,6 +665,9 @@ sub beautify {
             $self->{ '_is_in_index' } = 0;
 	    $self->{ '_is_in_block' } = 1 if ($self->{ '_is_in_procedure' });
         }
+	if ($token =~ /^BEGIN|DECLARE$/i) {
+            $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
+	}
     
         ####
         # Mark statements that use string_agg() or group_concat() function
@@ -894,6 +897,14 @@ sub beautify {
                     next;
                 }
             }
+	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
+		    && $self->{ '_is_in_create' } == 2
+		    && (not defined $self->_next_token or $self->_next_token ne ')')
+	    ) {
+                $self->_over if ($self->{ '_is_in_block' } < 0);
+                $self->_new_line;
+                next;
+	    }
         }
 
         elsif ( $token eq ')' )
@@ -908,6 +919,12 @@ sub beautify {
                 $self->_add_token( $token );
                 next;
             }
+	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
+		    && $self->{ '_is_in_create' } == 2
+	    ) {
+                $self->_back if ($self->{ '_is_in_block' } < 0);
+                $self->_new_line if (defined $last && $last ne '(');
+	    }
             if ($self->{ '_is_in_index' } || $self->{ '_is_in_alter' }
 		    || $self->{ '_is_in_partition' } || $self->{ '_is_in_policy' }
 		    || (defined $self->_next_token and $self->_next_token =~ /^OVER$/i)
@@ -916,6 +933,7 @@ sub beautify {
                 $self->_add_token( $token );
 		$self->{ '_is_in_over' } = 0 if (!$self->{ '_parenthesis_level' });
                 $last = $token;
+                $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
                 next;
             }
 	    if (defined $self->_next_token && $self->_next_token !~ /FILTER/i) {
@@ -1000,6 +1018,9 @@ sub beautify {
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
                 $add_newline = 1;
             }
+	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i && $self->{ '_is_in_create' } == 2) {
+                $add_newline = 1;
+	    }
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
             $self->_new_line if ($add_newline && $self->{ 'comma' } eq 'end');
