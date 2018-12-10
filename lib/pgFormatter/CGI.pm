@@ -297,7 +297,7 @@ sub print_body {
       <label for="id_comma_break">New-line after comma (insert)</label>
       <br />
       <input type="checkbox" id="id_format_type" name="format_type" value="1" $chk_format_type/>
-      <label for="id_format_type">Another format type</label>
+      <label for="id_format_type">Alternate formatting</label>
       </div>
     </fieldset>
       <br />
