@@ -721,6 +721,13 @@ sub beautify {
             $last = $token;
             next;
         }
+        elsif ($token =~ /^DO$/i and !$self->{ '_fct_code_delimiter' } and $self->_next_token =~ /^\$[^\s]*/)
+	{
+                $self->{ '_fct_code_delimiter' } = '1';
+                $self->_add_token( $token );
+                $last = $token;
+                next;
+	}
 
         # Store function code delimiter
         if ($self->{ '_fct_code_delimiter' } eq '1')
