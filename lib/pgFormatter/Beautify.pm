@@ -601,7 +601,7 @@ sub beautify {
         ####
         # Set the current kind of statement parsed
         ####
-        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT)$/i) {
+        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP)$/i) {
 
             my $k_stmt = uc($1);
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
@@ -624,6 +624,8 @@ sub beautify {
             $self->{ '_is_in_publication' } = 1;
         } elsif ($token =~ /^ALTER$/i){
             $self->{ '_is_in_alter' } = 1;
+        } elsif ($token =~ /^DROP$/i){
+            $self->{ '_is_in_drop' } = 1;
         }
 
 	####
@@ -1367,10 +1369,10 @@ sub beautify {
             $self->{ '_first_when_in_case' } = 0;
         }
 
-        elsif ( $token =~ /^(?:IF|LOOP)$/i )
+        elsif ( $token =~ /^(?:IF|LOOP)$/i && $self->{ '_current_sql_stmt' } ne 'GRANT')
 	{
             $self->_add_token( $token );
-            if (defined $self->_next_token and $self->_next_token ne ';')
+            if (defined $self->_next_token and $self->_next_token !~ /EXISTS|;/i)
 	    {
                 $self->_new_line if ($token =~ /^LOOP$/i);
                 $self->_over;
