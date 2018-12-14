@@ -2270,7 +2270,7 @@ sub set_dicts {
     }
 
     my @pg_functions = map { lc } qw(
-        ascii age bit_length btrim cast char_length character_length coalesce convert chr current_date current_time current_timestamp
+        ascii age bit_length btrim cast char_length character_length coalesce concat convert chr current_date current_time current_timestamp
         count decode date_part date_trunc encode extract get_byte get_bit initcap isfinite interval justify_hours justify_days
         lower length lpad ltrim localtime localtimestamp md5 now octet_length overlay position pg_client_encoding
         quote_ident quote_literal repeat replace rpad rtrim substring split_part strpos substr set_byte set_bit
@@ -2283,7 +2283,7 @@ sub set_dicts {
         anytextcat area areajoinsel areasel armor array_agg array_agg_finalfn
         array_agg_transfn array_append array_cat array_dims array_eq array_fill array_ge
         array_gt array_in array_larger array_le array_length array_lower array_lt
-        array_ndims array_ne array_out array_prepend array_recv array_send array_smaller
+        array_ndims array_ne array_out array_prepend array_recv array_remove array_replace array_send array_smaller
         array_to_json array_to_string array_typanalyze array_upper arraycontained arraycontains arraycontjoinsel
         arraycontsel arrayoverlap ascii_to_mic ascii_to_utf8 asin atan atan2
         avg big5_to_euc_tw big5_to_mic big5_to_utf8 bit bit_and bit_in
