@@ -72,6 +72,14 @@ DESCRIPTION
     environment and will output all html code needed to run an online code
     formatter site. There's nothing more to do.
 
+    You need to install Perl CGI module first if it is not already the case:
+
+            yum install perl-cgi
+    or
+            apt-get install libcgi-pm-perl
+
+    following your distribution.
+
 INSTALLATION
     Download the tarball from github and unpack the archive as follow:
 
