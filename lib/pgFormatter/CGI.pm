@@ -163,16 +163,23 @@ sub get_params {
     return unless $filename;
 
     my $type = $cgi->uploadInfo( $filename )->{ 'Content-Type' };
-    if ( $type eq 'text/plain' || $type eq 'text/x-sql' || $type eq 'application/sql') {
+    if ( $type eq 'text/plain' || $type eq 'text/x-sql' || $type eq 'application/sql' || $type eq 'application/octet-stream') {
         local $/ = undef;
         my $fh = $cgi->upload( 'filetoload' );
-	binmode $fh;
-        $self->{ 'content' } = <$fh>; 
+	my $tmpfilename = $cgi->tmpFileName( $fh );
+	if (!-T $tmpfilename) {
+		$self->{ 'colorize' }   = 0;
+		$self->{ 'uc_keyword' } = 0;
+		$self->{ 'content' }    = "FATAL: Only text files are supported! Found content-type: $type";
+	} else {
+		binmode $fh;
+		$self->{ 'content' } = <$fh>; 
+	}
     }
     else {
         $self->{ 'colorize' }   = 0;
         $self->{ 'uc_keyword' } = 0;
-        $self->{ 'content' }    = "FATAL: Only text/plain files are supported! Found $type";
+        $self->{ 'content' }    = "FATAL: Only text files are supported! Found content-type: $type";
     }
 
     return;
