@@ -75,7 +75,7 @@ FROM (
             END AS column7,
         FROM (
             SELECT
-                integer (substr(onelibrarysales.column1, 11, 10)) AS column1,
+                integer(substr(onelibrarysales.column1, 11, 10)) AS column1,
                 substr(onelibrarysales.column2, 21, 10) AS column2,
                 onelibrarysales.column3,
                 onelibrarysales.column4,
