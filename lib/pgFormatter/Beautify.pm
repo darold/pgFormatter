@@ -1025,6 +1025,7 @@ sub beautify {
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\s*\-\-)/i
                                && !$self->{ '_parenthesis_function_level' }
+                               || $self->{ '_is_in_with' }
                     );
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
