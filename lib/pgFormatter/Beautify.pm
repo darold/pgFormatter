@@ -1524,26 +1524,12 @@ sub beautify {
             $self->_add_token( $token );
         }
 
-        elsif ( $token =~ /^--/ )
-	{
-            if ( !$self->{ 'no_comments' } )
-	    {
-                $self->_add_token( $token );
-                $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
-                $self->_new_line;
-                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
-            }
-	    else
-	    {
-                $self->_new_line;
-            }
-        }
-
         elsif ( $token =~ /^\/\*.*\*\/$/s )
 	{
             if ( !$self->{ 'no_comments' } )
 	    {
                 $token =~ s/\n[\s\t]+\*/\n\*/gs;
+		$self->_new_line, $self->_add_token('') if (defined $last and $last eq ';');
                 $self->_new_line;
                 $self->_add_token( $token );
                 $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
@@ -1615,21 +1601,25 @@ sub beautify {
         else
 	{
 	    # special case with comment
-	     if ($token =~ /(?:\s*--)[\ \t\S]*/)
+	     if ($token =~ /(?:\s*--)[\ \t\S]*/s)
 	     {
-		 $token =~ s/^(\s*)(--.*)/$2/;
+		 $token =~ s/^(\s*)(--.*)/$2/s;
 		 my $start = $1;
-		 if ($start =~ /\n/) {
+		 if ($start =~ /\n/s) {
+                     $self->_new_line, $self->_add_token('') if (defined $last and $last eq ';' and $self->{ 'content' } !~ /\n$/s);
 		     $self->_new_line;
 		 }
-		 $token =~ s/\s*$//;
+		 $token =~ s/\s+$//s;
+		 $token =~ s/^\s+//s;
                  $self->_add_token( $token );
                  $self->_new_line if ($start);
 		 # Add extra newline after the last comment if we are not in a block or a statement
 		 if (defined $self->_next_token and $self->_next_token !~ /^\s*--/) {
                      $self->{ 'content' } .= "\n" if ($self->{ '_is_in_block' } == -1
 				     and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' }
-		                     and !$self->{ '_current_sql_stmt' });
+		                     and !$self->{ '_current_sql_stmt' }
+			     	     and defined $last and $self->_is_comment($last)
+		     		);
 		 }
                  $last = $token;
 		 next;

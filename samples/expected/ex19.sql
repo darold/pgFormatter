@@ -32,6 +32,7 @@ BEGIN
         END IF;
         pk_col_ary = array_append(pk_col_ary, quote_ident(pkc.attname));
     END LOOP;
+
     /*
      * This is the function header.  It's basically a constant string, with the
      * table name replaced a couple of times and the primary key columns replaced
@@ -55,6 +56,7 @@ BEGIN
 
           -- make sure each column is detoasted and reported separately
 $f$;
+
     /* We now need one exception block per toastable column */
     indent = '          ';
     FOR attrecord IN
@@ -74,10 +76,12 @@ $f$;
                 detoast_funcname = 'length';
             END IF;
             func := func || indent || $f$  SELECT $f$ || detoast_funcname || $f$(f.$f$ || quote_ident(attrecord.attname) || E') INTO l;\n';
+
             /* The interesting part here needs some replacement of the PK columns */
             func := func || indent || $f$EXCEPTION WHEN OTHERS THEN
 	    RAISE NOTICE 'TID %$f$ || pkformat || $f$, column "$f$ || attrecord.attname || $f$": exception {{%}}',
 			     rec.ctid, $f$;
+
             /* This iterates zero times if there are no PK columns */
             FOR colrec IN
             SELECT
@@ -91,6 +95,7 @@ $f$;
             func := func || E'sqlerrm;\n';
             func := func || indent || E'END;\n';
         END LOOP;
+
     /* And this is our constant footer */
     func := func || $f$ 
        END;
