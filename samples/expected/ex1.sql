@@ -38,7 +38,7 @@ SELECT
 FROM (
     SELECT
         store.column1,
-        CAST(store.column2 AS integer) AS column2, -- inline comment
+        cast(store.column2 AS integer) AS column2, -- inline comment
         store.columnwe34r3 AS column3, -- inline comment
         store.column4_prod AS column4, -- inline comment
         store.column5_pre_prod_first AS column5, -- inline comment

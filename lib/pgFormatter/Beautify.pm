@@ -286,8 +286,8 @@ sub highlight_code
         }
     }
 
-    # lowercase/uppercase keywords
-    if ( $self->_is_keyword( $token ) ) {
+    # lowercase/uppercase keywords taking care of function with same name
+    if ( $self->_is_keyword( $token ) && (!$self->_is_function( $token ) || $next_token ne '(') ) {
         if ( $self->{ 'uc_keywords' } == 1 ) {
             $token = '<span class="kw1_l">' . $token . '</span>';
         } elsif ( $self->{ 'uc_keywords' } == 2 ) {
@@ -300,8 +300,11 @@ sub highlight_code
         return $token;
     }
 
-    # lowercase/uppercase known functions or words followed by an open parenthesis if the token is not an open parenthesis
-    if ($self->_is_function( $token ) || (!$self->_is_keyword( $token ) && $next_token eq '(' && $token ne '(' && !$self->_is_comment( $token )) ) {
+    # lowercase/uppercase known functions or words followed by an open parenthesis
+    # if the token is not a keyword, an open parenthesis or a comment
+    if (($self->_is_function( $token ) && $next_token eq '(')
+	    || (!$self->_is_keyword( $token ) && !$next_token eq '('
+		    && $token ne '(' && !$self->_is_comment( $token )) ) {
         if ($self->{ 'uc_functions' } == 1) {
             $token = '<span class="kw2_l">' . $token . '</span>';
         } elsif ($self->{ 'uc_functions' } == 2) {
@@ -1721,24 +1724,33 @@ sub _add_token {
         }
     }
 
-    #lowercase/uppercase keywords
-    if ( $self->{ 'uc_keywords' } && $self->_is_keyword( $token ) ) {
+    my $next_token = $self->_next_token || '';
+
+    # lowercase/uppercase keywords taking care of function with same name
+    if ($self->_is_keyword( $token ) && (!$self->_is_function( $token ) || $next_token ne '(') ) {
         $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
         $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );
         $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_keywords' } == 3 );
     }
+    else
+    {
 
-    # lowercase/uppercase functions
-    if ( $self->{ 'uc_functions' } && ( my $fct = $self->_is_function( $token ) ) ) {
-        $token =~ s/$fct/\L$fct\E/i if ( $self->{ 'uc_functions' } == 1 );
-        $token =~ s/$fct/\U$fct\E/i if ( $self->{ 'uc_functions' } == 2 );
-        $fct = ucfirst( lc( $fct ) );
-        $token =~ s/$fct/$fct/i if ( $self->{ 'uc_functions' } == 3 );
+        # lowercase/uppercase known functions or words followed by an open parenthesis
+        # if the token is not a keyword, an open parenthesis or a comment
+        my $fct = $self->_is_function( $token ) || '';
+        if (($fct && $next_token eq '(')
+		    || (!$self->_is_keyword( $token ) && !$next_token eq '('
+			    && $token ne '(' && !$self->_is_comment( $token )) ) {
+            $token =~ s/$fct/\L$fct\E/i if ( $self->{ 'uc_functions' } == 1 );
+            $token =~ s/$fct/\U$fct\E/i if ( $self->{ 'uc_functions' } == 2 );
+            $fct = ucfirst( lc( $fct ) );
+            $token =~ s/$fct/$fct/i if ( $self->{ 'uc_functions' } == 3 );
+        }
     }
 
     # Add formatting for HTML output
     if ( $self->{ 'colorize' } && $self->{ 'format' } eq 'html' ) {
-        $token = $self->highlight_code($token, $last_token, $self->_next_token);
+        $token = $self->highlight_code($token, $last_token, $next_token);
     }
 
     $self->{ 'content' } .= $token;
