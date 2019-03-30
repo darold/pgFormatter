@@ -906,7 +906,7 @@ sub beautify {
                     $self->_new_line;
                     next;
                 }
-                $self->_over if (!$self->{ '_is_in_if' });
+		$self->_over if (!$self->{ '_is_in_if' });
                 if ($self->{ '_is_in_type' } == 1) {
                     $last = $token;
                     next;
@@ -1371,11 +1371,14 @@ sub beautify {
 
         elsif ( $token =~ /^(?:WHEN)$/i)
 	{
-            $self->_back if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
-			    and defined $last and uc($last) ne 'CASE');
+		#$self->_back if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
+            if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
+			    and defined $last and uc($last) ne 'CASE') {
+		$self->{ '_level' } = $self->{ '_level_stack' }[-1];
+	    }
             $self->_new_line if (not defined $last or uc($last) ne 'CASE');
             $self->_add_token( $token );
-            $self->_over;
+            $self->_over if (!$self->{ '_is_in_case' });
             $self->{ '_first_when_in_case' } = 0;
         }
 
@@ -1398,6 +1401,9 @@ sub beautify {
             $self->_add_token( $token );
             $self->_new_line;
 	    $self->{ '_level' } = $self->{ '_level_stack' }[-1] if ($self->{ '_is_in_if' });
+	    if ($self->{ '_is_in_case' } && defined $self->_next_token() and $self->_next_token() !~ /^(\(|RAISE)$/i) {
+	        $self->_over;
+	    }
             $self->{ '_is_in_if' } = 0;
         }
 
@@ -1417,6 +1423,7 @@ sub beautify {
 	    {
                 $self->{ '_is_in_case' }--;
                 $self->_back;
+		$self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
             }
             # When we are not in a function code block (0 is the main begin/end block of a function)
             elsif ($self->{ '_is_in_block' } == -1)
