@@ -906,7 +906,7 @@ sub beautify {
                     $self->_new_line;
                     next;
                 }
-                $self->_over;
+                $self->_over if (!$self->{ '_is_in_if' });
                 if ($self->{ '_is_in_type' } == 1) {
                     $last = $token;
                     next;
@@ -1335,7 +1335,10 @@ sub beautify {
             } else {
                 $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
             }
-            $self->_new_line;
+	    if (uc($token) ne 'EXCEPTION' or not defined $last or uc($last) ne 'RAISE')
+	    {
+                $self->_new_line;
+            }
             $self->_add_token( $token );
             # Store current indent position to print END at the right level
             if ($token =~ /^EXCEPTION$/i)
@@ -1394,6 +1397,7 @@ sub beautify {
 	{
             $self->_add_token( $token );
             $self->_new_line;
+	    $self->{ '_level' } = $self->{ '_level_stack' }[-1] if ($self->{ '_is_in_if' });
             $self->{ '_is_in_if' } = 0;
         }
 
