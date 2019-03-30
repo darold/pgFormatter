@@ -3,12 +3,11 @@ CREATE OR REPLACE FUNCTION foo ()
     AS $$
 BEGIN
     IF NEW.role NOT IN (
-            SELECT
-                rolname
-            FROM
-                pg_authid) THEN
-            RAISE
-        EXCEPTION 'role % does not exist.', NEW.role;
+        SELECT
+            rolname
+        FROM
+            pg_authid) THEN
+        RAISE EXCEPTION 'role % does not exist.', NEW.role;
     END IF;
 END;
 $$
@@ -57,13 +56,13 @@ CREATE FUNCTION dup (integer, OUT f1 integer, OUT f2 text)
 $_$;
 
 CREATE TABLE IF NOT EXISTS foo (
-        id bigint PRIMARY KEY,
-        /*
-         This text will receive an extra level of indentation
-         every time pg_format is executed
-         */
-        bar text NOT NULL
-        /* this is the end*/
+    id bigint PRIMARY KEY,
+    /*
+     This text will receive an extra level of indentation
+     every time pg_format is executed
+     */
+    bar text NOT NULL
+    /* this is the end*/
 );
 
 COMMENT ON TABLE xx.yy IS 'Line 1
@@ -71,17 +70,17 @@ COMMENT ON TABLE xx.yy IS 'Line 1
 - Line 3';
 
 CREATE TABLE IF NOT EXISTS foo (
-        /*******************************************************
-         * This text will receive an extra level of indentation *
-         * every time pg_format is executed                     *
-         ********************************************************/
-        id bigint PRIMARY KEY,
-        /*
-         This text will receive an extra level of indentation
-         every time pg_format is executed
-         */
-        bar text NOT NULL
-        /* this is the end*/
+    /*******************************************************
+     * This text will receive an extra level of indentation *
+     * every time pg_format is executed                     *
+     ********************************************************/
+    id bigint PRIMARY KEY,
+    /*
+     This text will receive an extra level of indentation
+     every time pg_format is executed
+     */
+    bar text NOT NULL
+    /* this is the end*/
 );
 
 ALTER TABLE app_public.users ENABLE ROW LEVEL SECURITY;
