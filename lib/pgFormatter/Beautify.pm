@@ -1561,7 +1561,7 @@ sub beautify {
 	    $self->{ '_is_in_using' } = 1;
             if (!$self->{ '_is_in_from' })
 	    {
-                $self->_new_line;
+                $self->_new_line if (!defined $last or uc($last) ne 'EXCLUDE');
             }
 	    else
 	    {
@@ -1574,6 +1574,8 @@ sub beautify {
 
 	elsif ($token =~ /^EXCLUDE$/i)
 	{
+            $self->_new_line if (!defined $last or uc($last) ne 'ADD');
+            $self->_add_token( $token );
 	    $self->{ '_is_in_using' } = 1;
         }
 
