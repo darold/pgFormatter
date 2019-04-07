@@ -135,9 +135,12 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type) ) {
+    for my $key ( qw( query spaces space break wrap keywords rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
+
+    # Special case
+    $self->{ 'functions' } = [_compileRegExp($options{ 'functions' })] if defined $options{ 'functions' };
 
     # Make sure "break" is sensible
     $self->{ 'break' } = ' ' if $self->{ 'spaces' } == 0;
@@ -1902,9 +1905,9 @@ Code lifted from SQL::Beautify
 sub _is_function {
     my ( $self, $token ) = @_;
 
-    my @ret = grep( $token =~ /\b[\.]*$_$/i, @{ $self->{ 'functions' } } );
+    my @ret = grep( $token =~ $_->[0], @{ $self->{ 'functions' } } );
 
-    return $ret[ 0 ];
+    return (@ret) ? $ret[ 0 ][ 1 ] : undef;
 }
 
 =head2 add_keywords
@@ -1931,11 +1934,16 @@ Code lifted from SQL::Beautify
 
 =cut
 
+sub _compileRegExp {
+    die("_compileRegExp wants array") unless( wantarray );
+    return map { [qr/\b[\.]*$_$/i, $_] } (ref($_[0])) ? @{$_[0]} : @_;
+}
+
 sub add_functions {
     my $self = shift;
 
     for my $function ( @_ ) {
-        push @{ $self->{ 'functions' } }, ref( $function ) ? @{ $function } : $function;
+        push @{ $self->{ 'functions' } }, _compileRegExp( ref( $function ) ? @{ $function } : $function );
     }
 }
 
@@ -2186,7 +2194,7 @@ sub set_defaults {
     $self->{ 'no_comments' }  = 0;
     $self->{ 'placeholder' }  = '';
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
-    $self->{ 'functions' }    = $self->{ 'dict' }->{ 'pg_functions' };
+    $self->{ 'functions' }    = [_compileRegExp($self->{ 'dict' }->{ 'pg_functions' })];
     $self->{ 'separator' }    = '';
     $self->{ 'comma' }        = 'end';
     $self->{ 'format' }       = 'text';
