@@ -11,3 +11,5 @@ CREATE TABLE circles (
 ALTER TABLE ONLY public.circles
     ADD CONSTRAINT circles_c_excl EXCLUDE USING gist (c WITH &&);
 
+ALTER TABLE truck ADD EXCLUDE
+    USING gist (id WITH =, system_period WITH &&);
