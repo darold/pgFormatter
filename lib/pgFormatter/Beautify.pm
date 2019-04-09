@@ -494,6 +494,7 @@ sub beautify {
     $self->{ '_is_in_over' } = 0;
     $self->{ '_is_in_policy' } = 0;
     $self->{ '_is_in_using' } = 0;
+    $self->{ '_and_level' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -1075,6 +1076,7 @@ sub beautify {
 	    $self->{ '_is_in_policy' } = 0;
 	    $self->{'_is_in_trigger'} = 0;
 	    $self->{'_is_in_using'} = 0;
+	    $self->{'_and_level'} = 0;
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -1187,6 +1189,7 @@ sub beautify {
 	    {
                 $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' } && !$self->{ '_is_in_partition' });
             }
+
             if ($token =~ /^WHERE$/i && !$self->{ '_is_in_filter' })
 	    {
                 $self->_back() if ($self->{ '_has_over_in_join' });
@@ -1241,7 +1244,7 @@ sub beautify {
 	        }
             }
 	    if (uc($token) eq 'WHERE') {
-                $self->_add_token( $token, $last );
+		$self->_add_token( $token, $last );
             } else {
                 $self->_add_token( $token );
             }
@@ -1538,8 +1541,12 @@ sub beautify {
 			    and (!$last or $last !~ /^(?:CREATE)$/i) )
 	    {
                 $self->_new_line;
+
+		$self->_over if (!$self->{'_and_level'} and !$self->{ '_level' });
+		$self->_over if ($self->{'_and_level'} and !$self->{ '_level' } and uc($token) eq 'OR');
             }
             $self->_add_token( $token );
+	    $self->{'_and_level'}++;
         }
 
         elsif ( $token =~ /^\/\*.*\*\/$/s )
