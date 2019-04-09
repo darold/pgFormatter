@@ -135,12 +135,11 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
-    # Special case
-    $self->{ 'functions' } = [_compileRegExp($options{ 'functions' })] if defined $options{ 'functions' };
+    $self->_refresh_functions_re();
 
     # Make sure "break" is sensible
     $self->{ 'break' } = ' ' if $self->{ 'spaces' } == 0;
@@ -1907,16 +1906,18 @@ sub _is_comment {
 
 Check if a token is a known SQL function.
 
-Code lifted from SQL::Beautify
+Code lifted from SQL::Beautify and rewritten to check one long regexp instead of a lot of small ones.
 
 =cut
 
 sub _is_function {
     my ( $self, $token ) = @_;
 
-    my @ret = grep( $token =~ $_->[0], @{ $self->{ 'functions' } } );
-
-    return (@ret) ? $ret[ 0 ][ 1 ] : undef;
+    if ( $token =~ $self->{ 'functions_re' } ) {
+        return $1;
+    } else {
+        return undef;
+    }
 }
 
 =head2 add_keywords
@@ -1935,6 +1936,38 @@ sub add_keywords {
     }
 }
 
+=head2 _re_from_list
+
+Create compiled regexp from prefix, suffix and and a list of values to match.
+
+=cut
+
+sub _re_from_list {
+    my $prefix = shift;
+    my $suffix = shift;
+    my (@joined_list, $ret_re);
+
+    for my $list_item ( @_ ) {
+        push @joined_list, ref( $list_item ) ? @{ $list_item } : $list_item;
+    }
+
+    $ret_re = "$prefix(" . join('|', @joined_list) . ")$suffix";
+
+    return qr/$ret_re/i;
+}
+
+=head2 _refresh_functions_re
+
+Refresh compiled regexp for functions.
+
+=cut
+
+sub _refresh_functions_re {
+    my $self = shift;
+
+    $self->{ 'functions_re' } = _re_from_list( '\b[\.]*', '$', $self->{ 'functions' } );
+}
+
 =head2 add_functions
 
 Add new functions to highlight.
@@ -1943,17 +1976,14 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _compileRegExp {
-    die("_compileRegExp wants array") unless( wantarray );
-    return map { [qr/\b[\.]*$_$/i, $_] } (ref($_[0])) ? @{$_[0]} : @_;
-}
-
 sub add_functions {
     my $self = shift;
 
     for my $function ( @_ ) {
-        push @{ $self->{ 'functions' } }, _compileRegExp( ref( $function ) ? @{ $function } : $function );
+        push @{ $self->{ 'functions' } }, ref( $function ) ? @{ $function } : $function;
     }
+
+    $self->_refresh_functions_re();
 }
 
 =head2 add_rule
@@ -2203,7 +2233,8 @@ sub set_defaults {
     $self->{ 'no_comments' }  = 0;
     $self->{ 'placeholder' }  = '';
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
-    $self->{ 'functions' }    = [_compileRegExp($self->{ 'dict' }->{ 'pg_functions' })];
+    $self->{ 'functions' }    = $self->{ 'dict' }->{ 'pg_functions' };
+    $self->_refresh_functions_re();
     $self->{ 'separator' }    = '';
     $self->{ 'comma' }        = 'end';
     $self->{ 'format' }       = 'text';
