@@ -1205,7 +1205,7 @@ sub beautify {
             if ($token =~ /^SET$/i and $self->{ '_is_in_create' })
 	    {
                 # Add newline before SET statement in function header
-                $self->_new_line;
+                $self->_new_line if (not defined $last or $last !~ /DELETE|UPDATE/i);
             }
 	    elsif ($token =~ /^WHERE$/i and $self->{ '_current_sql_stmt' } eq 'DELETE')
 	    {
