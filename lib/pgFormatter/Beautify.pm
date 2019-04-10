@@ -416,7 +416,7 @@ sub tokenize_sql {
                 |
                 /\*[\ \t\r\n\S]*?\*/      # C style comments
                 |
-                (?:[\w:@]+(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
+                (?:[\w:\@]+[\$]*[\w:\@]*(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
                 |
                 (?:\$\w+\$)
                 |
