@@ -5,6 +5,8 @@ use warnings;
 use warnings qw( FATAL );
 use Encode qw( decode );
 
+use Text::Wrap;
+
 # PostgreSQL functions that use a FROM clause
 our @have_from_clause = qw( extract overlay substring trim );
 
@@ -47,6 +49,11 @@ Example usage:
     $beautifier->anonymize();
     $beautifier->beautify();
     my $nice_anonymized_html = $beautifier->content();
+
+    $beautifier->format();
+    $beautifier->beautify();
+    $beautifier->wrap_lines()
+    my $wrapped_txt = $beautifier->content();
 
 =head1 FUNCTIONS
 
@@ -104,6 +111,8 @@ Takes options as hash. Following options are recognized:
 
 =item * format_type - Try an other formatting
 
+=item * wrap_limit - wrap queries at a certain length
+
 =over
 
 =item 0 - do not change
@@ -135,7 +144,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type wrap_limit) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -164,6 +173,7 @@ sub new {
     $self->{ 'colorize' } //= 1;
 
     $self->{ 'format_type' } //= 0;
+    $self->{ 'wrap_limit' } //= 0;
 
     return $self;
 }
@@ -498,7 +508,8 @@ sub beautify {
     my $last = '';
     my @token_array = $self->tokenize_sql();
 
-    while ( defined( my $token = $self->_token ) ) {
+    while ( defined( my $token = $self->_token ) )
+    {
         my $rule = $self->_get_rule( $token );
 
 	# Replace concat operator found in some SGBD into || for normalization
@@ -2213,6 +2224,9 @@ Currently defined defaults:
 =item colorize => 1
 
 =item format_type => 0
+
+=item wrap_limit => 0
+
 =back
 
 =cut
@@ -2240,6 +2254,7 @@ sub set_defaults {
     $self->{ 'format' }       = 'text';
     $self->{ 'colorize' }     = 1;
     $self->{ 'format_type' }  = 0;
+    $self->{ 'wrap_limit' }   = 0;
 
     return;
 }
@@ -2715,32 +2730,32 @@ sub _restore_dynamic_code
 
 }
 
-=head2 _remove_comments (OBSOLETE)
+=head2 _remove_comments
 
 Internal function used to remove comments in SQL code
-to simplify the work of the parser. Comments are restored
-with the _restore_comments() method.
+to simplify the work of the wrap_lines. Comments must be
+restored with the _restore_comments() method.
 
 =cut
 
 sub _remove_comments
 {
-    my ($self, $content) = @_;
+    my $self = shift;
 
     my $idx = 0;
 
-    while ($$content =~ s/(\/\*(.*?)\*\/)/PGF_COMMENT${idx}A/s) {
+    while ($self->{ 'content' } =~ s/(\/\*(.*?)\*\/)/PGF_COMMENT${idx}A/s) {
         $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
         $idx++;
     }
 
-    my @lines = split(/\n/, $$content);
+    my @lines = split(/\n/, $self->{ 'content' });
     for (my $j = 0; $j <= $#lines; $j++) {
         $lines[$j] //= '';
         # Extract multiline comments as a single placeholder
         my $old_j = $j;
         my $cmt = '';
-        while ($lines[$j] =~ /^(\s*\-\-.*)$/) {
+        while ($j <= $#lines && $lines[$j] =~ /^(\s*\-\-.*)$/) {
             $cmt .= "$1\n";
             $j++;
         }
@@ -2772,10 +2787,10 @@ sub _remove_comments
             $idx++;
         }
     }
-    $$content = join("\n", @lines);
+    $self->{ 'content' } = join("\n", @lines);
 
     # Replace subsequent comment by a single one
-    while ($$content =~ s/(PGF_COMMENT\d+A\s*PGF_COMMENT\d+A)/PGF_COMMENT${idx}A/s) {
+    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A\s*PGF_COMMENT\d+A)/PGF_COMMENT${idx}A/s) {
         $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
         $idx++;
     }
@@ -2790,11 +2805,49 @@ that was removed by the _remove_comments() method.
 
 sub _restore_comments
 {
-    my ($self, $content) = @_;
+    my $self = shift;
 
-    while ($$content =~ s/(PGF_COMMENT\d+A)[\n]*/$self->{'comments'}{$1}\n/s) { delete $self->{'comments'}{$1}; };
+    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A)[\n]*/$self->{'comments'}{$1}\n/s) { delete $self->{'comments'}{$1}; };
 }
 
+=head2 wrap_lines
+
+Internal function used to wrap line at a certain length.
+
+=cut
+
+sub wrap_lines
+{
+    my $self = shift;
+
+    return if (!$self->{'wrap_limit'} || !$self->{ 'content' });
+
+    $self->_remove_comments();
+
+    my @lines = split(/\n/, $self->{ 'content' });
+    $self->{ 'content' } = '';
+
+    foreach my $l (@lines)
+    {
+	# Remove and store the indentation of the line
+	my $indent = '';
+	if ($l =~ s/^(\s+)//) {
+		$indent = $1;
+	}
+	if (length($l) > $self->{'wrap_limit'} + ($self->{'wrap_limit'}*10/100))
+	{
+		$Text::Wrap::columns = $self->{'wrap_limit'};
+		my $t = wrap($indent, " "x$self->{ 'spaces' } . $indent, $l);
+		$self->{ 'content' } .= "$t\n";
+	} else {
+		$self->{ 'content' } .= $indent . "$l\n";
+	}
+    }
+
+    $self->_restore_comments() if ($self->{ 'content' });
+
+    return;
+}
 
 
 =head1 AUTHOR
