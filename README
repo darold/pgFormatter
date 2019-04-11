@@ -49,6 +49,7 @@ DESCRIPTION
                                 uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                                 2=>uppercase, 3=>capitalize.
         -v | --version        : show pg_format version and exit.
+        -w | --wrap-limit N   : wrap queries at a certain length.
 
     Examples:
 
