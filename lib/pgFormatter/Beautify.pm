@@ -484,6 +484,7 @@ sub beautify {
     $self->{ '_is_in_type' } = 0;
     $self->{ '_is_in_declare' } = 0;
     $self->{ '_is_in_block' } = -1;
+    $self->{ '_is_in_work' } = 0;
     $self->{ '_is_in_function' } = 0;
     $self->{ '_is_in_procedure' } = 0;
     $self->{ '_is_in_index' } = 0;
@@ -811,13 +812,18 @@ sub beautify {
             }
             $self->_new_line;
             $self->_add_token( $token );
-            if (defined $self->_next_token && $self->_next_token ne ';') {
-                $self->_new_line;
-                $self->_over;
+	    if (defined $self->_next_token && $self->_next_token !~ /^(WORK|TRANSACTION|;)$/i) {
+		$self->_new_line;
+		$self->_over;
                 $self->{ '_is_in_block' }++;
             }
+	    $self->{ '_is_in_work' } = 1 if (defined $self->_next_token && $self->_next_token =~ /^(WORK|TRANSACTION|;)$/i);
             $last = $token;
             next;
+        }
+        elsif ( uc($token) eq 'COMMIT' )
+	{
+		$self->{ '_is_in_work' } = 0;
         }
 
         ####
@@ -1109,7 +1115,7 @@ sub beautify {
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
             # Add an additional newline after ; when we are not in a function
-            if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
+            if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' } and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
 	    {
                 $self->{ '_new_line' } = 0;
                 $self->_new_line;
@@ -2312,7 +2318,7 @@ sub set_dicts {
         SEQUENCE SERIALIZABLE SERVER SESSION_USER SET SETOF SETS SHOW SIMILAR SKIP SNAPSHOT SOME STABLE START STRICT
         SYMMETRIC SYSTEM TABLE TABLESAMPLE TABLESPACE TEMPLATE TEMPORARY THEN TO TRAILING TRANSACTION TRIGGER TRUE
         TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
-        VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH WITHIN XOR ZEROFILL
+        VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH WITHIN WORK XOR ZEROFILL
 	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES
         );
 
