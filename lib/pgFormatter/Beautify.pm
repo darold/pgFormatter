@@ -540,6 +540,7 @@ sub beautify {
                 $self->{ '_parenthesis_level' }-- if ($self->{ '_parenthesis_level' } > 0);
             } else {
                 $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
+	        $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis_function' } }) + 1 if (!$self->{ '_parenthesis_function_level' });
             }
             $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
         }
@@ -547,6 +548,7 @@ sub beautify {
         {
             if ($self->{ '_is_in_function' }) {
                 $self->{ '_parenthesis_function_level' }++;
+	        push(@{ $self->{ '_level_parenthesis_function' } } , $self->{ '_level' }) if ($self->{ '_parenthesis_function_level' } == 1);
             } else {
                 if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
                     push(@{ $self->{ '_level_parenthesis' } } , $self->{ '_level' });
@@ -927,7 +929,7 @@ sub beautify {
                     $self->_new_line;
                     next;
                 }
-		$self->_over if (!$self->{ '_is_in_if' });
+		$self->_over if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('));
                 if ($self->{ '_is_in_type' } == 1) {
                     $last = $token;
                     next;
