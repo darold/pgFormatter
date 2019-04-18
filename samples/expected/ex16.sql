@@ -46,3 +46,9 @@ CREATE TABLE test_boolean (
 ALTER TABLE test_boolean
     ADD PRIMARY KEY (id, is_deleted, is_updated);
 
+CREATE TABLE table_0 (
+    ref_1 integer REFERENCES table_1 ON DELETE RESTRICT,
+    ref_2 integer REFERENCES table_2 ON DELETE CASCADE,
+    ref_3 integer REFERENCES table_3 ON DELETE SET NULL
+);
+

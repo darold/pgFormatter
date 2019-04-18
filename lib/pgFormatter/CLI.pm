@@ -65,6 +65,10 @@ sub run {
     $self->load_sql();
     $self->logmsg( 'DEBUG', 'Beautifying' );
     $self->beautify();
+    if ($self->{'wrap_limit'}) {
+	    $self->logmsg( 'DEBUG', 'Wrap query' );
+	    $self->wrap_lines();
+    }
     $self->logmsg( 'DEBUG', 'Writing output' );
     $self->save_output();
     return;
@@ -91,6 +95,7 @@ sub beautify {
     $args{ 'format' }       = $self->{ 'cfg' }->{ 'format' };
     $args{ 'maxlength' }    = $self->{ 'cfg' }->{ 'maxlength' };
     $args{ 'format_type' }  = $self->{ 'cfg' }->{ 'format-type' };
+    $args{ 'wrap_limit' }   = $self->{ 'cfg' }->{ 'wrap-limit' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -100,6 +105,10 @@ sub beautify {
     $beautifier->query( $self->{ 'query' } );
     $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
     $beautifier->beautify();
+    if ($self->{ 'cfg' }->{ 'wrap-limit' }) {
+	    $self->logmsg( 'DEBUG', 'Wrap query' );
+	    $beautifier->wrap_lines();
+    }
 
     $self->{ 'ready' } = $beautifier->content();
 
@@ -190,6 +199,7 @@ Options:
                             uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
     -v | --version        : show pg_format version and exit.
+    -w | --wrap-limit N   : wrap queries at a certain length.
 
 Examples:
 
@@ -250,6 +260,7 @@ sub get_command_line_args {
         'format-type|t!',
         'keyword-case|u=i',
         'version|v!',
+        'wrap-limit|w=i',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -269,7 +280,8 @@ sub get_command_line_args {
     $cfg{ 'format' }        //= 'text';
     $cfg{ 'comma-break' }   //= 0;
     $cfg{ 'maxlength' }     //= 0;
-    $cfg{ 'format_type' }   //= 0;
+    $cfg{ 'format-type' }   //= 0;
+    $cfg{ 'wrap-limit' }    //= 0;
 
     if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
         printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
@@ -333,7 +345,7 @@ Please report any bugs or feature requests to: https://github.com/darold/pgForma
 
 =head1 COPYRIGHT
 
-Copyright 2012-2018 Gilles Darold. All rights reserved.
+Copyright 2012-2019 Gilles Darold. All rights reserved.
 
 =head1 LICENSE
 
