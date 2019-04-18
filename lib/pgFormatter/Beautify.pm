@@ -463,6 +463,7 @@ sub beautify {
 
     # Main variables used to store differents state
     $self->content( '' );
+    $self->{ '_level' } = 0;
     $self->{ '_level_stack' } = [];
     $self->{ '_level_parenthesis' } = [];
     $self->{ '_new_line' }    = 1;
