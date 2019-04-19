@@ -540,6 +540,7 @@ sub beautify {
                 $self->{ '_parenthesis_level' }-- if ($self->{ '_parenthesis_level' } > 0);
             } else {
                 $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
+	        $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis_function' } }) + 1 if (!$self->{ '_parenthesis_function_level' });
             }
             $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
         }
@@ -547,6 +548,7 @@ sub beautify {
         {
             if ($self->{ '_is_in_function' }) {
                 $self->{ '_parenthesis_function_level' }++;
+	        push(@{ $self->{ '_level_parenthesis_function' } } , $self->{ '_level' }) if ($self->{ '_parenthesis_function_level' } == 1);
             } else {
                 if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_from' }) {
                     push(@{ $self->{ '_level_parenthesis' } } , $self->{ '_level' });
@@ -927,7 +929,7 @@ sub beautify {
                     $self->_new_line;
                     next;
                 }
-		$self->_over if (!$self->{ '_is_in_if' });
+		$self->_over if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('));
                 if ($self->{ '_is_in_type' } == 1) {
                     $last = $token;
                     next;
@@ -1394,14 +1396,15 @@ sub beautify {
 
         elsif ( $token =~ /^(?:WHEN)$/i)
 	{
-		#$self->_back if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
             if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
 			    and defined $last and uc($last) ne 'CASE') {
 		$self->{ '_level' } = $self->{ '_level_stack' }[-1];
 	    }
             $self->_new_line if (not defined $last or uc($last) ne 'CASE');
             $self->_add_token( $token );
-            $self->_over if (!$self->{ '_is_in_case' });
+            if (!$self->{ '_is_in_case' }) {
+                $self->_over;
+	    }
             $self->{ '_first_when_in_case' } = 0;
         }
 
@@ -1425,6 +1428,7 @@ sub beautify {
             $self->_new_line;
 	    $self->{ '_level' } = $self->{ '_level_stack' }[-1] if ($self->{ '_is_in_if' });
 	    if ($self->{ '_is_in_case' } && defined $self->_next_token() and $self->_next_token() !~ /^(\(|RAISE)$/i) {
+		$self->{ '_level' } = $self->{ '_level_stack' }[-1];
 	        $self->_over;
 	    }
             $self->{ '_is_in_if' } = 0;
@@ -1559,8 +1563,13 @@ sub beautify {
 	    {
                 $self->_new_line;
 
-		$self->_over if (!$self->{'_and_level'} and !$self->{ '_level' });
-		$self->_over if ($self->{'_and_level'} and !$self->{ '_level' } and uc($token) eq 'OR');
+                if (!$self->{'_and_level'} and !$self->{ '_level' }) {
+                        $self->_over;
+                } elsif ($self->{'_and_level'} and !$self->{ '_level' } and uc($token) eq 'OR') {
+                        $self->_over;
+                } elsif ($#{$self->{ '_level_stack' }} >= 0 and $self->{ '_level' } == $self->{ '_level_stack' }[-1]) {
+                        $self->_over;
+                }
             }
             $self->_add_token( $token );
 	    $self->{'_and_level'}++;
