@@ -19,11 +19,8 @@ $$
 LANGUAGE plpgsql;
 
 BEGIN;
-
 SELECT
     fonction_reference ('curseur_fonction');
-
 FETCH ALL IN curseur_fonction;
-
 COMMIT;
 

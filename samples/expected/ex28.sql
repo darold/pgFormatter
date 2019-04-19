@@ -1,5 +1,4 @@
 BEGIN;
-
 CREATE FUNCTION basename (path text)
     RETURNS text
     AS $$
@@ -7,7 +6,6 @@ CREATE FUNCTION basename (path text)
 $$
 LANGUAGE 'plv8'
 IMMUTABLE;
-
 COMMIT;
 
 UPDATE

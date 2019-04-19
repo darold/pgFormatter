@@ -27,7 +27,6 @@ WHERE
     col1 = 5;
 
 BEGIN;
-
 SELECT
     *
 FROM
@@ -35,15 +34,11 @@ FROM
 WHERE
     KEY = 1
 FOR NO KEY UPDATE;
-
 SAVEPOINT s;
-
 UPDATE
     mytable
 SET
     col1 = NULL
 WHERE
     KEY = 1;
-
 ROLLBACK TO s;
-
