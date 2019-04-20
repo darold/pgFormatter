@@ -50,6 +50,8 @@ DESCRIPTION
                                 2=>uppercase, 3=>capitalize.
         -v | --version        : show pg_format version and exit.
         -w | --wrap-limit N   : wrap queries at a certain length.
+        -W | --wrap-after N   : number of column after which lists must be wrapped.
+                                Default: puts every item on its own line.
 
     Examples:
 
@@ -104,6 +106,38 @@ INSTALLATION
             perl Makefile.PL INSTALLDIRS=vendor
 
     By default INSTALLDIRS is set to site.
+
+SPECIAL FORMATTING
+  Option -W, --wrap-after
+    This option can be used to set number of column after which lists must
+    be wrapped. By default pgFormatter puts every item on its own line. This
+    format applies to SELECT and FROM list. For example the following query:
+
+        SELECT a, b, c, d FROM t_1, t_2, t3 WHERE a = 10 AND b = 10;
+
+    will be formatted into with -W 4:
+
+        SELECT a, b, c, d
+        FROM t_1, t_2, t3
+        WHERE a = 10
+            AND b = 10;
+
+    Note this formatting doesn't fits well with sub queries in list.
+
+  Option -w, --wrap-limit
+    This option wraps queries at a certain length whatever is the part of
+    the query at the limit unless it is a comment. For example if the limit
+    is reach in a text constant the text will be wrapped. Indentation is not
+    included in the character count. This option is applied in all cases
+    even if other options are used.
+
+  Option -t, --format-type
+    This option activate an alternative formatting that adds:
+
+      * newline in procedure/function parameter list
+      * new line in PUBLICATION and POLICY DDL
+
+    Expect this list grow following alternative thoughts.
 
 HINTS
   Formatting from VI
