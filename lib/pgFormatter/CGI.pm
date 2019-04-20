@@ -116,6 +116,7 @@ sub set_config {
     $self->{ 'format' }       = 'html';
     $self->{ 'comma_break' }  = 0;
     $self->{ 'format_type' }  = 0;
+    $self->{ 'wrap_after' }   = 0;
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -155,7 +156,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break format_type) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break format_type wrap_after) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -203,6 +204,7 @@ sub sanitize_params {
     $self->{ 'comma' }        = 'end' if ($self->{ 'comma' } ne 'start');
     $self->{ 'comma_break' }  = 0 if ($self->{ 'comma_break' } !~ /^(0|1)$/);
     $self->{ 'format_type' }  = 0 if ($self->{ 'format_type' } !~ /^(0|1)$/);
+    $self->{ 'wrap_after' }   = 0 if ($self->{ 'wrap_after' } !~ /^\d{1,2}$/);
 
     if ( $self->{ 'show_example' } ) {
         $self->{ 'content' } = q{
@@ -235,6 +237,7 @@ sub beautify_query {
     $args{ 'colorize' }     = $self->{ 'colorize' };
     $args{ 'comma_break' }  = $self->{ 'comma_break' };
     $args{ 'format_type' }  = 1 if ($self->{ 'format_type' });
+    $args{ 'wrap_after' }   = $self->{ 'wrap_after' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
@@ -305,7 +308,6 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_format_type" name="format_type" value="1" $chk_format_type/>
       <label for="id_format_type">Alternate formatting</label>
-      </div>
     </fieldset>
       <br />
     <fieldset><legend id="kwcase">
@@ -331,7 +333,9 @@ sub print_body {
     </legend>
       <div id="indent_content" class="content">
         Indentation: <input name="spaces" value="$self->{ 'spaces' }" maxlength="2" type="text" id="spaces" size="2" /> spaces
-        <div class="smaller">(set it to 0 to obtain a single line statement)</div>
+      <br />
+      Wrap after: <input name="wrap_after" value="$self->{ 'wrap_after' }" maxlength="2" type="text" id="wrap_after" size="2" /> cols
+      </div>
       </div>
     </fieldset>
     <p align="center">
