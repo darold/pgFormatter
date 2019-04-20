@@ -125,6 +125,10 @@ HINTS
 
     Thanks to David Fetter for the hint.
 
+    There is also the (Neo)vim plugin for formatting code for many file
+    types that support pg_format to format SQL file type. Thanks to Anders
+    Riutta for the patch to (Neo)vim.
+
   Formatting from Atom
     If you use atom as your favorite editor you can install the pg-formatter
     package which is a Node.js wrapper of pgFormatter.
