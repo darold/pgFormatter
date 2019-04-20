@@ -1056,10 +1056,10 @@ sub beautify {
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\s*\-\-)/i
                                && !$self->{ '_parenthesis_function_level' }
-			       && (!$self->{ '_col_count' } or $self->{ '_col_count' } > $self->{ 'wrap_after' })
+			       && (!$self->{ '_col_count' } or $self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1))
                                || $self->{ '_is_in_with' }
                     );
-		    $self->{ '_col_count' } = 0 if ($self->{ '_col_count' } > $self->{ 'wrap_after' });
+		    $self->{ '_col_count' } = 0 if ($self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1));
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
                 $add_newline = 1;
