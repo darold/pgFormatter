@@ -1860,7 +1860,7 @@ sub _indent {
     my ( $self ) = @_;
 
     if ( $self->{ '_new_line' } ) {
-        return $self->{ 'space' } x ( $self->{ 'spaces' } * $self->{ '_level' } );
+        return $self->{ 'space' } x ( $self->{ 'spaces' } * ( $self->{ '_level' } // 0 ) );
     }
     else {
         return $self->{ 'space' };
