@@ -109,10 +109,6 @@ Takes options as hash. Following options are recognized:
 
 =item * uc_functions - what to do with function names:
 
-=item * format_type - Try an other formatting
-
-=item * wrap_limit - wrap queries at a certain length
-
 =over
 
 =item 0 - do not change
@@ -131,6 +127,12 @@ Takes options as hash. Following options are recognized:
 
 =item * wrap - wraps given keywords in pre- and post- markup. Specific docs in SQL::Beautify
 
+=item * format_type - try an other formatting
+
+=item * wrap_limit - wrap queries at a certain length
+
+=item * wrap_after - number of column after which lists must be wrapped
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -144,7 +146,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type wrap_limit) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -174,6 +176,7 @@ sub new {
 
     $self->{ 'format_type' } //= 0;
     $self->{ 'wrap_limit' } //= 0;
+    $self->{ 'wrap_after' } //= 0;
 
     return $self;
 }
@@ -506,6 +509,7 @@ sub beautify {
     $self->{ '_is_in_policy' } = 0;
     $self->{ '_is_in_using' } = 0;
     $self->{ '_and_level' } = 0;
+    $self->{ '_col_count' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -1031,6 +1035,7 @@ sub beautify {
 	{
             my $add_newline = 0;
 	    $self->{ '_is_in_constraint' } = 0 if ($self->{ '_is_in_constraint' } == 1);
+	    $self->{ '_col_count' }++ if (!$self->{ '_is_in_function' });
             $add_newline = 1 if ( !$self->{ 'no_break' }
                                && !$self->{ '_is_in_function' }
 			       && !$self->{ '_is_in_distinct' }
@@ -1051,8 +1056,10 @@ sub beautify {
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\s*\-\-)/i
                                && !$self->{ '_parenthesis_function_level' }
+			       && (!$self->{ '_col_count' } or $self->{ '_col_count' } > $self->{ 'wrap_after' })
                                || $self->{ '_is_in_with' }
                     );
+		    $self->{ '_col_count' } = 0 if ($self->{ '_col_count' } > $self->{ 'wrap_after' });
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
                 $add_newline = 1;
@@ -1096,6 +1103,8 @@ sub beautify {
 	    $self->{'_is_in_trigger'} = 0;
 	    $self->{'_is_in_using'} = 0;
 	    $self->{'_and_level'} = 0;
+	    $self->{ '_col_count' } = 0;
+
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -1175,7 +1184,7 @@ sub beautify {
 	{
 
 	    $self->{ 'no_break' } = 0;
-
+            $self->{ '_col_count' } = 0;
 	    # special cases for create partition statement
             if ($token =~ /^VALUES$/i && defined $last and uc($last) eq 'FOR')
 	    {
@@ -1204,6 +1213,7 @@ sub beautify {
 	    {
                 $self->{ '_has_from' } = 0;
             }
+
             if ($token =~ /^FROM$/i)
 	    {
                 $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' } && !$self->{ '_is_in_partition' });
@@ -1281,7 +1291,7 @@ sub beautify {
                 if (defined $self->_next_token and $self->_next_token ne '('
 				and ($self->_next_token !~ /^(UPDATE|KEY|NO)$/i || uc($token) eq 'WHERE'))
 		{
-                    $self->_new_line;
+                    $self->_new_line if (!$self->{ 'wrap_after' });
                     $self->_over;
                 }
             }
@@ -1320,7 +1330,7 @@ sub beautify {
 	    {
                 $self->_new_line;
                 $self->_add_token( $token );
-                $self->_new_line;
+                $self->_new_line if (!$self->{ 'wrap_after' });
                 $self->_over;
             }
 	    else
@@ -2243,6 +2253,8 @@ Currently defined defaults:
 
 =item wrap_limit => 0
 
+=item wrap_after => 0
+
 =back
 
 =cut
@@ -2271,6 +2283,7 @@ sub set_defaults {
     $self->{ 'colorize' }     = 1;
     $self->{ 'format_type' }  = 0;
     $self->{ 'wrap_limit' }   = 0;
+    $self->{ 'wrap_after' }   = 0;
 
     return;
 }

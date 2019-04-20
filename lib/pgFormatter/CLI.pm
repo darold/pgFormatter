@@ -96,6 +96,7 @@ sub beautify {
     $args{ 'maxlength' }    = $self->{ 'cfg' }->{ 'maxlength' };
     $args{ 'format_type' }  = $self->{ 'cfg' }->{ 'format-type' };
     $args{ 'wrap_limit' }   = $self->{ 'cfg' }->{ 'wrap-limit' };
+    $args{ 'wrap_after' }   = $self->{ 'cfg' }->{ 'wrap-after' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -200,6 +201,8 @@ Options:
                             2=>uppercase, 3=>capitalize.
     -v | --version        : show pg_format version and exit.
     -w | --wrap-limit N   : wrap queries at a certain length.
+    -W | --wrap-after N   : number of column after which lists must be wrapped.
+                            Default: puts every item on its own line.
 
 Examples:
 
@@ -261,6 +264,7 @@ sub get_command_line_args {
         'keyword-case|u=i',
         'version|v!',
         'wrap-limit|w=i',
+        'wrap-after|W=i',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -282,6 +286,7 @@ sub get_command_line_args {
     $cfg{ 'maxlength' }     //= 0;
     $cfg{ 'format-type' }   //= 0;
     $cfg{ 'wrap-limit' }    //= 0;
+    $cfg{ 'wrap-after' }    //= 0;
 
     if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
         printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
