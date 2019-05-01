@@ -861,6 +861,7 @@ sub beautify {
 	    $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
             $self->_add_token( $token );
             $last = $token;
+	    $self->{ '_has_order_by' } = 1;
 	    next;
         }
 
@@ -889,7 +890,7 @@ sub beautify {
             $self->_new_line if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
             $self->_add_token( $token );
         }
-        elsif ($token =~ /^PARTITION$/i && !$self->{ '_is_in_over' })
+        elsif ($token =~ /^PARTITION$/i && !$self->{ '_is_in_over' } && defined $last && $last ne '(')
 	{
 	    $self->{ '_is_in_partition' } = 1;
             if ($self->{ '_is_in_create' } && defined $last and $last eq ')')
@@ -942,8 +943,9 @@ sub beautify {
 		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_trigger' }
 		    && !$self->{ '_is_in_policy' }
 	    ) {
-                if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
-                    $self->_new_line if ($self->_next_token ne ')');
+                if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE')
+		{
+                    $self->_new_line if ($self->_next_token ne ')' and $self->_next_token !~ /^PARTITION$/i);
                 }
                 if ($self->{ '_is_in_with' } == 1) {
                     $self->_over;
