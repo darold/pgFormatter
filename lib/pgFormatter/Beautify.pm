@@ -481,6 +481,7 @@ sub beautify {
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_in_join' } = 0;
     $self->{ '_is_in_create' } = 0;
+    $self->{ '_is_in_create_function' } = 0;
     $self->{ '_is_in_alter' } = 0;
     $self->{ '_is_in_trigger' } = 0;
     $self->{ '_is_in_publication' } = 0;
@@ -647,6 +648,9 @@ sub beautify {
         # Mark that we are in CREATE statement that need newline
         # after a comma in the parameter, declare or column lists.
         ####
+        if ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{ '_is_in_create' }) {
+		$self->{ '_is_in_create_function' } = 1;
+	}
         if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION)$/i) {
 		$self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
@@ -796,7 +800,7 @@ sub beautify {
         # Mark when we are parsing a DECLARE or a BLOCK section. When
         # entering a BLOCK section store the current indentation level
         ####
-        if (uc($token) eq 'DECLARE') {
+        if (uc($token) eq 'DECLARE' and $self->{ '_is_in_create_function' }) {
             $self->{ '_is_in_block' } = -1;
             $self->{ '_is_in_declare' } = 1;
             @{ $self->{ '_level_stack' } } = ();
@@ -807,6 +811,7 @@ sub beautify {
             $self->_new_line;
             $self->_over;
             $last = $token;
+	    $self->{ '_is_in_create_function' } = 0;
             next;
         }
         elsif ( uc($token) eq 'BEGIN' )
