@@ -701,6 +701,7 @@ sub beautify {
         } elsif ($token =~ /^AS$/i) {
             $self->{ '_is_in_index' } = 0;
 	    $self->{ '_is_in_block' } = 1 if ($self->{ '_is_in_procedure' });
+	    $self->{ '_is_in_over' } = 0;
         }
 	if ($token =~ /^BEGIN|DECLARE$/i) {
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });

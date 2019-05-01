@@ -21,3 +21,13 @@ SELECT x, COUNT(x) OVER w, SUM(x) OVER w
 FROM generate_series(1, 10) AS f (x)
 WINDOW w AS ();
 
+SELECT name, department, salary, RANK() OVER s AS dept_rank, RANK() OVER () AS global_rank
+FROM empa
+WINDOW s AS (PARTITION BY department ORDER BY salary DESC)
+ORDER BY department, salary DESC;
+
+SELECT name, department, salary, RANK() OVER () AS global_rank, RANK() OVER s AS dept_rank
+FROM empb
+WINDOW s AS (PARTITION BY department ORDER BY salary DESC)
+ORDER BY department, salary DESC;
+
