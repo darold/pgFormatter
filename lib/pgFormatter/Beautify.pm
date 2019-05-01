@@ -950,7 +950,7 @@ sub beautify {
                 }
                 if ($self->{ '_is_in_with' } == 1) {
                     $self->_over;
-                    $self->_new_line;
+                    $self->_new_line if (!$self->{ 'wrap_after' });
                     next;
                 }
 		$self->_over if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('));
@@ -977,7 +977,7 @@ sub beautify {
 	    }
             if ($self->{ '_is_in_with' } == 1) {
                 $self->_back;
-                $self->_new_line;
+	        $self->_new_line if (!$self->{ 'wrap_after' });
                 $self->_add_token( $token );
                 next;
             }

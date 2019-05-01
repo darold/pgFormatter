@@ -79,3 +79,21 @@ SET
 WHERE
     val > 0;
 
+WITH driver (
+    name
+) AS (
+    SELECT DISTINCT
+        unnest(xpath('//driver/text()',
+                doc))::text
+    FROM
+        printer
+)
+SELECT
+    name
+FROM
+    driver
+WHERE
+    name LIKE 'hp%'
+ORDER BY
+    1;
+
