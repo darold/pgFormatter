@@ -1670,7 +1670,7 @@ sub beautify {
 	     if ($token =~ /(?:\s*--)[\ \t\S]*/s)
 	     {
 		 $token =~ s/^(\s*)(--.*)/$2/s;
-		 my $start = $1;
+		 my $start = $1 || '';
 		 if ($start =~ /\n/s) {
                      $self->_new_line, $self->_add_token('') if (defined $last and $last eq ';' and $self->{ 'content' } !~ /\n$/s);
 		     $self->_new_line;
