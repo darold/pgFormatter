@@ -939,7 +939,7 @@ sub beautify {
 		    && !$self->{ '_is_in_policy' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE') {
-                    $self->_new_line;
+                    $self->_new_line if ($self->_next_token ne ')');
                 }
                 if ($self->{ '_is_in_with' } == 1) {
                     $self->_over;
