@@ -308,6 +308,7 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_format_type" name="format_type" value="1" $chk_format_type/>
       <label for="id_format_type">Alternate formatting</label>
+      </div>
     </fieldset>
       <br />
     <fieldset><legend id="kwcase">
@@ -336,7 +337,6 @@ sub print_body {
       <br />
       Wrap after: <input name="wrap_after" value="$self->{ 'wrap_after' }" maxlength="2" type="text" id="wrap_after" size="2" /> cols
       </div>
-      </div>
     </fieldset>
     <p align="center">
     <input type="button" value="Clear code" onclick="document.forms[0].submit();"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/>
@@ -356,6 +356,7 @@ sub print_body {
     </p>
   </div>
   </td><td valign="top" align="left">
+  <table><tr><td>
 _END_OF_HTML_
 
     if ( ( $self->{ 'show_example' } ) || ( !$self->{ 'content' } ) ) {
@@ -368,7 +369,13 @@ qq{<textarea name="content" id="sqlcontent" onfocus="if (done == 0) this.value='
         print qq{<div class="sql" id="sql"><pre>$self->{ 'content' }</pre></div>};
     }
 
-    print qq{ </td></tr></table> </form> };
+    print qq{
+    </td></tr>
+    <tr><td>
+    <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.org</a> </div>
+    </td></tr></table>
+    </td></tr></table> </form>
+};
 
     return;
 }
@@ -389,7 +396,7 @@ sub print_footer {
 
     print $ad_content;
     print
-    qq{<p>&nbsp;</p> <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.org</a> </div> };
+    qq{<p>&nbsp;</p>};
     print " </div> </body> </html>\n";
     return;
 }
@@ -578,8 +585,8 @@ box-shadow:3px 3px 6px 2px #A9A9A9;
 -webkit-box-shadow:3px 3px 6px #A9A9A9;
 }
 div#sql {
-width: 900px;
-height: 450px;
+width: 1000px;
+height: 400px;
 border: 3px solid #cccccc;
 padding: 5px;
 overflow: auto;
@@ -615,7 +622,7 @@ box-shadow:3px 3px 6px 2px #A9A9A9;
 .sql .sy0 {color: #000000;}
 .sql .st0 {color: #ff0000;}
 .sql .nu0 {color: #cc66cc;}
-div.footer { font: 14px Helvetica, Arial, sans-serif;clear: both; height:40px; color: #000000; padding:13px 0px 0 0;margin-left: auto; margin-right: auto;  text-align: center; background-color: #ff7400; }
+div.footer { width: 1020px; font: 14px Helvetica, Arial, sans-serif;clear: both; height:40px; color: #000000; padding: 13px 0px 0 0; margin-left: auto; margin-right: auto; text-align: center; background-color: #ff7400; }
 div.footer a strong { color: #eeeeee; font-weight: bold;}
 div.footer a, #footer a:visited { color: #eeeeee; }
 div.footer a:hover { color: #eeeeee; }
