@@ -1190,6 +1190,10 @@ sub beautify {
 
         elsif ( $token =~ /^(?:FROM|WHERE|SET|RETURNING|HAVING|VALUES)$/i )
 	{
+            if (uc($token) eq 'FROM' and $self->{ '_has_order_by' } and !$self->{ '_parenthesis_level' })
+	    {
+                $self->_back() if ($self->{ '_has_order_by' });
+	    }
 
 	    $self->{ 'no_break' } = 0;
             $self->{ '_col_count' } = 0;
@@ -1199,7 +1203,8 @@ sub beautify {
 		$self->_add_token( $token );
 		$last = $token;
 		next;
-	    } elsif ($token =~ /^FROM$/i && defined $last and uc($last) eq 'VALUES')
+	    }
+	    elsif ($token =~ /^FROM$/i && defined $last and uc($last) eq 'VALUES')
 	    {
 		$self->_add_token( $token );
 		$last = $token;
@@ -1294,7 +1299,7 @@ sub beautify {
                     $self->_new_line;
                     $self->_over;
             }
-            elsif ( !$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or $self->{ '_current_sql_stmt' } eq 'UPDATE') )
+            elsif ( !$self->{ '_is_in_over' } and !$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or $self->{ '_current_sql_stmt' } eq 'UPDATE') )
 	    {
                 if (defined $self->_next_token and $self->_next_token ne '('
 				and ($self->_next_token !~ /^(UPDATE|KEY|NO)$/i || uc($token) eq 'WHERE'))
