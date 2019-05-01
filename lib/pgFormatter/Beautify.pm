@@ -1395,8 +1395,9 @@ sub beautify {
         elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(?:INCREMENT|OWNED|PARTITION)$/i)
 	{
             $self->_add_token( $token );
+	    $self->{ '_col_count' } = 0 if (defined $last && $last =~ /^(?:GROUP|ORDER)/i);
 	    if (!$self->{ '_has_order_by' }) {
-                $self->_new_line;
+                $self->_new_line if (!$self->{ 'wrap_after' });
                 $self->_over;
 	    }
         }
