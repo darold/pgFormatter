@@ -72,3 +72,10 @@ ORDER BY
     department,
     salary DESC;
 
+UPDATE
+    mvcc_demo
+SET
+    val = val + 1
+WHERE
+    val > 0;
+

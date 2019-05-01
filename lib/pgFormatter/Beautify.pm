@@ -1314,7 +1314,7 @@ sub beautify {
             }
             elsif ( $token =~ /^SET$/i && $self->{ '_current_sql_stmt' } eq 'UPDATE' )
 	    {
-                    $self->_new_line;
+                    $self->_new_line if (!$self->{ 'wrap_after' });
                     $self->_over;
             }
             elsif ( !$self->{ '_is_in_over' } and !$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or $self->{ '_current_sql_stmt' } eq 'UPDATE') )

@@ -31,3 +31,7 @@ FROM empb
 WINDOW s AS (PARTITION BY department ORDER BY salary DESC)
 ORDER BY department, salary DESC;
 
+UPDATE mvcc_demo
+SET val = val + 1
+WHERE val > 0;
+
