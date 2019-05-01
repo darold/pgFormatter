@@ -32,7 +32,8 @@ ORDER BY
 
 SELECT
     RANK() OVER s AS dept_rank
-FROM emp WINDOW s AS (PARTITION BY department ORDER BY salary DESC)
+FROM emp
+WINDOW s AS (PARTITION BY department ORDER BY salary DESC)
 ORDER BY
     department,
     salary DESC;

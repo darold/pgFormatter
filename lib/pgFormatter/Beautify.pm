@@ -854,6 +854,11 @@ sub beautify {
             $self->_new_line;
             $self->_over;
         }
+        # and before WINDOW
+	elsif (uc($token) eq 'WINDOW')
+	{
+            $self->_new_line;
+        }
 
 	# Treated DISTINCT as a modifier of the whole select clause, not only the firt column only
 	if (uc($token) eq 'ON' && defined $last && uc($last) eq 'DISTINCT')
