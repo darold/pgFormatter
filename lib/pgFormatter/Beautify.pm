@@ -858,6 +858,10 @@ sub beautify {
 	elsif (uc($token) eq 'WINDOW')
 	{
             $self->_new_line;
+	    $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+            $self->_add_token( $token );
+            $last = $token;
+	    next;
         }
 
 	# Treated DISTINCT as a modifier of the whole select clause, not only the firt column only
@@ -1049,6 +1053,12 @@ sub beautify {
             my $add_newline = 0;
 	    $self->{ '_is_in_constraint' } = 0 if ($self->{ '_is_in_constraint' } == 1);
 	    $self->{ '_col_count' }++ if (!$self->{ '_is_in_function' });
+            if (($self->{ '_is_in_over' } or $self->{ '_has_order_by' }) and !$self->{ '_parenthesis_level' })
+	    {
+		    $self->{ '_is_in_over' } = 0;
+		    $self->{ '_has_order_by' } = 0;
+		    $self->_back();
+	    }
             $add_newline = 1 if ( !$self->{ 'no_break' }
                                && !$self->{ '_is_in_function' }
 			       && !$self->{ '_is_in_distinct' }

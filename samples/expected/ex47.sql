@@ -38,3 +38,10 @@ ORDER BY
     department,
     salary DESC;
 
+SELECT
+    x,
+    COUNT(x) OVER w,
+    SUM(x) OVER w
+FROM generate_series(1, 10) AS f (x)
+WINDOW w AS ();
+
