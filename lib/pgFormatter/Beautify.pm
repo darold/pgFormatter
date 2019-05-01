@@ -544,7 +544,10 @@ sub beautify {
                 $self->{ '_parenthesis_level' }-- if ($self->{ '_parenthesis_level' } > 0);
             } else {
                 $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
-	        $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis_function' } }) + 1 if (!$self->{ '_parenthesis_function_level' });
+                if (!$self->{ '_parenthesis_function_level' }) {
+	            $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis_function' } });
+		    $self->{ '_level' }++;
+	        }
             }
             $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
         }
