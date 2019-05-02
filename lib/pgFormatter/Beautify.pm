@@ -604,6 +604,7 @@ sub beautify {
             if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' }
 		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' }) {
                 $self->_new_line;
+                $self->{ '_level' } = pop(@{ $self->{ '_level_stack' } }) || 0;
                 $self->_back;
                 $self->_add_token( $token );
                 @{ $self->{ '_level_stack' } } = ();
