@@ -952,6 +952,7 @@ sub beautify {
                 if ($self->{ '_is_in_with' } == 1) {
                     $self->_over;
                     $self->_new_line if (!$self->{ 'wrap_after' });
+		    $last = $token;
                     next;
                 }
 		$self->_over if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('));
@@ -966,6 +967,7 @@ sub beautify {
 	    ) {
                 $self->_over if ($self->{ '_is_in_block' } < 0);
                 $self->_new_line;
+                $last = $token;
                 next;
 	    }
         }
@@ -1783,9 +1785,6 @@ sub _add_token {
     my $sp = $self->_indent;
 
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot) {
-        if ($token eq ')' and $self->{ '_is_in_with' } and $self->{'wrap_after'}) {
-	    $self->{ 'content' } .= $sp;
-        }
         if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ ) {
             $self->{ 'content' } .= $sp if ($token ne ')'
                                             && defined($last_token)
@@ -1794,6 +1793,8 @@ sub _add_token {
                                             && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
                 );
             $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
+        } elsif ( defined $last_token && $last_token eq '(' && $token ne ')' && $token !~ /^::/ && !$self->{'wrap_after'} && $self->{ '_is_in_with' } == 1) {
+		$self->{ 'content' } .= $sp;
         } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
              $self->{ 'content' } .= $sp if ($last_token ne '::' and !$self->{ '_is_in_partition' }
 		     				and !$self->{ '_is_in_policy' }
