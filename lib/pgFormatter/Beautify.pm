@@ -866,7 +866,7 @@ sub beautify {
 	    next;
         }
 
-	# Treated DISTINCT as a modifier of the whole select clause, not only the firt column only
+	# Treated DISTINCT as a modifier of the whole select clause, not only the first column only
 	if (uc($token) eq 'ON' && defined $last && uc($last) eq 'DISTINCT')
 	{
             $self->{ '_is_in_distinct' } = 1;
@@ -875,7 +875,7 @@ sub beautify {
         elsif (uc($token) eq 'DISTINCT' && defined $last && uc($last) eq 'SELECT' && defined $self->_next_token && $self->_next_token !~ /^ON$/i)
         {
             $self->_add_token( $token );
-            $self->_new_line;
+            $self->_new_line if (!$self->{'wrap_after'});
             $self->_over;
             $last = $token;
 	    next;

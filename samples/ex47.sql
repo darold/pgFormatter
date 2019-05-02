@@ -52,3 +52,7 @@ WITH source (x1, x2) AS (
 SELECT *
 FROM source;
 
+SELECT DISTINCT relkind, relname
+FROM pg_class
+ORDER BY 1, 2;
+
