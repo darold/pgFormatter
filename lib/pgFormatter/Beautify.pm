@@ -1083,12 +1083,12 @@ sub beautify {
                                && $self->_next_token !~ /^('$|\s*\-\-)/i
                                && !$self->{ '_parenthesis_function_level' }
 			       && (!$self->{ '_col_count' } or $self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1))
-                               || $self->{ '_is_in_with' }
+                               || ($self->{ '_is_in_with' } and !$self->{ 'wrap_after' })
                     );
 		    $self->{ '_col_count' } = 0 if ($self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1));
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
-                $add_newline = 1;
+                $add_newline = 1 if (!$self->{ 'wrap_after' });
             }
 	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i && $self->{ '_is_in_create' } == 2) {
                 $add_newline = 1;
@@ -1782,6 +1782,9 @@ sub _add_token {
     my $sp = $self->_indent;
 
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot) {
+        if ($token eq ')' and $self->{ '_is_in_with' } and $self->{'wrap_after'}) {
+	    $self->{ 'content' } .= $sp;
+        }
         if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ ) {
             $self->{ 'content' } .= $sp if ($token ne ')'
                                             && defined($last_token)

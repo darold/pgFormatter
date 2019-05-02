@@ -97,3 +97,15 @@ WHERE
 ORDER BY
     1;
 
+WITH source (
+    x1,
+    x2
+) AS (
+    SELECT
+        1
+)
+SELECT
+    *
+FROM
+    source;
+
