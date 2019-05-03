@@ -720,7 +720,7 @@ sub beautify {
         if ($token =~ /^(string_agg|group_concat|array_agg|GENERATED)$/i) {
             $self->{ '_has_order_by' } = 1;
         } elsif ( $self->{ '_has_order_by' } and uc($token) eq 'ORDER' and $self->_next_token =~ /^BY$/i) {
-            $self->_add_token( $token, $last );
+	    $self->_add_token( $token, $last );
             $last = $token;
             next;
         } elsif ($self->{ '_has_order_by' } and uc($token) eq 'BY') {
@@ -966,7 +966,7 @@ sub beautify {
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE')
 		{
-                    $self->_new_line if ($self->_next_token ne ')' and $self->_next_token !~ /^PARTITION$/i);
+                    $self->_new_line if ($self->_next_token ne ')' and $self->_next_token !~ /^(PARTITION|ORDER)$/i);
                 }
                 if ($self->{ '_is_in_with' } == 1) {
                     $self->_over;
