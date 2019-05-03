@@ -71,3 +71,8 @@ SELECT DISTINCT relkind, relname
 FROM pg_class
 ORDER BY 1, 2;
 
+SELECT salary, RANK() OVER s
+FROM emp
+WINDOW s AS (ORDER BY salary DESC)
+ORDER BY salary DESC;
+

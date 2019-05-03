@@ -56,3 +56,21 @@ SELECT DISTINCT relkind, relname
 FROM pg_class
 ORDER BY 1, 2;
 
+SELECT
+    salary,
+    RANK() OVER s
+FROM emp
+WINDOW s AS (
+ORDER BY salary DESC)
+ORDER BY
+    salary DESC;
+
+CREATE TRIGGER test_trigger_exists
+    BEFORE UPDATE ON test_exists
+    FOR EACH ROW EXECUTE PROCEDURE suppress_redundant_updates_trigger();
+
+CREATE RULE test_rule_exists AS ON INSERT TO test_exists
+    DO INSTEAD
+    INSERT INTO test_exists VALUES (NEW.a, NEW.b || NEW.a::text);
+DROP RULE test_rule_exists ON test_exists;
+

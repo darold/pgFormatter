@@ -642,7 +642,7 @@ sub beautify {
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')')) {
                 if ($k_stmt !~ /^UPDATE|DELETE$/i || !$self->{ '_is_in_create' }) {
-                    $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i);
+                    $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i and !$self->{ '_is_in_trigger' });
                 }
             }
         }
@@ -651,7 +651,7 @@ sub beautify {
         # Mark that we are in CREATE statement that need newline
         # after a comma in the parameter, declare or column lists.
         ####
-        if ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{ '_is_in_create' }) {
+        if ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{ '_is_in_create' } and !$self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_create_function' } = 1;
 	}
         if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE)$/i) {
@@ -691,7 +691,7 @@ sub beautify {
 
         # Same as above but for ALTER FUNCTION/PROCEDURE/SEQUENCE or when
         # we are in a CREATE FUNCTION/PROCEDURE statement
-        elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE)$/i) {
+        elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE)$/i and !$self->{'_is_in_trigger'}) {
             $self->{ '_is_in_index' } = 1 if (uc($last) eq 'ALTER');
             if ($token =~ /^FUNCTION$/i && $self->{ '_is_in_create' }) {
                 $self->{ '_is_in_index' } = 1;
@@ -958,6 +958,10 @@ sub beautify {
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
+	    if (defined $self->_next_token and $self->_next_token eq ')' and !$self->{ '_is_in_create' }) {
+		 $last = $token;
+		 next;
+	    }
             if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }
 		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
@@ -1022,6 +1026,7 @@ sub beautify {
             }
 	    if (defined $self->_next_token && $self->_next_token !~ /FILTER/i) {
                 $self->_new_line if ($self->{ '_is_in_create' } > 1
+		    and defined $last and $last ne '('
                     and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i)
                 );
                 $self->_new_line if ($self->{ '_is_in_type' } == 1
@@ -1121,6 +1126,11 @@ sub beautify {
         }
 
         elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) { # statement separator or executing psql meta command (prefix 'g' includes all its variants)
+
+            if ($self->{ '_is_in_rule' }) {
+	        $self->{ '_is_in_rule' } = 0;
+		$self->_back();
+	    }
             # Initialize most of statement related variables
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
@@ -1148,11 +1158,10 @@ sub beautify {
             $self->{ '_is_in_partition' } = 0;
             $self->{ '_is_in_over' } = 0;
 	    $self->{ '_is_in_policy' } = 0;
-	    $self->{'_is_in_trigger'} = 0;
-	    $self->{'_is_in_using'} = 0;
-	    $self->{'_and_level'} = 0;
+	    $self->{ '_is_in_trigger' } = 0;
+	    $self->{ '_is_in_using' } = 0;
+	    $self->{ '_and_level' } = 0;
 	    $self->{ '_col_count' } = 0;
-	    $self->{ '_is_in_rule' } = 0;
 	    $self->{ '_is_in_drop' } = 0;
 
             $self->_add_token($token);
