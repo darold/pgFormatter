@@ -481,6 +481,7 @@ sub beautify {
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_in_join' } = 0;
     $self->{ '_is_in_create' } = 0;
+    $self->{ '_is_in_rule' } = 0;
     $self->{ '_is_in_create_function' } = 0;
     $self->{ '_is_in_alter' } = 0;
     $self->{ '_is_in_trigger' } = 0;
@@ -511,6 +512,7 @@ sub beautify {
     $self->{ '_is_in_using' } = 0;
     $self->{ '_and_level' } = 0;
     $self->{ '_col_count' } = 0;
+    $self->{ '_is_in_drop' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -634,7 +636,7 @@ sub beautify {
         ####
         # Set the current kind of statement parsed
         ####
-        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP)$/i) {
+        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP|RULE)$/i) {
 
             my $k_stmt = uc($1);
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
@@ -652,8 +654,10 @@ sub beautify {
         if ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{ '_is_in_create' }) {
 		$self->{ '_is_in_create_function' } = 1;
 	}
-        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION)$/i) {
-		$self->{ '_is_in_create' } = 1;
+        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE)$/i) {
+	    $self->{ '_is_in_create' } = 1;
+        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^RULE$/i) {
+	    $self->{ '_is_in_rule' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
             $self->{ '_is_in_type' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^PUBLICATION$/i) {
@@ -759,6 +763,21 @@ sub beautify {
             $self->{ '_is_in_create' } = 0;
             $last = $token;
             next;
+        }
+        elsif ($token =~ /^INSTEAD$/i and defined $last and uc($last) eq 'DO')
+	{
+                $self->_add_token( $token );
+                $self->_new_line;
+                $last = $token;
+                next;
+        }
+        elsif ($token =~ /^DO$/i and defined $self->_next_token and $self->_next_token =~ /^INSTEAD$/i)
+	{
+                $self->_new_line;
+		$self->_over;
+                $self->_add_token( $token );
+                $last = $token;
+                next;
         }
         elsif ($token =~ /^DO$/i and !$self->{ '_fct_code_delimiter' } and $self->_next_token =~ /^\$[^\s]*/)
 	{
@@ -887,7 +906,7 @@ sub beautify {
             $self->_process_rule( $rule, $token );
         }
 
-        elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i && !$self->{ '_is_in_alter' })
+        elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_drop' } )
 	{
             $self->_new_line if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
             $self->_add_token( $token );
@@ -1133,6 +1152,8 @@ sub beautify {
 	    $self->{'_is_in_using'} = 0;
 	    $self->{'_and_level'} = 0;
 	    $self->{ '_col_count' } = 0;
+	    $self->{ '_is_in_rule' } = 0;
+	    $self->{ '_is_in_drop' } = 0;
 
             $self->_add_token($token);
 	    if ( $self->{ '_insert_values' } )
@@ -1287,7 +1308,7 @@ sub beautify {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
                     $self->_back;
-                    $self->_new_line;
+		    $self->_new_line if (!$self->{ '_is_in_rule' });
                 }
             }
 	    else
@@ -1297,13 +1318,12 @@ sub beautify {
                 next;
             }
 
-            if ($token =~ /^VALUES$/i and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
+            if ($token =~ /^VALUES$/i and !$self->{ '_is_in_rule' } and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
 	    {
-                $self->_over;
+		$self->_over;
 		if ($self->{ '_current_sql_stmt' } eq 'INSERT') {
 	            $self->{ '_insert_values' } = 1;
-                    push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
-		    $self->_over;
+		    push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
 	        }
             }
 	    if (uc($token) eq 'WHERE') {
