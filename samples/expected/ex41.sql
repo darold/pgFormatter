@@ -1,11 +1,11 @@
 /* Insert values for environment 1 */
 INSERT INTO TABLE
-        VALUES (1, 2, '3');
+    VALUES (1, 2, '3');
 
 /* Insert values for environment 2 */
 /* Insert values for environment 3 */
 INSERT INTO TABLE
-        VALUES (2, 17, 'hello');
+    VALUES (2, 17, 'hello');
 -- New comment for a query
 SELECT
     library.column1,
