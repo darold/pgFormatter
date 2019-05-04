@@ -992,13 +992,13 @@ sub beautify {
                     next;
                 }
             }
+
 	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
 		    && $self->{ '_is_in_create' } == 2
 		    && (not defined $self->_next_token or $self->_next_token ne ')')
 	    ) {
                 $self->_over if ($self->{ '_is_in_block' } < 0);
                 $self->_new_line;
-                $last = $token;
                 next;
 	    }
         }
