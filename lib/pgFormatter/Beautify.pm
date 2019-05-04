@@ -631,13 +631,12 @@ sub beautify {
         elsif ( $token eq 'IDENTITY' )
 	{
             $self->{ '_has_order_by' } = 0;
-        }
+        } 
 
         ####
         # Set the current kind of statement parsed
         ####
         if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP|RULE)$/i) {
-
             my $k_stmt = uc($1);
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')')) {
@@ -735,6 +734,12 @@ sub beautify {
 	    $self->{ '_has_order_by' } = 1;
             $last = $token;
             next;
+	}
+
+	# Fix case where we don't knwon if we are outside a SQL function
+	if (defined $last and uc($last) eq 'AS'and defined $self->_next_token and $self->_next_token eq ';'
+			and $self->{ '_is_in_create_function' }) {
+		$self->{ '_is_in_create_function' } = 0;
 	}
 
         ####
@@ -978,7 +983,10 @@ sub beautify {
 		    $last = $token;
                     next;
                 }
-		$self->_over if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('));
+		if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('))
+		{
+			$self->_over;
+		}
                 if ($self->{ '_is_in_type' } == 1) {
                     $last = $token;
                     next;
@@ -1131,6 +1139,7 @@ sub beautify {
 	        $self->{ '_is_in_rule' } = 0;
 		$self->_back();
 	    }
+
             # Initialize most of statement related variables
             $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
@@ -1145,7 +1154,6 @@ sub beautify {
             $self->{ '_is_in_prodedure' } = 0;
             $self->{ '_is_in_index' } = 0;
             $self->{ '_is_in_if' } = 0;
-            $self->{ '_current_sql_stmt' } = '';
             $self->{ '_is_in_with' } = 0;
             $self->{ '_has_order_by' } = 0;
             $self->{ '_has_over_in_join' } = 0;
@@ -1173,9 +1181,13 @@ sub beautify {
 		    $self->{ '_level' } = 0;
 		    $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
 		}
+		elsif ($self->{ '_is_in_block' } == -1 and $self->{ '_current_sql_stmt' } eq 'INSERT' and !$self->{ '_is_in_create' } and !$self->{ '_is_in_create_function' })
+		{
+		    $self->{ '_level' }-- if ($self->{ '_level' } > 0);
+		    pop( @{ $self->{ '_level_stack' } } );
+	        }
 		else
 		{
-
 		    $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
 	        }
 		$self->_new_line;
@@ -1183,6 +1195,7 @@ sub beautify {
                 $last = $token;
 		next;
 	    }
+            $self->{ '_current_sql_stmt' } = '';
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
             # Add an additional newline after ; when we are not in a function
