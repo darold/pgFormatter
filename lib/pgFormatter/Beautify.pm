@@ -477,7 +477,7 @@ sub beautify {
     $self->{ '_fct_code_delimiter' } = '';
     $self->{ '_first_when_in_case' } = 0;
 
-    $self->{ '_has_from' } = 0;
+    $self->{ '_is_in_conversion' } = 0;
     $self->{ '_is_in_case' } = 0;
     $self->{ '_is_in_where' } = 0;
     $self->{ '_is_in_from' } = 0;
@@ -594,7 +594,6 @@ sub beautify {
         elsif ( $token eq ')' )
 	{
             $self->{ '_has_order_by' } = 0;
-            $self->{ '_has_from' } = 0;
 	    if ($self->{ '_is_in_distinct' }) {
                     $self->_add_token( $token );
                     $self->_new_line;
@@ -655,7 +654,7 @@ sub beautify {
         if ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{ '_is_in_create' } and !$self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_create_function' } = 1;
 	}
-        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE)$/i) {
+        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION)$/i) {
 	    $self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^RULE$/i) {
 	    $self->{ '_is_in_rule' } = 1;
@@ -663,6 +662,8 @@ sub beautify {
             $self->{ '_is_in_type' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^PUBLICATION$/i) {
             $self->{ '_is_in_publication' } = 1;
+        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^CONVERSION$/i) {
+	    $self->{ '_is_in_conversion' } = 1;
         } elsif ($token =~ /^ALTER$/i){
             $self->{ '_is_in_alter' } = 1;
         } elsif ($token =~ /^DROP$/i){
@@ -1144,7 +1145,6 @@ sub beautify {
 	    }
 
             # Initialize most of statement related variables
-            $self->{ '_has_from' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_join' } = 0;
@@ -1282,18 +1282,13 @@ sub beautify {
 	    # Case of DISTINCT FROM clause
             if ($token =~ /^FROM$/i)
 	    {
-		    if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_alter' })
+		    if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_alter' } || $self->{ '_is_in_conversion' })
 		    {
 			$self->_add_token( $token );
 			$last = $token;
 			next;
 		    }
 	    }
-
-            if (($token =~ /^FROM$/i) && $self->{ '_has_from' } && !$self->{ '_is_in_function' })
-	    {
-                $self->{ '_has_from' } = 0;
-            }
 
             if ($token =~ /^FROM$/i)
 	    {
