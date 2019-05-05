@@ -1108,6 +1108,7 @@ sub beautify {
                                && ($self->{ '_current_sql_stmt' } !~ /^(FUNCTION|PROCEDURE)$/
 				       || $self->{ '_fct_code_delimiter' } ne '')
                                && !$self->{ '_is_in_where' }
+                               && !$self->{ '_is_in_drop' }
                                && !$self->{ '_is_in_index' }
 			       && !$self->{ '_is_in_alter' }
 			       && !$self->{ '_is_in_publication' }
