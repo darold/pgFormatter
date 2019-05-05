@@ -249,6 +249,9 @@ sub query {
     # Replace dynamic code with placeholder
     $self->_remove_dynamic_code( \$self->{ 'query' }, $self->{ 'separator' } );
 
+    # Replace operator with placeholder
+    $self->_quote_operator( \$self->{ 'query' } );
+
     return $self->{ 'query' };
 }
 
@@ -270,6 +273,9 @@ sub content
 
     # Replace placeholders with their original dynamic code
     $self->_restore_dynamic_code( \$self->{ 'content' } );
+
+    # Replace placeholders with their original operator
+    $self->_restore_operator( \$self->{ 'content' } );
 
     # Replace placeholders by their original values
     if ($#{ $self->{ 'placeholder_values' } } >= 0)
@@ -515,6 +521,7 @@ sub beautify {
     $self->{ '_and_level' } = 0;
     $self->{ '_col_count' } = 0;
     $self->{ '_is_in_drop' } = 0;
+    $self->{ '_is_in_operator' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -604,7 +611,7 @@ sub beautify {
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } && !$self->{ '_parenthesis_level' });
 
-            if ($self->{ '_is_in_with' } > 1 && !$self->{ '_parenthesis_level' }
+            if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' }) && !$self->{ '_parenthesis_level' }
 		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' }) {
                 $self->_new_line;
                 $self->{ '_level' } = pop(@{ $self->{ '_level_stack' } }) || 0;
@@ -664,6 +671,8 @@ sub beautify {
             $self->{ '_is_in_publication' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^CONVERSION$/i) {
 	    $self->{ '_is_in_conversion' } = 1;
+        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^OPERATOR$/i) {
+	    $self->{ '_is_in_operator' } = 1;
         } elsif ($token =~ /^ALTER$/i){
             $self->{ '_is_in_alter' } = 1;
         } elsif ($token =~ /^DROP$/i){
@@ -988,7 +997,9 @@ sub beautify {
                 }
 		if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('))
 		{
-			$self->_over;
+		    $self->_over;
+                    $self->_new_line if ($self->{ '_is_in_operator' });
+                    $last = $token;
 		}
                 if ($self->{ '_is_in_type' } == 1) {
                     $last = $token;
@@ -1174,6 +1185,8 @@ sub beautify {
 	    $self->{ '_and_level' } = 0;
 	    $self->{ '_col_count' } = 0;
 	    $self->{ '_is_in_drop' } = 0;
+	    $self->{ '_is_in_conversion' } = 0;
+	    $self->{ '_is_in_operator' } = 0;
 
             $self->_add_token($token);
 
@@ -1843,7 +1856,7 @@ sub _add_token {
 					        and !$self->{ '_is_in_trigger' }
 						and ($last_token ne '(' || !$self->{ '_is_in_index' }));
         } elsif (defined $last_token) {
-            $self->{ 'content' } .= $sp if ($last_token eq '(' && $self->{ '_is_in_type' });
+            $self->{ 'content' } .= $sp if ($last_token eq '(' && ($self->{ '_is_in_type' } or $self->{ '_is_in_operator' }));
         } elsif ($token eq ')' and $self->{ '_is_in_block' } >= 0 && $self->{ '_is_in_create' }) {
                 $self->{ 'content' } .= $sp;
         }
@@ -2836,6 +2849,41 @@ sub _restore_dynamic_code
 
         $$str =~ s/TEXTVALUE(\d+)/$self->{dynamic_code}{$1}/gs;
 
+}
+
+=head2 _quote_operator
+
+Internal function used to quote operator with multiple character
+to be tokenized as a single word.
+The original values are restored with function _restore_operator().
+
+=cut
+
+sub _quote_operator
+{
+    my ($self, $str) = @_;
+
+    my $idx = 0;
+    while ($$str =~ s/((?:CREATE|DROP)\s+OPERATOR\s+(?:IF\s+EXISTS)?)\s*([^"\s]+)[\s;]/$1 "$2"/is) {
+        push(@{ $self->{operator} }, $2) if (!grep(/^$2$/, @{ $self->{operator} }));
+    }
+}
+
+=head2 _restore_operator
+
+Internal function used to restore operator that was removed
+by the _quote_operator() method.
+
+=cut
+
+sub _restore_operator
+{
+        my ($self, $str) = @_;
+
+	foreach my $op (@{ $self->{operator} })
+	{
+		$$str =~ s/"$op"/$op/gs;
+	}
 }
 
 =head2 _remove_comments
