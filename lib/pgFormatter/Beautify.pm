@@ -205,6 +205,8 @@ sub query {
     if ($#temp_content > 0) {
         for (my $j = 0; $j <= $#temp_content; $j++) {
             next if ($temp_content[$j] =~ /^CREATE/i);
+	    # Remove any call too CREATE/DROP LANGUAGE to not break search of function code separator
+	    $temp_content[$j] =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
             my $fctname = '';
             if ($temp_content[$j] =~ /^([^\s\(]+)/) {
                 $fctname = lc($1);
@@ -217,14 +219,14 @@ sub query {
             # if the function language is not SQL or PLPGSQL
             if ($language !~ /^(?:plpg)?sql$/) {
                 # Try to find the code separator
-                my $tmp_str = $temp_content[$j];
+	        my $tmp_str = $temp_content[$j];
                 while ($tmp_str =~ s/\s+AS\s+([^\s]+)\s+//is) {
                     my $code_sep = quotemeta($1);
 		    foreach my $k (@{ $self->{ 'keywords' } }) {
 			    last if ($code_sep =~ s/\b$k$//i); 
 		    }
                     if ($tmp_str =~ /\s+$code_sep[\s;]+/) {
-                        while ( $temp_content[$j] =~ s/($code_sep.*$code_sep)/CODEPART${i}CODEPART/s) {
+                        while ( $temp_content[$j] =~ s/($code_sep(?:.+?)$code_sep)/CODEPART${i}CODEPART/s) {
                             push(@{ $self->{ 'placeholder_values' } }, $1);
                             $i++;
                         }
@@ -1173,6 +1175,7 @@ sub beautify {
 	    $self->{ '_is_in_drop' } = 0;
 
             $self->_add_token($token);
+
 	    if ( $self->{ '_insert_values' } )
 	    {
 		if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
@@ -1498,7 +1501,7 @@ sub beautify {
         elsif ( $token =~ /^(?:IF|LOOP)$/i && $self->{ '_current_sql_stmt' } ne 'GRANT')
 	{
             $self->_add_token( $token );
-            if (defined $self->_next_token and $self->_next_token !~ /EXISTS|;/i)
+            if (defined $self->_next_token and $self->_next_token !~ /^(EXISTS|;)$/i)
 	    {
                 $self->_new_line if ($token =~ /^LOOP$/i);
                 $self->_over;
@@ -1765,7 +1768,7 @@ sub beautify {
 		 next;
 	     }
 
-             if ($last =~ /^(?:SEQUENCE)$/i and $self->_next_token !~ /^OWNED$/i)
+             if ($last =~ /^(?:SEQUENCE)$/i and $self->_next_token !~ /^(OWNED|;)$/i)
 	     {
                  $self->_add_token( $token );
                  $self->_new_line;
