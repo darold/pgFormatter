@@ -1451,7 +1451,8 @@ sub beautify {
             }
 	    if (uc($token) ne 'EXCEPTION' or not defined $last or uc($last) ne 'RAISE')
 	    {
-                $self->_new_line;
+		# Excluding CREATE/DROP GROUP
+                $self->_new_line if (not defined $last or $last !~ /^(CREATE|DROP)$/);
             }
             $self->_add_token( $token );
             # Store current indent position to print END at the right level
