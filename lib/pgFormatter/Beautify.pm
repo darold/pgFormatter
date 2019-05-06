@@ -2863,9 +2863,14 @@ sub _quote_operator
 {
     my ($self, $str) = @_;
 
+    while ($$str =~ s/((?:CREATE|DROP)\s+OPERATOR\s+(?:IF\s+EXISTS)?)\s*((:?[a-z0-9]+\.)?[\+\-\*\/<>=\~\!\@\#\%\^\&\|\`\?]+)\s*/$1 "$2" /is) {
+        push(@{ $self->{operator} }, $2) if (!grep(/^\Q$2\E$/, @{ $self->{operator} }));
+    }
+
     my $idx = 0;
-    while ($$str =~ s/((?:CREATE|DROP)\s+OPERATOR\s+(?:IF\s+EXISTS)?)\s*([^"\s]+)[\s;]/$1 "$2"/is) {
-        push(@{ $self->{operator} }, $2) if (!grep(/^$2$/, @{ $self->{operator} }));
+    while ($$str =~ s/(NEGATOR|COMMUTATOR)\s*=\s*([^,\)\s]+)/\U$1\E$idx/is) {
+	    $self->{uc($1)}{$idx} = "$1 = $2";
+	    $idx++;
     }
 }
 
@@ -2883,6 +2888,12 @@ sub _restore_operator
 	foreach my $op (@{ $self->{operator} })
 	{
 		$$str =~ s/"$op"/$op/gs;
+	}
+	if (exists $self->{COMMUTATOR}) {
+		$$str =~ s/COMMUTATOR(\d+)/$self->{COMMUTATOR}{$1}/igs;
+	}
+	if (exists $self->{NEGATOR}) {
+		$$str =~ s/NEGATOR(\d+)/$self->{NEGATOR}{$1}/igs;
 	}
 }
 
