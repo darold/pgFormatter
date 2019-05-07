@@ -41,6 +41,13 @@ CREATE OPERATOR !== (
         NEGATOR = ===
 );
 
+EXPLAIN
+(COSTS OFF, ANALYZE
+)
+SELECT count(*)
+FROM quad_point_tbl
+WHERE p IS NULL;
+
 CREATE FUNCTION sql_is_distinct_from (anyelement, anyelement)
     RETURNS boolean
     LANGUAGE sql

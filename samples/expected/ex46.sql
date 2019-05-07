@@ -76,3 +76,8 @@ FROM emp
 WINDOW s AS (ORDER BY salary DESC)
 ORDER BY salary DESC;
 
+EXPLAIN (COSTS OFF, ANALYZE)
+SELECT count(*)
+FROM quad_point_tbl
+WHERE p IS NULL;
+

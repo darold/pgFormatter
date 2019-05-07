@@ -503,6 +503,7 @@ sub beautify {
     $self->{ '_is_in_procedure' } = 0;
     $self->{ '_is_in_index' } = 0;
     $self->{ '_is_in_with' }  = 0;
+    $self->{ '_is_in_explain' }  = 0;
     $self->{ '_parenthesis_level' } = 0;
     $self->{ '_parenthesis_function_level' } = 0;
     $self->{ '_has_order_by' }  = 0;
@@ -636,9 +637,15 @@ sub beautify {
             $self->{ '_is_in_filter' } = 1 if (uc($token) eq 'FILTER');
 	    $self->{ '_is_in_grouping' } = 1 if ($token =~ /^GROUPING|ROLLUP$/i);
         } 
-        elsif ( $token eq 'IDENTITY' )
+        elsif ( uc($token) eq 'IDENTITY' )
 	{
             $self->{ '_has_order_by' } = 0;
+        } 
+
+	# Explain need indentation in option list
+        if ( uc($token) eq 'EXPLAIN' )
+	{
+	    $self->{ '_is_in_explain' }  = 1;
         } 
 
         ####
@@ -646,6 +653,7 @@ sub beautify {
         ####
         if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP|RULE)$/i) {
             my $k_stmt = uc($1);
+	    $self->{ '_is_in_explain' }  = 0;
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')')) {
                 if ($k_stmt !~ /^UPDATE|DELETE$/i || !$self->{ '_is_in_create' }) {
@@ -989,10 +997,10 @@ sub beautify {
 		{
                     $self->_new_line if ($self->_next_token ne ')' and $self->_next_token !~ /^(PARTITION|ORDER)$/i);
                 }
-                if ($self->{ '_is_in_with' } == 1) {
+                if ($self->{ '_is_in_with' } == 1 or $self->{ '_is_in_explain' }) {
                     $self->_over;
                     $self->_new_line if (!$self->{ 'wrap_after' });
-		    $last = $token;
+		    $last = $token if (!$self->{ '_is_in_explain' } || $self->{ 'wrap_after' });
                     next;
                 }
 		if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('))
@@ -1023,10 +1031,11 @@ sub beautify {
 			    and ($self->_next_token eq ',' or $self->_next_token eq ')')) {
 		$self->{ '_is_in_constraint' } = 0;
 	    }
-            if ($self->{ '_is_in_with' } == 1) {
+            if ($self->{ '_is_in_with' } == 1 || $self->{ '_is_in_explain' }) {
                 $self->_back;
 	        $self->_new_line if (!$self->{ 'wrap_after' });
                 $self->_add_token( $token );
+		$self->{ '_is_in_explain' } = 0;
                 next;
             }
 	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
@@ -1187,6 +1196,7 @@ sub beautify {
 	    $self->{ '_is_in_drop' } = 0;
 	    $self->{ '_is_in_conversion' } = 0;
 	    $self->{ '_is_in_operator' } = 0;
+	    $self->{ '_is_in_explain' }  = 0;
 
             $self->_add_token($token);
 
@@ -1839,9 +1849,11 @@ sub _add_token {
 
     my $sp = $self->_indent;
 
-    if ( !$self->_is_punctuation( $token ) and !$last_is_dot) {
+    if ( !$self->_is_punctuation( $token ) and !$last_is_dot)
+    {
         if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ ) {
-            $self->{ 'content' } .= $sp if ($token ne ')'
+            $self->{ 'content' } .= $sp,
+	    if ($token ne ')'
                                             && defined($last_token)
                                             && $last_token ne '::' 
                                             && $last_token ne '[' 
