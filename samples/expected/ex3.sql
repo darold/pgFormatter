@@ -4,6 +4,7 @@ CREATE TABLE test (
 
 INSERT INTO test
     VALUES ('123');
+
 CREATE FUNCTION fonction_reference (refcursor)
     RETURNS refcursor
     AS $$

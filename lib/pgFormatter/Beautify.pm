@@ -1217,18 +1217,16 @@ sub beautify {
 		{
 		    $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
 	        }
-		$self->_new_line;
 		$self->{ '_insert_values' } = 0;
-                $last = $token;
-		next;
 	    }
             $self->{ '_current_sql_stmt' } = '';
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
             $self->_new_line;
             # Add an additional newline after ; when we are not in a function
-            if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' } and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
+            if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' }
+			    and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
 	    {
-                $self->{ '_new_line' } = 0;
+		$self->{ '_new_line' } = 0;
                 $self->_new_line;
             }
             # End of statement; remove all indentation when we are not in a BEGIN/END block
@@ -1238,7 +1236,7 @@ sub beautify {
                 $self->{ '_level' } = 0;
                 $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
             }
-	    else
+	    elsif (not defined $self->_next_token or $self->_next_token !~ /^INSERT$/)
 	    {
                 if ($#{ $self->{ '_level_stack' } } == -1) {
                         $self->{ '_level' } = ($self->{ '_is_in_declare' }) ? 1 : ($self->{ '_is_in_block' }+1);
@@ -1246,6 +1244,7 @@ sub beautify {
                         $self->{ '_level' } = $self->{ '_level_stack' }[-1];
                 }
             }
+	    $last = $token;
         }
         elsif ($token =~ /^FOR$/i && (!$self->{ '_is_in_policy' } || $self->{ 'format_type' }))
 	{
@@ -1269,7 +1268,7 @@ sub beautify {
             if ($self->_next_token =~ /^SELECT|UPDATE|DELETE|INSERT|TABLE|ALL$/i)
 	    {
 		# cover FOR in cursor and in policy or publication statements
-                $self->_over if (uc($self->_next_token) eq 'SELECT' || $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' });
+		$self->_over if (uc($self->_next_token) eq 'SELECT' || $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' });
             }
             if ($self->{ 'format_type' } && $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' }) {
 		$self->_new_line;
@@ -1411,7 +1410,7 @@ sub beautify {
 
 	    if ($token =~ /^SELECT|UPDATE|DELETE|INSERT$/i && $self->{ '_is_in_policy' } && $self->{ 'format_type' })
 	    {
-                $self->_over();
+		$self->_over();
 	    }
 
             # case of ON DELETE/UPDATE clause in create table statements
@@ -1443,7 +1442,7 @@ sub beautify {
 	{
                 $self->_add_token( $token );
                 $self->_new_line;
-                $self->_over;
+		$self->_over;
 	}
         elsif ( $token =~ /^(?:WITHIN)$/i )
 	{
