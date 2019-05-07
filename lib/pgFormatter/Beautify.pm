@@ -882,7 +882,7 @@ sub beautify {
             $last = $token;
             next;
         }
-        elsif ( uc($token) eq 'COMMIT' )
+        elsif ( $token =~ /^(COMMIT|ROLLBACK)$/ )
 	{
 		$self->{ '_is_in_work' } = 0;
         }
