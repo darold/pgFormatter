@@ -59,4 +59,8 @@ INSERT INTO dom_table
 INSERT INTO dom_table
     VALUES ('1');
 
+CREATE FUNCTION customcontsel(internal, oid, internal, integer)
+RETURNS float8 AS 'contsel' LANGUAGE internal STABLE STRICT;
+CREATE VIEW attmp_view (unique1) AS SELECT unique1 FROM tenk1;
+CREATE VIEW attmp_view (col1, col2) AS SELECT cola, colb FROM tenk1;
 

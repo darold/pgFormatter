@@ -225,6 +225,7 @@ sub query {
 		    foreach my $k (@{ $self->{ 'keywords' } }) {
 			    last if ($code_sep =~ s/\b$k$//i); 
 		    }
+		    next if (!$code_sep);
                     if ($tmp_str =~ /\s+$code_sep[\s;]+/) {
                         while ( $temp_content[$j] =~ s/($code_sep(?:.+?)$code_sep)/CODEPART${i}CODEPART/s) {
                             push(@{ $self->{ 'placeholder_values' } }, $1);
@@ -685,6 +686,9 @@ sub beautify {
             $self->{ '_is_in_alter' } = 1;
         } elsif ($token =~ /^DROP$/i){
             $self->{ '_is_in_drop' } = 1;
+        } elsif ($token =~ /^VIEW$/i and $self->{ '_is_in_create' }) {
+            $self->{ '_is_in_index' } = 1;
+	    $self->{ '_is_in_create' } = 0;
         }
 
 	####
@@ -781,7 +785,7 @@ sub beautify {
 	    } else {
                 $self->_add_token( $token );
             }
-	    if ($self->_next_token !~ /CODEPART/)
+	    if ($self->_next_token !~ /CODEPART/ || $self->_next_token =~ /^'/)
 	    {
                 $self->{ '_fct_code_delimiter' } = '1';
 	    }
@@ -1762,7 +1766,10 @@ sub beautify {
 
         else
 	{
-	    # special case with comment
+	     if ($self->{ '_fct_code_delimiter' } and $self->{ '_fct_code_delimiter' } =~ /^'.*'$/) {
+	 	$self->{ '_fct_code_delimiter' } = "";
+	     }
+	     # special case with comment
 	     if ($token =~ /(?:\s*--)[\ \t\S]*/s)
 	     {
 		 $token =~ s/^(\s*)(--.*)/$2/s;

@@ -18,7 +18,7 @@ SET check_function_bodies = FALSE;
 
 SET client_min_messages = warning;
 
-SET row_security = off;
+SET row_security = OFF;
 
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
@@ -372,7 +372,7 @@ CREATE TABLE appellation (
     region_id integer
 )
 WITH (
-    autovacuum_enabled = off
+    autovacuum_enabled = OFF
 );
 
 ALTER TABLE appellation OWNER TO userdb;
@@ -406,7 +406,7 @@ CREATE TABLE contenant (
     libelle text
 )
 WITH (
-    autovacuum_enabled = off,
+    autovacuum_enabled = OFF,
     fillfactor = '20'
 );
 
@@ -441,7 +441,7 @@ CREATE TABLE recoltant (
     adresse text
 )
 WITH (
-    autovacuum_enabled = off
+    autovacuum_enabled = OFF
 );
 
 ALTER TABLE recoltant OWNER TO userdb;
@@ -474,7 +474,7 @@ CREATE TABLE region (
     libelle text NOT NULL
 )
 WITH (
-    autovacuum_enabled = off
+    autovacuum_enabled = OFF
 );
 
 ALTER TABLE region OWNER TO userdb;
@@ -509,7 +509,7 @@ CREATE TABLE stock (
     nombre integer NOT NULL
 )
 WITH (
-    autovacuum_enabled = off
+    autovacuum_enabled = OFF
 );
 
 ALTER TABLE stock OWNER TO userdb;
@@ -523,7 +523,7 @@ CREATE TABLE type_vin (
     libelle text NOT NULL
 )
 WITH (
-    autovacuum_enabled = off
+    autovacuum_enabled = OFF
 );
 
 ALTER TABLE type_vin OWNER TO userdb;
@@ -558,7 +558,7 @@ CREATE TABLE vin (
     type_vin_id integer NOT NULL
 )
 WITH (
-    autovacuum_enabled = off
+    autovacuum_enabled = OFF
 );
 
 ALTER TABLE vin OWNER TO userdb;
