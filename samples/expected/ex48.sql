@@ -80,3 +80,9 @@ SELECT
 FROM
     tenk1;
 
+CREATE TABLE a (
+    u
+) AS
+SELECT
+    u;
+

@@ -64,3 +64,5 @@ RETURNS float8 AS 'contsel' LANGUAGE internal STABLE STRICT;
 CREATE VIEW attmp_view (unique1) AS SELECT unique1 FROM tenk1;
 CREATE VIEW attmp_view (col1, col2) AS SELECT cola, colb FROM tenk1;
 
+CREATE TABLE a (u) AS SELECT u;
+

@@ -613,6 +613,9 @@ sub beautify {
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } && !$self->{ '_parenthesis_level' });
 
+	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS') {
+                $self->_new_line;
+	    }
             if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' }) && !$self->{ '_parenthesis_level' }
 		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' }) {
                 $self->_new_line;
