@@ -645,6 +645,10 @@ sub beautify {
 	{
             $self->{ '_has_order_by' } = 0;
         } 
+        elsif ( uc($token) eq 'PASSING' and defined $self->_next_token && uc($self->_next_token) eq 'BY')
+	{
+            $self->{ '_has_order_by' } = 1;
+        } 
 
 	# Explain need indentation in option list
         if ( uc($token) eq 'EXPLAIN' )
