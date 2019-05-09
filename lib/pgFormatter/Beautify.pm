@@ -564,7 +564,7 @@ sub beautify {
 		    $self->{ '_level' }++;
 	        }
             }
-            $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
+	    $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
         }
         elsif ( $token eq '(')
         {
@@ -592,6 +592,10 @@ sub beautify {
         elsif ($token =~ /^(AS|IS)$/i && defined $self->_next_token && $self->_next_token eq '(')
 	{
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
+        }
+        elsif ($self->{ '_is_in_create' } && $token =~ /^AS$/i && defined $self->_next_token && uc($self->_next_token) eq 'SELECT')
+	{
+            $self->{ '_is_in_create' } = 0;
         }
         elsif ( $token eq '[' )
 	{
@@ -1013,7 +1017,7 @@ sub beautify {
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE')
 		{
-                    $self->_new_line if ($self->_next_token ne ')' and $self->_next_token !~ /^(PARTITION|ORDER)$/i);
+                    $self->_new_line if ((!$self->{'_is_in_function'} or $self->_next_token =~ /^CASE$/i) and $self->_next_token ne ')' and $self->_next_token !~ /^(PARTITION|ORDER)$/i);
                 }
                 if ($self->{ '_is_in_with' } == 1 or $self->{ '_is_in_explain' }) {
                     $self->_over;
@@ -1073,7 +1077,8 @@ sub beautify {
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
                 next;
             }
-	    if (defined $self->_next_token && $self->_next_token !~ /FILTER/i) {
+	    if (defined $self->_next_token && $self->_next_token !~ /FILTER/i)
+	    {
                 $self->_new_line if ($self->{ '_is_in_create' } > 1
 		    and defined $last and $last ne '('
                     and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i)
