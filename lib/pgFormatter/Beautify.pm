@@ -524,6 +524,7 @@ sub beautify {
     $self->{ '_col_count' } = 0;
     $self->{ '_is_in_drop' } = 0;
     $self->{ '_is_in_operator' } = 0;
+    $self->{ '_is_in_exception' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -818,6 +819,8 @@ sub beautify {
         elsif ($token =~ /^DO$/i and !$self->{ '_fct_code_delimiter' } and $self->_next_token =~ /^\$[^\s]*/)
 	{
                 $self->{ '_fct_code_delimiter' } = '1';
+		$self->{ '_is_in_create_function' } = 1;
+                $self->_new_line if ($self->{ 'content' } !~ /\n$/s);
                 $self->_add_token( $token );
                 $last = $token;
                 next;
@@ -842,6 +845,7 @@ sub beautify {
         if ($self->{ '_fct_code_delimiter' } && $token eq $self->{ '_fct_code_delimiter' })
 	{
             $self->{ '_is_in_block' } = -1;
+            $self->{ '_is_in_exception' } = 0;
             @{ $self->{ '_level_stack' } } = ();
             $self->{ '_level' } = 0;
             $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
@@ -859,6 +863,7 @@ sub beautify {
         ####
         if (uc($token) eq 'DECLARE' and $self->{ '_is_in_create_function' }) {
             $self->{ '_is_in_block' } = -1;
+            $self->{ '_is_in_exception' } = 0;
             $self->{ '_is_in_declare' } = 1;
             @{ $self->{ '_level_stack' } } = ();
             $self->{ '_level' } = 0;
@@ -1489,6 +1494,7 @@ sub beautify {
 	    {
                 push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
                 $self->_over;
+	        $self->{ '_is_in_exception' } = 1;
             }
             $self->{ '_is_in_where' }-- if ($self->{ '_is_in_where' });
         }
@@ -1517,8 +1523,13 @@ sub beautify {
         elsif ( $token =~ /^(?:WHEN)$/i)
 	{
             if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
-			    and defined $last and uc($last) ne 'CASE') {
+			    and defined $last and uc($last) ne 'CASE'
+		    	    # handle case where there is a comment between EXCEPTION and WHEN keywords
+			    and !$self->{ '_is_in_exception' }
+	    )
+	    {
 		$self->{ '_level' } = $self->{ '_level_stack' }[-1];
+		$self->{ '_is_in_exception' } = 0;
 	    }
             $self->_new_line if (not defined $last or uc($last) ne 'CASE');
             $self->_add_token( $token );
