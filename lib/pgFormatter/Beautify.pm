@@ -891,12 +891,12 @@ sub beautify {
             }
             $self->_new_line;
             $self->_add_token( $token );
-	    if (defined $self->_next_token && $self->_next_token !~ /^(WORK|TRANSACTION|;)$/i) {
+	    if (defined $self->_next_token && $self->_next_token !~ /^(WORK|TRANSACTION|ISOLATION|;)$/i) {
 		$self->_new_line;
 		$self->_over;
                 $self->{ '_is_in_block' }++;
             }
-	    $self->{ '_is_in_work' } = 1 if (defined $self->_next_token && $self->_next_token =~ /^(WORK|TRANSACTION|;)$/i);
+	    $self->{ '_is_in_work' } = 1 if (defined $self->_next_token && $self->_next_token =~ /^(WORK|TRANSACTION|ISOLATION|;)$/i);
             $last = $token;
             next;
         }
@@ -989,7 +989,7 @@ sub beautify {
             $last = $token;
 	    next;
         }
-        elsif ($token =~ /^EXECUTE$/i and $self->{ '_is_in_trigger' })
+        elsif ($token =~ /^EXECUTE$/i and ($self->{ '_is_in_trigger' } or (defined $last and uc($last) eq 'AS')))
 	{
             $self->_new_line;
             $self->_add_token( $token );
@@ -1878,12 +1878,11 @@ sub _add_token {
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot)
     {
         if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ ) {
-            $self->{ 'content' } .= $sp,
-	    if ($token ne ')'
+            $self->{ 'content' } .= $sp if ($token ne ')'
                                             && defined($last_token)
                                             && $last_token ne '::' 
                                             && $last_token ne '[' 
-                                            && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
+					    && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
                 );
             $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
         } elsif ( defined $last_token && $last_token eq '(' && $token ne ')' && $token !~ /^::/ && !$self->{'wrap_after'} && $self->{ '_is_in_with' } == 1) {
