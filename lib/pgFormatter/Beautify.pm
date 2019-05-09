@@ -677,6 +677,8 @@ sub beautify {
         ####
         if ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{ '_is_in_create' } and !$self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_create_function' } = 1;
+	} elsif ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{'_is_in_trigger'}) {
+		$self->{ '_is_in_index' } = 1;
 	}
         if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
 	    $self->{ '_is_in_create' } = 1;
