@@ -271,6 +271,7 @@ sub content
     my $new_value = shift;
 
     $self->{ 'content' } = $new_value if defined $new_value;
+    $self->{ 'content' } =~ s/\(\s+\(/\(\(/gs;
 
     # Replace placeholders with their original dynamic code
     $self->_restore_dynamic_code( \$self->{ 'content' } );
@@ -1947,7 +1948,6 @@ sub _add_token {
     }
 
     $self->{ 'content' } .= $token;
-    $self->{ 'content' } =~ s/\(\s+\(/\(\(/gs;
 
     # This can't be the beginning of a new line anymore.
     $self->{ '_new_line' } = 0;
