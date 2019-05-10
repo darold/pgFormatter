@@ -543,9 +543,9 @@ sub beautify {
         # Find if the current keyword is a known function name
         ####
         if (defined $last && $last && defined $self->_next_token and $self->_next_token eq '(') {
-            my $word = $token;
+            my $word = lc($token);
             $word =~ s/^[^\.]+\.//;
-            if ($word && grep(/^\Q$word\E$/i, @{$self->{ 'dict' }->{ 'pg_functions' }})) {
+            if ($word && exists $self->{ 'dict' }->{ 'pg_functions' }{$word}) {
                 $self->{ '_is_in_function' }++;
             }
         }
@@ -2135,8 +2135,7 @@ Refresh compiled regexp for functions.
 
 sub _refresh_functions_re {
     my $self = shift;
-
-    $self->{ 'functions_re' } = _re_from_list( '\b[\.]*', '$', $self->{ 'functions' } );
+    $self->{ 'functions_re' } = _re_from_list( '\b[\.]*', '$', @{ $self->{ 'functions' } });
 }
 
 =head2 add_functions
@@ -2409,7 +2408,8 @@ sub set_defaults {
     $self->{ 'no_comments' }  = 0;
     $self->{ 'placeholder' }  = '';
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
-    $self->{ 'functions' }    = $self->{ 'dict' }->{ 'pg_functions' };
+    $self->{ 'functions' }    = ();
+    push(@{ $self->{ 'functions' } }, keys %{ $self->{ 'dict' }->{ 'pg_functions' } });
     $self->_refresh_functions_re();
     $self->{ 'separator' }    = '';
     $self->{ 'comma' }        = 'end';
@@ -2835,6 +2835,10 @@ sub set_dicts {
     $self->{ 'dict' }->{ 'pg_keywords' }   = \@pg_keywords;
     $self->{ 'dict' }->{ 'sql_keywords' }  = \@sql_keywords;
     $self->{ 'dict' }->{ 'pg_functions' }  = \@pg_functions;
+    $self->{ 'dict' }->{ 'pg_functions' }  = ();
+    foreach my $f (@pg_functions) {
+	    $self->{ 'dict' }->{ 'pg_functions' }{$f} = '';
+    }
     $self->{ 'dict' }->{ 'copy_keywords' } = \@copy_keywords;
     $self->{ 'dict' }->{ 'symbols' }       = \%symbols;
     $self->{ 'dict' }->{ 'brackets' }      = \@brackets;
