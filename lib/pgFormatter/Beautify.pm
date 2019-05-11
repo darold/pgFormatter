@@ -681,7 +681,7 @@ sub beautify {
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')')) {
                 if ($k_stmt !~ /^UPDATE|DELETE$/i || !$self->{ '_is_in_create' }) {
-                    $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i and !$self->{ '_is_in_trigger' });
+                    $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i and !$self->{ '_is_in_trigger' } and !$self->{ '_is_in_operator' });
                 }
             }
         }
@@ -714,6 +714,8 @@ sub beautify {
         } elsif ($token =~ /^VIEW$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_index' } = 1;
 	    $self->{ '_is_in_create' } = 0;
+        } elsif (defined $self->_next_token and $self->_next_token =~ /^OPERATOR$/i) {
+	    $self->{ '_is_in_using' } = 0;
         }
 
 	####
@@ -740,9 +742,9 @@ sub beautify {
         # Same as above but for ALTER FUNCTION/PROCEDURE/SEQUENCE or when
         # we are in a CREATE FUNCTION/PROCEDURE statement
         elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE)$/i and !$self->{'_is_in_trigger'}) {
-            $self->{ '_is_in_index' } = 1 if (uc($last) eq 'ALTER');
+            $self->{ '_is_in_index' } = 1 if (uc($last) eq 'ALTER' and !$self->{ '_is_in_operator' });
             if ($token =~ /^FUNCTION$/i && $self->{ '_is_in_create' }) {
-                $self->{ '_is_in_index' } = 1;
+                $self->{ '_is_in_index' } = 1 if (!$self->{ '_is_in_operator' });
 	    } elsif ($token =~ /^PROCEDURE$/i && $self->{ '_is_in_create' }) {
                 $self->{ '_is_in_index' } = 1;
 		$self->{ '_is_in_procedure' } = 1;
@@ -1179,7 +1181,8 @@ sub beautify {
 			       && (!$self->{ '_col_count' } or $self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1))
                                || ($self->{ '_is_in_with' } and !$self->{ 'wrap_after' })
                     );
-		    $self->{ '_col_count' } = 0 if ($self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1));
+            $self->{ '_col_count' } = 0 if ($self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1));
+	    $add_newline = 0 if ($self->{ '_is_in_using' } and $self->{ '_parenthesis_level' });
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
                 $add_newline = 1 if (!$self->{ 'wrap_after' });
@@ -1492,6 +1495,11 @@ sub beautify {
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i )
 	{
+            if (uc($token) eq 'GROUP' and !defined $last or uc($last) eq 'EXCLUDE') {
+                $self->_add_token( $token );
+                $last = $token;
+		next;
+	    }
 	    if (($self->{ '_is_in_within' } && uc($token) eq 'GROUP') || ($self->{ '_is_in_over' } && uc($token) eq 'ORDER')) {
                 $self->_add_token( $token );
                 $last = $token;
@@ -1745,7 +1753,7 @@ sub beautify {
 	    $self->{ '_is_in_using' } = 1;
             if (!$self->{ '_is_in_from' })
 	    {
-                $self->_new_line if (!defined $last or uc($last) ne 'EXCLUDE');
+                $self->_new_line if (uc($last) ne 'EXCLUDE');
             }
 	    else
 	    {
@@ -1758,7 +1766,9 @@ sub beautify {
 
 	elsif ($token =~ /^EXCLUDE$/i)
 	{
-            $self->_new_line if (!defined $last or uc($last) ne 'ADD');
+	    if ($last !~ /^(FOLLOWING|ADD)$/i or $self->_next_token !~ /^USING$/i) {
+                $self->_new_line if (uc($last) ne 'ADD');
+	    }
             $self->_add_token( $token );
 	    $self->{ '_is_in_using' } = 1;
         }
@@ -2474,21 +2484,21 @@ sub set_dicts {
 	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY
 	COST COSTS CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER CURSOR
 	CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER DESC DETACH DISTINCT
-	DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE FETCH FILTER
-	FIRST FOLLOWING FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GENERATED GRANT GROUP GROUPING HAVING HASH
+	DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDE EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE FETCH FILTER
+	FIRST FOLLOWING FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GENERATED GRANT GROUP GROUPING HAVING HASHES HASH
 	IDENTITY IF ILIKE IMMUTABLE IN INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD
 	INTERSECT INTO INVOKER IS ISNULL ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING
-	LEAKPROOF LEFT LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN
-	LOOP MAPPING MAXVALUE MINVALUE MODULUS MOVE NATURAL NEXT
+	LEAKPROOF LEFT LEFTARG LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN
+	LOOP MAPPING MAXVALUE MERGES MINVALUE MODULUS MOVE NATURAL NEXT
         NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OFF OF OIDS ON ONLY OPEN OPERATOR OR ORDER
         OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE RANGE
-        REASSIGN RECURSIVE REFERENCES REINDEX REMAINDER RENAME REPEATABLE REPLACE REPLICA RESET RESTART RETURN RETURNING
-        RETURNS RETURNS REVOKE RIGHT ROLE ROLLBACK ROLLUP ROWS ROW RULE SAVEPOINT SCHEMA SCROLL SECURITY SELECT SEQUENCE
+        REASSIGN RECURSIVE REFERENCES REINDEX REMAINDER RENAME REPEATABLE REPLACE REPLICA RESET RESTART RESTRICT RETURN RETURNING
+        RETURNS RETURNS REVOKE RIGHT RIGHTARG ROLE ROLLBACK ROLLUP ROWS ROW RULE SAVEPOINT SCHEMA SCROLL SECURITY SELECT SEQUENCE
         SEQUENCE SERIALIZABLE SERVER SESSION_USER SET SETOF SETS SHOW SIMILAR SKIP SNAPSHOT SOME STABLE START STRICT
         SYMMETRIC SYSTEM TABLE TABLESAMPLE TABLESPACE TEMPLATE TEMPORARY THEN TO TRAILING TRANSACTION TRIGGER TRUE
         TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
         VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH WITHIN WORK XOR ZEROFILL
-	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES
+	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES 
         );
 
     my @sql_keywords = map { uc } qw(
@@ -2496,12 +2506,12 @@ sub set_dicts {
         CALLED CASCADED CATALOG CHAIN CHANGE CHARACTER CHARACTERISTICS COLUMNS COMMENTS CONFIGURATION
         CONNECTION CONSTRAINTS CONTENT CONVERSION CSV CURRENT DATA DATABASES DAY DEC DECIMAL DEFAULTS DELAYED
         DELIMITERS DESCRIBE DICTIONARY DISABLE DISCARD DOCUMENT DOUBLE ENABLE ENCLOSED ENCRYPTED ENUM ESCAPE ESCAPED
-        EXCLUDE EXCLUSIVE EXTERNAL FIELD FIELDS FLOAT FLUSH FOLLOWING FORCE FUNCTIONS GLOBAL GRANTED GREATEST HANDLER
+        EXCLUSIVE EXTERNAL FIELD FIELDS FLOAT FLUSH FOLLOWING FORCE FUNCTIONS GLOBAL GRANTED GREATEST HANDLER
         HEADER HOLD HOUR IDENTIFIED IGNORE IMMEDIATE IMPLICIT INDEXES INFILE INHERIT INLINE INPUT INSENSITIVE
         INT INTEGER KEYS KILL LABEL LARGE LEAST LEVEL LINES LOCAL LOW_PRIORITY MATCH MINUTE MODE MODIFY MONTH NAMES
         NATIONAL NCHAR NONE NOTHING NULLIF NULLS OBJECT OFF OPERATOR OPTIMIZE OPTION OPTIONALLY OPTIONS OUT OUTFILE
         OWNED PARSER PARTIAL PASSING PLANS PRECISION PREPARED PRESERVE PRIOR PRIVILEGES PROCEDURAL QUOTE READ
-        REAL RECHECK REF REGEXP RELATIVE RELEASE RESTRICT RLIKE ROW SEARCH SECOND SEQUENCES SESSION SHARE SIMPLE
+        REAL RECHECK REF REGEXP RELATIVE RELEASE RLIKE ROW SEARCH SECOND SEQUENCES SESSION SHARE SIMPLE
         SMALLINT SONAME STANDALONE STATEMENT STATISTICS STATUS STORAGE STRAIGHT_JOIN SYSID TABLES TEMP TERMINATED
         TREAT TRUSTED TYPES UNENCRYPTED UNKNOWN UNSIGNED UNTIL USE VALID VALIDATE VALIDATOR VALUE VARIABLES VARYING
         WHITESPACE WITHOUT WORK WRAPPER WRITE XMLATTRIBUTES YEAR YES ZONE
@@ -2684,7 +2694,7 @@ sub set_dicts {
         lseg_lt lseg_ne lseg_out lseg_parallel lseg_perp lseg_recv lseg_send
         lseg_vertical macaddr_and macaddr_cmp macaddr_eq macaddr_ge macaddr_gt macaddr_in
         macaddr_le macaddr_lt macaddr_ne macaddr_not macaddr_or macaddr_out macaddr_recv
-        macaddr_send makeaclitem masklen max mic_to_ascii mic_to_big5 mic_to_euc_cn
+        macaddr_send makeaclitem make_tsrange masklen max mic_to_ascii mic_to_big5 mic_to_euc_cn
         mic_to_euc_jp mic_to_euc_kr mic_to_euc_tw mic_to_iso mic_to_koi8r mic_to_latin1 mic_to_latin2
         mic_to_latin3 mic_to_latin4 mic_to_sjis mic_to_win1250 mic_to_win1251 mic_to_win866 min
         mktinterval mode mod money mul_d_interval name nameeq namege
