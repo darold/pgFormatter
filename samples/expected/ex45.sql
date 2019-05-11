@@ -34,11 +34,11 @@ SELECT
     SUM((
         SELECT
             count(*)
-            FROM b)) AS something,
+        FROM b)) AS something,
     SUM((
         SELECT
             count(*)
-            FROM b)) AS something,
+        FROM b)) AS something,
     a.b
 FROM
     a;

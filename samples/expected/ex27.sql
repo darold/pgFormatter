@@ -22,7 +22,9 @@ FROM (
                 ldm.id = subparts.part_product_parent_id)) ldm
     JOIN LATERAL (
         SELECT
-            opgt.id, part.id AS part_id, opgt.art_id
+            opgt.id,
+            part.id AS part_id,
+            opgt.art_id
         FROM
             part_product part
             JOIN part_product_kind opgt ON opgt.id = part.part_product_kind_id
@@ -39,7 +41,8 @@ FROM (
                     AND day > CURRENT_DATE - interval '4 mons')) opgt ON TRUE
     JOIN LATERAL (
         SELECT
-            r.id AS slot_id, ga.id AS grp_art_id
+            r.id AS slot_id,
+            ga.id AS grp_art_id
         FROM
             part_product_kind lm
             JOIN art a ON a.id = lm.art_id
@@ -73,7 +76,9 @@ FROM (
                 ldm.id = subparts.part_product_parent_id)) ldm
     JOIN LATERAL (
         SELECT
-            opgt.id, part.id AS part_id, opgt.art_id
+            opgt.id,
+            part.id AS part_id,
+            opgt.art_id
         FROM
             part_product part
             JOIN part_product_kind opgt ON opgt.id = part.part_product_kind_id
@@ -90,7 +95,8 @@ FROM (
                     AND day > CURRENT_DATE - interval '4 mons')) opgt ON TRUE
     JOIN LATERAL (
         SELECT
-            r.id AS slot_id, ga.id AS grp_art_id
+            r.id AS slot_id,
+            ga.id AS grp_art_id
         FROM
             part_product lm
             JOIN art a ON a.id = lm.art_frect_id

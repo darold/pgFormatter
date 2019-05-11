@@ -526,6 +526,7 @@ sub beautify {
     $self->{ '_is_in_drop' } = 0;
     $self->{ '_is_in_operator' } = 0;
     $self->{ '_is_in_exception' } = 0;
+    $self->{ '_is_in_sub_query' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -566,6 +567,11 @@ sub beautify {
 	        }
             }
 	    $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
+
+	    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_sub_query' }) {
+		$self->{ '_is_in_sub_query' }--;
+		$self->{ '_level' }-- if ($self->{ '_level' } > 0);
+	    }
         }
         elsif ( $token eq '(')
         {
@@ -578,6 +584,10 @@ sub beautify {
                 }
                 $self->{ '_parenthesis_level' }++;
             }
+
+	    if (defined $self->_next_token and $self->_next_token =~ /^(SELECT|WITH)$/i) {
+		$self->{ '_is_in_sub_query' }++ if (defined $last and uc($last) ne 'AS');
+	    }
         }
 
         ####
@@ -1104,6 +1114,7 @@ sub beautify {
                 $self->{ '_is_in_over' } = 0;
                 $self->{ '_has_order_by' } = 0;
                 $self->{ '_is_in_policy' } = 0;
+                $self->{ '_is_in_where' } = 0;
             } 
             $self->_add_token( $token );
             # Do not go further if this is the last token
@@ -1221,6 +1232,7 @@ sub beautify {
 	    $self->{ '_is_in_conversion' } = 0;
 	    $self->{ '_is_in_operator' } = 0;
 	    $self->{ '_is_in_explain' }  = 0;
+            $self->{ '_is_in_sub_query' } = 0;
 
             $self->_add_token($token);
 
