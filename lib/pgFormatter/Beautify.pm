@@ -1119,7 +1119,7 @@ sub beautify {
 			    and !$self->{ '_is_in_function' }
 			    and (defined $self->_next_token 
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
-			    and $last ne ')' and $last ne ']'
+			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
 	        );
                 $self->_back if (!$self->{ '_is_in_grouping' });
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
