@@ -1767,7 +1767,7 @@ sub beautify {
 	elsif ($token =~ /^EXCLUDE$/i)
 	{
 	    if ($last !~ /^(FOLLOWING|ADD)$/i or $self->_next_token !~ /^USING$/i) {
-                $self->_new_line if (uc($last) ne 'ADD');
+                $self->_new_line if ($last !~ /^(FOLLOWING|ADD)$/i);
 	    }
             $self->_add_token( $token );
 	    $self->{ '_is_in_using' } = 1;
