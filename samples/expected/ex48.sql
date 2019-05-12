@@ -24,19 +24,25 @@ DROP OPERATOR @#@ (int, int);
 DROP OPERATOR IF EXISTS @#@ (int, int);
 
 CREATE OPERATOR @#@ (
-    leftarg = int8,
-    rightarg = int8,
+    LEFTARG = int8,
+    RIGHTARG = int8,
     PROCEDURE = int8xor
 );
 
 DROP OPERATOR @#@ (int8, int8);
 
 CREATE OPERATOR alter1.= (
-    PROCEDURE = alter1.same, leftarg = alter1.ctype, rightarg = alter1.ctype
+    PROCEDURE = alter1.same,
+    LEFTARG = alter1.ctype,
+    RIGHTARG = alter1.ctype
 );
 
 CREATE OPERATOR !== (
-    PROCEDURE = int8ne, LEFTARG = bigint, RIGHTARG = bigint, COMMUTATOR = !==, NEGATOR = ===
+    PROCEDURE = int8ne,
+    LEFTARG = bigint,
+    RIGHTARG = bigint,
+    COMMUTATOR = !==,
+    NEGATOR = ===
 );
 
 EXPLAIN (

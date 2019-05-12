@@ -1,6 +1,6 @@
 ALTER TABLE boxes
     ADD CONSTRAINT my_constraint
-    EXCLUDE USING gist (some_id WITH =, make_tsrange (created_at, expires_at) WITH &&);
+    EXCLUDE USING gist (some_id WITH =, make_tsrange(created_at, expires_at) WITH &&);
 
 CREATE TABLE circles (
     c circle,
