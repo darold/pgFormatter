@@ -1403,7 +1403,7 @@ sub beautify {
             if ($token =~ /^VALUES$/i and !$self->{ '_is_in_rule' } and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
 	    {
 		$self->_over;
-		if ($self->{ '_current_sql_stmt' } eq 'INSERT') {
+		if ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '(') {
 	            $self->{ '_insert_values' } = 1;
 		    push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
 	        }
@@ -2639,10 +2639,14 @@ sub set_dicts {
         has_database_privilege has_foreign_data_wrapper_privilege has_function_privilege has_language_privilege has_schema_privilege
         has_sequence_privilege has_server_privilege has_table_privilege has_tablespace_privilege has_type_privilege hash_aclitem
         hash_array hash_numeric hash_range hashbeginscan hashbpchar hashbuild hashbuildempty hashbulkdelete hashchar hashcostestimate
-        hashendscan hashenum hashfloat4 hashfloat8 hashgetbitmap hashgettuple hashinet
-        hashinsert hashint2 hashint2vector hashint4 hashint8 hashmacaddr hashmarkpos
-        hashname hashoid hashoidvector hashoptions hashrescan hashrestrpos hashtext
-        hashvacuumcleanup hashvarlena height hmac host hostmask iclikejoinsel
+        hashendscan hashenum hashfloat4 hashfloat8 hashgetbitmap hashgettuple hashinet hashinsert hashint2
+	hashint2extended hashint2vector hashint4 hashint4extended hashint8 hashint8extended hashmacaddr
+	hashfloat4extended hashfloat8extended hashcharextended hashoidextended hashnameextended hashmarkpos
+	hashoidvectorextended hashmacaddrextended hashinetextended hashname hashoid hashoidvector hashoptions
+       	hash_numeric_extended hashmacaddr8extended hash_array_extended hashrescan hashrestrpos hashtext
+        hashbpcharextended time_hash_extended timetz_hash_extended interval_hash_extended timestamp_hash_extended
+	uuid_hash_extended pg_lsn_hash_extended hashenumextended jsonb_hash_extended hash_range_extended
+	hashtextextended hashvacuumcleanup hashvarlena height hmac host hostmask iclikejoinsel
         iclikesel icnlikejoinsel icnlikesel icregexeqjoinsel icregexeqsel icregexnejoinsel icregexnesel
         inet_client_addr inet_client_port inet_in inet_out inet_recv inet_send inet_server_addr
         inet_server_port inetand inetmi inetmi_int8 inetnot inetor inetpl
