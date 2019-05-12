@@ -527,6 +527,7 @@ sub beautify {
     $self->{ '_is_in_operator' } = 0;
     $self->{ '_is_in_exception' } = 0;
     $self->{ '_is_in_sub_query' } = 0;
+    $self->{ '_is_in_fetch' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -917,9 +918,24 @@ sub beautify {
             $last = $token;
             next;
         }
-        elsif ( $token =~ /^(COMMIT|ROLLBACK)$/ )
+        elsif ( $token =~ /^(COMMIT|ROLLBACK)$/i and (not defined $last or uc($last) ne 'ON'))
 	{
-		$self->{ '_is_in_work' } = 0;
+	    $self->{ '_is_in_work' } = 0;
+	    $self->{ '_is_in_declare' } = 0;
+	    $self->_new_line;
+	    $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+            $self->_add_token( $token );
+            $last = $token;
+            next;
+        }
+        elsif ( $token =~ /^FETCH$/i and defined $last and $last eq ';')
+	{
+	    $self->_new_line;
+	    $self->_back;
+            $self->_add_token( $token );
+            $last = $token;
+	    $self->{ '_is_in_fetch' } = 1;
+            next;
         }
 
         ####
@@ -1094,7 +1110,7 @@ sub beautify {
 	    {
                 $self->_new_line if ($self->{ '_is_in_create' } > 1
 		    and defined $last and $last ne '('
-                    and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i)
+                    and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i or ($self->_next_token =~ /^ON$/i and !$self->{ '_parenthesis_level' }))
                 );
                 $self->_new_line if ($self->{ '_is_in_type' } == 1
                     and (not defined $self->_next_token or $self->_next_token eq ';')
@@ -1103,7 +1119,7 @@ sub beautify {
 			    and !$self->{ '_is_in_function' }
 			    and (defined $self->_next_token 
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
-			    and $last ne ')'
+			    and $last ne ')' and $last ne ']'
 	        );
                 $self->_back if (!$self->{ '_is_in_grouping' });
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
@@ -1236,6 +1252,7 @@ sub beautify {
 	    $self->{ '_is_in_operator' } = 0;
 	    $self->{ '_is_in_explain' }  = 0;
             $self->{ '_is_in_sub_query' } = 0;
+	    $self->{ '_is_in_fetch' } = 0;
 
             $self->_add_token($token);
 
@@ -1343,7 +1360,7 @@ sub beautify {
 	    # Case of DISTINCT FROM clause
             if ($token =~ /^FROM$/i)
 	    {
-		    if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_alter' } || $self->{ '_is_in_conversion' })
+		    if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_fetch' } || $self->{ '_is_in_alter' } || $self->{ '_is_in_conversion' })
 		    {
 			$self->_add_token( $token );
 			$last = $token;
