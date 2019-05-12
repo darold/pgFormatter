@@ -931,7 +931,7 @@ sub beautify {
         elsif ( $token =~ /^FETCH$/i and defined $last and $last eq ';')
 	{
 	    $self->_new_line;
-	    $self->_back;
+	    $self->_back if ($self->{ '_is_in_block' } == -1);
             $self->_add_token( $token );
             $last = $token;
 	    $self->{ '_is_in_fetch' } = 1;
