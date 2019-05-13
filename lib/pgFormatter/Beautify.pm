@@ -769,7 +769,7 @@ sub beautify {
         # as statement that can have an ORDER BY clause inside the call to
         # prevent applying order by formatting.
         ####
-        if ($token =~ /^(string_agg|group_concat|array_agg|GENERATED)$/i) {
+        if ($token =~ /^(string_agg|group_concat|array_agg|percentile_cont|GENERATED)$/i) {
             $self->{ '_has_order_by' } = 1;
         } elsif ( $self->{ '_has_order_by' } and uc($token) eq 'ORDER' and $self->_next_token =~ /^BY$/i) {
 	    $self->_add_token( $token, $last );
@@ -1168,7 +1168,7 @@ sub beautify {
             my $add_newline = 0;
 	    $self->{ '_is_in_constraint' } = 0 if ($self->{ '_is_in_constraint' } == 1);
 	    $self->{ '_col_count' }++ if (!$self->{ '_is_in_function' });
-            if (($self->{ '_is_in_over' } or $self->{ '_has_order_by' }) and !$self->{ '_parenthesis_level' })
+            if (($self->{ '_is_in_over' } or $self->{ '_has_order_by' }) and !$self->{ '_parenthesis_level' } and !$self->{ '_parenthesis_function_level' })
 	    {
 		    $self->{ '_is_in_over' } = 0;
 		    $self->{ '_has_order_by' } = 0;
