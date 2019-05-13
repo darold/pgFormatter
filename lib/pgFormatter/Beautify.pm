@@ -547,6 +547,7 @@ sub beautify {
         if (defined $last && $last && defined $self->_next_token and $self->_next_token eq '(') {
             my $word = lc($token);
             $word =~ s/^[^\.]+\.//;
+            $word =~ s/^:://;
             if ($word && exists $self->{ 'dict' }->{ 'pg_functions' }{$word}) {
                 $self->{ '_is_in_function' }++;
             }
