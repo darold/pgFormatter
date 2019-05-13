@@ -2628,7 +2628,8 @@ sub set_dicts {
         elem_contained_by_range encrypt encrypt_iv enum_cmp enum_eq enum_first enum_ge
         enum_gt enum_in enum_larger enum_last enum_le enum_lt enum_ne
         enum_out enum_range enum_recv enum_send enum_smaller eqjoinsel eqsel
-        euc_cn_to_mic euc_cn_to_utf8 euc_jis_2004_to_shift_jis_2004 euc_jis_2004_to_utf8 euc_jp_to_mic euc_jp_to_sjis euc_jp_to_utf8
+        euc_cn_to_mic euc_cn_to_utf8 euc_jis_2004_to_shift_jis_2004 euc_jis_2004_to_utf8
+	euc_jp_to_mic euc_jp_to_sjis euc_jp_to_utf8
         euc_kr_to_mic euc_kr_to_utf8 euc_tw_to_big5 euc_tw_to_mic euc_tw_to_utf8 every exp
         factorial family fdw_handler_in fdw_handler_out first_value float4 float48div
         float48eq float48ge float48gt float48le float48lt float48mi float48mul
@@ -2637,8 +2638,10 @@ sub set_dicts {
         float4ne float4out float4pl float4recv float4send float4smaller float4um
         float4up float8 float84div float84eq float84ge float84gt float84le
         float84lt float84mi float84mul float84ne float84pl float8_accum float8_avg
-        float8_corr float8_covar_pop float8_covar_samp float8_regr_accum float8_regr_avgx float8_regr_avgy float8_regr_intercept
-        float8_regr_r2 float8_regr_slope float8_regr_sxx float8_regr_sxy float8_regr_syy float8_stddev_pop float8_stddev_samp
+	float8_combine float8_regr_combine float8_corr float8_covar_pop float8_covar_samp
+	float8_regr_accum float8_regr_avgx float8_regr_avgy float8_regr_intercept
+        float8_regr_r2 float8_regr_slope float8_regr_sxx float8_regr_sxy float8_regr_syy
+	float8_stddev_pop float8_stddev_samp
         float8_var_pop float8_var_samp float8abs float8div float8eq float8ge float8gt
         float8in float8larger float8le float8lt float8mi float8mul float8ne
         float8out float8pl float8recv float8send float8smaller float8um float8up
