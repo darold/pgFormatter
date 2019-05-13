@@ -1523,6 +1523,11 @@ sub beautify {
                 $last = $token;
 		next;
 	    }
+            if ($self->{ '_has_over_in_join' } and uc($token) eq 'GROUP')
+	    {
+                $self->_back;
+		$self->{ '_has_over_in_join' } = 0;
+            }
             $self->{ '_is_in_join' } = 0;
             if ($token !~ /^EXCEPTION$/i) {
                 $self->_back;
