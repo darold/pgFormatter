@@ -551,7 +551,9 @@ sub beautify {
             $word =~ s/^:://;
             if ($word && exists $self->{ 'dict' }->{ 'pg_functions' }{$word}) {
                 $self->{ '_is_in_function' }++;
-            }
+	    } elsif ($last ne '*' and !$self->_is_keyword($token) and exists $self->{ 'dict' }->{ 'symbols' }{ $last }) {
+                $self->{ '_is_in_function' }++;
+	    }
         }
 
         ####
@@ -1035,6 +1037,9 @@ sub beautify {
         }
         elsif ( $token eq '(' )
 	{
+            if ($self->{ '_is_in_aggregate' } && defined $self->_next_token and $self->_is_keyword($self->_next_token)) {
+		$self->{ '_is_in_aggregate' } = 0;
+	    }
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
@@ -2529,7 +2534,7 @@ sub set_dicts {
         TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
         VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH WITHIN WORK XOR ZEROFILL
 	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES READ_ONLY SHAREABLE READ_WRITE
-        BASETYPE SFUNC STYPE SSPACE FINALFUNC FINALFUNC_EXTRA FINALFUNC_MODIFY COMBINEFUNC SERIALFUNC DESERIALFUNC
+        BASETYPE SFUNC STYPE SFUNC1 STYPE1 SSPACE FINALFUNC FINALFUNC_EXTRA FINALFUNC_MODIFY COMBINEFUNC SERIALFUNC DESERIALFUNC
        	INITCOND MSFUNC MINVFUNC MSTYPE MSSPACE MFINALFUNC MFINALFUNC_EXTRA MFINALFUNC_MODIFY MINITCOND SORTOP
         );
 
