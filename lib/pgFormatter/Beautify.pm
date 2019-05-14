@@ -528,6 +528,7 @@ sub beautify {
     $self->{ '_is_in_exception' } = 0;
     $self->{ '_is_in_sub_query' } = 0;
     $self->{ '_is_in_fetch' } = 0;
+    $self->{ '_is_in_aggregate' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -716,6 +717,8 @@ sub beautify {
         } elsif ($token =~ /^VIEW$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_index' } = 1;
 	    $self->{ '_is_in_create' } = 0;
+        } elsif ($token =~ /^AGGREGATE$/i and $self->{ '_is_in_create' }) {
+            $self->{ '_is_in_aggregate' } = 1;
         } elsif (defined $self->_next_token and $self->_next_token =~ /^OPERATOR$/i) {
 	    $self->{ '_is_in_using' } = 0;
         }
@@ -1043,7 +1046,7 @@ sub beautify {
 		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
 		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_trigger' }
-		    && !$self->{ '_is_in_policy' }
+		    && !$self->{ '_is_in_policy' } && !$self->{ '_is_in_aggregate' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE')
 		{
@@ -1134,6 +1137,7 @@ sub beautify {
                 $self->{ '_has_order_by' } = 0;
                 $self->{ '_is_in_policy' } = 0;
                 $self->{ '_is_in_where' } = 0;
+                $self->{ '_is_in_aggregate' } = 0;
             } 
             $self->_add_token( $token );
             # Do not go further if this is the last token
@@ -1185,6 +1189,7 @@ sub beautify {
                                && !$self->{ '_is_in_where' }
                                && !$self->{ '_is_in_drop' }
                                && !$self->{ '_is_in_index' }
+                               && !$self->{ '_is_in_aggregate' }
 			       && !$self->{ '_is_in_alter' }
 			       && !$self->{ '_is_in_publication' }
 			       && !$self->{ '_is_in_call' }
@@ -1254,6 +1259,7 @@ sub beautify {
 	    $self->{ '_is_in_explain' }  = 0;
             $self->{ '_is_in_sub_query' } = 0;
 	    $self->{ '_is_in_fetch' } = 0;
+            $self->{ '_is_in_aggregate' } = 0;
 
             $self->_add_token($token);
 
@@ -1942,6 +1948,7 @@ sub _add_token {
              $self->{ 'content' } .= $sp if ($last_token ne '::' and !$self->{ '_is_in_partition' }
 		     				and !$self->{ '_is_in_policy' }
 					        and !$self->{ '_is_in_trigger' }
+						and !$self->{ '_is_in_aggregate' }
 						and ($last_token ne '(' || !$self->{ '_is_in_index' }));
         } elsif (defined $last_token) {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && ($self->{ '_is_in_type' } or $self->{ '_is_in_operator' }));
@@ -2502,7 +2509,7 @@ sub set_dicts {
     # Afterwards, when everything is ready, put it in $self->{'dict'}->{...}
 
     my @pg_keywords = map { uc } qw( 
-        ADD AFTER ALL ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
+        ADD AFTER AGGREGATE ALL ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
         BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY CACHE CASCADE CASE CAST CHECK CHECKPOINT CLOSE CLUSTER
 	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY
 	COST COSTS CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER CURSOR
@@ -2521,11 +2528,13 @@ sub set_dicts {
         SYMMETRIC SYSTEM TABLE TABLESAMPLE TABLESPACE TEMPLATE TEMPORARY THEN TO TRAILING TRANSACTION TRIGGER TRUE
         TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
         VARIADIC VERBOSE VIEW VOLATILE WHEN WHERE WINDOW WITH WITHIN WORK XOR ZEROFILL
-	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES 
+	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES READ_ONLY SHAREABLE READ_WRITE
+        BASETYPE SFUNC STYPE SSPACE FINALFUNC FINALFUNC_EXTRA FINALFUNC_MODIFY COMBINEFUNC SERIALFUNC DESERIALFUNC
+       	INITCOND MSFUNC MINVFUNC MSTYPE MSSPACE MFINALFUNC MFINALFUNC_EXTRA MFINALFUNC_MODIFY MINITCOND SORTOP
         );
 
     my @sql_keywords = map { uc } qw(
-        ABORT ABSOLUTE ACCESS ACTION ADMIN AGGREGATE ALSO ALWAYS ASSERTION ASSIGNMENT AT ATTRIBUTE BIGINT BOOLEAN
+        ABORT ABSOLUTE ACCESS ACTION ADMIN ALSO ALWAYS ASSERTION ASSIGNMENT AT ATTRIBUTE BIGINT BOOLEAN
         CALLED CASCADED CATALOG CHAIN CHANGE CHARACTER CHARACTERISTICS COLUMNS COMMENTS CONFIGURATION
         CONNECTION CONSTRAINTS CONTENT CONVERSION CSV CURRENT DATA DATABASES DAY DEC DECIMAL DEFAULTS DELAYED
         DELIMITERS DESCRIBE DICTIONARY DISABLE DISCARD DOCUMENT DOUBLE ENABLE ENCLOSED ENCRYPTED ENUM ESCAPE ESCAPED
