@@ -132,3 +132,35 @@ FROM
 WHERE
     unique1 < 10;
 
+CREATE aggregate my_avg (int4) (
+    stype = avg_state,
+    sfunc = avg_transfn,
+    finalfunc = avg_finalfn
+);
+CREATE aggregate my_sum_init (
+    int4) (
+    stype = avg_state,
+    sfunc = avg_transfn,
+    finalfunc = sum_finalfn,
+    initcond = '(10,0)'
+);
+    CREATE AGGREGATE balk (
+        int4 ) (
+        SFUNC = balkifnull (int8,
+            int4 ),
+        STYPE = int8,
+        PARALLEL = SAFE,
+        INITCOND = '0'
+    );
+    CREATE AGGREGATE balk (
+        int4 ) (
+        SFUNC = int4_sum(int8, int4 ),
+        STYPE = int8,
+        COMBINEFUNC = balkifnull (int8,
+            int8 ),
+        PARALLEL = SAFE,
+        INITCOND = '0'
+    );
+
+CREATE AGGREGATE myaggn08a (BASETYPE = anyelement, SFUNC = tf2p, STYPE = int[], FINALFUNC = ffnp, INITCOND = '{}');
+
