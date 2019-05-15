@@ -721,6 +721,7 @@ sub beautify {
 	    $self->{ '_is_in_create' } = 0;
         } elsif ($token =~ /^AGGREGATE$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_aggregate' } = 1;
+            $self->{ '_has_order_by' } = 1;
         } elsif (defined $self->_next_token and $self->_next_token =~ /^OPERATOR$/i) {
 	    $self->{ '_is_in_using' } = 0;
         }
@@ -1037,8 +1038,9 @@ sub beautify {
         }
         elsif ( $token eq '(' )
 	{
-            if ($self->{ '_is_in_aggregate' } && defined $self->_next_token and $self->_is_keyword($self->_next_token)) {
+            if ($self->{ '_is_in_aggregate' } && defined $self->_next_token and $self->_is_keyword($self->_next_token) and uc($self->_next_token) ne 'VARIADIC') {
 		$self->{ '_is_in_aggregate' } = 0;
+                $self->{ '_has_order_by' } = 0;
 	    }
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
@@ -1863,7 +1865,7 @@ sub beautify {
 		 $token =~ s/\s+$//s;
 		 $token =~ s/^\s+//s;
                  $self->_add_token( $token );
-                 $self->_new_line if ($start);
+                 $self->_new_line if ($start || $self->{ 'content' } !~ /\n/s);
 		 # Add extra newline after the last comment if we are not in a block or a statement
 		 if (defined $self->_next_token and $self->_next_token !~ /^\s*--/) {
                      $self->{ 'content' } .= "\n" if ($self->{ '_is_in_block' } == -1
@@ -2676,9 +2678,10 @@ sub set_dicts {
         gistrescan gistrestrpos gistvacuumcleanup gtsquery_compress gtsquery_consistent gtsquery_decompress gtsquery_penalty
         gtsquery_picksplit gtsquery_same gtsquery_union gtsvector_compress gtsvector_consistent gtsvector_decompress gtsvector_penalty
         gtsvector_picksplit gtsvector_same gtsvector_union gtsvectorin gtsvectorout has_any_column_privilege has_column_privilege
-        has_database_privilege has_foreign_data_wrapper_privilege has_function_privilege has_language_privilege has_schema_privilege
-        has_sequence_privilege has_server_privilege has_table_privilege has_tablespace_privilege has_type_privilege hash_aclitem
-        hash_array hash_numeric hash_range hashbeginscan hashbpchar hashbuild hashbuildempty hashbulkdelete hashchar hashcostestimate
+        has_database_privilege has_foreign_data_wrapper_privilege has_function_privilege has_language_privilege
+	has_schema_privilege has_sequence_privilege has_server_privilege has_table_privilege has_tablespace_privilege
+	has_type_privilege hash_aclitem hash_array hash_numeric hash_range hashbeginscan hashbpchar hashbuild
+	hashbuildempty hashbulkdelete hashchar hashcostestimate hash_aclitem_extended 
         hashendscan hashenum hashfloat4 hashfloat8 hashgetbitmap hashgettuple hashinet hashinsert hashint2
 	hashint2extended hashint2vector hashint4 hashint4extended hashint8 hashint8extended hashmacaddr
 	hashfloat4extended hashfloat8extended hashcharextended hashoidextended hashnameextended hashmarkpos
@@ -2723,10 +2726,12 @@ sub set_dicts {
         iso_to_koi8r iso_to_mic iso_to_win1251 iso_to_win866 isopen isparallel isperp
         isvertical johab_to_utf8 json_agg jsonb_agg json_array_elements jsonb_array_elements json_array_elements_text jsonb_array_elements_text
         json_array_length jsonb_array_length json_build_array json_build_object json_each jsonb_each json_each_text
-        jsonb_each_text json_extract_path jsonb_extract_path json_extract_path_text jsonb_extract_path_text json_in json_object
-        json_object_agg jsonb_object_agg json_object_keys jsonb_object_keys json_out json_populate_record jsonb_populate_record json_populate_recordset jsonb_pretty
-        jsonb_populate_recordset json_recv json_send jsonb_set json_typeof jsonb_typeof json_to_record jsonb_to_record json_to_recordset
-        jsonb_to_recordset justify_interval koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8
+        jsonb_each_text json_extract_path jsonb_extract_path json_extract_path_text jsonb_extract_path_text json_in
+	json_object json_object_agg jsonb_object_agg json_object_keys jsonb_object_keys json_out json_populate_record
+	jsonb_populate_record json_populate_recordset jsonb_pretty jsonb_populate_recordset json_recv json_send
+	jsonb_set json_typeof jsonb_typeof json_to_record jsonb_to_record json_to_recordset jsonb_to_recordset
+	justify_interval koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8
+	jsonb_path_query jsonb_build_object
         lag language_handler_in language_handler_out last_value lastval latin1_to_mic latin2_to_mic latin2_to_win1250
         latin3_to_mic latin4_to_mic lead like_escape likejoinsel
         likesel line line_distance line_eq line_horizontal line_in line_interpt
@@ -2738,7 +2743,7 @@ sub set_dicts {
         lseg_lt lseg_ne lseg_out lseg_parallel lseg_perp lseg_recv lseg_send
         lseg_vertical macaddr_and macaddr_cmp macaddr_eq macaddr_ge macaddr_gt macaddr_in
         macaddr_le macaddr_lt macaddr_ne macaddr_not macaddr_or macaddr_out macaddr_recv
-        macaddr_send makeaclitem make_tsrange masklen max mic_to_ascii mic_to_big5 mic_to_euc_cn
+        macaddr_send makeaclitem make_interval make_tsrange masklen max mic_to_ascii mic_to_big5 mic_to_euc_cn
         mic_to_euc_jp mic_to_euc_kr mic_to_euc_tw mic_to_iso mic_to_koi8r mic_to_latin1 mic_to_latin2
         mic_to_latin3 mic_to_latin4 mic_to_sjis mic_to_win1250 mic_to_win1251 mic_to_win866 min
         mktinterval mode mod money mul_d_interval name nameeq namege
@@ -2761,45 +2766,59 @@ sub set_dicts {
         opaque_in opaque_out overlaps path path_add path_add_pt path_center
         path_contain_pt path_distance path_div_pt path_in path_inter path_length path_mul_pt
         path_n_eq path_n_ge path_n_gt path_n_le path_n_lt path_npoints path_out
-        path_recv path_send path_sub_pt pclose percent_rank percentile_cont percentile_disc pg_advisory_lock pg_advisory_lock_shared
-        pg_advisory_unlock pg_advisory_unlock_all pg_advisory_unlock_shared pg_advisory_xact_lock pg_advisory_xact_lock_shared
-        pg_available_extension_versions pg_available_extensions pg_backend_pid pg_cancel_backend pg_char_to_encoding pg_collation_for
-        pg_collation_is_visible pg_column_size pg_conf_load_time pg_conversion_is_visible pg_create_restore_point pg_current_xlog_insert_location
-        pg_current_xlog_location pg_cursor pg_database_size pg_describe_object pg_encoding_max_length pg_encoding_to_char pg_export_snapshot
-        pg_extension_config_dump pg_extension_update_paths pg_function_is_visible pg_get_constraintdef pg_get_expr pg_get_function_arguments
+        path_recv path_send path_sub_pt pclose percent_rank percentile_cont percentile_disc
+	pg_advisory_lock pg_advisory_lock_shared pg_advisory_unlock pg_advisory_unlock_all pg_advisory_unlock_shared
+	pg_advisory_xact_lock pg_advisory_xact_lock_shared pg_available_extension_versions pg_available_extensions
+	pg_backend_pid pg_cancel_backend pg_char_to_encoding pg_collation_for pg_collation_is_visible pg_column_size
+	pg_conf_load_time pg_conversion_is_visible pg_create_restore_point pg_current_xlog_insert_location
+        pg_current_xlog_location pg_cursor pg_database_size pg_describe_object pg_encoding_max_length
+	pg_encoding_to_char pg_export_snapshot pg_extension_config_dump pg_extension_update_paths pg_function_is_visible
+	pg_get_constraintdef pg_get_expr pg_get_function_arguments pg_filenode_relation pg_indexam_has_property
         pg_get_function_identity_arguments pg_get_function_result pg_get_functiondef pg_get_indexdef pg_get_keywords
-        pg_get_ruledef pg_get_serial_sequence pg_get_triggerdef pg_get_userbyid pg_get_viewdef pg_has_role pg_indexes_size
-        pg_is_in_recovery pg_is_other_temp_schema pg_is_xlog_replay_paused pg_last_xact_replay_timestamp pg_last_xlog_receive_location
-        pg_last_xlog_replay_location pg_listening_channels pg_lock_status pg_ls_dir pg_my_temp_schema pg_node_tree_in pg_node_tree_out
-        pg_node_tree_recv pg_node_tree_send pg_notify pg_opclass_is_visible pg_operator_is_visible pg_opfamily_is_visible pg_options_to_table
-        pg_postmaster_start_time pg_prepared_statement pg_prepared_xact pg_read_binary_file pg_read_file pg_relation_filenode pg_relation_filepath
-        pg_relation_size pg_reload_conf pg_rotate_logfile pg_sequence_parameters pg_show_all_settings pg_size_pretty pg_sleep pg_start_backup
-        pg_stat_clear_snapshot pg_stat_file pg_stat_get_activity pg_stat_get_analyze_count pg_stat_get_autoanalyze_count pg_stat_get_autovacuum_count
-        pg_stat_get_backend_activity pg_stat_get_backend_activity_start pg_stat_get_backend_client_addr pg_stat_get_backend_client_port
-        pg_stat_get_backend_dbid pg_stat_get_backend_idset pg_stat_get_backend_pid pg_stat_get_backend_start pg_stat_get_backend_userid
-        pg_stat_get_backend_waiting pg_stat_get_backend_xact_start pg_stat_get_bgwriter_buf_written_checkpoints pg_stat_get_bgwriter_buf_written_clean
-        pg_stat_get_bgwriter_maxwritten_clean pg_stat_get_bgwriter_requested_checkpoints pg_stat_get_bgwriter_stat_reset_time
-        pg_stat_get_bgwriter_timed_checkpoints pg_stat_get_blocks_fetched pg_stat_get_blocks_hit pg_stat_get_buf_alloc pg_stat_get_buf_fsync_backend
-        pg_stat_get_buf_written_backend pg_stat_get_checkpoint_sync_time pg_stat_get_checkpoint_write_time pg_stat_get_db_blk_read_time
-        pg_stat_get_db_blk_write_time pg_stat_get_db_blocks_fetched pg_stat_get_db_blocks_hit pg_stat_get_db_conflict_all pg_stat_get_db_conflict_bufferpin
-        pg_stat_get_db_conflict_lock pg_stat_get_db_conflict_snapshot pg_stat_get_db_conflict_startup_deadlock pg_stat_get_db_conflict_tablespace
-        pg_stat_get_db_deadlocks pg_stat_get_db_numbackends pg_stat_get_db_stat_reset_time pg_stat_get_db_temp_bytes pg_stat_get_db_temp_files
-        pg_stat_get_db_tuples_deleted pg_stat_get_db_tuples_fetched pg_stat_get_db_tuples_inserted pg_stat_get_db_tuples_returned pg_stat_get_db_tuples_updated
-        pg_stat_get_db_xact_commit pg_stat_get_db_xact_rollback pg_stat_get_dead_tuples pg_stat_get_function_calls pg_stat_get_function_self_time
-        pg_stat_get_function_total_time pg_stat_get_last_analyze_time pg_stat_get_last_autoanalyze_time pg_stat_get_last_autovacuum_time
-        pg_stat_get_last_vacuum_time pg_stat_get_live_tuples pg_stat_get_numscans pg_stat_get_tuples_deleted pg_stat_get_tuples_fetched
-        pg_stat_get_tuples_hot_updated pg_stat_get_tuples_inserted pg_stat_get_tuples_returned pg_stat_get_tuples_updated pg_stat_get_vacuum_count
-        pg_stat_get_wal_senders pg_stat_get_xact_blocks_fetched pg_stat_get_xact_blocks_hit pg_stat_get_xact_function_calls pg_stat_get_xact_function_self_time
-        pg_stat_get_xact_function_total_time pg_stat_get_xact_numscans pg_stat_get_xact_tuples_deleted pg_stat_get_xact_tuples_fetched
-        pg_stat_get_xact_tuples_hot_updated pg_stat_get_xact_tuples_inserted pg_stat_get_xact_tuples_returned pg_stat_get_xact_tuples_updated pg_stat_reset
-        pg_stat_reset_shared pg_stat_reset_single_function_counters pg_stat_reset_single_table_counters pg_stop_backup pg_switch_xlog pg_table_is_visible
-        pg_table_size pg_tablespace_databases pg_tablespace_location pg_tablespace_size pg_terminate_backend pg_timezone_abbrevs pg_timezone_names
-        pg_total_relation_size pg_trigger_depth pg_try_advisory_lock pg_try_advisory_lock_shared pg_try_advisory_xact_lock pg_try_advisory_xact_lock_shared
+        pg_get_ruledef pg_get_serial_sequence pg_get_triggerdef pg_get_userbyid pg_get_viewdef pg_has_role
+	pg_indexes_size pg_is_in_recovery pg_is_other_temp_schema pg_is_xlog_replay_paused pg_last_xact_replay_timestamp
+	pg_last_xlog_receive_location pg_last_xlog_replay_location pg_listening_channels pg_lock_status pg_ls_dir
+	pg_my_temp_schema pg_node_tree_in pg_node_tree_out pg_node_tree_recv pg_node_tree_send pg_notify
+	pg_opclass_is_visible pg_operator_is_visible pg_opfamily_is_visible pg_options_to_table pg_index_has_property
+        pg_postmaster_start_time pg_prepared_statement pg_prepared_xact pg_read_binary_file pg_read_file
+	pg_relation_filenode pg_relation_filepath pg_relation_size pg_reload_conf pg_rotate_logfile
+	pg_sequence_parameters pg_show_all_settings pg_size_pretty pg_sleep pg_start_backup pg_index_column_has_property
+        pg_stat_clear_snapshot pg_stat_file pg_stat_get_activity pg_stat_get_analyze_count pg_stat_get_autoanalyze_count
+	pg_stat_get_autovacuum_count pg_get_object_address pg_identify_object_as_address pg_stat_get_backend_activity
+	pg_stat_get_backend_activity_start pg_stat_get_backend_client_addr pg_stat_get_backend_client_port
+        pg_stat_get_backend_dbid pg_stat_get_backend_idset pg_stat_get_backend_pid pg_stat_get_backend_start
+	pg_stat_get_backend_userid pg_stat_get_backend_waiting pg_stat_get_backend_xact_start
+	pg_stat_get_bgwriter_buf_written_checkpoints pg_stat_get_bgwriter_buf_written_clean
+        pg_stat_get_bgwriter_maxwritten_clean pg_stat_get_bgwriter_requested_checkpoints
+	pg_stat_get_bgwriter_stat_reset_time pg_stat_get_bgwriter_timed_checkpoints pg_stat_get_blocks_fetched
+	pg_stat_get_blocks_hit pg_stat_get_buf_alloc pg_stat_get_buf_fsync_backend pg_stat_get_buf_written_backend
+	pg_stat_get_checkpoint_sync_time pg_stat_get_checkpoint_write_time pg_stat_get_db_blk_read_time
+	pg_stat_get_db_blk_write_time pg_stat_get_db_blocks_fetched pg_stat_get_db_blocks_hit
+	pg_stat_get_db_conflict_all pg_stat_get_db_conflict_bufferpin pg_stat_get_db_conflict_lock
+	pg_stat_get_db_conflict_snapshot pg_stat_get_db_conflict_startup_deadlock pg_stat_get_db_conflict_tablespace
+        pg_stat_get_db_deadlocks pg_stat_get_db_numbackends pg_stat_get_db_stat_reset_time pg_stat_get_db_temp_bytes
+	pg_stat_get_db_temp_files pg_stat_get_db_tuples_deleted pg_stat_get_db_tuples_fetched
+	pg_stat_get_db_tuples_inserted pg_stat_get_db_tuples_returned pg_stat_get_db_tuples_updated
+        pg_stat_get_db_xact_commit pg_stat_get_db_xact_rollback pg_stat_get_dead_tuples pg_stat_get_function_calls
+	pg_stat_get_function_self_time pg_stat_get_function_total_time pg_stat_get_last_analyze_time
+	pg_stat_get_last_autoanalyze_time pg_stat_get_last_autovacuum_time pg_stat_get_last_vacuum_time
+	pg_stat_get_live_tuples pg_stat_get_numscans pg_stat_get_tuples_deleted pg_stat_get_tuples_fetched
+        pg_stat_get_tuples_hot_updated pg_stat_get_tuples_inserted pg_stat_get_tuples_returned
+	pg_stat_get_tuples_updated pg_stat_get_vacuum_count pg_stat_get_wal_senders pg_stat_get_xact_blocks_fetched
+	pg_stat_get_xact_blocks_hit pg_stat_get_xact_function_calls pg_stat_get_xact_function_self_time
+        pg_stat_get_xact_function_total_time pg_stat_get_xact_numscans pg_stat_get_xact_tuples_deleted
+	pg_stat_get_xact_tuples_fetched pg_stat_get_xact_tuples_hot_updated pg_stat_get_xact_tuples_inserted
+	pg_stat_get_xact_tuples_returned pg_stat_get_xact_tuples_updated pg_stat_reset pg_stat_reset_shared
+	pg_stat_reset_single_function_counters pg_stat_reset_single_table_counters pg_stop_backup pg_switch_xlog
+	pg_table_is_visible pg_table_size pg_tablespace_databases pg_tablespace_location pg_tablespace_size
+	pg_terminate_backend pg_timezone_abbrevs pg_timezone_names pg_total_relation_size pg_trigger_depth
+	pg_try_advisory_lock pg_try_advisory_lock_shared pg_try_advisory_xact_lock pg_try_advisory_xact_lock_shared
         pg_ts_config_is_visible pg_ts_dict_is_visible pg_ts_parser_is_visible pg_ts_template_is_visible
-        pg_type_is_visible pg_typeof pg_xact_commit_timestamp pg_last_committed_xact pg_xlog_location_diff pg_xlog_replay_pause pg_xlog_replay_resume pg_xlogfile_name pg_xlogfile_name_offset
-        pgp_key_id pgp_pub_decrypt pgp_pub_decrypt_bytea pgp_pub_encrypt pgp_pub_encrypt_bytea pgp_sym_decrypt pgp_sym_decrypt_bytea
-        pgp_sym_encrypt pgp_sym_encrypt_bytea pi plainto_tsquery plpgsql_call_handler plpgsql_inline_handler plpgsql_validator
-        point point_above point_add point_below point_distance point_div point_eq
+        pg_type_is_visible pg_typeof pg_xact_commit_timestamp pg_last_committed_xact pg_xlog_location_diff
+	pg_xlog_replay_pause pg_xlog_replay_resume pg_xlogfile_name pg_xlogfile_name_offset pgp_key_id pgp_pub_decrypt
+	pgp_pub_decrypt_bytea pgp_pub_encrypt pgp_pub_encrypt_bytea pgp_sym_decrypt pgp_sym_decrypt_bytea
+        pgp_sym_encrypt pgp_sym_encrypt_bytea pi plainto_tsquery plpgsql_call_handler plpgsql_inline_handler
+	plpgsql_validator point point_above point_add point_below point_distance point_div point_eq
         point_horiz point_in point_left point_mul point_ne point_out point_recv
         point_right point_send point_sub point_vert poly_above poly_below poly_center
         poly_contain poly_contain_pt poly_contained poly_distance poly_in poly_left poly_npoints
