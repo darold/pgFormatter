@@ -586,37 +586,43 @@ ALTER SEQUENCE vin_id_seq OWNED BY vin.id;
 -- Name: appellation id; Type: DEFAULT; Schema: public; Owner: userdb
 --
 
-ALTER TABLE ONLY appellation ALTER COLUMN id SET DEFAULT nextval('appellation_id_seq'::regclass);
+ALTER TABLE ONLY appellation
+    ALTER COLUMN id SET DEFAULT nextval('appellation_id_seq'::regclass);
 
 --
 -- Name: contenant id; Type: DEFAULT; Schema: public; Owner: userdb
 --
 
-ALTER TABLE ONLY contenant ALTER COLUMN id SET DEFAULT nextval('contenant_id_seq'::regclass);
+ALTER TABLE ONLY contenant
+    ALTER COLUMN id SET DEFAULT nextval('contenant_id_seq'::regclass);
 
 --
 -- Name: recoltant id; Type: DEFAULT; Schema: public; Owner: userdb
 --
 
-ALTER TABLE ONLY recoltant ALTER COLUMN id SET DEFAULT nextval('recoltant_id_seq'::regclass);
+ALTER TABLE ONLY recoltant
+    ALTER COLUMN id SET DEFAULT nextval('recoltant_id_seq'::regclass);
 
 --
 -- Name: region id; Type: DEFAULT; Schema: public; Owner: userdb
 --
 
-ALTER TABLE ONLY region ALTER COLUMN id SET DEFAULT nextval('region_id_seq'::regclass);
+ALTER TABLE ONLY region
+    ALTER COLUMN id SET DEFAULT nextval('region_id_seq'::regclass);
 
 --
 -- Name: type_vin id; Type: DEFAULT; Schema: public; Owner: userdb
 --
 
-ALTER TABLE ONLY type_vin ALTER COLUMN id SET DEFAULT nextval('type_vin_id_seq'::regclass);
+ALTER TABLE ONLY type_vin
+    ALTER COLUMN id SET DEFAULT nextval('type_vin_id_seq'::regclass);
 
 --
 -- Name: vin id; Type: DEFAULT; Schema: public; Owner: userdb
 --
 
-ALTER TABLE ONLY vin ALTER COLUMN id SET DEFAULT nextval('vin_id_seq'::regclass);
+ALTER TABLE ONLY vin
+    ALTER COLUMN id SET DEFAULT nextval('vin_id_seq'::regclass);
 
 --
 -- Name: appellation appellation_libelle_key; Type: CONSTRAINT; Schema: public; Owner: userdb
