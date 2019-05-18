@@ -2730,7 +2730,7 @@ sub set_dicts {
         dblink_get_connections dblink_error_message dblink_send_query dblink_is_busy dblink_get_notify
 	dblink_get_result dblink_cancel_query dblink_get_pkey dblink_build_sql_insert dblink_build_sql_delete
 	dblink_build_sql_update dblink dcbrt dearmor decrypt decrypt_iv degrees dense_rank dexp diagonal
-        diameter digest dispell_init dispell_lexize dist_cpoly dist_lb dist_pb
+        decimal diameter digest dispell_init dispell_lexize dist_cpoly dist_lb dist_pb
         dist_pc dist_pl dist_ppath dist_ps dist_sb dist_sl div
         dlog1 dlog10 domain_in domain_recv dpow dround dsimple_init
         dsimple_lexize dsnowball_init dsnowball_lexize dsqrt dsynonym_init dsynonym_lexize dtrunc
