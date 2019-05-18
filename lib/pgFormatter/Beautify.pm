@@ -1100,7 +1100,12 @@ sub beautify {
 		{
 		    $self->_over($token,$last) if ($self->{ '_is_in_operator' } <= 2);
 		    if (!$self->{ '_is_in_function' } and !$self->_is_type($self->_next_token)) {
-                        $self->_new_line($token,$last), $self->{ '_is_in_operator' }++ if ($self->{ '_is_in_operator' } == 1);
+		        if ($self->{ '_is_in_operator' } == 1) {
+			    $self->_new_line($token,$last);
+		            $self->{ '_is_in_operator' }++;
+		        } elsif ($self->{ '_is_in_type' }) {
+                            $self->_new_line($token,$last);
+		        }
 		    }
                     $last = $token;
 		}
