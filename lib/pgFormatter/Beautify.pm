@@ -629,11 +629,11 @@ sub beautify {
         }
         elsif ( $token eq '[' )
 	{
-            $self->{ '_is_in_array' } = 1;
+            $self->{ '_is_in_array' }++;
         }
         elsif ( $token eq ']' )
 	{
-            $self->{ '_is_in_array' } = 0;
+            $self->{ '_is_in_array' }-- if ($self->{ '_is_in_array' });
 	}
         elsif ( $token eq ')' )
 	{
