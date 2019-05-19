@@ -612,8 +612,13 @@ sub beautify {
 		&& !$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' }
 		&& !$self->{ '_is_in_policy' })
 	{
-		$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' });
+		$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' } && uc($self->_next_token) ne 'ORDINALITY');
+		$self->{ 'no_break' } = 1 if (uc($self->_next_token) eq 'ORDINALITY');
         }
+        elsif ($token =~ /^WITH$/i && uc($self->_next_token) eq 'ORDINALITY')
+	{
+		$self->{ 'no_break' } = 1;
+	}
         elsif ($token =~ /^(AS|IS)$/i && defined $self->_next_token && $self->_next_token eq '(')
 	{
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
@@ -1251,6 +1256,7 @@ sub beautify {
                     );
             $self->{ '_col_count' } = 0 if ($self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1));
 	    $add_newline = 0 if ($self->{ '_is_in_using' } and $self->{ '_parenthesis_level' });
+	    $add_newline = 0 if ($self->{ 'no_break' });
 
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
                 $add_newline = 1 if (!$self->{ 'wrap_after' });
@@ -1837,7 +1843,7 @@ sub beautify {
 	    else
 	    {
                 # USING from join clause disable line break
-                $self->{ 'no_break' } = 1;
+		#$self->{ 'no_break' } = 1;
                 $self->{ '_is_in_function' }++;
             }
             $self->_add_token($token);
@@ -2614,7 +2620,7 @@ sub set_dicts {
 	IDENTITY IF ILIKE IMMUTABLE IN INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD
 	INTERSECT INTO INVOKER IS ISNULL ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING
 	LEAKPROOF LEFT LEFTARG LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN
-	LOOP MAPPING MATCH MAXVALUE MERGES MINVALUE MODULUS MOVE NATURAL NEXT
+	LOOP MAPPING MATCH MAXVALUE MERGES MINVALUE MODULUS MOVE NATURAL NEXT ORDINALITY
         NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OFF OF OIDS ON ONLY OPEN OPERATOR OR ORDER
         OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE RANGE
         REASSIGN RECURSIVE REFERENCES REINDEX REMAINDER RENAME REPEATABLE REPLACE REPLICA RESET RESTART RESTRICT RETURN RETURNING
