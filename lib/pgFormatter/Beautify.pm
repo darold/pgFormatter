@@ -681,10 +681,6 @@ sub beautify {
             $self->{ '_is_in_filter' } = 1 if (uc($token) eq 'FILTER');
 	    $self->{ '_is_in_grouping' } = 1 if ($token =~ /^GROUPING|ROLLUP$/i);
         } 
-        elsif ( uc($token) eq 'IDENTITY' )
-	{
-            $self->{ '_has_order_by' } = 0;
-        } 
         elsif ( uc($token) eq 'PASSING' and defined $self->_next_token && uc($self->_next_token) eq 'BY')
 	{
             $self->{ '_has_order_by' } = 1;
@@ -811,8 +807,13 @@ sub beautify {
         # as statement that can have an ORDER BY clause inside the call to
         # prevent applying order by formatting.
         ####
-        if ($token =~ /^(string_agg|group_concat|array_agg|percentile_cont|GENERATED)$/i) {
+        if ($token =~ /^(string_agg|group_concat|array_agg|percentile_cont)$/i) {
             $self->{ '_has_order_by' } = 1;
+        } elsif ( $token =~ /^(?:GENERATED)$/i and $self->_next_token =~ /^ALWAYS|BY$/i ) {
+            $self->{ 'no_break' } = 1;
+        } elsif ( uc($token) eq 'IDENTITY' ) {
+            $self->{ '_has_order_by' } = 0;
+            $self->{ 'no_break' } = 0;
         } elsif ( $self->{ '_has_order_by' } and uc($token) eq 'ORDER' and $self->_next_token =~ /^BY$/i) {
 	    $self->_add_token( $token, $last );
             $last = $token;
@@ -1090,6 +1091,7 @@ sub beautify {
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
 		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_trigger' }
 		    && !$self->{ '_is_in_policy' } && !$self->{ '_is_in_aggregate' }
+		    && !$self->{ 'no_break' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE')
 		{
@@ -1281,6 +1283,7 @@ sub beautify {
 	    }
 
             # Initialize most of statement related variables
+            $self->{ 'no_break' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_join' } = 0;
@@ -1570,8 +1573,7 @@ sub beautify {
                 $self->_add_token( $token );
                 $last = $token;
 		next;
-
-        }
+	}
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i )
 	{
