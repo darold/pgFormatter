@@ -1204,7 +1204,7 @@ sub beautify {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line($token,$last)
                     if (defined $self->_next_token
-                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER$/i
+                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER|WITHIN$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
@@ -1248,6 +1248,7 @@ sub beautify {
 			       && !$self->{ '_is_in_partition' }
 			       && ($self->{ '_is_in_constraint' } <= 1)
 			       && $self->{ '_is_in_operator' } != 1
+			       && !$self->{ '_has_order_by' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                                && $self->_next_token !~ /^('$|\s*\-\-)/i
                                && !$self->{ '_parenthesis_function_level' }
