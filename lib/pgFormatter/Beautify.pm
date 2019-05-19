@@ -811,6 +811,8 @@ sub beautify {
             $self->{ '_has_order_by' } = 1;
         } elsif ( $token =~ /^(?:GENERATED)$/i and $self->_next_token =~ /^ALWAYS|BY$/i ) {
             $self->{ 'no_break' } = 1;
+        } elsif ( $token =~ /^(?:TRUNCATE)$/i ) {
+            $self->{ 'no_break' } = 1;
         } elsif ( uc($token) eq 'IDENTITY' ) {
             $self->{ '_has_order_by' } = 0;
             $self->{ 'no_break' } = 0;
