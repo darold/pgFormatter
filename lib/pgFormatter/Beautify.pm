@@ -612,7 +612,7 @@ sub beautify {
 		&& !$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' }
 		&& !$self->{ '_is_in_policy' })
 	{
-		$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' } && uc($self->_next_token) ne 'ORDINALITY');
+		$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' } && uc($self->_next_token) ne 'ORDINALITY' && uc($last) ne 'START');
 		$self->{ 'no_break' } = 1 if (uc($self->_next_token) eq 'ORDINALITY');
         }
         elsif ($token =~ /^WITH$/i && uc($self->_next_token) eq 'ORDINALITY')
@@ -2146,7 +2146,7 @@ sub _new_line {
 
     if ($DEBUG and defined $token) {
         my ($package, $filename, $line) = caller;
-        print STDERR "DEBUG_OVER: line: $line => last=", ($last||''), ", token=$token\n";
+        print STDERR "DEBUG_NL: line: $line => last=", ($last||''), ", token=$token\n";
     }
 
     $self->{ 'content' } .= $self->{ 'break' } unless ( $self->{ '_new_line' } );
