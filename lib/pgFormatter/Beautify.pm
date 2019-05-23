@@ -2166,7 +2166,7 @@ Code lifted from SQL::Beautify
 sub _new_line {
     my ( $self, $token, $last ) = @_;
 
-    if (!$DEBUG and defined $token) {
+    if ($DEBUG and defined $token) {
         my ($package, $filename, $line) = caller;
         print STDERR "DEBUG_NL: line: $line => last=", ($last||''), ", token=$token\n";
     }
