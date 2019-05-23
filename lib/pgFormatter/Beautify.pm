@@ -201,7 +201,14 @@ sub query {
 
     $self->{ 'query' } = $new_value if defined $new_value;
 
+    # Remove COPY content, it is not parsable
     my $i = 0;
+    while ( $self->{ 'query' } =~ s/\b(COPY\s+(?:[^;]+?));\s((?:.*?)\\\.)\s/PGFORMAT$1COPYDATA${i}/is ) {
+        push(@{ $self->{ 'copy_values' } }, $2);
+        $i++;
+    }
+
+    $i = 0;
     my %temp_placeholder = ();
     my @temp_content = split(/(CREATE(?:\s+OR\s+REPLACE)?\s+(?:FUNCTION|PROCEDURE)\s+)/i, $self->{ 'query' });
     if ($#temp_content > 0) {
@@ -281,11 +288,19 @@ sub content
     # Replace placeholders with their original operator
     $self->_restore_operator( \$self->{ 'content' } );
 
+    # Restore COPY content
+    if ($#{ $self->{ 'copy_values' } } >= 0)
+    {
+        $self->{ 'content' } =~ s/COPYDATA(\d+)/;\n$self->{ 'copy_values' }[$1]/igs;
+        $self->{ 'content' } =~ s/PGFORMAT(COPY)/$1/igs;
+    }
+
     # Replace placeholders by their original values
     if ($#{ $self->{ 'placeholder_values' } } >= 0)
     {
         $self->{ 'content' } =~ s/PLACEHOLDER(\d+)PLACEHOLDER/$self->{ 'placeholder_values' }[$1]/igs;
         $self->{ 'content' } =~ s/CODEPART(\d+)CODEPART/$self->{ 'placeholder_values' }[$1]/igs;
+
     }
 
     return $self->{ 'content' };
@@ -531,6 +546,7 @@ sub beautify {
     $self->{ '_is_in_sub_query' } = 0;
     $self->{ '_is_in_fetch' } = 0;
     $self->{ '_is_in_aggregate' } = 0;
+    $self->{ '_is_in_copy' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -684,6 +700,11 @@ sub beautify {
         elsif ( uc($token) eq 'PASSING' and defined $self->_next_token && uc($self->_next_token) eq 'BY')
 	{
             $self->{ '_has_order_by' } = 1;
+        }
+
+        elsif ($token =~ /^PGFORMATCOPY$/i)
+	{
+		$self->{ '_is_in_copy' } = 1;
         } 
 
 	# Explain need indentation in option list
@@ -1277,7 +1298,8 @@ sub beautify {
 	    $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'end');
         }
 
-        elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) { # statement separator or executing psql meta command (prefix 'g' includes all its variants)
+        # statement separator or executing psql meta command (prefix 'g' includes all its variants)
+        elsif ( $token eq ';' or $token =~ /COPYDATA\d+$/ or $token =~ /^\\(?:g|crosstabview|watch)/ ) {
 
             if ($self->{ '_is_in_rule' }) {
 	        $self->{ '_is_in_rule' } = 0;
@@ -1472,7 +1494,7 @@ sub beautify {
 	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }
 				    and $self->{ '_current_sql_stmt' } ne 'DELETE'))
 	    {
-                if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
+                if (!$self->{ '_is_in_filter' } and !$self->{ '_is_in_copy' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
                     $self->_back($token, $last);
 		    $self->_new_line($token,$last) if (!$self->{ '_is_in_rule' });
@@ -1507,7 +1529,7 @@ sub beautify {
                     $self->_new_line($token,$last) if (!$self->{ 'wrap_after' });
                     $self->_over($token,$last);
             }
-            elsif ( !$self->{ '_is_in_over' } and !$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or $self->{ '_current_sql_stmt' } eq 'UPDATE') )
+            elsif ( !$self->{ '_is_in_over' } and !$self->{ '_is_in_copy' } and !$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or $self->{ '_current_sql_stmt' } eq 'UPDATE') )
 	    {
                 if (defined $self->_next_token and $self->_next_token ne '('
 				and ($self->_next_token !~ /^(UPDATE|KEY|NO)$/i || uc($token) eq 'WHERE'))
@@ -2144,7 +2166,7 @@ Code lifted from SQL::Beautify
 sub _new_line {
     my ( $self, $token, $last ) = @_;
 
-    if ($DEBUG and defined $token) {
+    if (!$DEBUG and defined $token) {
         my ($package, $filename, $line) = caller;
         print STDERR "DEBUG_NL: line: $line => last=", ($last||''), ", token=$token\n";
     }
@@ -2617,7 +2639,7 @@ sub set_dicts {
     my @pg_keywords = map { uc } qw( 
         ADD AFTER AGGREGATE ALL ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
         BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY CACHE CASCADE CASE CAST CHECK CHECKPOINT CLOSE CLUSTER
-	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY
+	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY PGFORMATCOPY
 	COST COSTS CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER CURSOR
 	CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER DESC DETACH DISTINCT
 	DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDE EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE FETCH FILTER
