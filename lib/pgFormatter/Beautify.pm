@@ -209,6 +209,10 @@ sub query {
             next if ($temp_content[$j] =~ /^CREATE/i);
 	    # Remove any call too CREATE/DROP LANGUAGE to not break search of function code separator
 	    $temp_content[$j] =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
+	    # Fix case where code separator with $ is associated to begin/end keywords
+	    $temp_content[$j] =~ s/([^\s]+\$)(BEGIN\s)/$1 $2/igs;
+	    $temp_content[$j] =~ s/(\sEND)(\$[^\s]+)/$1 $2/igs;
+	    $temp_content[$j] =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
             my $fctname = '';
             if ($temp_content[$j] =~ /^([^\s\(]+)/) {
                 $fctname = lc($1);
