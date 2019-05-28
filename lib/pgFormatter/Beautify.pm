@@ -535,6 +535,8 @@ sub beautify {
     $self->{ '_is_in_sub_query' } = 0;
     $self->{ '_is_in_fetch' } = 0;
     $self->{ '_is_in_aggregate' } = 0;
+    $self->{ '_is_in_value' } = 0;
+    $self->{ '_parenthesis_level_value' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -590,6 +592,9 @@ sub beautify {
 		$self->{ '_is_in_sub_query' }--;
 		$self->_back($token, $last);
 	    }
+            if ($self->{ '_is_in_value' }) {
+                $self->{ '_parenthesis_level_value' }-- if ($self->{ '_parenthesis_level_value' });
+	    }
         }
         elsif ( $token eq '(')
         {
@@ -601,6 +606,9 @@ sub beautify {
                     push(@{ $self->{ '_level_parenthesis' } } , $self->{ '_level' });
                 }
                 $self->{ '_parenthesis_level' }++;
+                if ($self->{ '_is_in_value' }) {
+                    $self->{ '_parenthesis_level_value' }++;
+		}
             }
 
 	    if (defined $self->_next_token and $self->_next_token =~ /^(SELECT|WITH)$/i) {
@@ -1278,6 +1286,7 @@ sub beautify {
 	    }
             $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
+	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
 	    $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'end');
         }
 
@@ -1325,6 +1334,8 @@ sub beautify {
             $self->{ '_is_in_sub_query' } = 0;
 	    $self->{ '_is_in_fetch' } = 0;
             $self->{ '_is_in_aggregate' } = 0;
+            $self->{ '_is_in_value' } = 0;
+            $self->{ '_parenthesis_level_value' } = 0;
 
             $self->_add_token($token);
 
@@ -1496,12 +1507,24 @@ sub beautify {
 	            $self->{ '_insert_values' } = 1;
 		    push @{ $self->{ '_level_stack' } }, $self->{ '_level' };
 	        }
+	    }
+
+	    if ($token =~ /^VALUES$/i and $last eq '(')
+            {
+                $self->{ '_is_in_value' } = 1;
             }
-	    if (uc($token) eq 'WHERE') {
+
+	    if (uc($token) eq 'WHERE')
+	    {
 		$self->_add_token( $token, $last );
-            } else {
+                $self->{ '_is_in_value' } = 0;
+                $self->{ '_parenthesis_level_value' } = 0;
+            }
+	    else
+	    {
                 $self->_add_token( $token );
             }
+
             if ($token =~ /^VALUES$/i and $last eq '(')
 	    {
                 $self->_over($token,$last);
@@ -1583,6 +1606,8 @@ sub beautify {
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i )
 	{
+            $self->{ '_is_in_value' } = 0;
+            $self->{ '_parenthesis_level_value' } = 0;
             if (uc($token) eq 'GROUP' and !defined $last or uc($last) eq 'EXCLUDE') {
                 $self->_add_token( $token );
                 $last = $token;
