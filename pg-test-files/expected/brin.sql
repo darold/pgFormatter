@@ -23,7 +23,7 @@ CREATE TABLE brintest (
     bitcol bit(
         10
 ),
-    varbitcol bit varying (
+    varbitcol bit varying(
         16
 ),
     numericcol numeric,

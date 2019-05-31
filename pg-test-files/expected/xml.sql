@@ -228,15 +228,15 @@ SELECT
     xmlroot(xmlelement(name gazonk, xmlattributes ('val' AS name, 1 + 1 AS num), xmlelement(NAME qux, 'foo')), version '1.0', standalone yes);
 
 SELECT
-    xmlserialize (content data AS character varying (20))
+    xmlserialize(content data AS character varying(20))
 FROM
     xmltest;
 
 SELECT
-    xmlserialize (content 'good' AS char(10));
+    xmlserialize(content 'good' AS char(10));
 
 SELECT
-    xmlserialize (document 'bad' AS text);
+    xmlserialize(document 'bad' AS text);
 
 SELECT
     xml '<foo>bar</foo>' IS DOCUMENT;
@@ -347,11 +347,11 @@ SELECT
 
 CREATE VIEW xmlview8 AS
 SELECT
-    xmlserialize (content 'good' AS char(10));
+    xmlserialize(content 'good' AS char(10));
 
 CREATE VIEW xmlview9 AS
 SELECT
-    xmlserialize (content 'good' AS text);
+    xmlserialize(content 'good' AS text);
 
 SELECT
     table_name,

@@ -2671,7 +2671,7 @@ sub set_dicts {
     my @pg_types = qw(
         BIGINT BIGSERIAL BIT BOOLEAN BOX BYTEA CHARACTER CIDR CIRCLE DATE DOUBLE INET INT INTEGER INTERVAL JSON
         JSONB LINE LSEG MACADDR MACADDR8 MONEY NUMERIC PATH PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
-       	SERIAL TEXT TIME TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8
+       	SERIAL TEXT TIME TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 VARYING
 	);
 
     my @sql_keywords = map { uc } qw(
@@ -3029,7 +3029,7 @@ sub set_dicts {
         uuid_ne uuid_out uuid_recv uuid_send var_pop var_samp varbit
         varbit_in varbit_out varbit_recv varbit_send varbit_transform varbitcmp varbiteq
         varbitge varbitgt varbitle varbitlt varbitne varbittypmodin varbittypmodout
-        varchar varchar_transform varcharin varcharout varcharrecv varcharsend varchartypmodin
+        varchar varying varchar_transform varcharin varcharout varcharrecv varcharsend varchartypmodin
         varchartypmodout variance version void_in void_out void_recv void_send
         width width_bucket win1250_to_latin2 win1250_to_mic win1251_to_iso win1251_to_koi8r win1251_to_mic
         win1251_to_win866 win866_to_iso win866_to_koi8r win866_to_mic win866_to_win1251 win_to_utf8 xideq
@@ -3038,7 +3038,7 @@ sub set_dicts {
         schema_to_xml schema_to_xmlschema schema_to_xml_and_xmlschema database_to_xml database_to_xmlschema xmlroot
         database_to_xml_and_xmlschema table_to_xml query_to_xmlcursor_to_xml xmlcomment xmlconcat xmlelement xmlforest
         xml_is_well_formed_content xml_is_well_formed_document xml_is_well_formed xml_out xml_recv xml_send xmlagg
-	xmlpi query_to_xml cursor_to_xml
+	xmlpi query_to_xml cursor_to_xml xmlserialize
         );
 
     my @copy_keywords = ( 'STDIN', 'STDOUT' );
