@@ -93,8 +93,8 @@ CREATE TABLE brinopers (
     op text[],
     value text[],
     matches int[],
-    CHECK (cardinality (op) = cardinality (value)),
-    CHECK (cardinality (op) = cardinality (matches))
+    CHECK (cardinality(op) = cardinality(value)),
+    CHECK (cardinality(op) = cardinality(matches))
 );
 
 INSERT INTO brinopers

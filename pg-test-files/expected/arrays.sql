@@ -674,63 +674,49 @@ SELECT
     array_cat(ARRAY[[3, 4],[5, 6]], ARRAY[1, 2]) AS "{{3,4},{5,6},{1,2}}";
 
 SELECT
-    array_position (ARRAY[1, 2, 3, 4, 5],
-        4);
+    array_position(ARRAY[1, 2, 3, 4, 5], 4);
 
 SELECT
-    array_position (ARRAY[5, 3, 4, 2, 1],
-        4);
+    array_position(ARRAY[5, 3, 4, 2, 1], 4);
 
 SELECT
-    array_position (ARRAY[[1, 2],[3, 4]],
-        3);
+    array_position(ARRAY[[1, 2],[3, 4]], 3);
 
 SELECT
-    array_position (ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
-        'mon');
+    array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon');
 
 SELECT
-    array_position (ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
-        'sat');
+    array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'sat');
 
 SELECT
-    array_position (ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
-        NULL);
+    array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], NULL);
 
 SELECT
-    array_position (ARRAY['sun', 'mon', 'tue', 'wed', 'thu', NULL, 'fri', 'sat'],
-        NULL);
+    array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', NULL, 'fri', 'sat'], NULL);
 
 SELECT
-    array_position (ARRAY['sun', 'mon', 'tue', 'wed', 'thu', NULL, 'fri', 'sat'],
-        'sat');
+    array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', NULL, 'fri', 'sat'], 'sat');
 
 SELECT
-    array_positions (NULL,
-        10);
+    array_positions(NULL, 10);
 
 SELECT
-    array_positions (NULL,
-        NULL::int);
+    array_positions(NULL, NULL::int);
 
 SELECT
-    array_positions (ARRAY[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6],
-        4);
+    array_positions(ARRAY[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6], 4);
 
 SELECT
-    array_positions (ARRAY[[1, 2],[3, 4]],
-        4);
+    array_positions(ARRAY[[1, 2],[3, 4]], 4);
 
 SELECT
-    array_positions (ARRAY[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6],
-        NULL);
+    array_positions(ARRAY[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6], NULL);
 
 SELECT
-    array_positions (ARRAY[1, 2, 3, NULL, 5, 6, 1, 2, 3, NULL, 5, 6],
-        NULL);
+    array_positions(ARRAY[1, 2, 3, NULL, 5, 6, 1, 2, 3, NULL, 5, 6], NULL);
 
 SELECT
-    array_length(array_positions (ARRAY (
+    array_length(array_positions(ARRAY (
                 SELECT
                     'AAAAAAAAAAAAAAAAAAAAAAAAA'::text || i % 10 FROM generate_series(1, 100) g (i)), 'AAAAAAAAAAAAAAAAAAAAAAAAA5'), 1);
 
@@ -739,31 +725,24 @@ DECLARE
     o int;
     a int[] := ARRAY[1, 2, 3, 2, 3, 1, 2];
 BEGIN
-    o := array_position (a,
-        2);
+    o := array_position(a, 2);
     WHILE o IS NOT NULL LOOP
         RAISE NOTICE '%', o;
-        o := array_position (a,
-            2,
-            o + 1);
+        o := array_position(a, 2, o + 1);
     END LOOP;
 END
 $$
 LANGUAGE plpgsql;
 
 SELECT
-    array_position ('[2:4]={1,2,3}'::int[],
-        1);
+    array_position('[2:4]={1,2,3}'::int[], 1);
 
 SELECT
-    array_positions ('[2:4]={1,2,3}'::int[],
-        1);
+    array_positions('[2:4]={1,2,3}'::int[], 1);
 
 SELECT
-    array_position (ids,
-        (1,
-            1)),
-    array_positions (ids, (1, 1))
+    array_position(ids, (1, 1)),
+    array_positions(ids, (1, 1))
 FROM (
     VALUES (ARRAY[(0, 0), (1, 1)]),
         (ARRAY[(1, 1)])) AS f (ids);
@@ -1592,25 +1571,25 @@ SELECT
     array_length(ARRAY[[1, 2, 3],[4, 5, 6]], 3);
 
 SELECT
-    cardinality (NULL::int[]);
+    cardinality(NULL::int[]);
 
 SELECT
-    cardinality ('{}'::int[]);
+    cardinality('{}'::int[]);
 
 SELECT
-    cardinality (ARRAY[1, 2, 3]);
+    cardinality(ARRAY[1, 2, 3]);
 
 SELECT
-    cardinality ('[2:4]={5,6,7}'::int[]);
+    cardinality('[2:4]={5,6,7}'::int[]);
 
 SELECT
-    cardinality ('{{1,2}}'::int[]);
+    cardinality('{{1,2}}'::int[]);
 
 SELECT
-    cardinality ('{{1,2},{3,4},{5,6}}'::int[]);
+    cardinality('{{1,2},{3,4},{5,6}}'::int[]);
 
 SELECT
-    cardinality ('{{{1,9},{5,6}},{{2,3},{3,4}}}'::int[]);
+    cardinality('{{{1,9},{5,6}},{{2,3},{3,4}}}'::int[]);
 
 -- array_agg(anynonarray)
 SELECT
