@@ -106,6 +106,7 @@ sub set_config {
     $self->{ 'uc_function' }  = 0;
     $self->{ 'debug' }        = 0;
     $self->{ 'content' }      = '';
+    $self->{ 'original_content' }      = '';
     $self->{ 'show_example' } = 0;
     $self->{ 'project_url' }  = 'https://github.com/darold/pgFormatter';
     $self->{ 'service_url' }  = '';
@@ -156,7 +157,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break format_type wrap_after) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break format_type wrap_after original_content) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -210,6 +211,15 @@ sub sanitize_params {
         $self->{ 'content' } = q{
 SELECT DISTINCT (current_database())::information_schema.sql_identifier AS view_catalog, (nv.nspname)::information_schema.sql_identifier AS view_schema, (v.relname)::information_schema.sql_identifier AS view_name, (current_database())::information_schema.sql_identifier AS table_catalog, (nt.nspname)::information_schema.sql_identifier AS table_schema, (t.relname)::information_schema.sql_identifier AS table_name FROM pg_namespace nv, pg_class v, pg_depend dv, pg_depend dt, pg_class t, pg_namespace nt WHERE ((((((((((((((nv.oid = v.relnamespace) AND (v.relkind = 'v'::"char")) AND (v.oid = dv.refobjid)) AND (dv.refclassid = ('pg_class'::regclass)::oid)) AND (dv.classid = ('pg_rewrite'::regclass)::oid)) AND (dv.deptype = 'i'::"char")) AND (dv.objid = dt.objid)) AND (dv.refobjid <> dt.refobjid)) AND (dt.classid = ('pg_rewrite'::regclass)::oid)) AND (dt.refclassid = ('pg_class'::regclass)::oid)) AND (dt.refobjid = t.oid)) AND (t.relnamespace = nt.oid)) AND (t.relkind = ANY (ARRAY['r'::"char", 'v'::"char"]))) AND pg_has_role(t.relowner, 'USAGE'::text)) ORDER BY (current_database())::information_schema.sql_identifier, (nv.nspname)::information_schema.sql_identifier, (v.relname)::information_schema.sql_identifier, (current_database())::information_schema.sql_identifier, (nt.nspname)::information_schema.sql_identifier, (t.relname)::information_schema.sql_identifier;
         };
+	$self->{ 'original_content' } = $self->{ 'content' };
+    }
+
+    if (!$self->{ 'original_content' })
+    {
+	    $self->{ 'original_content' } = $self->{ 'content' };
+    }
+    else {
+	    $self->{ 'content' } = $self->{ 'original_content' };
     }
 
     $self->{ 'content' } = substr( $self->{ 'content' }, 0, $self->{ 'maxlength' } );
@@ -291,22 +301,22 @@ sub print_body {
  <div id="options">
     <fieldset><legend id="general"><strong> General </strong></legend>
       <div id="general_content" class="content">
-      <input type="checkbox" id="id_highlight" name="colorize" value="1" $chk_colorize/>
+      <input type="checkbox" id="id_highlight" name="colorize" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_colorize/>
       <label for="id_highlight">Enable syntax highlighting</label>
       <br />
-      <input type="checkbox" id="id_remove_comments" name="nocomment" value="1" $chk_nocomment/>
+      <input type="checkbox" id="id_remove_comments" name="nocomment" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_nocomment/>
       <label for="id_remove_comments">Remove comments</label>
       <br />
-      <input type="checkbox" id="id_anonymize" name="anonymize" value="1" $chk_anonymize/>
+      <input type="checkbox" id="id_anonymize" name="anonymize" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_anonymize/>
       <label for="id_anonymize">Anonymize values in queries</label>
       <br />
-      <input type="checkbox" id="id_comma" name="comma" value="start" $chk_comma/>
+      <input type="checkbox" id="id_comma" name="comma" value="start" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_comma/>
       <label for="id_comma">Comma at beginning</label>
       <br />
-      <input type="checkbox" id="id_comma_break" name="comma_break" value="1" $chk_comma_break/>
+      <input type="checkbox" id="id_comma_break" name="comma_break" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_comma_break/>
       <label for="id_comma_break">New-line after comma (insert)</label>
       <br />
-      <input type="checkbox" id="id_format_type" name="format_type" value="1" $chk_format_type/>
+      <input type="checkbox" id="id_format_type" name="format_type" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_format_type/>
       <label for="id_format_type">Alternate formatting</label>
       </div>
     </fieldset>
@@ -314,14 +324,14 @@ sub print_body {
     <fieldset><legend id="kwcase">
     <strong> Keywords & functions</strong></legend>
       <div>
-      Keywords: <select name="uc_keyword">
+      Keywords: <select name="uc_keyword" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();">
             <option value="0"$kw_toggle{0}>Unchanged</option>
             <option value="1"$kw_toggle{1} >Lower case</option>
             <option value="2"$kw_toggle{2} >Upper case</option>
             <option value="3"$kw_toggle{3} >Capitalize</option>
       </select>
     <br />
-      Functions: <select name="uc_function">
+      Functions: <select name="uc_function" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();">
             <option value="0"$fct_toggle{0}>Unchanged</option>
             <option value="1"$fct_toggle{1} >Lower case</option>
             <option value="2"$fct_toggle{2} >Upper case</option>
@@ -333,27 +343,31 @@ sub print_body {
     <fieldset><legend id="indent"><strong> Indentation </strong>
     </legend>
       <div id="indent_content" class="content">
-        Indentation: <input name="spaces" value="$self->{ 'spaces' }" maxlength="2" type="text" id="spaces" size="2" /> spaces
+        Indentation: <input name="spaces" value="$self->{ 'spaces' }" maxlength="2" type="text" id="spaces" size="2" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" /> spaces
       <br />
-      Wrap after: <input name="wrap_after" value="$self->{ 'wrap_after' }" maxlength="2" type="text" id="wrap_after" size="2" /> cols
+      Wrap after: <input name="wrap_after" value="$self->{ 'wrap_after' }" maxlength="2" type="text" id="wrap_after" size="2" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" /> cols
       </div>
     </fieldset>
     <p align="center">
-    <input type="button" value="Clear code" onclick="document.forms[0].submit();"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Format my code" onclick="document.forms[0].submit();"/>
+    <input type="button" value="Clear" onclick="document.forms[0].original_content.value = ''; document.forms[0].submit();" title="Clear content in code area"/>
+    &nbsp;&nbsp;
+    <input type="button" value="Reset" onclick="document.location.href='$service_url'; return true;" title="Reset all options to default"/>
+    &nbsp;&nbsp;
+    <input type="button" value="Load example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();" title="Load an example to see what pgFormatter is a able to do"/>
     <input type="hidden" name="show_example" value="0" />
-    <br />
-    <br />
-    <input type="button" value="&nbsp;&nbsp;Reset all&nbsp;&nbsp;" onclick="document.location.href='$service_url'; return true;"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Load an example" onclick="document.forms[0].show_example.value=1; document.forms[0].submit();"/></p>
+    </p>
     <input type="hidden" name="load_from_file" value="0" />
     <p align="center">
     <span style="position: relative">
         <span style="position:absolute; top:0; left:0; width:150px; filter:alpha(opacity=0); opacity:0.0; overflow:hidden">
-        <input type="file" name="filetoload" onchange="document.forms[0].fake_upload.value=this.value" style="height:28px;width:150px;cursor:hand;">
+        <input type="file" name="filetoload" onchange="document.forms[0].code_upload.value=this.value" style="height:28px;width:150px;cursor:hand;">
         </span>
-        <input type="text" name="fake_upload" style="width: 150px">
+        <input type="text" name="code_upload" style="width: 150px">
     <input type="button" value="Upload file" onclick="if (document.forms[0].filetoload.value != '') { document.forms[0].load_from_file.value=1; document.forms[0].submit(); } return false;"/>
     </span>
     </p>
+    <p align="center">
+    <input id="format_code" type="button" value="Format my code" onclick="document.forms[0].submit();"/>
   </div>
   </td><td valign="top" align="left">
   <table><tr><td>
@@ -368,6 +382,8 @@ qq{<textarea name="content" id="sqlcontent" onfocus="if (done == 0) this.value='
     else {
         print qq{<div class="sql" id="sql"><pre>$self->{ 'content' }</pre></div>};
     }
+    print
+qq{<textarea name="original_content" id="originalcontent" style="display: none;">$self->{ 'original_content' }</textarea>};
 
     print qq{
     </td></tr>
@@ -672,4 +688,16 @@ border-radius:6px;
 box-shadow:3px 3px 6px 2px #A9A9A9;
 -moz-box-shadow:3px 3px 6px 2px #A9A9A9;
 -webkit-box-shadow:3px 3px 6px #A9A9A9;
+}
+#format_code {
+border: 1px solid #dddddd;
+background: #f5f3de;
+border-radius:6px;
+-moz-border-radius:10px;
+-webkit-border-radius:10px;
+box-shadow:3px 3px 6px 2px #A9A9A9;
+-moz-box-shadow:3px 3px 6px 2px #A9A9A9;
+-webkit-box-shadow:3px 3px 6px #A9A9A9;
+font-weight: normal;
+font-size: 16px;
 }
