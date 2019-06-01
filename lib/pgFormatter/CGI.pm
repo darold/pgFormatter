@@ -345,7 +345,7 @@ sub print_body {
       <div id="indent_content" class="content">
         Indentation: <input name="spaces" value="$self->{ 'spaces' }" maxlength="2" type="text" id="spaces" size="2" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" /> spaces
       <br />
-      Wrap after: <input name="wrap_after" value="$self->{ 'wrap_after' }" maxlength="2" type="text" id="wrap_after" size="2" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" /> cols
+      Wrap after:&nbsp;&nbsp;<input name="wrap_after" value="$self->{ 'wrap_after' }" maxlength="2" type="text" id="wrap_after" size="2" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" /> cols
       </div>
     </fieldset>
     <p align="center">
@@ -367,7 +367,7 @@ sub print_body {
     </span>
     </p>
     <p align="center">
-    <input id="format_code" type="button" value="Format my code" onclick="document.forms[0].submit();"/>
+    <input id="format_code" type="button" style="background-color: #ff7400;" value="&nbsp;Format my code&nbsp;" onclick="document.forms[0].submit();"/>
   </div>
   </td><td valign="top" align="left">
   <table><tr><td>
@@ -692,6 +692,8 @@ box-shadow:3px 3px 6px 2px #A9A9A9;
 #format_code {
 border: 1px solid #dddddd;
 background: #f5f3de;
+padding: 5px;
+margin: 5px;
 border-radius:6px;
 -moz-border-radius:10px;
 -webkit-border-radius:10px;
