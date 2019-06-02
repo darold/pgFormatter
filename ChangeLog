@@ -1,4 +1,132 @@
-April 21 2018 - v3.4
+June 2 2019 - v4.0
+
+This major release fixes a huge list of formatting issues which makes
+pgFormmater the best tool to format your plpgsql code and sql queries.
+
+pgFormatter is now able to auto-detect user defined functions to
+prevent adding new line between parameters.
+
+There's also a huge improvement to the CGI mode which can now apply
+directly a formatting option change to current code to format without
+having to submit again the content.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Change color of "Format my code" button to be more visible.
+  - Reorder button in CGI mode for ergonomics improvement.
+  - Allow instant change when modifying option in CGI mode.
+    Thanks to Julien Rouhaud for the features request.
+  - Add varying and xmlserialyze to list of functions.
+  - Add array_position, array_positions and cardinality to function.
+  - Add more regression test representing PostgreSQL syntax for all
+    statements.
+  - Improve formatting of VALUES in FROM clause.
+  - Fix bad formatting after $$begin and end$$ since the dollar sign
+    is allowed in object names.
+  - Remove newline in multidimensional array
+  - Fix indention after START WITH.
+  - Fix indentation in TRUNCATE with multiple tables.
+  - Fix indentation in GENERATED clause.
+  - Remove newline before WITHIN GROUP and in parameters list.
+  - Fix indentation in CREATE TYPE and WITH ORDINALITY AS.
+  - Add decimal to function list to prevent newline inside parameters.
+  - Add MATCH to PostgreSQL keywords and fix newline after MATCH.
+  - Add newline before all ALTER, ADD DROP keywords in ALTER COMMAND
+    unless there is a DEFAULT or NOT NULL clause.
+  - Fix ALTER OPERATOR and ALTER AGGREGATE  statements.
+  - Fix CREATE AGGREGATE formatting with ORDER BY in parameters.
+  - Fix indentation of CREATE AGGREGATE statements and add all related
+    keywords.
+  - Fix newline in function supporting ORDER BY clause.
+  - Add percentile_cont() to the list of these functions.
+  - Fix case where GROUP BY was not well indented after a JOIN with
+    AND clause.
+  - Add float8 combine functions.
+  - Fix detection of function when they are used in cast,
+    ex: col::numeric(10,3).
+  - Fix indentation of FETCH in function.
+  - Fix missing newline between ] and ) in create statement.
+  - Keep FETCH ... FROM on the same line. Fix cases where COMMIT or
+    ROLLBACK was not detected.
+  - Fix newline between FOLLOWING and EXCLUDE in window functions.
+  - Add hash functions to functions list array.
+  - Fix some OPERATOR formatting.
+  - Fix EXCLUDE formatting in constraint and window function call.
+  - Fix columns/statements no longer get a newline when following a
+    subquery. Thanks to Steve Whittaker for the report.
+  - More speed improvement with huge file.
+  - Improve performances when parsing file thousand of queries. Thanks
+    to Bruce Momjian for the report.
+  - Fix newline in function parameters in CREATE TABLE ... AS SELECT
+  - Fix newline between BEGIN ISOLATION and AS EXECUTE.
+  - Fix newline in parameter list of execute procedure in trigger.
+  - Fix bad indention when there is a comment between EXCEPTION and
+    WHEN keywords.
+  - Fix missing indentation in DECLARE section of a DO block.
+  - Remove newline between PASSING BY and REF in xmlexists() function.
+  - Add query_to_xml and cursor_to_xml to PostgreSQL function list.
+  - Fix formatting of CREATE TABLE () AS.
+  - Fix detection of code delimiter in function resulting in infinite
+    loop. Thanks to Bruce Momjian for the report.
+  - Fix formatting of CREATE VIEW with colomn names.
+  - Add COSTS and OFF to pg keywords.
+  - Fix newline and indentation after insert statements.
+  - Terminate bloc mode when ROLLBACK is found.
+  - Fix indention in EXPLAIN option. Thanks to Bruce Momjian for the
+    report.
+  - Fix support of CREATE OPERATOR prefixed with schema and unwanted
+    tokenisation of attributes NEGATOR/COMMUTATOR. Thanks to Bruce
+    Momjian for the report.
+  - Fix indentation of CREATE OPERATOR.
+  - Prevent new line in CHECK clause of a CREATE DOMAIN statement.
+  - Prevent newline before FROM in a CREATE CONVERSION clause.
+  - Do not add newline in DROP list.
+  - Fix newline between CREATE/DROP GROUP.
+  - Fix infinite loop in detection of function code delimiter. Thanks
+    to Bruce Momjian for the report.
+  - Fix extra newline before ; in CREATE/DROP sequence statement.
+  - Fix indentation of first function parameter with -t option
+  - Fix bad indenting with CREATE FUNCTION causing following INSERT
+    to indent. Thanks to Bruce Momjian for the report.
+  - Fix broken indentation after CREATE TRIGGER statement.
+  - Fix extra newline between open parenthesis and ORDER BY in WINDOW
+    clause. Thanks to Bruce Momjian for the report.
+  - Fix double indention before VALUES in INSERT statement.
+  - Fix indentation in CREATE RULE statement.
+  - Remove spaces before/after the WITH arguments if --wrap-after
+    is used.
+  - Fix extra indentation in WITH clause before ending parenthesis
+    when --wrap-after is enabled.
+  - Fix newline after DISTINCT when wrap after is enabled. Thanks to
+    Bruce Momjian for the report.
+  - Fix wrapping of WITH parameters when --wrap-after is enabled.
+    Thanks to Bruce Momjian for the report.
+  - Apply --wrap-after behavior to WITH clause. Thanks to Bruce
+    Momjian for the report.
+  - Apply --wrap-after behavior to SET clause of UPDATE statement.
+    Thanks to Bruce Momjian for the report.
+  - Fix missing new line after FROM when --wrap-after is not set.
+  - Fix odd wrapping in the WINDOW clause. Thanks to Bruce Momjian
+    for the report.
+  - Fix some HTML tags and move place of footer.
+  - Fix indentation after OVER clause without parenthesis part and
+    indentation level of WINDOW keyword. Thanks to Bruce Momjian for
+    the report.
+  - Avoid new line with empty parenthesis after AS keyword. Thanks
+    to Bruce Momjian for the report.
+  - Add newline before WINDOW keyword as it is a top-level clause.
+  - Fix OVER and WINDOW clause indenting. Thanks to Bruce Momjian
+    for the report.
+  - Apply --wrap-after behavior into ORDER BY and GROUP BY clauses.
+    Thanks to Bruce Momjian for the report.
+  - Fix indention after DECLARE CURSOR statement. Thanks to Bruce
+    Momjian for the report.
+  - Fix another crash with uninitialized variable with constant
+    starting with --. Thanks to NisSAM for the report.
+  - Fix crash in windows function with uninitialized variable. Thanks
+    to Bruce Momjian for the report.
+
+April 21 2019 - v3.4
 
 This release fixes several issues reported by users since the last
 six months and adds lot of improvements in code formatting:
