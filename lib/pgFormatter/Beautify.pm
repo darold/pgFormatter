@@ -1048,6 +1048,12 @@ sub beautify {
         elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_drop' } )
 	{
             $self->_new_line($token,$last) if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
+            if (defined $last and $last =~ /'$/)
+	    {
+	        @{ $self->{ '_level_stack' } } = ();
+	        $self->{ '_level' } = 0;
+	        $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
+	    }
             $self->_add_token( $token );
         }
         elsif ($token =~ /^PARTITION$/i && !$self->{ '_is_in_over' } && defined $last && $last ne '(')
