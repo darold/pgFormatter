@@ -707,7 +707,7 @@ sub beautify {
         ####
         # Set the current kind of statement parsed
         ####
-        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP|RULE)$/i) {
+        if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP|RULE|COMMENT)$/i) {
             my $k_stmt = uc($1);
 	    $self->{ '_is_in_explain' }  = 0;
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE statement.
@@ -800,7 +800,7 @@ sub beautify {
         # we are in a CREATE FUNCTION/PROCEDURE statement
         elsif ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE)$/i and !$self->{'_is_in_trigger'}) {
             $self->{ '_is_in_index' } = 1 if (uc($last) eq 'ALTER' and !$self->{ '_is_in_operator' } and !$self->{ '_is_in_alter' });
-            if ($token =~ /^FUNCTION$/i && $self->{ '_is_in_create' }) {
+            if ($token =~ /^FUNCTION$/i && ($self->{ '_is_in_create' } || $self->{ '_current_sql_stmt' } eq 'COMMENT')) {
                 $self->{ '_is_in_index' } = 1 if (!$self->{ '_is_in_operator' });
 	    } elsif ($token =~ /^PROCEDURE$/i && $self->{ '_is_in_create' }) {
                 $self->{ '_is_in_index' } = 1;
