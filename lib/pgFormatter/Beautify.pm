@@ -1233,6 +1233,7 @@ sub beautify {
                     and $self->_next_token ne ','
                     and $self->_next_token ne '||'
                     and ($self->_is_keyword($self->_next_token) or $self->_is_function($self->_next_token))
+		    and $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
                 );
             }
