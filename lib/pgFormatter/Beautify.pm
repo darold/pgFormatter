@@ -1292,9 +1292,14 @@ sub beautify {
 
         elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) { # statement separator or executing psql meta command (prefix 'g' includes all its variants)
 
+            $self->_add_token($token);
+
             if ($self->{ '_is_in_rule' }) {
-	        $self->{ '_is_in_rule' } = 0;
 		$self->_back($token, $last);
+	    }
+	    elsif ($self->{ '_is_in_create' } && $self->{ '_is_in_block' } > -1)
+	    {
+	        $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } );
 	    }
 
             # Initialize most of statement related variables
@@ -1304,6 +1309,7 @@ sub beautify {
             $self->{ '_is_in_join' } = 0;
             $self->{ '_is_in_create' } = 0;
             $self->{ '_is_in_alter' } = 0;
+	    $self->{ '_is_in_rule' } = 0;
             $self->{ '_is_in_publication' } = 0;
             $self->{ '_is_in_call' } = 0;
             $self->{ '_is_in_type' } = 0;
@@ -1336,8 +1342,6 @@ sub beautify {
             $self->{ '_is_in_aggregate' } = 0;
             $self->{ '_is_in_value' } = 0;
             $self->{ '_parenthesis_level_value' } = 0;
-
-            $self->_add_token($token);
 
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -1744,8 +1748,15 @@ sub beautify {
                     # otherwise back to last level stored at CASE keyword
                     $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
                 }
-            # We are in code block
+	    }
+            # We reach the last end of the code
+            elsif ($self->{ '_is_in_block' } > -1 and $self->_next_token eq ';')
+	    {
+                @{ $self->{ '_level_stack' } } = ();
+                $self->{ '_level' } = 0;
+                $self->{ 'break' } = ' ' unless ( $self->{ 'spaces' } != 0 );
             }
+            # We are in code block
 	    else
 	    {
                 # decrease the block level if this is a END closing a BEGIN block
