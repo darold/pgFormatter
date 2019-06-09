@@ -727,10 +727,12 @@ sub beautify {
 	} elsif ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_index' } = 1;
 	}
-        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
+        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(EVENT|UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
 	    $self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^RULE$/i) {
 	    $self->{ '_is_in_rule' } = 1;
+        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^EVENT$/i) {
+	    $self->{ '_is_in_trigger' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
             $self->{ '_is_in_type' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^PUBLICATION$/i) {
@@ -750,6 +752,9 @@ sub beautify {
         } elsif ($token =~ /^AGGREGATE$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_aggregate' } = 1;
             $self->{ '_has_order_by' } = 1;
+        } elsif ($token =~ /^EVENT$/i && $self->_next_token =~ /^TRIGGER$/i) {
+	    $self->_over($token, $last);
+            $self->{ '_is_in_index' } = 1;
         }
 
 	if ($self->{ '_is_in_using' } and defined $self->_next_token and $self->_next_token =~ /^OPERATOR|AS$/i) {
@@ -1683,7 +1688,7 @@ sub beautify {
 	    }
             $self->_new_line($token,$last) if (not defined $last or uc($last) ne 'CASE');
             $self->_add_token( $token );
-            if (!$self->{ '_is_in_case' }) {
+            if (!$self->{ '_is_in_case' } && !$self->{ '_is_in_trigger' }) {
                 $self->_over($token,$last);
 	    }
             $self->{ '_first_when_in_case' } = 0;
@@ -2084,7 +2089,7 @@ sub _add_token {
     my $next_token = $self->_next_token || '';
 
     # lowercase/uppercase keywords taking care of function with same name
-    if ($self->_is_keyword( $token ) && (!$self->_is_function( $token ) || $next_token ne '(') ) {
+    if ($self->_is_keyword( $token, $next_token, $last_token ) && (!$self->_is_function( $token ) || $next_token ne '(')) {
         $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
         $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );
         $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_keywords' } == 3 );
@@ -2230,7 +2235,12 @@ Code lifted from SQL::Beautify
 =cut
 
 sub _is_keyword {
-    my ( $self, $token ) = @_;
+    my ( $self, $token, $next_token, $last_token ) = @_;
+
+    # Fix some false positive
+    if (defined $next_token) {
+        return 0 if (uc($token) eq 'EVENT' and uc($next_token) ne 'TRIGGER');
+    }
 
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } };
 }
@@ -2659,7 +2669,7 @@ sub set_dicts {
         BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY CACHE CASCADE CASE CAST CHECK CHECKPOINT CLOSE CLUSTER
 	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY
 	COST COSTS CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER CURSOR
-	CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER DESC DETACH DISTINCT
+	CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER DESC DETACH EVENT DISTINCT
 	DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDE EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE FETCH FILTER
 	FIRST FOLLOWING FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GENERATED GRANT GROUP GROUPING HAVING HASHES HASH
 	IDENTITY IF ILIKE IMMUTABLE IN INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD
