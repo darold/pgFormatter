@@ -1494,7 +1494,7 @@ sub beautify {
                 next;
             }
 	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }
-				    and $self->{ '_current_sql_stmt' } ne 'DELETE'))
+				    and $self->{ '_current_sql_stmt' } !~ /DELETE|REVOKE/))
 	    {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
