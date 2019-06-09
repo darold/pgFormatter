@@ -1056,6 +1056,7 @@ sub beautify {
             if ($self->{ '_is_in_create' } && defined $last and $last eq ')')
 	    {
                 $self->_new_line($token,$last);
+	        $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
                 $self->_add_token( $token );
 	    }
 	    else
@@ -1122,7 +1123,7 @@ sub beautify {
 		    $last = $token if (!$self->{ '_is_in_explain' } || $self->{ 'wrap_after' });
                     next;
                 }
-		if (!$self->{ '_is_in_if' } and (!$self->{ '_is_in_function' } or $last ne '('))
+		if (!$self->{ '_is_in_if' } and !$self->{ '_is_in_alter' } and (!$self->{ '_is_in_function' } or $last ne '('))
 		{
 		    $self->_over($token,$last) if ($self->{ '_is_in_operator' } <= 2);
 		    if (!$self->{ '_is_in_function' } and !$self->_is_type($self->_next_token)) {
@@ -1196,7 +1197,9 @@ sub beautify {
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
 			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
 	        );
-                $self->_back($token, $last) if (!$self->{ '_is_in_grouping' } && !$self->{ '_is_in_trigger' });
+                $self->_back($token, $last) if (!$self->{ '_is_in_grouping' }
+			&& !$self->{ '_is_in_trigger' } && !$self->{ 'no_break' }
+		);
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
                 $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
 	    }
@@ -1373,7 +1376,8 @@ sub beautify {
             $self->_new_line($token,$last);
             # Add an additional newline after ; when we are not in a function
             if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' }
-			    and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
+			    and !$self->{ '_is_in_declare' })
+	    #and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
 	    {
 		$self->{ '_new_line' } = 0;
                 $self->_new_line($token,$last);
@@ -1437,9 +1441,10 @@ sub beautify {
 	    $self->{ 'no_break' } = 0;
             $self->{ '_col_count' } = 0;
 	    # special cases for create partition statement
-            if ($token =~ /^VALUES$/i && defined $last and uc($last) eq 'FOR')
+            if ($token =~ /^VALUES$/i && defined $last and $last =~ /^FOR|IN$/i)
 	    {
 		$self->_add_token( $token );
+		$self->{ 'no_break' } = 1;
 		$last = $token;
 		next;
 	    }
@@ -1698,6 +1703,7 @@ sub beautify {
         elsif ( $token =~ /^(?:IF|LOOP)$/i && $self->{ '_current_sql_stmt' } ne 'GRANT')
 	{
             $self->_add_token( $token );
+	    $self->{ 'no_break' } = 0;
             if (defined $self->_next_token and $self->_next_token !~ /^(EXISTS|;)$/i)
 	    {
                 $self->_new_line($token,$last) if ($token =~ /^LOOP$/i);
@@ -1756,7 +1762,7 @@ sub beautify {
                 }
 	    }
             # We reach the last end of the code
-            elsif ($self->{ '_is_in_block' } > -1 and $self->_next_token eq ';')
+            elsif ($self->{ '_is_in_block' } > -1 and $self->_next_token eq ';' and !$self->{ '_is_in_exception' })
 	    {
                 @{ $self->{ '_level_stack' } } = ();
                 $self->{ '_level' } = 0;
@@ -1856,8 +1862,7 @@ sub beautify {
 			    and (!$last or $last !~ /^(?:CREATE)$/i) )
 	    {
                 $self->_new_line($token,$last);
-
-                if (!$self->{'_and_level'} and !$self->{ '_level' }) {
+                if (!$self->{'_and_level'} and (!$self->{ '_level' } || $self->{ '_is_in_alter' })) {
                         $self->_over($token,$last);
                 } elsif ($self->{'_and_level'} and !$self->{ '_level' } and uc($token) eq 'OR') {
                         $self->_over($token,$last);
@@ -1919,13 +1924,13 @@ sub beautify {
         elsif ($token =~ /^ADD|DROP$/i && ($self->{ '_current_sql_stmt' } eq 'SEQUENCE'
 			|| $self->{ '_current_sql_stmt' } eq 'ALTER'))
 	{
-	    if ($self->_next_token !~ /^NOT|NULL|DEFAULT$/i) {
+	    if ($self->_next_token !~ /^NOT|NULL|DEFAULT$/i and (not defined $last or !$self->{ '_is_in_alter' } or $last ne '(')) {
                 $self->_new_line($token,$last);
                 if ($self->{ '_is_in_alter' } < 2) {
                     $self->_over($token,$last);
 	        }
 	    }
-            $self->_add_token($token);
+            $self->_add_token($token, $last);
 	    $self->{ '_is_in_alter' }++ if ($self->{ '_is_in_alter' } == 1);
         }
 
