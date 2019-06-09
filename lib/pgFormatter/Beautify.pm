@@ -582,7 +582,7 @@ sub beautify {
             } else {
                 $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
                 if (!$self->{ '_parenthesis_function_level' }) {
-	            $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis_function' } });
+	            $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis_function' } }) || 0;
 		    $self->_over($token,$last) if (!$self->{ '_is_in_operator' } && !$self->{ '_is_in_alter' });
 	        }
             }
@@ -1196,7 +1196,7 @@ sub beautify {
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
 			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
 	        );
-                $self->_back($token, $last) if (!$self->{ '_is_in_grouping' });
+                $self->_back($token, $last) if (!$self->{ '_is_in_grouping' } && !$self->{ '_is_in_trigger' });
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
                 $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
 	    }
@@ -1305,7 +1305,7 @@ sub beautify {
 	    }
 	    elsif ($self->{ '_is_in_create' } && $self->{ '_is_in_block' } > -1)
 	    {
-	        $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } );
+	        $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
 	    }
 
             # Initialize most of statement related variables
@@ -3105,9 +3105,9 @@ sub _remove_dynamic_code
     # Try to auto detect the string separator if none are provided.
     # Note that default single quote separtor is natively supported.
     if ($#dynsep == -1) {
-    # if a dollar sign is found after EXECUTE then the following string
-    # until an other dollar is found will be understand as a text delimiter
-    @dynsep = $$str =~ /EXECUTE\s+(\$[^\$\s]*\$)/igs;
+        # if a dollar sign is found after EXECUTE then the following string
+        # until an other dollar is found will be understand as a text delimiter
+        @dynsep = $$str =~ /EXECUTE\s+(\$[^\$\s]*\$)/igs;
     }
 
     my $idx = 0;
