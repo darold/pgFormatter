@@ -23,7 +23,7 @@ Version 4.0
 =cut
 
 # Version of pgFormatter
-our $VERSION = '4.0';
+our $VERSION = '4.1dev';
 
 # Inclusion of code from Perl package SQL::Beautify
 # Copyright (C) 2009 by Jonas Kramer
@@ -521,6 +521,7 @@ sub beautify {
     $self->{ '_is_in_distinct' } = 0;
     $self->{ '_is_in_array' } = 0;
     $self->{ '_is_in_filter' } = 0;
+    $self->{ '_parenthesis_filter_level' } = 0;
     $self->{ '_is_in_within' } = 0;
     $self->{ '_is_in_grouping' } = 0;
     $self->{ '_is_in_partition' } = 0;
@@ -577,6 +578,9 @@ sub beautify {
         ####
         if ( $token eq ')')
         {
+	    $self->{ '_parenthesis_filter_level' }-- if ($self->{ '_is_in_filter' } and $self->{ '_parenthesis_filter_level' });
+	    $self->{ '_is_in_filter' } = 0 if (!$self->{ '_parenthesis_filter_level' });
+
             if (!$self->{ '_is_in_function' }) {
                 $self->{ '_parenthesis_level' }-- if ($self->{ '_parenthesis_level' } > 0);
             } else {
@@ -598,6 +602,7 @@ sub beautify {
         }
         elsif ( $token eq '(')
         {
+	    $self->{ '_parenthesis_filter_level' }++ if ($self->{ '_is_in_filter' });
             if ($self->{ '_is_in_function' }) {
                 $self->{ '_parenthesis_function_level' }++;
 	        push(@{ $self->{ '_level_parenthesis_function' } } , $self->{ '_level' }) if ($self->{ '_parenthesis_function_level' } == 1);
@@ -660,7 +665,7 @@ sub beautify {
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } && !$self->{ '_parenthesis_level' });
 
-	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS') {
+	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS' && !$self->{ '_is_in_with'}) {
                 $self->_new_line($token,$last);
 	    }
             if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' }) && !$self->{ '_parenthesis_level' }
@@ -1343,6 +1348,7 @@ sub beautify {
 	    $self->{ '_is_in_distinct' } = 0;
 	    $self->{ '_is_in_array' } = 0;
             $self->{ '_is_in_filter' } = 0;
+	    $self->{ '_parenthesis_filter_level' } = 0;
             $self->{ '_is_in_partition' } = 0;
             $self->{ '_is_in_over' } = 0;
 	    $self->{ '_is_in_policy' } = 0;
