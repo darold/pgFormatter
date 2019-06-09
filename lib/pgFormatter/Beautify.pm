@@ -811,7 +811,11 @@ sub beautify {
         elsif ($token =~ /^(RETURN|RETURNS)$/i) {
             $self->{ '_is_in_index' } = 0;
         } elsif ($token =~ /^AS$/i) {
-            $self->{ '_is_in_index' } = 0;
+            if ( !$self->{ '_is_in_index' } and $self->{ '_is_in_from' } and $last eq ')' and uc($token) eq 'AS' and $self->_next_token() eq '(') {
+                $self->{ '_is_in_index' } = 1;
+            } else {
+                $self->{ '_is_in_index' } = 0;
+            }
 	    $self->{ '_is_in_block' } = 1 if ($self->{ '_is_in_procedure' });
 	    $self->{ '_is_in_over' } = 0;
         }
@@ -1190,19 +1194,23 @@ sub beautify {
             }
 	    if (defined $self->_next_token && $self->_next_token !~ /FILTER/i)
 	    {
-                $self->_new_line($token,$last) if ($self->{ '_is_in_create' } > 1
+
+                my $add_nl = 0;
+                $add_nl = 1 if ($self->{ '_is_in_create' } > 1
 		    and defined $last and $last ne '('
                     and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i or ($self->_next_token =~ /^ON$/i and !$self->{ '_parenthesis_level' }))
                 );
-                $self->_new_line($token,$last) if ($self->{ '_is_in_type' } == 1
+                $add_nl = 1 if ($self->{ '_is_in_type' } == 1
+		    and $self->_next_token !~ /^AS$/i
                     and (not defined $self->_next_token or $self->_next_token eq ';')
                 );
-                $self->_new_line($token,$last) if ($self->{ '_current_sql_stmt' } ne 'INSERT'
+                $add_nl = 1 if ($self->{ '_current_sql_stmt' } ne 'INSERT'
 			    and !$self->{ '_is_in_function' }
 			    and (defined $self->_next_token 
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
 			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
 	        );
+		$self->_new_line($token,$last) if ($add_nl);
                 $self->_back($token, $last) if (!$self->{ '_is_in_grouping' }
 			&& !$self->{ '_is_in_trigger' } && !$self->{ 'no_break' }
 		);
