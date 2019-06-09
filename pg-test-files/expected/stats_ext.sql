@@ -288,6 +288,7 @@ EXCEPTION
     WHEN wrong_object_type THEN
         RAISE NOTICE 'stats on toast table not created';
 END;
+
 $$;
 
 DROP SCHEMA tststats CASCADE;

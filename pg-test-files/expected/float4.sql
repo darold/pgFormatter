@@ -345,6 +345,7 @@ CREATE FUNCTION xfloat4in (cstring)
     LANGUAGE internal
     AS 'int4in'
 ;
+
 CREATE FUNCTION xfloat4out (xfloat4) returns cstring immutable strict
   language internal as 'int4out';
 create type xfloat4 (input = xfloat4in, output = xfloat4out, like = float4);

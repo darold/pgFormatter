@@ -1963,6 +1963,7 @@ CREATE FUNCTION nth_value_def (val anyelement, n integer = 1)
 WINDOW IMMUTABLE STRICT
 AS 'window_nth_value'
 ;
+
 SELECT
     nth_value_def (n := 2,
         val := ten) OVER (PARTITION BY four),
@@ -2122,19 +2123,21 @@ SELECT
     logging_agg_nonstrict (v) FILTER (WHERE f) OVER wnd AS nstrict_filt,
     logging_agg_nonstrict_initcond (v) FILTER (WHERE f) OVER wnd AS nstrict_init_filt,
     logging_agg_strict (v::text) FILTER (WHERE f) OVER wnd AS strict_filt,
-    logging_agg_strict_initcond (v) FILTER (WHERE f) OVER wnd AS strict_init_filt FROM ( VALUES (1, 1, TRUE, NULL),
+    logging_agg_strict_initcond (v) FILTER (WHERE f) OVER wnd AS strict_init_filt
+FROM (
+    VALUES (1, 1, TRUE, NULL),
         (1, 2, FALSE, 'a'),
-    (1, 3, TRUE, 'b'),
-(1, 4, FALSE, NULL),
-(1, 5, FALSE, NULL),
-(1, 6, FALSE, 'c'),
-(2, 1, FALSE, NULL),
-(2, 2, TRUE, 'x'),
-(3, 1, TRUE, 'z')) AS t (p, i, f, v)
-        WINDOW wnd AS (PARTITION BY p ORDER BY i ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)
-    ORDER BY
-        p,
-        i;
+        (1, 3, TRUE, 'b'),
+        (1, 4, FALSE, NULL),
+        (1, 5, FALSE, NULL),
+        (1, 6, FALSE, 'c'),
+        (2, 1, FALSE, NULL),
+        (2, 2, TRUE, 'x'),
+        (3, 1, TRUE, 'z')) AS t (p, i, f, v)
+    WINDOW wnd AS (PARTITION BY p ORDER BY i ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)
+ORDER BY
+    p,
+    i;
 
 -- test that volatile arguments disable moving-aggregate mode
 SELECT
@@ -2156,12 +2159,14 @@ ORDER BY
 SELECT
     i::text || ':' || COALESCE(v::text, 'NULL') AS ROW,
     logging_agg_strict (v::text) FILTER (WHERE TRUE) OVER wnd AS inverse,
-    logging_agg_strict (v::text) FILTER (WHERE random() >= 0) OVER wnd AS noinverse FROM ( VALUES (1, 'a'),
+    logging_agg_strict (v::text) FILTER (WHERE random() >= 0) OVER wnd AS noinverse
+FROM (
+    VALUES (1, 'a'),
         (2, 'b'),
-    (3, 'c')) AS t (i, v)
-        WINDOW wnd AS (ORDER BY i ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)
-    ORDER BY
-        i;
+        (3, 'c')) AS t (i, v)
+    WINDOW wnd AS (ORDER BY i ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)
+ORDER BY
+    i;
 
 -- test that non-overlapping windows don't use inverse transitions
 SELECT

@@ -1482,6 +1482,7 @@ CREATE FUNCTION sql_is_distinct_from (anyelement, anyelement)
     LANGUAGE sql
     AS 'select $1 is distinct from $2 limit 1'
 ;
+
 CREATE DOMAIN inotnull int CHECK (sql_is_distinct_from (value,
         NULL));
 

@@ -45,6 +45,7 @@ CREATE FUNCTION ADD (integer, integer)
     AS $_$
     SELECT
         $1 + $2;
+
 $_$;
 
 ALTER FUNCTION public.add (integer, integer) OWNER TO gilles;

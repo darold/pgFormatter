@@ -120,22 +120,33 @@ CREATE FUNCTION get_default_test ()
    SELECT * FROM default_test;
  '
     LANGUAGE SQL;
+
 SELECT
     *
 FROM
     get_default_test ();
+
 -- Test comments
 COMMENT ON TYPE bad IS 'bad comment';
+
 COMMENT ON TYPE default_test_row IS 'good comment';
+
 COMMENT ON TYPE default_test_row IS NULL;
+
 COMMENT ON COLUMN default_test_row.nope IS 'bad comment';
+
 COMMENT ON COLUMN default_test_row.f1 IS 'good comment';
+
 COMMENT ON COLUMN default_test_row.f1 IS NULL;
+
 -- Check shell type create for existing types
 CREATE TYPE text_w_default;
+
 -- should fail
 DROP TYPE default_test_row CASCADE;
+
 DROP TABLE default_test;
+
 -- Check type create with input/output incompatibility
 CREATE TYPE not_existing_type (
     INPUT = array_in,
@@ -143,26 +154,34 @@ CREATE TYPE not_existing_type (
     ELEMENT = int,
     INTERNALLENGTH = 32
 );
+
 -- Check dependency transfer of opaque functions when creating a new type
 CREATE FUNCTION base_fn_in (cstring)
     RETURNS opaque AS 'boolin'
     LANGUAGE internal
     IMMUTABLE STRICT;
+
 CREATE FUNCTION base_fn_out (opaque)
     RETURNS opaque AS 'boolout'
     LANGUAGE internal
     IMMUTABLE STRICT;
+
 CREATE TYPE base_type (
     INPUT = base_fn_in,
     OUTPUT = base_fn_out
 );
+
 DROP FUNCTION base_fn_in (cstring);
+
 -- error
 DROP FUNCTION base_fn_out (opaque);
+
 -- error
 DROP TYPE base_type;
+
 -- error
 DROP TYPE base_type CASCADE;
+
 -- Check usage of typmod with a user-defined type
 -- (we have borrowed numeric's typmod functions)
 CREATE TEMP TABLE mytab (
@@ -170,11 +189,13 @@ CREATE TEMP TABLE mytab (
         13,
         7)
 );
+
 -- should fail
 CREATE TEMP TABLE mytab (
     foo widget (42,
         13)
 );
+
 SELECT
     format_type(atttypid, atttypmod)
 FROM
@@ -182,15 +203,21 @@ FROM
 WHERE
     attrelid = 'mytab'::regclass
     AND attnum > 0;
+
 -- might as well exercise the widget type while we're here
 INSERT INTO mytab
     VALUES ('(1,2,3)'), ('(-44,5.5,12)');
+
 TABLE mytab;
+
 -- and test format_type() a bit more, too
 SELECT
     format_type('varchar'::regtype, 42);
+
 SELECT
     format_type('bpchar'::regtype, NULL);
+
 -- this behavior difference is intentional
 SELECT
     format_type('bpchar'::regtype, - 1);
+

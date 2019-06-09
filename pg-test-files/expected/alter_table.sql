@@ -3785,7 +3785,7 @@ SELECT
     non_strict (NULL);
 
 ALTER FUNCTION non_strict (text)
-        RETURNS NULL ON NULL input;
+    RETURNS NULL ON NULL input;
 
 SELECT
     non_strict (NULL);
@@ -3826,6 +3826,7 @@ CREATE FUNCTION alter1.same (alter1.ctype, alter1.ctype)
     LANGUAGE sql
     AS 'select $1.f1 is not distinct from $2.f1 and $1.f2 is not distinct from $2.f2'
 ;
+
 CREATE OPERATOR alter1.= (
     PROCEDURE = alter1.same,
     LEFTARG = alter1.ctype,
@@ -3883,8 +3884,7 @@ ALTER OPERATOR class alter1.ctype_hash_ops
 ALTER OPERATOR family alter1.ctype_hash_ops
     USING HASH SET SCHEMA alter2;
 
-ALTER OPERATOR alter1.= (
-alter1.ctype, alter1.ctype) SET SCHEMA alter2;
+ALTER OPERATOR alter1.= (alter1.ctype, alter1.ctype) SET SCHEMA alter2;
 
 ALTER FUNCTION alter1.same (alter1.ctype, alter1.ctype) SET SCHEMA alter2;
 
@@ -5867,6 +5867,7 @@ CREATE FUNCTION at_test_sql_partop (int4, int4)
         ELSE
             - 1
         END;
+
 $$;
 
 CREATE OPERATOR class at_test_sql_partop FOR TYPE int4

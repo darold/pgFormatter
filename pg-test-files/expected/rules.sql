@@ -570,14 +570,11 @@ INSERT INTO rtest_person
 INSERT INTO rtest_person
     VALUES ('bm', 'Bruce Momjian');
 
-INSERT INTO rtest_admin
-    VALUES ('jw', 'orion');
+INSERT INTO rtest_admin VALUES ('jw', 'orion');
 
-INSERT INTO rtest_admin
-    VALUES ('jw', 'notjw');
+INSERT INTO rtest_admin VALUES ('jw', 'notjw');
 
-INSERT INTO rtest_admin
-    VALUES ('bm', 'neptun');
+INSERT INTO rtest_admin VALUES ('bm', 'neptun');
 
 UPDATE
     rtest_system

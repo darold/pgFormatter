@@ -26,30 +26,23 @@ DROP USER regress_dep_user;
 DROP GROUP regress_dep_group;
 
 -- if we revoke the privileges we can drop the group
-REVOKE SELECT ON deptest
-FROM
+REVOKE SELECT ON deptest FROM
 GROUP regress_dep_group;
 
 DROP GROUP regress_dep_group;
 
 -- can't drop the user if we revoke the privileges partially
-REVOKE SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES ON deptest
-FROM
-    regress_dep_user;
+REVOKE SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES ON deptest FROM regress_dep_user;
 
 DROP USER regress_dep_user;
 
 -- now we are OK to drop him
-REVOKE TRIGGER ON deptest
-FROM
-    regress_dep_user;
+REVOKE TRIGGER ON deptest FROM regress_dep_user;
 
 DROP USER regress_dep_user;
 
 -- we are OK too if we drop the privileges all at once
-REVOKE ALL ON deptest
-FROM
-    regress_dep_user2;
+REVOKE ALL ON deptest FROM regress_dep_user2;
 
 DROP USER regress_dep_user2;
 

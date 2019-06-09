@@ -17,11 +17,13 @@ CREATE FUNCTION int8alias1in (cstring)
     LANGUAGE internal
     AS 'int8in'
 ;
+
 CREATE FUNCTION int8alias1out (int8alias1)
     RETURNS cstring STRICT IMMUTABLE
     LANGUAGE internal
     AS 'int8out'
 ;
+
 CREATE TYPE int8alias1 (
     input = int8alias1in,
     output = int8alias1out,
@@ -35,11 +37,13 @@ CREATE FUNCTION int8alias2in (cstring)
     LANGUAGE internal
     AS 'int8in'
 ;
+
 CREATE FUNCTION int8alias2out (int8alias2)
     RETURNS cstring STRICT IMMUTABLE
     LANGUAGE internal
     AS 'int8out'
 ;
+
 CREATE TYPE int8alias2 (
     input = int8alias2in,
     output = int8alias2out,
@@ -58,6 +62,7 @@ CREATE FUNCTION int8alias1eq (int8alias1, int8alias1)
     LANGUAGE internal
     AS 'int8eq'
 ;
+
 CREATE OPERATOR = (
     PROCEDURE = int8alias1eq,
     LEFTARG = int8alias1,
@@ -77,6 +82,7 @@ CREATE FUNCTION int8alias2eq (int8alias2, int8alias2)
     LANGUAGE internal
     AS 'int8eq'
 ;
+
 CREATE OPERATOR = (
     PROCEDURE = int8alias2eq,
     LEFTARG = int8alias2,
@@ -96,6 +102,7 @@ CREATE FUNCTION int8alias1eq (int8, int8alias1)
     LANGUAGE internal
     AS 'int8eq'
 ;
+
 CREATE OPERATOR = (
     PROCEDURE = int8alias1eq,
     LEFTARG = int8,
@@ -114,6 +121,7 @@ CREATE FUNCTION int8alias1eq (int8alias1, int8alias2)
     LANGUAGE internal
     AS 'int8eq'
 ;
+
 CREATE OPERATOR = (
     PROCEDURE = int8alias1eq,
     LEFTARG = int8alias1,
@@ -132,6 +140,7 @@ CREATE FUNCTION int8alias1lt (int8alias1, int8alias1)
     LANGUAGE internal
     AS 'int8lt'
 ;
+
 CREATE OPERATOR < (
     PROCEDURE = int8alias1lt,
     LEFTARG = int8alias1,
@@ -147,6 +156,7 @@ CREATE FUNCTION int8alias1cmp (int8, int8alias1)
     LANGUAGE internal
     AS 'btint8cmp'
 ;
+
 ALTER OPERATOR family integer_ops
     USING btree
         ADD FUNCTION 1 int8alias1cmp (int8, int8alias1);
@@ -447,13 +457,9 @@ WHERE
 
 RESET session AUTHORIZATION;
 
-REVOKE SELECT ON ec0
-FROM
-    regress_user_ectest;
+REVOKE SELECT ON ec0 FROM regress_user_ectest;
 
-REVOKE SELECT ON ec1
-FROM
-    regress_user_ectest;
+REVOKE SELECT ON ec1 FROM regress_user_ectest;
 
 DROP USER regress_user_ectest;
 

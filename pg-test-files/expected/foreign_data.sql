@@ -103,6 +103,7 @@ CREATE FUNCTION invalid_fdw_handler ()
     LANGUAGE SQL
     AS 'SELECT 1;'
 ;
+
 CREATE FOREIGN DATA WRAPPER test_fdw HANDLER invalid_fdw_handler;
 
 -- ERROR
@@ -128,18 +129,15 @@ ALTER FOREIGN DATA WRAPPER foo OPTIONS (a '1', b '2');
 ALTER FOREIGN DATA WRAPPER foo OPTIONS ( SET c '4');
 
 -- ERROR
-ALTER FOREIGN DATA WRAPPER foo OPTIONS (
-        DROP c);
+ALTER FOREIGN DATA WRAPPER foo OPTIONS (DROP c);
 
 -- ERROR
-ALTER FOREIGN DATA WRAPPER foo OPTIONS (
-        ADD x '1',
-        DROP x);
+ALTER FOREIGN DATA WRAPPER foo OPTIONS (ADD x '1',
+DROP x);
 
 \dew+
-ALTER FOREIGN DATA WRAPPER foo OPTIONS (
-        DROP a, SET b '3',
-        ADD c '4');
+ALTER FOREIGN DATA WRAPPER foo OPTIONS (DROP a, SET b '3',
+ADD c '4');
 
 \dew+
 ALTER FOREIGN DATA WRAPPER foo OPTIONS (a '2');
@@ -150,14 +148,12 @@ ALTER FOREIGN DATA WRAPPER foo OPTIONS (b '4');
 \dew+
 SET ROLE regress_test_role;
 
-ALTER FOREIGN DATA WRAPPER foo OPTIONS (
-        ADD d '5');
+ALTER FOREIGN DATA WRAPPER foo OPTIONS (ADD d '5');
 
 -- ERROR
 SET ROLE regress_test_role_super;
 
-ALTER FOREIGN DATA WRAPPER foo OPTIONS (
-        ADD d '5');
+ALTER FOREIGN DATA WRAPPER foo OPTIONS (ADD d '5');
 
 \dew+
 ALTER FOREIGN DATA WRAPPER foo OWNER TO regress_test_role;
@@ -169,8 +165,7 @@ ALTER ROLE regress_test_role_super NOSUPERUSER;
 
 SET ROLE regress_test_role_super;
 
-ALTER FOREIGN DATA WRAPPER foo OPTIONS (
-        ADD e '6');
+ALTER FOREIGN DATA WRAPPER foo OPTIONS (ADD e '6');
 
 -- ERROR
 RESET ROLE;
@@ -310,9 +305,7 @@ CREATE SERVER t1 FOREIGN DATA WRAPPER foo;
 RESET ROLE;
 
 \des+
-REVOKE USAGE ON FOREIGN DATA WRAPPER foo
-FROM
-    regress_test_role;
+REVOKE USAGE ON FOREIGN DATA WRAPPER foo FROM regress_test_role;
 
 GRANT USAGE ON FOREIGN DATA WRAPPER foo TO regress_test_indirect;
 
@@ -332,9 +325,7 @@ CREATE SERVER t2 FOREIGN DATA WRAPPER foo;
 \des+
 RESET ROLE;
 
-REVOKE regress_test_indirect
-FROM
-    regress_test_role;
+REVOKE regress_test_indirect FROM regress_test_role;
 
 -- ALTER SERVER
 ALTER SERVER s0;
@@ -381,7 +372,7 @@ ALTER SERVER s8 OPTIONS (foo '1');
 
 -- ERROR option validation
 ALTER SERVER s8 OPTIONS (connect_timeout '30', SET dbname 'db1',
-        DROP host);
+    DROP host);
 
 SET ROLE regress_test_role;
 
@@ -525,20 +516,16 @@ ALTER USER MAPPING FOR public SERVER s5 OPTIONS (gotcha 'true');
 ALTER USER MAPPING FOR CURRENT_USER SERVER s8 OPTIONS (username 'test');
 
 -- ERROR
-ALTER USER MAPPING FOR CURRENT_USER SERVER s8 OPTIONS (
-        DROP USER, SET PASSWORD 'public');
+ALTER USER MAPPING FOR CURRENT_USER SERVER s8 OPTIONS (DROP USER, SET PASSWORD 'public');
 
 SET ROLE regress_test_role;
 
-ALTER USER MAPPING FOR CURRENT_USER SERVER s5 OPTIONS (
-        ADD modified '1');
+ALTER USER MAPPING FOR CURRENT_USER SERVER s5 OPTIONS (ADD modified '1');
 
-ALTER USER MAPPING FOR public SERVER s4 OPTIONS (
-        ADD modified '1');
+ALTER USER MAPPING FOR public SERVER s4 OPTIONS (ADD modified '1');
 
 -- ERROR
-ALTER USER MAPPING FOR public SERVER t1 OPTIONS (
-        ADD modified '1');
+ALTER USER MAPPING FOR public SERVER t1 OPTIONS (ADD modified '1');
 
 RESET ROLE;
 
@@ -727,21 +714,18 @@ ALTER FOREIGN TABLE ft1
     ALTER COLUMN c8 SET DATA TYPE text;
 
 ALTER FOREIGN TABLE ft1
-    ALTER COLUMN xmin OPTIONS (
-        ADD p1 'v1');
+    ALTER COLUMN xmin OPTIONS (ADD p1 'v1');
 
 -- ERROR
 ALTER FOREIGN TABLE ft1
-    ALTER COLUMN c7 OPTIONS (
-        ADD p1 'v1',
-        ADD p2 'v2'),
-        ALTER COLUMN c8 OPTIONS (
-            ADD p1 'v1',
-            ADD p2 'v2');
+    ALTER COLUMN c7 OPTIONS (ADD p1 'v1',
+    ADD p2 'v2'),
+    ALTER COLUMN c8 OPTIONS (ADD p1 'v1',
+    ADD p2 'v2');
 
 ALTER FOREIGN TABLE ft1
     ALTER COLUMN c8 OPTIONS ( SET p2 'V2',
-        DROP p1);
+    DROP p1);
 
 ALTER FOREIGN TABLE ft1
     ALTER COLUMN c1 SET STATISTICS 10000;
@@ -790,9 +774,8 @@ ALTER FOREIGN TABLE ft1
 
 ALTER FOREIGN TABLE ft1 OWNER TO regress_test_role;
 
-ALTER FOREIGN TABLE ft1 OPTIONS (
-        DROP DELIMITER, SET quote '~',
-        ADD escape '@');
+ALTER FOREIGN TABLE ft1 OPTIONS (DROP DELIMITER, SET quote '~',
+ADD escape '@');
 
 ALTER FOREIGN TABLE ft1
     DROP COLUMN no_column;
@@ -846,16 +829,14 @@ ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1
     ALTER COLUMN c8 SET DATA TYPE text;
 
 ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1
-    ALTER COLUMN c7 OPTIONS (
-        ADD p1 'v1',
-        ADD p2 'v2'),
-        ALTER COLUMN c8 OPTIONS (
-            ADD p1 'v1',
-            ADD p2 'v2');
+    ALTER COLUMN c7 OPTIONS (ADD p1 'v1',
+    ADD p2 'v2'),
+    ALTER COLUMN c8 OPTIONS (ADD p1 'v1',
+    ADD p2 'v2');
 
 ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1
     ALTER COLUMN c8 OPTIONS ( SET p2 'V2',
-        DROP p1);
+    DROP p1);
 
 ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1
     DROP CONSTRAINT IF EXISTS no_const;
@@ -865,9 +846,8 @@ ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1
 
 ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1 OWNER TO regress_test_role;
 
-ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1 OPTIONS (
-        DROP DELIMITER, SET quote '~',
-        ADD escape '@');
+ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1 OPTIONS (DROP DELIMITER, SET quote '~',
+ADD escape '@');
 
 ALTER FOREIGN TABLE IF EXISTS doesnt_exist_ft1
     DROP COLUMN IF EXISTS no_column;
@@ -1126,20 +1106,16 @@ GRANT USAGE ON FOREIGN SERVER s8 TO regress_test_role;
 SELECT
     has_server_privilege('regress_test_role', 's8', 'USAGE');
 
-REVOKE USAGE ON FOREIGN SERVER s8
-FROM
-    regress_test_role;
+REVOKE USAGE ON FOREIGN SERVER s8 FROM regress_test_role;
 
 GRANT USAGE ON FOREIGN SERVER s4 TO regress_test_role;
 
 DROP USER MAPPING FOR public SERVER s4;
 
-ALTER SERVER s6 OPTIONS (
-        DROP host,
-        DROP dbname);
+ALTER SERVER s6 OPTIONS (DROP host,
+DROP dbname);
 
-ALTER USER MAPPING FOR regress_test_role SERVER s6 OPTIONS (
-        DROP username);
+ALTER USER MAPPING FOR regress_test_role SERVER s6 OPTIONS (DROP username);
 
 ALTER FOREIGN DATA WRAPPER foo VALIDATOR postgresql_fdw_validator;
 
@@ -1233,14 +1209,10 @@ DROP USER MAPPING FOR regress_test_role SERVER s6;
 -- ERROR
 RESET ROLE;
 
-REVOKE USAGE ON FOREIGN DATA WRAPPER foo
-FROM
-    regress_unprivileged_role;
+REVOKE USAGE ON FOREIGN DATA WRAPPER foo FROM regress_unprivileged_role;
 
 -- ERROR
-REVOKE USAGE ON FOREIGN DATA WRAPPER foo
-FROM
-    regress_unprivileged_role CASCADE;
+REVOKE USAGE ON FOREIGN DATA WRAPPER foo FROM regress_unprivileged_role CASCADE;
 
 SET ROLE regress_unprivileged_role;
 
@@ -1611,7 +1583,7 @@ FROM
             c2 text,
             c3 date
         )
-        PARTITION BY LIST (c1 );
+PARTITION BY LIST (c1 );
         CREATE FOREIGN TABLE fd_pt2_1 PARTITION OF fd_pt2
     FOR VALUES IN (1 ) SERVER s0 OPTIONS (DELIMITER ',', quote '"', "be quoted" 'value' );
         \d+ fd_pt2
@@ -1699,7 +1671,7 @@ FROM
         CREATE TEMP TABLE temp_parted (
             a int
         )
-        PARTITION BY LIST (a );
+PARTITION BY LIST (a );
         CREATE FOREIGN TABLE foreign_part PARTITION OF temp_parted DEFAULT SERVER s0;
         -- ERROR
         CREATE FOREIGN TABLE foreign_part (
@@ -1721,9 +1693,7 @@ FROM
         DROP ROLE regress_test_role;
         DROP ROLE regress_unprivileged_role;
         -- ERROR
-        REVOKE ALL ON FOREIGN DATA WRAPPER postgresql
-    FROM
-        regress_unprivileged_role;
+        REVOKE ALL ON FOREIGN DATA WRAPPER postgresql FROM regress_unprivileged_role;
         DROP ROLE regress_unprivileged_role;
         DROP ROLE regress_test_role2;
         DROP FOREIGN DATA WRAPPER postgresql CASCADE;

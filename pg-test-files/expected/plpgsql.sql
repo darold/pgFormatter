@@ -138,9 +138,11 @@ CREATE FUNCTION tg_room_au ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_room_au
     AFTER UPDATE ON Room FOR EACH ROW
     EXECUTE PROCEDURE tg_room_au ();
+
 -- ************************************************************
 -- * AFTER DELETE on Room
 -- *	- delete wall slots in this room
@@ -153,9 +155,11 @@ CREATE FUNCTION tg_room_ad ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_room_ad
     AFTER DELETE ON Room FOR EACH ROW
     EXECUTE PROCEDURE tg_room_ad ();
+
 -- ************************************************************
 -- * BEFORE INSERT or UPDATE on WSlot
 -- *	- Check that room exists
@@ -172,12 +176,15 @@ BEGIN
     END IF;
     RETURN new;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_wslot_biu
     BEFORE INSERT
     OR UPDATE ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_wslot_biu ();
+
 -- ************************************************************
 -- * AFTER UPDATE on PField
 -- *	- Let PSlots of this field follow
@@ -192,9 +199,11 @@ CREATE FUNCTION tg_pfield_au ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_pfield_au
     AFTER UPDATE ON PField FOR EACH ROW
     EXECUTE PROCEDURE tg_pfield_au ();
+
 -- ************************************************************
 -- * AFTER DELETE on PField
 -- *	- Remove all slots of this patchfield
@@ -207,9 +216,11 @@ CREATE FUNCTION tg_pfield_ad ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_pfield_ad
     AFTER DELETE ON PField FOR EACH ROW
     EXECUTE PROCEDURE tg_pfield_ad ();
+
 -- ************************************************************
 -- * BEFORE INSERT or UPDATE on PSlot
 -- *	- Ensure that our patchfield does exist
@@ -231,12 +242,15 @@ BEGIN
     END IF;
     RETURN ps;
 END;
+
 $proc$
 LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_pslot_biu
     BEFORE INSERT
     OR UPDATE ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_pslot_biu ();
+
 -- ************************************************************
 -- * AFTER UPDATE on System
 -- *	- If system name changes let interfaces follow
@@ -251,9 +265,11 @@ CREATE FUNCTION tg_system_au ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_system_au
     AFTER UPDATE ON SYSTEM FOR EACH ROW
     EXECUTE PROCEDURE tg_system_au ();
+
 -- ************************************************************
 -- * BEFORE INSERT or UPDATE on IFace
 -- *	- set the slotname to IF.sysname.ifname
@@ -282,12 +298,15 @@ BEGIN
     new.slotname := sname;
     RETURN new;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_iface_biu
     BEFORE INSERT
     OR UPDATE ON IFace FOR EACH ROW
     EXECUTE PROCEDURE tg_iface_biu ();
+
 -- ************************************************************
 -- * AFTER INSERT or UPDATE or DELETE on Hub
 -- *	- insert/delete/rename slots as required
@@ -316,11 +335,13 @@ CREATE FUNCTION tg_hub_a ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_hub_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON Hub FOR EACH ROW
     EXECUTE PROCEDURE tg_hub_a ();
+
 -- ************************************************************
 -- * Support function to add/remove slots of Hub
 -- ************************************************************
@@ -342,16 +363,20 @@ CREATE FUNCTION tg_hub_adjustslots (hname bpchar, oldnslots integer, newnslots i
  end
  '
     LANGUAGE plpgsql;
+
 -- Test comments
 COMMENT ON FUNCTION tg_hub_adjustslots_wrong (bpchar,
     integer,
     integer) IS 'function with args';
+
 COMMENT ON FUNCTION tg_hub_adjustslots (bpchar,
     integer,
     integer) IS 'function with args';
+
 COMMENT ON FUNCTION tg_hub_adjustslots (bpchar,
     integer,
     integer) IS NULL;
+
 -- ************************************************************
 -- * BEFORE INSERT or UPDATE on HSlot
 -- *	- prevent from manual manipulation
@@ -387,10 +412,12 @@ CREATE FUNCTION tg_hslot_biu ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_hslot_biu
     BEFORE INSERT
     OR UPDATE ON HSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_hslot_biu ();
+
 -- ************************************************************
 -- * BEFORE DELETE on HSlot
 -- *	- prevent from manual manipulation
@@ -411,9 +438,11 @@ CREATE FUNCTION tg_hslot_bd ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_hslot_bd
     BEFORE DELETE ON HSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_hslot_bd ();
+
 -- ************************************************************
 -- * BEFORE INSERT on all slots
 -- *	- Check name prefix
@@ -428,21 +457,27 @@ CREATE FUNCTION tg_chkslotname ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_chkslotname
     BEFORE INSERT ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('PS');
+
 CREATE TRIGGER tg_chkslotname
     BEFORE INSERT ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('WS');
+
 CREATE TRIGGER tg_chkslotname
     BEFORE INSERT ON PLine FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('PL');
+
 CREATE TRIGGER tg_chkslotname
     BEFORE INSERT ON IFace FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('IF');
+
 CREATE TRIGGER tg_chkslotname
     BEFORE INSERT ON PHone FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('PH');
+
 -- ************************************************************
 -- * BEFORE INSERT or UPDATE on all slots with slotlink
 -- *	- Set slotlink to empty string if NULL value given
@@ -457,26 +492,32 @@ CREATE FUNCTION tg_chkslotlink ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_chkslotlink
     BEFORE INSERT
     OR UPDATE ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
+
 CREATE TRIGGER tg_chkslotlink
     BEFORE INSERT
     OR UPDATE ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
+
 CREATE TRIGGER tg_chkslotlink
     BEFORE INSERT
     OR UPDATE ON IFace FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
+
 CREATE TRIGGER tg_chkslotlink
     BEFORE INSERT
     OR UPDATE ON HSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
+
 CREATE TRIGGER tg_chkslotlink
     BEFORE INSERT
     OR UPDATE ON PHone FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
+
 -- ************************************************************
 -- * BEFORE INSERT or UPDATE on all slots with backlink
 -- *	- Set backlink to empty string if NULL value given
@@ -491,18 +532,22 @@ CREATE FUNCTION tg_chkbacklink ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_chkbacklink
     BEFORE INSERT
     OR UPDATE ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_chkbacklink ();
+
 CREATE TRIGGER tg_chkbacklink
     BEFORE INSERT
     OR UPDATE ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_chkbacklink ();
+
 CREATE TRIGGER tg_chkbacklink
     BEFORE INSERT
     OR UPDATE ON PLine FOR EACH ROW
     EXECUTE PROCEDURE tg_chkbacklink ();
+
 -- ************************************************************
 -- * BEFORE UPDATE on PSlot
 -- *	- do delete/insert instead of update if name changes
@@ -529,9 +574,11 @@ CREATE FUNCTION tg_pslot_bu ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_pslot_bu
     BEFORE UPDATE ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_pslot_bu ();
+
 -- ************************************************************
 -- * BEFORE UPDATE on WSlot
 -- *	- do delete/insert instead of update if name changes
@@ -558,9 +605,11 @@ CREATE FUNCTION tg_wslot_bu ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_wslot_bu
     BEFORE UPDATE ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_Wslot_bu ();
+
 -- ************************************************************
 -- * BEFORE UPDATE on PLine
 -- *	- do delete/insert instead of update if name changes
@@ -587,9 +636,11 @@ CREATE FUNCTION tg_pline_bu ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_pline_bu
     BEFORE UPDATE ON PLine FOR EACH ROW
     EXECUTE PROCEDURE tg_pline_bu ();
+
 -- ************************************************************
 -- * BEFORE UPDATE on IFace
 -- *	- do delete/insert instead of update if name changes
@@ -616,9 +667,11 @@ CREATE FUNCTION tg_iface_bu ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_iface_bu
     BEFORE UPDATE ON IFace FOR EACH ROW
     EXECUTE PROCEDURE tg_iface_bu ();
+
 -- ************************************************************
 -- * BEFORE UPDATE on HSlot
 -- *	- do delete/insert instead of update if name changes
@@ -645,9 +698,11 @@ CREATE FUNCTION tg_hslot_bu ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_hslot_bu
     BEFORE UPDATE ON HSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_hslot_bu ();
+
 -- ************************************************************
 -- * BEFORE UPDATE on PHone
 -- *	- do delete/insert instead of update if name changes
@@ -672,9 +727,11 @@ CREATE FUNCTION tg_phone_bu ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_phone_bu
     BEFORE UPDATE ON PHone FOR EACH ROW
     EXECUTE PROCEDURE tg_phone_bu ();
+
 -- ************************************************************
 -- * AFTER INSERT or UPDATE or DELETE on slot with backlink
 -- *	- Ensure that the opponent correctly points back to us
@@ -714,21 +771,25 @@ CREATE FUNCTION tg_backlink_a ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_backlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_backlink_a ('PS');
+
 CREATE TRIGGER tg_backlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_backlink_a ('WS');
+
 CREATE TRIGGER tg_backlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON PLine FOR EACH ROW
     EXECUTE PROCEDURE tg_backlink_a ('PL');
+
 -- ************************************************************
 -- * Support function to set the opponents backlink field
 -- * if it does not already point to the requested slot
@@ -784,6 +845,7 @@ CREATE FUNCTION tg_backlink_set (myname bpchar, blname bpchar)
  end;
  '
     LANGUAGE plpgsql;
+
 -- ************************************************************
 -- * Support function to clear out the backlink field if
 -- * it still points to specific slot
@@ -830,6 +892,7 @@ CREATE FUNCTION tg_backlink_unset (bpchar, bpchar)
  end
  '
     LANGUAGE plpgsql;
+
 -- ************************************************************
 -- * AFTER INSERT or UPDATE or DELETE on slot with slotlink
 -- *	- Ensure that the opponent correctly points back to us
@@ -869,31 +932,37 @@ CREATE FUNCTION tg_slotlink_a ()
  end;
  '
     LANGUAGE plpgsql;
+
 CREATE TRIGGER tg_slotlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('PS');
+
 CREATE TRIGGER tg_slotlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('WS');
+
 CREATE TRIGGER tg_slotlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON IFace FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('IF');
+
 CREATE TRIGGER tg_slotlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON HSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('HS');
+
 CREATE TRIGGER tg_slotlink_a
     AFTER INSERT
     OR UPDATE
     OR DELETE ON PHone FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('PH');
+
 -- ************************************************************
 -- * Support function to set the opponents slotlink field
 -- * if it does not already point to the requested slot
@@ -979,6 +1048,7 @@ CREATE FUNCTION tg_slotlink_set (bpchar, bpchar)
  end;
  '
     LANGUAGE plpgsql;
+
 -- ************************************************************
 -- * Support function to clear out the slotlink field if
 -- * it still points to specific slot
@@ -1045,6 +1115,7 @@ CREATE FUNCTION tg_slotlink_unset (bpchar, bpchar)
  end;
  '
     LANGUAGE plpgsql;
+
 -- ************************************************************
 -- * Describe the backside of a patchfield slot
 -- ************************************************************
@@ -1089,6 +1160,7 @@ CREATE FUNCTION pslot_backlink_view (bpchar)
  end;
  '
     LANGUAGE plpgsql;
+
 -- ************************************************************
 -- * Describe the front of a patchfield slot
 -- ************************************************************
@@ -1124,6 +1196,7 @@ CREATE FUNCTION pslot_slotlink_view (bpchar)
  end;
  '
     LANGUAGE plpgsql;
+
 -- ************************************************************
 -- * Describe the front of a wall connector slot
 -- ************************************************************
@@ -1173,6 +1246,7 @@ CREATE FUNCTION wslot_slotlink_view (bpchar)
  end;
  '
     LANGUAGE plpgsql;
+
 -- ************************************************************
 -- * View of a patchfield describing backside and patches
 -- ************************************************************
@@ -1184,243 +1258,353 @@ SELECT
     pslot_slotlink_view (PF.slotname) AS patch
 FROM
     PSlot PF;
+
 --
 -- First we build the house - so we create the rooms
 --
 INSERT INTO Room
     VALUES ('001', 'Entrance');
+
 INSERT INTO Room
     VALUES ('002', 'Office');
+
 INSERT INTO Room
     VALUES ('003', 'Office');
+
 INSERT INTO Room
     VALUES ('004', 'Technical');
+
 INSERT INTO Room
     VALUES ('101', 'Office');
+
 INSERT INTO Room
     VALUES ('102', 'Conference');
+
 INSERT INTO Room
     VALUES ('103', 'Restroom');
+
 INSERT INTO Room
     VALUES ('104', 'Technical');
+
 INSERT INTO Room
     VALUES ('105', 'Office');
+
 INSERT INTO Room
     VALUES ('106', 'Office');
+
 --
 -- Second we install the wall connectors
 --
 INSERT INTO WSlot
     VALUES ('WS.001.1a', '001', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.001.1b', '001', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.001.2a', '001', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.001.2b', '001', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.001.3a', '001', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.001.3b', '001', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.002.1a', '002', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.002.1b', '002', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.002.2a', '002', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.002.2b', '002', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.002.3a', '002', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.002.3b', '002', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.003.1a', '003', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.003.1b', '003', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.003.2a', '003', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.003.2b', '003', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.003.3a', '003', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.003.3b', '003', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.101.1a', '101', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.101.1b', '101', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.101.2a', '101', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.101.2b', '101', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.101.3a', '101', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.101.3b', '101', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.102.1a', '102', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.102.1b', '102', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.102.2a', '102', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.102.2b', '102', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.102.3a', '102', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.102.3b', '102', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.105.1a', '105', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.105.1b', '105', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.105.2a', '105', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.105.2b', '105', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.105.3a', '105', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.105.3b', '105', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.106.1a', '106', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.106.1b', '106', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.106.2a', '106', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.106.2b', '106', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.106.3a', '106', '', '');
+
 INSERT INTO WSlot
     VALUES ('WS.106.3b', '106', '', '');
+
 --
 -- Now create the patch fields and their slots
 --
 INSERT INTO PField
     VALUES ('PF0_1', 'Wallslots basement');
+
 --
 -- The cables for these will be made later, so they are unconnected for now
 --
 INSERT INTO PSlot
     VALUES ('PS.base.a1', 'PF0_1', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.a2', 'PF0_1', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.a3', 'PF0_1', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.a4', 'PF0_1', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.a5', 'PF0_1', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.a6', 'PF0_1', '', '');
+
 --
 -- These are already wired to the wall connectors
 --
 INSERT INTO PSlot
     VALUES ('PS.base.b1', 'PF0_1', '', 'WS.002.1a');
+
 INSERT INTO PSlot
     VALUES ('PS.base.b2', 'PF0_1', '', 'WS.002.1b');
+
 INSERT INTO PSlot
     VALUES ('PS.base.b3', 'PF0_1', '', 'WS.002.2a');
+
 INSERT INTO PSlot
     VALUES ('PS.base.b4', 'PF0_1', '', 'WS.002.2b');
+
 INSERT INTO PSlot
     VALUES ('PS.base.b5', 'PF0_1', '', 'WS.002.3a');
+
 INSERT INTO PSlot
     VALUES ('PS.base.b6', 'PF0_1', '', 'WS.002.3b');
+
 INSERT INTO PSlot
     VALUES ('PS.base.c1', 'PF0_1', '', 'WS.003.1a');
+
 INSERT INTO PSlot
     VALUES ('PS.base.c2', 'PF0_1', '', 'WS.003.1b');
+
 INSERT INTO PSlot
     VALUES ('PS.base.c3', 'PF0_1', '', 'WS.003.2a');
+
 INSERT INTO PSlot
     VALUES ('PS.base.c4', 'PF0_1', '', 'WS.003.2b');
+
 INSERT INTO PSlot
     VALUES ('PS.base.c5', 'PF0_1', '', 'WS.003.3a');
+
 INSERT INTO PSlot
     VALUES ('PS.base.c6', 'PF0_1', '', 'WS.003.3b');
+
 --
 -- This patchfield will be renamed later into PF0_2 - so its
 -- slots references in pfname should follow
 --
 INSERT INTO PField
     VALUES ('PF0_X', 'Phonelines basement');
+
 INSERT INTO PSlot
     VALUES ('PS.base.ta1', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.ta2', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.ta3', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.ta4', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.ta5', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.ta6', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.tb1', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.tb2', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.tb3', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.tb4', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.tb5', 'PF0_X', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.base.tb6', 'PF0_X', '', '');
+
 INSERT INTO PField
     VALUES ('PF1_1', 'Wallslots first floor');
+
 INSERT INTO PSlot
     VALUES ('PS.first.a1', 'PF1_1', '', 'WS.101.1a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.a2', 'PF1_1', '', 'WS.101.1b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.a3', 'PF1_1', '', 'WS.101.2a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.a4', 'PF1_1', '', 'WS.101.2b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.a5', 'PF1_1', '', 'WS.101.3a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.a6', 'PF1_1', '', 'WS.101.3b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.b1', 'PF1_1', '', 'WS.102.1a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.b2', 'PF1_1', '', 'WS.102.1b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.b3', 'PF1_1', '', 'WS.102.2a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.b4', 'PF1_1', '', 'WS.102.2b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.b5', 'PF1_1', '', 'WS.102.3a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.b6', 'PF1_1', '', 'WS.102.3b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.c1', 'PF1_1', '', 'WS.105.1a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.c2', 'PF1_1', '', 'WS.105.1b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.c3', 'PF1_1', '', 'WS.105.2a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.c4', 'PF1_1', '', 'WS.105.2b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.c5', 'PF1_1', '', 'WS.105.3a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.c6', 'PF1_1', '', 'WS.105.3b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.d1', 'PF1_1', '', 'WS.106.1a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.d2', 'PF1_1', '', 'WS.106.1b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.d3', 'PF1_1', '', 'WS.106.2a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.d4', 'PF1_1', '', 'WS.106.2b');
+
 INSERT INTO PSlot
     VALUES ('PS.first.d5', 'PF1_1', '', 'WS.106.3a');
+
 INSERT INTO PSlot
     VALUES ('PS.first.d6', 'PF1_1', '', 'WS.106.3b');
+
 --
 -- Now we wire the wall connectors 1a-2a in room 001 to the
 -- patchfield. In the second update we make an error, and
@@ -1432,12 +1616,14 @@ SET
     backlink = 'WS.001.1a'
 WHERE
     slotname = 'PS.base.a1';
+
 UPDATE
     PSlot
 SET
     backlink = 'WS.001.1b'
 WHERE
     slotname = 'PS.base.a3';
+
 SELECT
     *
 FROM
@@ -1446,6 +1632,7 @@ WHERE
     roomno = '001'
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
@@ -1454,12 +1641,14 @@ WHERE
     slotname ~ 'PS.base.a'
 ORDER BY
     slotname;
+
 UPDATE
     PSlot
 SET
     backlink = 'WS.001.2a'
 WHERE
     slotname = 'PS.base.a3';
+
 SELECT
     *
 FROM
@@ -1468,6 +1657,7 @@ WHERE
     roomno = '001'
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
@@ -1476,12 +1666,14 @@ WHERE
     slotname ~ 'PS.base.a'
 ORDER BY
     slotname;
+
 UPDATE
     PSlot
 SET
     backlink = 'WS.001.1b'
 WHERE
     slotname = 'PS.base.a2';
+
 SELECT
     *
 FROM
@@ -1490,6 +1682,7 @@ WHERE
     roomno = '001'
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
@@ -1498,6 +1691,7 @@ WHERE
     slotname ~ 'PS.base.a'
 ORDER BY
     slotname;
+
 --
 -- Same procedure for 2b-3b but this time updating the WSlot instead
 -- of the PSlot. Due to the triggers the result is the same:
@@ -1509,12 +1703,14 @@ SET
     backlink = 'PS.base.a4'
 WHERE
     slotname = 'WS.001.2b';
+
 UPDATE
     WSlot
 SET
     backlink = 'PS.base.a6'
 WHERE
     slotname = 'WS.001.3a';
+
 SELECT
     *
 FROM
@@ -1523,6 +1719,7 @@ WHERE
     roomno = '001'
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
@@ -1531,12 +1728,14 @@ WHERE
     slotname ~ 'PS.base.a'
 ORDER BY
     slotname;
+
 UPDATE
     WSlot
 SET
     backlink = 'PS.base.a6'
 WHERE
     slotname = 'WS.001.3b';
+
 SELECT
     *
 FROM
@@ -1545,6 +1744,7 @@ WHERE
     roomno = '001'
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
@@ -1553,12 +1753,14 @@ WHERE
     slotname ~ 'PS.base.a'
 ORDER BY
     slotname;
+
 UPDATE
     WSlot
 SET
     backlink = 'PS.base.a5'
 WHERE
     slotname = 'WS.001.3a';
+
 SELECT
     *
 FROM
@@ -1567,6 +1769,7 @@ WHERE
     roomno = '001'
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
@@ -1575,32 +1778,46 @@ WHERE
     slotname ~ 'PS.base.a'
 ORDER BY
     slotname;
+
 INSERT INTO PField
     VALUES ('PF1_2', 'Phonelines first floor');
+
 INSERT INTO PSlot
     VALUES ('PS.first.ta1', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.ta2', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.ta3', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.ta4', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.ta5', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.ta6', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.tb1', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.tb2', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.tb3', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.tb4', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.tb5', 'PF1_2', '', '');
+
 INSERT INTO PSlot
     VALUES ('PS.first.tb6', 'PF1_2', '', '');
+
 --
 -- Fix the wrong name for patchfield PF0_2
 --
@@ -1610,18 +1827,21 @@ SET
     name = 'PF0_2'
 WHERE
     name = 'PF0_X';
+
 SELECT
     *
 FROM
     PSlot
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
     WSlot
 ORDER BY
     slotname;
+
 --
 -- Install the central phone system and create the phone numbers.
 -- They are wired on insert to the patchfields. Again the
@@ -1630,96 +1850,128 @@ ORDER BY
 --
 INSERT INTO PLine
     VALUES ('PL.001', '-0', 'Central call', 'PS.base.ta1');
+
 INSERT INTO PLine
     VALUES ('PL.002', '-101', '', 'PS.base.ta2');
+
 INSERT INTO PLine
     VALUES ('PL.003', '-102', '', 'PS.base.ta3');
+
 INSERT INTO PLine
     VALUES ('PL.004', '-103', '', 'PS.base.ta5');
+
 INSERT INTO PLine
     VALUES ('PL.005', '-104', '', 'PS.base.ta6');
+
 INSERT INTO PLine
     VALUES ('PL.006', '-106', '', 'PS.base.tb2');
+
 INSERT INTO PLine
     VALUES ('PL.007', '-108', '', 'PS.base.tb3');
+
 INSERT INTO PLine
     VALUES ('PL.008', '-109', '', 'PS.base.tb4');
+
 INSERT INTO PLine
     VALUES ('PL.009', '-121', '', 'PS.base.tb5');
+
 INSERT INTO PLine
     VALUES ('PL.010', '-122', '', 'PS.base.tb6');
+
 INSERT INTO PLine
     VALUES ('PL.015', '-134', '', 'PS.first.ta1');
+
 INSERT INTO PLine
     VALUES ('PL.016', '-137', '', 'PS.first.ta3');
+
 INSERT INTO PLine
     VALUES ('PL.017', '-139', '', 'PS.first.ta4');
+
 INSERT INTO PLine
     VALUES ('PL.018', '-362', '', 'PS.first.tb1');
+
 INSERT INTO PLine
     VALUES ('PL.019', '-363', '', 'PS.first.tb2');
+
 INSERT INTO PLine
     VALUES ('PL.020', '-364', '', 'PS.first.tb3');
+
 INSERT INTO PLine
     VALUES ('PL.021', '-365', '', 'PS.first.tb5');
+
 INSERT INTO PLine
     VALUES ('PL.022', '-367', '', 'PS.first.tb6');
+
 INSERT INTO PLine
     VALUES ('PL.028', '-501', 'Fax entrance', 'PS.base.ta2');
+
 INSERT INTO PLine
     VALUES ('PL.029', '-502', 'Fax first floor', 'PS.first.ta1');
+
 --
 -- Buy some phones, plug them into the wall and patch the
 -- phone lines to the corresponding patchfield slots.
 --
 INSERT INTO PHone
     VALUES ('PH.hc001', 'Hicom standard', 'WS.001.1a');
+
 UPDATE
     PSlot
 SET
     slotlink = 'PS.base.ta1'
 WHERE
     slotname = 'PS.base.a1';
+
 INSERT INTO PHone
     VALUES ('PH.hc002', 'Hicom standard', 'WS.002.1a');
+
 UPDATE
     PSlot
 SET
     slotlink = 'PS.base.ta5'
 WHERE
     slotname = 'PS.base.b1';
+
 INSERT INTO PHone
     VALUES ('PH.hc003', 'Hicom standard', 'WS.002.2a');
+
 UPDATE
     PSlot
 SET
     slotlink = 'PS.base.tb2'
 WHERE
     slotname = 'PS.base.b3';
+
 INSERT INTO PHone
     VALUES ('PH.fax001', 'Canon fax', 'WS.001.2a');
+
 UPDATE
     PSlot
 SET
     slotlink = 'PS.base.ta2'
 WHERE
     slotname = 'PS.base.a3';
+
 --
 -- Install a hub at one of the patchfields, plug a computers
 -- ethernet interface into the wall and patch it to the hub.
 --
 INSERT INTO Hub
     VALUES ('base.hub1', 'Patchfield PF0_1 hub', 16);
+
 INSERT INTO SYSTEM
     VALUES ('orion', 'PC');
+
 INSERT INTO IFace
     VALUES ('IF', 'orion', 'eth0', 'WS.002.1b');
+
 UPDATE
     PSlot
 SET
     slotlink = 'HS.base.hub1.1'
 WHERE
     slotname = 'PS.base.b2';
+
 --
 -- Now we take a look at the patchfield
 --
@@ -1731,6 +1983,7 @@ WHERE
     pfname = 'PF0_1'
 ORDER BY
     slotname;
+
 SELECT
     *
 FROM
@@ -1739,44 +1992,55 @@ WHERE
     pfname = 'PF0_2'
 ORDER BY
     slotname;
+
 --
 -- Finally we want errors
 --
 INSERT INTO PField
     VALUES ('PF1_1', 'should fail due to unique index');
+
 UPDATE
     PSlot
 SET
     backlink = 'WS.not.there'
 WHERE
     slotname = 'PS.base.a1';
+
 UPDATE
     PSlot
 SET
     backlink = 'XX.illegal'
 WHERE
     slotname = 'PS.base.a1';
+
 UPDATE
     PSlot
 SET
     slotlink = 'PS.not.there'
 WHERE
     slotname = 'PS.base.a1';
+
 UPDATE
     PSlot
 SET
     slotlink = 'XX.illegal'
 WHERE
     slotname = 'PS.base.a1';
+
 INSERT INTO HSlot
     VALUES ('HS', 'base.hub1', 1, '');
+
 INSERT INTO HSlot
     VALUES ('HS', 'base.hub1', 20, '');
+
 DELETE FROM HSlot;
+
 INSERT INTO IFace
     VALUES ('IF', 'notthere', 'eth0', '');
+
 INSERT INTO IFace
     VALUES ('IF', 'orion', 'ethernet_interface_name_too_long', '');
+
 --
 -- The following tests are unrelated to the scenario outlined above;
 -- they merely exercise specific parts of PL/pgSQL
@@ -1796,15 +2060,18 @@ CREATE FUNCTION recursion_test (int, int)
      RETURN rslt;
  END;'
     LANGUAGE plpgsql;
+
 SELECT
     recursion_test (4,
         3);
+
 --
 -- Test the FOUND magic variable
 --
 CREATE TABLE found_test_tbl (
     a int
 );
+
 CREATE FUNCTION test_found ()
     RETURNS boolean AS '
    declare
@@ -1841,12 +2108,15 @@ CREATE FUNCTION test_found ()
    return true;
    end;'
     LANGUAGE plpgsql;
+
 SELECT
     test_found ();
+
 SELECT
     *
 FROM
     found_test_tbl;
+
 --
 -- Test set-returning functions for PL/pgSQL
 --
@@ -1861,10 +2131,12 @@ CREATE FUNCTION test_table_func_rec ()
  	RETURN;
  END;'
     LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     test_table_func_rec ();
+
 CREATE FUNCTION test_table_func_row ()
     RETURNS SETOF found_test_tbl AS '
  DECLARE
@@ -1876,10 +2148,12 @@ CREATE FUNCTION test_table_func_row ()
  	RETURN;
  END;'
     LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     test_table_func_row ();
+
 CREATE FUNCTION test_ret_set_scalar (int, int)
     RETURNS SETOF int AS '
  DECLARE
@@ -1891,11 +2165,13 @@ CREATE FUNCTION test_ret_set_scalar (int, int)
  	RETURN;
  END;'
     LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     test_ret_set_scalar (1,
         10);
+
 CREATE FUNCTION test_ret_set_rec_dyn (int)
     RETURNS SETOF record AS '
  DECLARE
@@ -1913,22 +2189,19 @@ CREATE FUNCTION test_ret_set_rec_dyn (int)
  	RETURN;
  END;'
     LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     test_ret_set_rec_dyn (1500)
-    AS (
-a int,
-        b int,
-        c int);
+    AS (a int, b int, c int);
+
 SELECT
     *
 FROM
     test_ret_set_rec_dyn (5)
-    AS (
-a int,
-        b numeric,
-        c text);
+    AS (a int, b numeric, c text);
+
 CREATE FUNCTION test_ret_rec_dyn (int)
     RETURNS record AS '
  DECLARE
@@ -1943,22 +2216,19 @@ CREATE FUNCTION test_ret_rec_dyn (int)
  	END IF;
  END;'
     LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     test_ret_rec_dyn (1500)
-    AS (
-a int,
-        b int,
-        c int);
+    AS (a int, b int, c int);
+
 SELECT
     *
 FROM
     test_ret_rec_dyn (5)
-    AS (
-a int,
-        b numeric,
-        c text);
+    AS (a int, b numeric, c text);
+
 --
 -- Test handling of OUT parameters, including polymorphic cases.
 -- Note that RETURN is optional with OUT params; we try both ways.
@@ -1970,6 +2240,7 @@ BEGIN
     RETURN i + 1;
 END $$
 LANGUAGE plpgsql;
+
 CREATE FUNCTION f1 (IN i int, out j int
 ) AS $$
 BEGIN
@@ -1977,25 +2248,32 @@ BEGIN
     RETURN;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     f1 (42);
+
 SELECT
     *
 FROM
     f1 (42);
+
 CREATE OR REPLACE FUNCTION f1 (INOUT i int
 ) AS $$
 BEGIN
     i := i + 1;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     f1 (42);
+
 SELECT
     *
 FROM
     f1 (42);
+
 DROP FUNCTION f1 (int);
+
 CREATE FUNCTION f1 (IN i int, out j int)
     RETURNS SETOF int AS $$
 BEGIN
@@ -2006,11 +2284,14 @@ BEGIN
     RETURN;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     f1 (42);
+
 DROP FUNCTION f1 (int);
+
 CREATE FUNCTION f1 (IN i int, out j int, out k text
 ) AS $$
 BEGIN
@@ -2019,13 +2300,17 @@ BEGIN
     k := 'foo';
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     f1 (42);
+
 SELECT
     *
 FROM
     f1 (42);
+
 DROP FUNCTION f1 (int);
+
 CREATE FUNCTION f1 (IN i int, out j int, out k text)
     RETURNS SETOF record AS $$
 BEGIN
@@ -2037,11 +2322,14 @@ BEGIN
     RETURN NEXT;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     f1 (42);
+
 DROP FUNCTION f1 (int);
+
 CREATE FUNCTION duplic (IN i anyelement, out j anyelement, out k anyarray
 ) AS $$
 BEGIN
@@ -2050,15 +2338,19 @@ BEGIN
     RETURN;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     duplic (42);
+
 SELECT
     *
 FROM
     duplic ('foo'::text);
+
 DROP FUNCTION duplic (anyelement);
+
 --
 -- test PERFORM
 --
@@ -2066,6 +2358,7 @@ CREATE TABLE perform_test (
     a INT,
     b INT
 );
+
 CREATE FUNCTION perform_simple_func (int)
     RETURNS boolean AS '
  BEGIN
@@ -2077,6 +2370,7 @@ CREATE FUNCTION perform_simple_func (int)
  	END IF;
  END;'
     LANGUAGE plpgsql;
+
 CREATE FUNCTION perform_test_func ()
     RETURNS void AS '
  BEGIN
@@ -2099,13 +2393,17 @@ CREATE FUNCTION perform_test_func ()
  	RETURN;
  END;'
     LANGUAGE plpgsql;
+
 SELECT
     perform_test_func ();
+
 SELECT
     *
 FROM
     perform_test;
+
 DROP TABLE perform_test;
+
 --
 -- Test proper snapshot handling in simple expressions
 --
@@ -2113,6 +2411,7 @@ CREATE temp TABLE users (
     LOGIN text,
     id serial
 );
+
 CREATE FUNCTION sp_id_user (a_login text)
     RETURNS int AS $$
 DECLARE
@@ -2131,12 +2430,16 @@ BEGIN
 END $$
 LANGUAGE plpgsql
 STABLE;
+
 INSERT INTO users
     VALUES ('user1');
+
 SELECT
     sp_id_user ('user1');
+
 SELECT
     sp_id_user ('userx');
+
 CREATE FUNCTION sp_add_user (a_login text)
     RETURNS int AS $$
 DECLARE
@@ -2157,18 +2460,26 @@ BEGIN
     RETURN my_id_user;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     sp_add_user ('user1');
+
 SELECT
     sp_add_user ('user2');
+
 SELECT
     sp_add_user ('user2');
+
 SELECT
     sp_add_user ('user3');
+
 SELECT
     sp_add_user ('user3');
+
 DROP FUNCTION sp_add_user (text);
+
 DROP FUNCTION sp_id_user (text);
+
 --
 -- tests for refcursors
 --
@@ -2176,6 +2487,7 @@ CREATE TABLE rc_test (
     a int,
     b int
 );
+
 CREATE FUNCTION return_unnamed_refcursor ()
     RETURNS refcursor AS $$
 DECLARE
@@ -2189,6 +2501,7 @@ BEGIN
     RETURN rc;
 END $$
 LANGUAGE plpgsql;
+
 CREATE FUNCTION use_refcursor (rc refcursor)
     RETURNS int AS $$
 DECLARE
@@ -2200,8 +2513,10 @@ BEGIN
     RETURN x.a;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     use_refcursor (return_unnamed_refcursor ());
+
 CREATE FUNCTION return_refcursor (rc refcursor)
     RETURNS refcursor AS $$
 BEGIN
@@ -2213,6 +2528,7 @@ BEGIN
     RETURN rc;
 END $$
 LANGUAGE plpgsql;
+
 CREATE FUNCTION refcursor_test1 (refcursor)
     RETURNS refcursor AS $$
 BEGIN
@@ -2221,6 +2537,7 @@ BEGIN
     RETURN $1;
 END $$
 LANGUAGE plpgsql;
+
 BEGIN;
 SELECT
     refcursor_test1 ('test1');
@@ -2229,10 +2546,12 @@ SELECT
     refcursor_test1 ('test2');
 FETCH ALL FROM test2;
 COMMIT;
+
 -- should fail
 FETCH NEXT
 FROM
     test1;
+
 CREATE FUNCTION refcursor_test2 (int, int)
     RETURNS boolean AS $$
 DECLARE
@@ -2259,10 +2578,12 @@ BEGIN
     END IF;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     refcursor_test2 (20000,
         20000) AS "Should be false",
     refcursor_test2 (20, 20) AS "Should be true";
+
 --
 -- tests for cursors with named parameter arguments
 --
@@ -2292,10 +2613,12 @@ BEGIN
     END IF;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     namedparmcursor_test1 (20000,
         20000) AS "Should be false",
     namedparmcursor_test1 (20, 20) AS "Should be true";
+
 -- mixing named and positional argument notations
 CREATE FUNCTION namedparmcursor_test2 (int, int)
     RETURNS boolean AS $$
@@ -2323,9 +2646,11 @@ BEGIN
     END IF;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     namedparmcursor_test2 (20,
         20);
+
 -- mixing named and positional: param2 is given twice, once in named notation
 -- and second time in positional notation. Should throw an error at parse time
 CREATE FUNCTION namedparmcursor_test3 ()
@@ -2346,6 +2671,7 @@ BEGIN
         21);
 END $$
 LANGUAGE plpgsql;
+
 -- mixing named and positional: same as previous test, but param1 is duplicated
 CREATE FUNCTION namedparmcursor_test4 ()
     RETURNS void AS $$
@@ -2365,6 +2691,7 @@ BEGIN
         param1 := 21);
 END $$
 LANGUAGE plpgsql;
+
 -- duplicate named parameter, should throw an error at parse time
 CREATE FUNCTION namedparmcursor_test5 ()
     RETURNS void AS $$
@@ -2384,6 +2711,7 @@ BEGIN
         p2 := 42);
 END $$
 LANGUAGE plpgsql;
+
 -- not enough parameters, should throw an error at parse time
 CREATE FUNCTION namedparmcursor_test6 ()
     RETURNS void AS $$
@@ -2402,6 +2730,7 @@ BEGIN
     OPEN c1 (p2 := 77);
 END $$
 LANGUAGE plpgsql;
+
 -- division by zero runtime error, the context given in the error message
 -- should be sensible
 CREATE FUNCTION namedparmcursor_test7 ()
@@ -2422,8 +2751,10 @@ BEGIN
         p1 := 42 / 0);
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     namedparmcursor_test7 ();
+
 -- check that line comments work correctly within the argument list (there
 -- is some special handling of this case in the code: the newline after the
 -- comment must be preserved when the argument-evaluating query is
@@ -2451,8 +2782,10 @@ BEGIN
     RETURN n;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     namedparmcursor_test8 ();
+
 -- cursor parameter name can match plpgsql variable or unreserved keyword
 CREATE FUNCTION namedparmcursor_test9 (p1 int)
     RETURNS int4 AS $$
@@ -2479,8 +2812,10 @@ BEGIN
     RETURN n;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     namedparmcursor_test9 (6);
+
 --
 -- tests for "raise" processing
 --
@@ -2490,57 +2825,57 @@ BEGIN
     raise notice 'This message has too many parameters!', $1;
     RETURN $1;
 END;
-$$
-LANGUAGE plpgsql;
-CREATE FUNCTION raise_test2 (int)
-    RETURNS int AS $$
-BEGIN
-    raise notice 'This message has too few parameters: %, %, %', $1, $1;
-    RETURN $1;
+    $$
+    LANGUAGE plpgsql;
+    CREATE FUNCTION raise_test2 (int )
+        RETURNS int AS $$
+        BEGIN
+            raise notice 'This message has too few parameters: %, %, %', $1, $1;
+        RETURN $1;
 END;
-$$
-LANGUAGE plpgsql;
-CREATE FUNCTION raise_test3 (int)
-    RETURNS int AS $$
-BEGIN
-    raise notice 'This message has no parameters (despite having %% signs in it)!';
-    RETURN $1;
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test3 (1);
--- Test re-RAISE inside a nested exception block.  This case is allowed
--- by Oracle's PL/SQL but was handled differently by PG before 9.1.
-CREATE FUNCTION reraise_test ()
-    RETURNS void AS $$
-BEGIN
-    BEGIN
-        RAISE syntax_error;
-    EXCEPTION
-        WHEN syntax_error THEN
+        $$
+        LANGUAGE plpgsql;
+        CREATE FUNCTION raise_test3 (int )
+            RETURNS int AS $$
             BEGIN
-                raise notice 'exception % thrown in inner block, reraising', sqlerrm;
-            RAISE;
-            EXCEPTION
-                WHEN OTHERS THEN
-                    raise notice 'RIGHT - exception % caught in inner block', sqlerrm;
-            END;
-    END;
-EXCEPTION
-    WHEN OTHERS THEN
-        raise notice 'WRONG - exception % caught in outer block', sqlerrm;
+                raise notice 'This message has no parameters (despite having %% signs in it)!';
+            RETURN $1;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    reraise_test ();
---
--- reject function definitions that contain malformed SQL queries at
--- compile-time, where possible
---
-CREATE FUNCTION bad_sql1 ()
-    RETURNS int AS $$
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test3 (1);
+            -- Test re-RAISE inside a nested exception block.  This case is allowed
+            -- by Oracle's PL/SQL but was handled differently by PG before 9.1.
+            CREATE FUNCTION reraise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    BEGIN
+                        RAISE syntax_error;
+                    EXCEPTION
+                        WHEN syntax_error THEN
+                            BEGIN
+                                raise notice 'exception % thrown in inner block, reraising', sqlerrm;
+                            RAISE;
+                            EXCEPTION
+                                WHEN OTHERS THEN
+                                    raise notice 'RIGHT - exception % caught in inner block', sqlerrm;
+                            END;
+                    END;
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        raise notice 'WRONG - exception % caught in outer block', sqlerrm;
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                reraise_test ();
+            --
+            -- reject function definitions that contain malformed SQL queries at
+            -- compile-time, where possible
+            --
+            CREATE FUNCTION bad_sql1 ( )
+                RETURNS int AS $$
 DECLARE
     a int;
 BEGIN
@@ -2550,6 +2885,7 @@ BEGIN
     RETURN a;
 END $$
 LANGUAGE plpgsql;
+
 CREATE FUNCTION bad_sql2 ()
     RETURNS int AS $$
 DECLARE
@@ -2563,61 +2899,61 @@ BEGIN
         END LOOP;
     RETURN 5;
 END;
-$$
-LANGUAGE plpgsql;
--- a RETURN expression is mandatory, except for void-returning
--- functions, where it is not allowed
-CREATE FUNCTION missing_return_expr ()
-    RETURNS int AS $$
-BEGIN
-    RETURN;
+    $$
+    LANGUAGE plpgsql;
+    -- a RETURN expression is mandatory, except for void-returning
+    -- functions, where it is not allowed
+    CREATE FUNCTION missing_return_expr ( )
+        RETURNS int AS $$
+        BEGIN
+            RETURN;
 END;
-$$
-LANGUAGE plpgsql;
-CREATE FUNCTION void_return_expr ()
-    RETURNS void AS $$
-BEGIN
-    RETURN 5;
+        $$
+        LANGUAGE plpgsql;
+        CREATE FUNCTION void_return_expr ( )
+            RETURNS void AS $$
+            BEGIN
+                RETURN 5;
 END;
-$$
-LANGUAGE plpgsql;
--- VOID functions are allowed to omit RETURN
-CREATE FUNCTION void_return_expr ()
-    RETURNS void AS $$
-BEGIN
-    PERFORM
-        2 + 2;
+            $$
+            LANGUAGE plpgsql;
+            -- VOID functions are allowed to omit RETURN
+            CREATE FUNCTION void_return_expr ( )
+                RETURNS void AS $$
+                BEGIN
+                    PERFORM
+                        2 + 2;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    void_return_expr ();
--- but ordinary functions are not
-CREATE FUNCTION missing_return_expr ()
-    RETURNS int AS $$
-BEGIN
-    PERFORM
-        2 + 2;
+                $$
+                LANGUAGE plpgsql;
+                SELECT
+                    void_return_expr ();
+                -- but ordinary functions are not
+                CREATE FUNCTION missing_return_expr ( )
+                    RETURNS int AS $$
+                    BEGIN
+                        PERFORM
+                            2 + 2;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    missing_return_expr ();
-DROP FUNCTION void_return_expr ();
-DROP FUNCTION missing_return_expr ();
---
--- EXECUTE ... INTO test
---
-CREATE TABLE eifoo (
-    i integer,
-    y integer
+                    $$
+                    LANGUAGE plpgsql;
+                    SELECT
+                        missing_return_expr ();
+                    DROP FUNCTION void_return_expr ();
+                    DROP FUNCTION missing_return_expr ();
+                    --
+                    -- EXECUTE ... INTO test
+                    --
+                    CREATE TABLE eifoo (
+                        i integer,
+                        y integer
+                    );
+                    CREATE TYPE eitype AS (
+                        i integer,
+                        y integer
 );
-CREATE TYPE eitype AS (
-    i integer,
-    y integer
-);
-CREATE OR REPLACE FUNCTION execute_into_test (varchar)
-    RETURNS record AS $$
+                    CREATE OR REPLACE FUNCTION execute_into_test (varchar )
+                        RETURNS record AS $$
 DECLARE
     _r record;
     _rt eifoo % rowtype;
@@ -2638,88 +2974,88 @@ BEGIN
     EXECUTE 'select 1,2' INTO _v;
     RETURN _v;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    execute_into_test ('eifoo');
-DROP TABLE eifoo CASCADE;
-DROP TYPE eitype CASCADE;
---
--- SQLSTATE and SQLERRM test
---
-CREATE FUNCTION excpt_test1 ()
-    RETURNS void AS $$
-BEGIN
-    raise notice '% %', sqlstate, sqlerrm;
-END;
-$$
-LANGUAGE plpgsql;
--- should fail: SQLSTATE and SQLERRM are only in defined EXCEPTION
--- blocks
-SELECT
-    excpt_test1 ();
-CREATE FUNCTION excpt_test2 ()
-    RETURNS void AS $$
-BEGIN
-    BEGIN
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        execute_into_test ('eifoo');
+    DROP TABLE eifoo CASCADE;
+    DROP TYPE eitype CASCADE;
+    --
+    -- SQLSTATE and SQLERRM test
+    --
+    CREATE FUNCTION excpt_test1 ( )
+        RETURNS void AS $$
         BEGIN
             raise notice '% %', sqlstate, sqlerrm;
-        END;
-    END;
 END;
-$$
-LANGUAGE plpgsql;
--- should fail
-SELECT
-    excpt_test2 ();
-CREATE FUNCTION excpt_test3 ()
-    RETURNS void AS $$
-BEGIN
-    BEGIN
-        raise exception 'user exception';
-    exception
-        WHEN OTHERS THEN
-            raise notice 'caught exception % %', sqlstate, sqlerrm;
-    BEGIN
-        raise notice '% %', sqlstate, sqlerrm;
-    PERFORM
-        10 / 0;
-    exception
-        WHEN substring_error THEN
-            -- this exception handler shouldn't be invoked
-            raise notice 'unexpected exception: % %', sqlstate, sqlerrm;
-    WHEN division_by_zero THEN
-        raise notice 'caught exception % %', sqlstate, sqlerrm;
-    END;
-    raise notice '% %', sqlstate, sqlerrm;
-    END;
+        $$
+        LANGUAGE plpgsql;
+        -- should fail: SQLSTATE and SQLERRM are only in defined EXCEPTION
+        -- blocks
+        SELECT
+            excpt_test1 ();
+        CREATE FUNCTION excpt_test2 ( )
+            RETURNS void AS $$
+            BEGIN
+                BEGIN
+                    BEGIN
+                        raise notice '% %', sqlstate, sqlerrm;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    excpt_test3 ();
-CREATE FUNCTION excpt_test4 ()
-    RETURNS text AS $$
-BEGIN
-    BEGIN
-        PERFORM
-            1 / 0;
-    exception
-        WHEN OTHERS THEN
-            RETURN sqlerrm;
-    END;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    excpt_test4 ();
-DROP FUNCTION excpt_test1 ();
-DROP FUNCTION excpt_test2 ();
-DROP FUNCTION excpt_test3 ();
-DROP FUNCTION excpt_test4 ();
--- parameters of raise stmt can be expressions
-CREATE FUNCTION raise_exprs ()
-    RETURNS void AS $$
+END;
+                    $$
+                    LANGUAGE plpgsql;
+                    -- should fail
+                    SELECT
+                        excpt_test2 ();
+                    CREATE FUNCTION excpt_test3 ( )
+                        RETURNS void AS $$
+                        BEGIN
+                            BEGIN
+                                raise exception 'user exception';
+                            exception
+                                WHEN OTHERS THEN
+                                    raise notice 'caught exception % %', sqlstate, sqlerrm;
+                            BEGIN
+                                raise notice '% %', sqlstate, sqlerrm;
+                            PERFORM
+                                10 / 0;
+                            exception
+                                WHEN substring_error THEN
+                                    -- this exception handler shouldn't be invoked
+                                    raise notice 'unexpected exception: % %', sqlstate, sqlerrm;
+                            WHEN division_by_zero THEN
+                                raise notice 'caught exception % %', sqlstate, sqlerrm;
+                            END;
+                            raise notice '% %', sqlstate, sqlerrm;
+                            END;
+                        END;
+                    $$
+                    LANGUAGE plpgsql;
+                    SELECT
+                        excpt_test3 ();
+                    CREATE FUNCTION excpt_test4 ( )
+                        RETURNS text AS $$
+                        BEGIN
+                            BEGIN
+                                PERFORM
+                                    1 / 0;
+                            exception
+                                WHEN OTHERS THEN
+                                    RETURN sqlerrm;
+                            END;
+                        END;
+                    $$
+                    LANGUAGE plpgsql;
+                    SELECT
+                        excpt_test4 ();
+                    DROP FUNCTION excpt_test1 ();
+                    DROP FUNCTION excpt_test2 ();
+                    DROP FUNCTION excpt_test3 ();
+                    DROP FUNCTION excpt_test4 ();
+                    -- parameters of raise stmt can be expressions
+                    CREATE FUNCTION raise_exprs ( )
+                        RETURNS void AS $$
 DECLARE
     a integer[] = '{10,20,30}';
     c varchar = 'xyz';
@@ -2735,17 +3071,17 @@ BEGIN
         30),
     NULL;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_exprs ();
-DROP FUNCTION raise_exprs ();
--- regression test: verify that multiple uses of same plpgsql datum within
--- a SQL command all get mapped to the same $n parameter.  The return value
--- of the SELECT is not important, we only care that it doesn't fail with
--- a complaint about an ungrouped column reference.
-CREATE FUNCTION multi_datum_use (p1 int)
-    RETURNS bool AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        raise_exprs ();
+    DROP FUNCTION raise_exprs ();
+    -- regression test: verify that multiple uses of same plpgsql datum within
+    -- a SQL command all get mapped to the same $n parameter.  The return value
+    -- of the SELECT is not important, we only care that it doesn't fail with
+    -- a complaint about an ungrouped column reference.
+    CREATE FUNCTION multi_datum_use (p1 int )
+        RETURNS bool AS $$
 DECLARE
     x int;
     y int;
@@ -2761,8 +3097,10 @@ BEGIN
     RETURN x = y;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     multi_datum_use (42);
+
 --
 -- Test STRICT limiter in both planned and EXECUTE invocations.
 -- Note that a data-modifying query is quasi strict (disallow multi rows)
@@ -2772,8 +3110,10 @@ CREATE temp TABLE foo (
     f1 int,
     f2 int
 );
+
 INSERT INTO foo
     VALUES (1, 2), (3, 4);
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2787,8 +3127,10 @@ RETURNING
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2802,8 +3144,10 @@ RETURNING
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2814,8 +3158,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2826,12 +3172,15 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 SELECT
     *
 FROM
     foo;
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2847,8 +3196,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2864,8 +3215,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2881,8 +3234,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2893,8 +3248,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2905,8 +3262,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2917,11 +3276,15 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 DROP FUNCTION stricttest ();
+
 -- test printing parameters after failure due to STRICT
 SET plpgsql.print_strict_params TO TRUE;
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2940,8 +3303,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2960,8 +3325,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2977,8 +3344,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -2991,8 +3360,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -3004,8 +3375,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
 DECLARE
@@ -3016,8 +3389,10 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
     -- override the global
@@ -3038,9 +3413,12 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 RESET plpgsql.print_strict_params;
+
 CREATE OR REPLACE FUNCTION stricttest ()
     RETURNS void AS $$
     -- override the global
@@ -3061,15 +3439,22 @@ BEGIN
     raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     stricttest ();
+
 -- test warnings and errors
 SET plpgsql.extra_warnings TO 'all';
+
 SET plpgsql.extra_warnings TO 'none';
+
 SET plpgsql.extra_errors TO 'all';
+
 SET plpgsql.extra_errors TO 'none';
+
 -- test warnings when shadowing a variable
 SET plpgsql.extra_warnings TO 'shadowed_variables';
+
 -- simple shadowing of input and output parameters
 CREATE OR REPLACE FUNCTION shadowtest (in1 int)
     RETURNS TABLE (
@@ -3081,11 +3466,15 @@ DECLARE
 BEGIN
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     shadowtest (1);
+
 SET plpgsql.extra_warnings TO 'shadowed_variables';
+
 SELECT
     shadowtest (1);
+
 CREATE OR REPLACE FUNCTION shadowtest (in1 int)
     RETURNS TABLE (
         out1 int
@@ -3096,9 +3485,12 @@ DECLARE
 BEGIN
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     shadowtest (1);
+
 DROP FUNCTION shadowtest (int);
+
 -- shadowing in a second DECLARE block
 CREATE OR REPLACE FUNCTION shadowtest ()
     RETURNS void AS $$
@@ -3107,25 +3499,25 @@ DECLARE
 BEGIN
     DECLARE f1 int;
     BEGIN
-    END;
+END;
 END $$
 LANGUAGE plpgsql;
-DROP FUNCTION shadowtest ();
--- several levels of shadowing
-CREATE OR REPLACE FUNCTION shadowtest (in1 int)
-    RETURNS void AS $$
+    DROP FUNCTION shadowtest ();
+    -- several levels of shadowing
+    CREATE OR REPLACE FUNCTION shadowtest (in1 int )
+        RETURNS void AS $$
 DECLARE
     in1 int;
 BEGIN
     DECLARE in1 int;
     BEGIN
-    END;
+END;
 END $$
 LANGUAGE plpgsql;
-DROP FUNCTION shadowtest (int);
--- shadowing in cursor definitions
-CREATE OR REPLACE FUNCTION shadowtest ()
-    RETURNS void AS $$
+    DROP FUNCTION shadowtest (int);
+    -- shadowing in cursor definitions
+    CREATE OR REPLACE FUNCTION shadowtest ( )
+        RETURNS void AS $$
 DECLARE
     f1 int;
     c1 CURSOR (f1 int)
@@ -3135,9 +3527,12 @@ DECLARE
 BEGIN
 END $$
 LANGUAGE plpgsql;
+
 DROP FUNCTION shadowtest ();
+
 -- test errors when shadowing a variable
 SET plpgsql.extra_errors TO 'shadowed_variables';
+
 CREATE OR REPLACE FUNCTION shadowtest (f1 int)
     RETURNS boolean AS $$
 DECLARE
@@ -3146,10 +3541,14 @@ BEGIN
     RETURN 1;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     shadowtest (1);
+
 RESET plpgsql.extra_errors;
+
 RESET plpgsql.extra_warnings;
+
 CREATE OR REPLACE FUNCTION shadowtest (f1 int)
     RETURNS boolean AS $$
 DECLARE
@@ -3158,117 +3557,121 @@ BEGIN
     RETURN 1;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     shadowtest (1);
+
 -- runtime extra checks
 SET plpgsql.extra_warnings TO 'too_many_rows';
+
 DO $$ DECLARE x int;
+
 BEGIN
     SELECT
         v
     FROM
         generate_series(1, 2) g (v) INTO x;
 END;
-$$;
-SET plpgsql.extra_errors TO 'too_many_rows';
-DO $$ DECLARE x int;
-BEGIN
-    SELECT
-        v
-    FROM
-        generate_series(1, 2) g (v) INTO x;
+    $$;
+    SET plpgsql.extra_errors TO 'too_many_rows';
+    DO $$ DECLARE x int;
+    BEGIN
+        SELECT
+            v
+        FROM
+            generate_series(1, 2) g (v) INTO x;
 END;
-$$;
-RESET plpgsql.extra_errors;
-RESET plpgsql.extra_warnings;
-SET plpgsql.extra_warnings TO 'strict_multi_assignment';
-DO $$ DECLARE x int;
-y int;
-BEGIN
-    SELECT
-        1 INTO x,
-        y;
-    SELECT
-        1,
-        2 INTO x,
-        y;
-    SELECT
-        1,
-        2,
-        3 INTO x,
-        y;
-END $$;
-SET plpgsql.extra_errors TO 'strict_multi_assignment';
-DO $$ DECLARE x int;
-y int;
-BEGIN
-    SELECT
-        1 INTO x,
-        y;
-    SELECT
-        1,
-        2 INTO x,
-        y;
-    SELECT
-        1,
-        2,
-        3 INTO x,
-        y;
-END $$;
-CREATE TABLE test_01 (
-    a int,
-    b int,
-    c int
-);
-ALTER TABLE test_01
-    DROP COLUMN a;
--- the check is active only when source table is not empty
-INSERT INTO test_01
-    VALUES (10, 20);
-DO $$ DECLARE x int;
-y int;
-BEGIN
-    SELECT
-        *
-    FROM
-        test_01 INTO x,
-        y;
-    -- should be ok
-    raise notice 'ok';
-    SELECT
-        *
-    FROM
-        test_01 INTO x;
-    -- should to fail
+        $$;
+        RESET plpgsql.extra_errors;
+        RESET plpgsql.extra_warnings;
+        SET plpgsql.extra_warnings TO 'strict_multi_assignment';
+        DO $$ DECLARE x int;
+        y int;
+        BEGIN
+            SELECT
+                1 INTO x,
+                y;
+        SELECT
+            1,
+            2 INTO x,
+            y;
+        SELECT
+            1,
+            2,
+            3 INTO x,
+            y;
+        END $$;
+        SET plpgsql.extra_errors TO 'strict_multi_assignment';
+        DO $$ DECLARE x int;
+        y int;
+        BEGIN
+            SELECT
+                1 INTO x,
+                y;
+        SELECT
+            1,
+            2 INTO x,
+            y;
+        SELECT
+            1,
+            2,
+            3 INTO x,
+            y;
+        END $$;
+        CREATE TABLE test_01 (
+            a int,
+            b int,
+            c int
+        );
+        ALTER TABLE test_01
+            DROP COLUMN a;
+        -- the check is active only when source table is not empty
+        INSERT INTO test_01
+        VALUES (10, 20);
+        DO $$ DECLARE x int;
+        y int;
+        BEGIN
+            SELECT
+                *
+            FROM
+                test_01 INTO x,
+                y;
+        -- should be ok
+        raise notice 'ok';
+        SELECT
+            *
+        FROM
+            test_01 INTO x;
+        -- should to fail
 END;
-$$;
-DO $$ DECLARE t test_01;
-BEGIN
-    SELECT
-        1,
-        2 INTO t;
-    -- should be ok
-    raise notice 'ok';
-    SELECT
-        1,
-        2,
-        3 INTO t;
-    -- should fail;
+            $$;
+            DO $$ DECLARE t test_01;
+            BEGIN
+                SELECT
+                    1,
+                    2 INTO t;
+            -- should be ok
+            raise notice 'ok';
+            SELECT
+                1,
+                2,
+                3 INTO t;
+            -- should fail;
 END;
-$$;
-DO $$ DECLARE t test_01;
-BEGIN
-    SELECT
-        1 INTO t;
-    -- should fail;
+                $$;
+                DO $$ DECLARE t test_01;
+                BEGIN
+                    SELECT
+                        1 INTO t;
+                -- should fail;
 END;
-$$;
-DROP TABLE test_01;
-RESET plpgsql.extra_errors;
-RESET plpgsql.extra_warnings;
--- test scrollable cursor support
-CREATE FUNCTION sc_test ()
-    RETURNS SETOF integer AS $$
+                    $$;
+                    DROP TABLE test_01;
+                    RESET plpgsql.extra_errors;
+                    RESET plpgsql.extra_warnings;
+                    -- test scrollable cursor support
+                    CREATE FUNCTION sc_test ( )
+                        RETURNS SETOF integer AS $$
 DECLARE
     c SCROLL CURSOR FOR
         SELECT
@@ -3285,14 +3688,14 @@ BEGIN
     END LOOP;
     CLOSE c;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    sc_test ();
-CREATE OR REPLACE FUNCTION sc_test ()
-    RETURNS SETOF integer AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        sc_test ();
+    CREATE OR REPLACE FUNCTION sc_test ( )
+        RETURNS SETOF integer AS $$
 DECLARE
     c NO SCROLL CURSOR FOR
         SELECT
@@ -3309,15 +3712,15 @@ BEGIN
     END LOOP;
     CLOSE c;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    sc_test ();
--- fails because of NO SCROLL specification
-CREATE OR REPLACE FUNCTION sc_test ()
-    RETURNS SETOF integer AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        sc_test ();
+    -- fails because of NO SCROLL specification
+    CREATE OR REPLACE FUNCTION sc_test ( )
+        RETURNS SETOF integer AS $$
 DECLARE
     c refcursor;
     x integer;
@@ -3334,14 +3737,14 @@ BEGIN
     END LOOP;
     CLOSE c;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    sc_test ();
-CREATE OR REPLACE FUNCTION sc_test ()
-    RETURNS SETOF integer AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        sc_test ();
+    CREATE OR REPLACE FUNCTION sc_test ( )
+        RETURNS SETOF integer AS $$
 DECLARE
     c refcursor;
     x integer;
@@ -3354,14 +3757,14 @@ BEGIN
     END LOOP;
     CLOSE c;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    sc_test ();
-CREATE OR REPLACE FUNCTION sc_test ()
-    RETURNS SETOF integer AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        sc_test ();
+    CREATE OR REPLACE FUNCTION sc_test ( )
+        RETURNS SETOF integer AS $$
 DECLARE
     c refcursor;
     x integer;
@@ -3377,14 +3780,14 @@ BEGIN
     END LOOP;
     CLOSE c;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    sc_test ();
-CREATE OR REPLACE FUNCTION sc_test ()
-    RETURNS SETOF integer AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        sc_test ();
+    CREATE OR REPLACE FUNCTION sc_test ( )
+        RETURNS SETOF integer AS $$
 DECLARE
     c CURSOR FOR
         SELECT
@@ -3406,14 +3809,14 @@ BEGIN
     END LOOP;
     CLOSE c;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    sc_test ();
-CREATE OR REPLACE FUNCTION sc_test ()
-    RETURNS SETOF integer AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        sc_test ();
+    CREATE OR REPLACE FUNCTION sc_test ( )
+        RETURNS SETOF integer AS $$
 DECLARE
     c CURSOR FOR
         SELECT
@@ -3430,16 +3833,16 @@ BEGIN
     END IF;
     CLOSE c;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    sc_test ();
-DROP FUNCTION sc_test ();
--- test qualified variable names
-CREATE FUNCTION pl_qual_names (param1 int)
-    RETURNS void AS $$ << outerblock >>
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        sc_test ();
+    DROP FUNCTION sc_test ();
+    -- test qualified variable names
+    CREATE FUNCTION pl_qual_names (param1 int )
+        RETURNS void AS $$ << outerblock >>
 DECLARE
     param1 int := 1;
 BEGIN
@@ -3449,61 +3852,61 @@ BEGIN
     raise notice 'pl_qual_names.param1 = %', pl_qual_names.param1;
     raise notice 'outerblock.param1 = %', outerblock.param1;
     raise notice 'innerblock.param1 = %', innerblock.param1;
-    END;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    pl_qual_names (42);
-DROP FUNCTION pl_qual_names (int);
--- tests for RETURN QUERY
-CREATE FUNCTION ret_query1 (out int, out int)
-    RETURNS SETOF record AS $$
-BEGIN
-    $1 := - 1;
-    $2 := - 2;
-    RETURN NEXT;
-    RETURN query
-    SELECT
-        x + 1,
-        x * 10
-    FROM
-        generate_series(0, 10) s (x);
-    RETURN NEXT;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    ret_query1 ();
-CREATE TYPE record_type AS (
-    x text,
-    y int,
-    z boolean
+        $$
+        LANGUAGE plpgsql;
+        SELECT
+            pl_qual_names (42);
+        DROP FUNCTION pl_qual_names (int);
+        -- tests for RETURN QUERY
+        CREATE FUNCTION ret_query1 (out int, out int )
+            RETURNS SETOF record AS $$
+            BEGIN
+                $1 := - 1;
+            $2 := - 2;
+            RETURN NEXT;
+            RETURN query
+            SELECT
+                x + 1,
+                x * 10
+            FROM
+                generate_series(0, 10) s (x);
+            RETURN NEXT;
+END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                *
+            FROM
+                ret_query1 ();
+            CREATE TYPE record_type AS (
+                x text,
+                y int,
+                z boolean
 );
-CREATE OR REPLACE FUNCTION ret_query2 (lim int)
-    RETURNS SETOF record_type AS $$
-BEGIN
-    RETURN query
-    SELECT
-        md5(s.x::text),
-        s.x,
-        s.x > 0
-    FROM
-        generate_series(- 8, lim) s (x)
-WHERE
-    s.x % 2 = 0;
+            CREATE OR REPLACE FUNCTION ret_query2 (lim int )
+                RETURNS SETOF record_type AS $$
+                BEGIN
+                    RETURN query
+                    SELECT
+                        md5(s.x::text),
+                        s.x,
+                        s.x > 0
+                    FROM
+                        generate_series(- 8, lim) s (x)
+            WHERE
+                s.x % 2 = 0;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    ret_query2 (8);
--- test EXECUTE USING
-CREATE FUNCTION exc_using (int, text)
-    RETURNS int AS $$
+                $$
+                LANGUAGE plpgsql;
+                SELECT
+                    *
+                FROM
+                    ret_query2 (8);
+                -- test EXECUTE USING
+                CREATE FUNCTION exc_using (int, text )
+                    RETURNS int AS $$
 DECLARE
     i int;
 BEGIN
@@ -3517,10 +3920,13 @@ BEGIN
     RETURN i;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     exc_using (5,
         'foobar');
+
 DROP FUNCTION exc_using (int, text);
+
 CREATE OR REPLACE FUNCTION exc_using (int)
     RETURNS void AS $$
 DECLARE
@@ -3538,14 +3944,14 @@ BEGIN
     CLOSE c;
     RETURN;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    exc_using (5);
-DROP FUNCTION exc_using (int);
--- test FOR-over-cursor
-CREATE OR REPLACE FUNCTION forc01 ()
-    RETURNS void AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        exc_using (5);
+    DROP FUNCTION exc_using (int);
+    -- test FOR-over-cursor
+    CREATE OR REPLACE FUNCTION forc01 ( )
+        RETURNS void AS $$
 DECLARE
     c CURSOR (r1 integer,
         r2 integer)
@@ -3591,19 +3997,19 @@ BEGIN
     raise notice 'after loop, c2 = %', c2;
     RETURN;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    forc01 ();
--- try updating the cursor's current row
-CREATE temp TABLE forc_test AS
-SELECT
-    n AS i,
-    n AS j
-FROM
-    generate_series(1, 10) n;
-CREATE OR REPLACE FUNCTION forc01 ()
-    RETURNS void AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        forc01 ();
+    -- try updating the cursor's current row
+    CREATE temp TABLE forc_test AS
+    SELECT
+        n AS i,
+        n AS j
+    FROM
+        generate_series(1, 10) n;
+    CREATE OR REPLACE FUNCTION forc01 ( )
+        RETURNS void AS $$
 DECLARE
     c CURSOR FOR
         SELECT
@@ -3622,17 +4028,17 @@ BEGIN
             CURRENT OF c;
     END LOOP;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    forc01 ();
-SELECT
-    *
-FROM
-    forc_test;
--- same, with a cursor whose portal name doesn't match variable name
-CREATE OR REPLACE FUNCTION forc01 ()
-    RETURNS void AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        forc01 ();
+    SELECT
+        *
+    FROM
+        forc_test;
+    -- same, with a cursor whose portal name doesn't match variable name
+    CREATE OR REPLACE FUNCTION forc01 ( )
+        RETURNS void AS $$
 DECLARE
     c refcursor := 'fooled_ya';
     r record;
@@ -3656,18 +4062,18 @@ BEGIN
             CURRENT OF c;
     END LOOP;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    forc01 ();
-SELECT
-    *
-FROM
-    forc_test;
-DROP FUNCTION forc01 ();
--- fail because cursor has no query bound to it
-CREATE OR REPLACE FUNCTION forc_bad ()
-    RETURNS void AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        forc01 ();
+    SELECT
+        *
+    FROM
+        forc_test;
+    DROP FUNCTION forc01 ();
+    -- fail because cursor has no query bound to it
+    CREATE OR REPLACE FUNCTION forc_bad ( )
+        RETURNS void AS $$
 DECLARE
     c refcursor;
 BEGIN
@@ -3675,79 +4081,79 @@ BEGIN
         raise notice '%', r.i;
     END LOOP;
 END;
-$$
-LANGUAGE plpgsql;
--- test RETURN QUERY EXECUTE
-CREATE OR REPLACE FUNCTION return_dquery ()
-    RETURNS SETOF int AS $$
-BEGIN
-    RETURN query EXECUTE 'select * from (values(10),(20)) f';
-    RETURN query EXECUTE 'select * from (values($1),($2)) f'
-    USING 40,
-    50;
+    $$
+    LANGUAGE plpgsql;
+    -- test RETURN QUERY EXECUTE
+    CREATE OR REPLACE FUNCTION return_dquery ( )
+        RETURNS SETOF int AS $$
+        BEGIN
+            RETURN query EXECUTE 'select * from (values(10),(20)) f';
+        RETURN query EXECUTE 'select * from (values($1),($2)) f'
+        USING 40,
+        50;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    return_dquery ();
-DROP FUNCTION return_dquery ();
--- test RETURN QUERY with dropped columns
-CREATE TABLE tabwithcols (
-    a int,
-    b int,
-    c int,
-    d int
-);
-INSERT INTO tabwithcols
-    VALUES (10, 20, 30, 40), (50, 60, 70, 80);
-CREATE OR REPLACE FUNCTION returnqueryf ()
-    RETURNS SETOF tabwithcols AS $$
-BEGIN
-    RETURN query
-    SELECT
-        *
-    FROM
-        tabwithcols;
-    RETURN query EXECUTE 'select * from tabwithcols';
+        $$
+        LANGUAGE plpgsql;
+        SELECT
+            *
+        FROM
+            return_dquery ();
+        DROP FUNCTION return_dquery ();
+        -- test RETURN QUERY with dropped columns
+        CREATE TABLE tabwithcols (
+            a int,
+            b int,
+            c int,
+            d int
+        );
+        INSERT INTO tabwithcols
+        VALUES (10, 20, 30, 40), (50, 60, 70, 80);
+        CREATE OR REPLACE FUNCTION returnqueryf ( )
+            RETURNS SETOF tabwithcols AS $$
+            BEGIN
+                RETURN query
+                SELECT
+                    *
+                FROM
+                    tabwithcols;
+            RETURN query EXECUTE 'select * from tabwithcols';
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    returnqueryf ();
-ALTER TABLE tabwithcols
-    DROP COLUMN b;
-SELECT
-    *
-FROM
-    returnqueryf ();
-ALTER TABLE tabwithcols
-    DROP COLUMN d;
-SELECT
-    *
-FROM
-    returnqueryf ();
-ALTER TABLE tabwithcols
-    ADD COLUMN d int;
-SELECT
-    *
-FROM
-    returnqueryf ();
-DROP FUNCTION returnqueryf ();
-DROP TABLE tabwithcols;
---
--- Tests for composite-type results
---
-CREATE TYPE compostype AS (
-    x int,
-    y varchar
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                *
+            FROM
+                returnqueryf ();
+            ALTER TABLE tabwithcols
+                DROP COLUMN b;
+            SELECT
+                *
+            FROM
+                returnqueryf ();
+            ALTER TABLE tabwithcols
+                DROP COLUMN d;
+            SELECT
+                *
+            FROM
+                returnqueryf ();
+            ALTER TABLE tabwithcols
+                ADD COLUMN d int;
+            SELECT
+                *
+            FROM
+                returnqueryf ();
+            DROP FUNCTION returnqueryf ();
+            DROP TABLE tabwithcols;
+            --
+            -- Tests for composite-type results
+            --
+            CREATE TYPE compostype AS (
+                x int,
+                y varchar
 );
--- test: use of variable of composite type in return statement
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS compostype AS $$
+            -- test: use of variable of composite type in return statement
+            CREATE OR REPLACE FUNCTION compos ( )
+                RETURNS compostype AS $$
 DECLARE
     v compostype;
 BEGIN
@@ -3755,13 +4161,13 @@ BEGIN
         'hello');
     RETURN v;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
--- test: use of variable of record type in return statement
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS compostype AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        compos ();
+    -- test: use of variable of record type in return statement
+    CREATE OR REPLACE FUNCTION compos ( )
+        RETURNS compostype AS $$
 DECLARE
     v record;
 BEGIN
@@ -3769,47 +4175,47 @@ BEGIN
         'hello'::varchar);
     RETURN v;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
--- test: use of row expr in return statement
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS compostype AS $$
-BEGIN
-    RETURN (1,
-        'hello'::varchar);
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        compos ();
+    -- test: use of row expr in return statement
+    CREATE OR REPLACE FUNCTION compos ( )
+        RETURNS compostype AS $$
+        BEGIN
+            RETURN (1,
+                'hello'::varchar);
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
--- this does not work currently (no implicit casting)
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS compostype AS $$
-BEGIN
-    RETURN (1,
-        'hello');
+        $$
+        LANGUAGE plpgsql;
+        SELECT
+            compos ();
+        -- this does not work currently (no implicit casting)
+        CREATE OR REPLACE FUNCTION compos ( )
+            RETURNS compostype AS $$
+            BEGIN
+                RETURN (1,
+                    'hello');
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
--- ... but this does
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS compostype AS $$
-BEGIN
-    RETURN (1,
-        'hello')::compostype;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                compos ();
+            -- ... but this does
+            CREATE OR REPLACE FUNCTION compos ( )
+                RETURNS compostype AS $$
+                BEGIN
+                    RETURN (1,
+                        'hello')::compostype;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
-DROP FUNCTION compos ();
--- test: return a row expr as record.
-CREATE OR REPLACE FUNCTION composrec ()
-    RETURNS record AS $$
+                $$
+                LANGUAGE plpgsql;
+                SELECT
+                    compos ();
+                DROP FUNCTION compos ();
+                -- test: return a row expr as record.
+                CREATE OR REPLACE FUNCTION composrec ( )
+                    RETURNS record AS $$
 DECLARE
     v record;
 BEGIN
@@ -3817,69 +4223,69 @@ BEGIN
         'hello');
     RETURN v;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    composrec ();
--- test: return row expr in return statement.
-CREATE OR REPLACE FUNCTION composrec ()
-    RETURNS record AS $$
-BEGIN
-    RETURN (1,
-        'hello');
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        composrec ();
+    -- test: return row expr in return statement.
+    CREATE OR REPLACE FUNCTION composrec ( )
+        RETURNS record AS $$
+        BEGIN
+            RETURN (1,
+                'hello');
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    composrec ();
-DROP FUNCTION composrec ();
--- test: row expr in RETURN NEXT statement.
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS SETOF compostype AS $$
-BEGIN
-    FOR i IN 1..3 LOOP
-        RETURN NEXT (1,
-            'hello'::varchar);
-    END LOOP;
-    RETURN NEXT null::compostype;
-    RETURN NEXT (2,
-        'goodbye')::compostype;
+        $$
+        LANGUAGE plpgsql;
+        SELECT
+            composrec ();
+        DROP FUNCTION composrec ();
+        -- test: row expr in RETURN NEXT statement.
+        CREATE OR REPLACE FUNCTION compos ( )
+            RETURNS SETOF compostype AS $$
+            BEGIN
+                FOR i IN 1..3 LOOP
+                    RETURN NEXT (1,
+                        'hello'::varchar);
+                END LOOP;
+            RETURN NEXT null::compostype;
+            RETURN NEXT (2,
+                'goodbye')::compostype;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    compos ();
-DROP FUNCTION compos ();
--- test: use invalid expr in return statement.
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS compostype AS $$
-BEGIN
-    RETURN 1 + 1;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                *
+            FROM
+                compos ();
+            DROP FUNCTION compos ();
+            -- test: use invalid expr in return statement.
+            CREATE OR REPLACE FUNCTION compos ( )
+                RETURNS compostype AS $$
+                BEGIN
+                    RETURN 1 + 1;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
--- RETURN variable is a different code path ...
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS compostype AS $$
+                $$
+                LANGUAGE plpgsql;
+                SELECT
+                    compos ();
+                -- RETURN variable is a different code path ...
+                CREATE OR REPLACE FUNCTION compos ( )
+                    RETURNS compostype AS $$
 DECLARE
     x int := 42;
 BEGIN
     RETURN x;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    compos ();
-DROP FUNCTION compos ();
--- test: invalid use of composite variable in scalar-returning function
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS int AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        compos ();
+    DROP FUNCTION compos ();
+    -- test: invalid use of composite variable in scalar-returning function
+    CREATE OR REPLACE FUNCTION compos ( )
+        RETURNS int AS $$
 DECLARE
     v compostype;
 BEGIN
@@ -3887,187 +4293,187 @@ BEGIN
         'hello');
     RETURN v;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
--- test: invalid use of composite expression in scalar-returning function
-CREATE OR REPLACE FUNCTION compos ()
-    RETURNS int AS $$
-BEGIN
-    RETURN (1,
-        'hello')::compostype;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        compos ();
+    -- test: invalid use of composite expression in scalar-returning function
+    CREATE OR REPLACE FUNCTION compos ( )
+        RETURNS int AS $$
+        BEGIN
+            RETURN (1,
+                'hello')::compostype;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    compos ();
-DROP FUNCTION compos ();
-DROP TYPE compostype;
---
--- Tests for 8.4's new RAISE features
---
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise notice '% % %', 1, 2, 3
-    USING errcode = '55001', detail = 'some detail info', hint = 'some hint';
-    raise '% % %', 1, 2, 3
-    USING errcode = 'division_by_zero', detail = 'some detail info';
+        $$
+        LANGUAGE plpgsql;
+        SELECT
+            compos ();
+        DROP FUNCTION compos ();
+        DROP TYPE compostype;
+        --
+        -- Tests for 8.4's new RAISE features
+        --
+        CREATE OR REPLACE FUNCTION raise_test ( )
+            RETURNS void AS $$
+            BEGIN
+                raise notice '% % %', 1, 2, 3
+                USING errcode = '55001', detail = 'some detail info', hint = 'some hint';
+            raise '% % %', 1, 2, 3
+            USING errcode = 'division_by_zero', detail = 'some detail info';
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
--- Since we can't actually see the thrown SQLSTATE in default psql output,
--- test it like this; this also tests re-RAISE
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise 'check me'
-    USING errcode = 'division_by_zero', detail = 'some detail info';
-exception
-    WHEN OTHERS THEN
-        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-raise;
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise 'check me'
-    USING errcode = '1234F', detail = 'some detail info';
-exception
-    WHEN OTHERS THEN
-        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-raise;
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
--- SQLSTATE specification in WHEN
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise 'check me'
-    USING errcode = '1234F', detail = 'some detail info';
-exception
-    WHEN sqlstate '1234F' THEN
-        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-raise;
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise division_by_zero
-    USING detail = 'some detail info';
-exception
-    WHEN OTHERS THEN
-        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-raise;
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise division_by_zero;
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise sqlstate '1234F';
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise division_by_zero
-    USING message = 'custom' || ' message';
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise
-    USING message = 'custom' || ' message', errcode = '22012';
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
--- conflict on message
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise notice 'some message'
-    USING message = 'custom' || ' message', errcode = '22012';
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
--- conflict on errcode
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise division_by_zero
-    USING message = 'custom' || ' message', errcode = '22012';
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
--- nothing to re-RAISE
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise;
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
--- test access to exception data
-CREATE FUNCTION zero_divide ()
-    RETURNS int AS $$
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            -- Since we can't actually see the thrown SQLSTATE in default psql output,
+            -- test it like this; this also tests re-RAISE
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise 'check me'
+                    USING errcode = 'division_by_zero', detail = 'some detail info';
+                exception
+                    WHEN OTHERS THEN
+                        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
+                raise;
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise 'check me'
+                    USING errcode = '1234F', detail = 'some detail info';
+                exception
+                    WHEN OTHERS THEN
+                        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
+                raise;
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            -- SQLSTATE specification in WHEN
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise 'check me'
+                    USING errcode = '1234F', detail = 'some detail info';
+                exception
+                    WHEN sqlstate '1234F' THEN
+                        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
+                raise;
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise division_by_zero
+                    USING detail = 'some detail info';
+                exception
+                    WHEN OTHERS THEN
+                        raise notice 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
+                raise;
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise division_by_zero;
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise sqlstate '1234F';
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise division_by_zero
+                    USING message = 'custom' || ' message';
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise
+                    USING message = 'custom' || ' message', errcode = '22012';
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            -- conflict on message
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise notice 'some message'
+                    USING message = 'custom' || ' message', errcode = '22012';
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            -- conflict on errcode
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise division_by_zero
+                    USING message = 'custom' || ' message', errcode = '22012';
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            -- nothing to re-RAISE
+            CREATE OR REPLACE FUNCTION raise_test ( )
+                RETURNS void AS $$
+                BEGIN
+                    raise;
+                END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                raise_test ();
+            -- test access to exception data
+            CREATE FUNCTION zero_divide ( )
+                RETURNS int AS $$
 DECLARE
     v int := 0;
 BEGIN
     RETURN 10 / v;
 END;
-$$
-LANGUAGE plpgsql;
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    raise exception 'custom exception'
-    USING detail = 'some detail of custom exception', hint = 'some hint related to custom exception';
-END;
-$$
-LANGUAGE plpgsql;
-CREATE FUNCTION stacked_diagnostics_test ()
-    RETURNS void AS $$
+    $$
+    LANGUAGE plpgsql;
+    CREATE OR REPLACE FUNCTION raise_test ( )
+        RETURNS void AS $$
+        BEGIN
+            raise exception 'custom exception'
+            USING detail = 'some detail of custom exception', hint = 'some hint related to custom exception';
+        END;
+    $$
+    LANGUAGE plpgsql;
+    CREATE FUNCTION stacked_diagnostics_test ( )
+        RETURNS void AS $$
 DECLARE
     _sqlstate text;
     _message text;
@@ -4082,10 +4488,13 @@ exception
         _context = pg_exception_context;
 raise notice 'sqlstate: %, message: %, context: [%]', _sqlstate, _message, replace(_context, E'\n', ' <- ');
 END;
+
 $$
 LANGUAGE plpgsql;
+
 SELECT
     stacked_diagnostics_test ();
+
 CREATE OR REPLACE FUNCTION stacked_diagnostics_test ()
     RETURNS void AS $$
 DECLARE
@@ -4102,10 +4511,13 @@ exception
         _hint = pg_exception_hint;
 raise notice 'message: %, detail: %, hint: %', _message, _detail, _hint;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 SELECT
     stacked_diagnostics_test ();
+
 -- fail, cannot use stacked diagnostics statement outside handler
 CREATE OR REPLACE FUNCTION stacked_diagnostics_test ()
     RETURNS void AS $$
@@ -4119,35 +4531,35 @@ BEGIN
     _hint = pg_exception_hint;
     raise notice 'message: %, detail: %, hint: %', _message, _detail, _hint;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    stacked_diagnostics_test ();
-DROP FUNCTION zero_divide ();
-DROP FUNCTION stacked_diagnostics_test ();
--- check cases where implicit SQLSTATE variable could be confused with
--- SQLSTATE as a keyword, cf bug #5524
-CREATE OR REPLACE FUNCTION raise_test ()
-    RETURNS void AS $$
-BEGIN
-    PERFORM
-        1 / 0;
-exception
-    WHEN sqlstate '22012' THEN
-        raise notice
-        USING message = sqlstate;
-raise sqlstate '22012'
-USING message = 'substitute message';
-END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    raise_test ();
-DROP FUNCTION raise_test ();
--- test passing column_name, constraint_name, datatype_name, table_name
--- and schema_name error fields
-CREATE OR REPLACE FUNCTION stacked_diagnostics_test ()
-    RETURNS void AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        stacked_diagnostics_test ();
+    DROP FUNCTION zero_divide ();
+    DROP FUNCTION stacked_diagnostics_test ();
+    -- check cases where implicit SQLSTATE variable could be confused with
+    -- SQLSTATE as a keyword, cf bug #5524
+    CREATE OR REPLACE FUNCTION raise_test ( )
+        RETURNS void AS $$
+        BEGIN
+            PERFORM
+                1 / 0;
+        exception
+            WHEN sqlstate '22012' THEN
+                raise notice
+                USING message = sqlstate;
+        raise sqlstate '22012'
+        USING message = 'substitute message';
+        END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        raise_test ();
+    DROP FUNCTION raise_test ();
+    -- test passing column_name, constraint_name, datatype_name, table_name
+    -- and schema_name error fields
+    CREATE OR REPLACE FUNCTION stacked_diagnostics_test ( )
+        RETURNS void AS $$
 DECLARE
     _column_name text;
     _constraint_name text;
@@ -4166,11 +4578,15 @@ exception
         _schema_name = schema_name;
 raise notice 'column %, constraint %, type %, table %, schema %', _column_name, _constraint_name, _datatype_name, _table_name, _schema_name;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 SELECT
     stacked_diagnostics_test ();
+
 DROP FUNCTION stacked_diagnostics_test ();
+
 -- test variadic functions
 CREATE OR REPLACE FUNCTION vari (VARIADIC int[])
     RETURNS void AS $$
@@ -4180,21 +4596,27 @@ BEGIN
         raise notice '%', $1[i];
     END LOOP;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 SELECT
     vari (1,
         2,
         3,
         4,
         5);
+
 SELECT
     vari (3,
         4,
         5);
+
 SELECT
     vari (VARIADIC ARRAY[5, 6, 7]);
+
 DROP FUNCTION vari (int[]);
+
 -- coercion test
 CREATE OR REPLACE FUNCTION pleast (VARIADIC numeric[])
     RETURNS numeric AS $$
@@ -4209,85 +4631,85 @@ BEGIN
     END LOOP;
     RETURN aux;
 END;
-$$
-LANGUAGE plpgsql
-IMMUTABLE STRICT;
-SELECT
-    pleast (10,
-        1,
-        2,
-        3,
-        - 16);
-SELECT
-    pleast (10.2,
-        2.2,
-        - 1.1);
-SELECT
-    pleast (10.2,
-        10,
-        - 20);
-SELECT
-    pleast (10,
-        20,
-        - 1.0);
--- in case of conflict, non-variadic version is preferred
-CREATE OR REPLACE FUNCTION pleast (numeric)
-    RETURNS numeric AS $$
-BEGIN
-    raise notice 'non-variadic function called';
-    RETURN $1;
-END;
-$$
-LANGUAGE plpgsql
-IMMUTABLE STRICT;
-SELECT
-    pleast (10);
-DROP FUNCTION pleast (numeric[]);
-DROP FUNCTION pleast (numeric);
--- test table functions
-CREATE FUNCTION tftest (int)
-    RETURNS TABLE (
-        a int,
-        b int
-) AS $$
-BEGIN
-    RETURN query
+    $$
+    LANGUAGE plpgsql
+    IMMUTABLE STRICT;
     SELECT
-        $1,
-        $1 + i
-    FROM
-        generate_series(1, 5) g (i);
+        pleast (10,
+            1,
+            2,
+            3,
+            - 16);
+    SELECT
+        pleast (10.2,
+            2.2,
+            - 1.1);
+    SELECT
+        pleast (10.2,
+            10,
+            - 20);
+    SELECT
+        pleast (10,
+            20,
+            - 1.0);
+    -- in case of conflict, non-variadic version is preferred
+    CREATE OR REPLACE FUNCTION pleast (numeric )
+        RETURNS numeric AS $$
+        BEGIN
+            raise notice 'non-variadic function called';
+        RETURN $1;
 END;
-$$
-LANGUAGE plpgsql
-IMMUTABLE STRICT;
-SELECT
-    *
-FROM
-    tftest (10);
-CREATE OR REPLACE FUNCTION tftest (a1 int)
-    RETURNS TABLE (
-        a int,
-        b int
-) AS $$
-BEGIN
-    a := a1;
-    b := a1 + 1;
-    RETURN NEXT;
-    a := a1 * 10;
-    b := a1 * 10 + 1;
-    RETURN NEXT;
+        $$
+        LANGUAGE plpgsql
+        IMMUTABLE STRICT;
+        SELECT
+            pleast (10);
+        DROP FUNCTION pleast (numeric[]);
+        DROP FUNCTION pleast (numeric);
+        -- test table functions
+        CREATE FUNCTION tftest (int )
+            RETURNS TABLE (
+                a int,
+                b int
+            ) AS $$
+            BEGIN
+                RETURN query
+                SELECT
+                    $1,
+                    $1 + i
+                FROM
+                    generate_series(1, 5) g (i);
 END;
-$$
-LANGUAGE plpgsql
-IMMUTABLE STRICT;
-SELECT
-    *
-FROM
-    tftest (10);
-DROP FUNCTION tftest (int);
-CREATE OR REPLACE FUNCTION rttest ()
-    RETURNS SETOF int AS $$
+            $$
+            LANGUAGE plpgsql
+            IMMUTABLE STRICT;
+            SELECT
+                *
+            FROM
+                tftest (10);
+            CREATE OR REPLACE FUNCTION tftest (a1 int )
+                RETURNS TABLE (
+                    a int,
+                    b int
+                ) AS $$
+                BEGIN
+                    a := a1;
+                b := a1 + 1;
+                RETURN NEXT;
+                a := a1 * 10;
+                b := a1 * 10 + 1;
+                RETURN NEXT;
+END;
+                $$
+                LANGUAGE plpgsql
+                IMMUTABLE STRICT;
+                SELECT
+                    *
+                FROM
+                    tftest (10);
+                DROP FUNCTION tftest (int);
+                CREATE OR REPLACE FUNCTION rttest ( )
+                    RETURNS SETOF int AS $$
 DECLARE
     rc int;
     rca int[];
@@ -4315,17 +4737,17 @@ WHERE
     get diagnostics rca[2] = row_count;
     raise notice '% %', found, rca[2];
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    rttest ();
-DROP FUNCTION rttest ();
--- Test for proper cleanup at subtransaction exit.  This example
--- exposed a bug in PG 8.2.
-CREATE FUNCTION leaker_1 (fail BOOL)
-    RETURNS INTEGER AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        rttest ();
+    DROP FUNCTION rttest ();
+    -- Test for proper cleanup at subtransaction exit.  This example
+    -- exposed a bug in PG 8.2.
+    CREATE FUNCTION leaker_1 (fail BOOL )
+        RETURNS INTEGER AS $$
 DECLARE
     v_var INTEGER;
 BEGIN
@@ -4337,8 +4759,10 @@ BEGIN
     END;
     RETURN 1;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 CREATE FUNCTION leaker_2 (fail BOOL, OUT error_code INTEGER, OUT new_id INTEGER)
     RETURNS RECORD AS $$
 BEGIN
@@ -4349,18 +4773,24 @@ BEGIN
     new_id := 1;
     RETURN;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 SELECT
     *
 FROM
     leaker_1 (FALSE);
+
 SELECT
     *
 FROM
     leaker_1 (TRUE);
+
 DROP FUNCTION leaker_1 (bool);
+
 DROP FUNCTION leaker_2 (bool);
+
 -- Test for appropriate cleanup of non-simple expression evaluations
 -- (bug in all versions prior to August 2010)
 CREATE FUNCTION nonsimple_expr_test ()
@@ -4383,13 +4813,13 @@ BEGIN
             lr);
     RETURN arr;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    nonsimple_expr_test ();
-DROP FUNCTION nonsimple_expr_test ();
-CREATE FUNCTION nonsimple_expr_test ()
-    RETURNS integer AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        nonsimple_expr_test ();
+    DROP FUNCTION nonsimple_expr_test ();
+    CREATE FUNCTION nonsimple_expr_test ( )
+        RETURNS integer AS $$
 DECLARE
     i integer NOT NULL := 0;
 BEGIN
@@ -4406,11 +4836,15 @@ BEGIN
     END;
     RETURN i;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 SELECT
     nonsimple_expr_test ();
+
 DROP FUNCTION nonsimple_expr_test ();
+
 --
 -- Test cases involving recursion and error recovery in simple expressions
 -- (bugs in all versions before October 2010).  The problems are most
@@ -4425,8 +4859,10 @@ BEGIN
         RETURN $1;
     END IF;
 END;
+
 $$
 LANGUAGE plpgsql;
+
 -- "limit" is to prevent this from being inlined
 CREATE FUNCTION sql_recurse (float8)
     RETURNS float8 AS $$
@@ -4434,10 +4870,13 @@ CREATE FUNCTION sql_recurse (float8)
         recurse (
             $1)
     LIMIT 1;
+
 $$
 LANGUAGE sql;
+
 SELECT
     recurse (10);
+
 CREATE FUNCTION error1 (text)
     RETURNS text
     LANGUAGE sql
@@ -4448,6 +4887,7 @@ CREATE FUNCTION error1 (text)
         pg_class c
     WHERE
         c.oid = $1::regclass $$;
+
 CREATE FUNCTION error2 (p_name_table text)
     RETURNS text
     LANGUAGE plpgsql
@@ -4455,6 +4895,7 @@ CREATE FUNCTION error2 (p_name_table text)
 BEGIN
     RETURN error1 (p_name_table);
 END $$;
+
 BEGIN;
 CREATE TABLE public.stuffs (
     stuff text
@@ -4463,11 +4904,16 @@ SAVEPOINT a;
 SELECT
     error2 ('nonexistent.stuffs');
 ROLLBACK TO a;
+
 SELECT
     error2 ('public.stuffs');
+
 ROLLBACK;
+
 DROP FUNCTION error2 (p_name_table text);
+
 DROP FUNCTION error1 (text);
+
 -- Test for proper handling of cast-expression caching
 CREATE FUNCTION sql_to_date (integer)
     RETURNS date AS $$
@@ -4475,20 +4921,25 @@ CREATE FUNCTION sql_to_date (integer)
         $1::text::date $$
         LANGUAGE sql
         IMMUTABLE STRICT;
+
 CREATE cast( integer AS date
 )
 WITH FUNCTION sql_to_date (integer
 ) AS assignment;
+
 CREATE FUNCTION cast_invoker (integer)
     RETURNS date AS $$
 BEGIN
     RETURN $1;
 END $$
 LANGUAGE plpgsql;
+
 SELECT
     cast_invoker (20150717);
+
 SELECT
     cast_invoker (20150718);
+
 -- second call crashed in pre-release 9.5
 BEGIN;
 SELECT
@@ -4502,14 +4953,20 @@ SELECT
     cast_invoker (- 1);
 -- fails
 ROLLBACK TO SAVEPOINT s1;
+
 SELECT
     cast_invoker (20150719);
+
 SELECT
     cast_invoker (20150720);
+
 COMMIT;
+
 DROP FUNCTION cast_invoker (integer);
+
 DROP FUNCTION sql_to_date (integer)
 CASCADE;
+
 -- Test handling of cast cache inside DO blocks
 -- (to check the original crash case, this must be a cast not previously
 -- used in this session)
@@ -5062,84 +5519,84 @@ BEGIN
  begin
    assert 1=0;  -- won' t be tested
 END;
-$$;
-RESET plpgsql.check_asserts;
--- test custom message
-DO $$
+    $$;
+    RESET plpgsql.check_asserts;
+    -- test custom message
+    DO $$
 DECLARE
     var text := 'some value';
 BEGIN
     assert 1 = 0,
     format('assertion failed, var = "%s"', var);
 END;
-$$;
--- ensure assertions are not trapped by 'others'
-DO $$
-BEGIN
-    assert 1 = 0,
-    'unhandled assertion';
-exception
-    WHEN OTHERS THEN
-        NULL;
--- do nothing
-END;
-$$;
--- Test use of plpgsql in a domain check constraint (cf. bug #14414)
-CREATE FUNCTION plpgsql_domain_check (val int)
-    RETURNS boolean AS $$
-BEGIN
-    RETURN val > 0;
-END $$
-LANGUAGE plpgsql
-IMMUTABLE;
-CREATE DOMAIN plpgsql_domain AS integer CHECK (plpgsql_domain_check (value));
-DO $$
+    $$;
+    -- ensure assertions are not trapped by 'others'
+    DO $$
+    BEGIN
+        assert 1 = 0,
+        'unhandled assertion';
+    exception
+        WHEN OTHERS THEN
+            NULL;
+    -- do nothing
+    END;
+    $$;
+    -- Test use of plpgsql in a domain check constraint (cf. bug #14414)
+    CREATE FUNCTION plpgsql_domain_check (val int )
+        RETURNS boolean AS $$
+        BEGIN
+            RETURN val > 0;
+        END $$
+        LANGUAGE plpgsql
+        IMMUTABLE;
+    CREATE DOMAIN plpgsql_domain AS integer CHECK (plpgsql_domain_check (value));
+    DO $$
 DECLARE
     v_test plpgsql_domain;
 BEGIN
     v_test := 1;
 END;
-$$;
-DO $$ DECLARE v_test plpgsql_domain := 1;
-BEGIN
-    v_test := 0;
+    $$;
+    DO $$ DECLARE v_test plpgsql_domain := 1;
+    BEGIN
+        v_test := 0;
     -- fail
 END;
-$$;
--- Test handling of expanded array passed to a domain constraint (bug #14472)
-CREATE FUNCTION plpgsql_arr_domain_check (val int[])
-    RETURNS boolean AS $$
-BEGIN
-    RETURN val[1] > 0;
-END $$
-LANGUAGE plpgsql
-IMMUTABLE;
-CREATE DOMAIN plpgsql_arr_domain AS int[] CHECK (plpgsql_arr_domain_check (value));
-DO $$
+        $$;
+        -- Test handling of expanded array passed to a domain constraint (bug #14472)
+        CREATE FUNCTION plpgsql_arr_domain_check (val int[] )
+            RETURNS boolean AS $$
+            BEGIN
+                RETURN val[1] > 0;
+            END $$
+            LANGUAGE plpgsql
+            IMMUTABLE;
+        CREATE DOMAIN plpgsql_arr_domain AS int[] CHECK (plpgsql_arr_domain_check (value));
+        DO $$
 DECLARE
     v_test plpgsql_arr_domain;
 BEGIN
     v_test := ARRAY[1];
     v_test := v_test || 2;
 END;
-$$;
-DO $$ DECLARE v_test plpgsql_arr_domain := ARRAY[1];
-BEGIN
-    v_test := 0 || v_test;
+    $$;
+    DO $$ DECLARE v_test plpgsql_arr_domain := ARRAY[1];
+    BEGIN
+        v_test := 0 || v_test;
     -- fail
 END;
-$$;
---
--- test usage of transition tables in AFTER triggers
---
-CREATE TABLE transition_table_base (
-    id int PRIMARY KEY,
-    val text
-);
-CREATE FUNCTION transition_table_base_ins_func ()
-    RETURNS TRIGGER
-    LANGUAGE plpgsql
-    AS $$
+        $$;
+        --
+        -- test usage of transition tables in AFTER triggers
+        --
+        CREATE TABLE transition_table_base (
+            id int PRIMARY KEY,
+            val text
+        );
+        CREATE FUNCTION transition_table_base_ins_func ( )
+            RETURNS TRIGGER
+            LANGUAGE plpgsql
+            AS $$
 DECLARE
     t text;
     l text;
@@ -5154,23 +5611,23 @@ BEGIN
     RAISE INFO '%', t;
     RETURN new;
 END;
-$$;
-CREATE TRIGGER transition_table_base_ins_trig
-    AFTER INSERT ON transition_table_base REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
-    FOR EACH STATEMENT
-    EXECUTE PROCEDURE transition_table_base_ins_func ();
-CREATE TRIGGER transition_table_base_ins_trig
-    AFTER INSERT ON transition_table_base REFERENCING NEW TABLE AS newtable
-    FOR EACH STATEMENT
-    EXECUTE PROCEDURE transition_table_base_ins_func ();
+    $$;
+    CREATE TRIGGER transition_table_base_ins_trig
+        AFTER INSERT ON transition_table_base REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+        FOR EACH STATEMENT
+        EXECUTE PROCEDURE transition_table_base_ins_func ( );
+    CREATE TRIGGER transition_table_base_ins_trig
+        AFTER INSERT ON transition_table_base REFERENCING NEW TABLE AS newtable
+        FOR EACH STATEMENT
+        EXECUTE PROCEDURE transition_table_base_ins_func ( );
 INSERT INTO transition_table_base
     VALUES (1, 'One'), (2, 'Two');
-INSERT INTO transition_table_base
+    INSERT INTO transition_table_base
     VALUES (3, 'Three'), (4, 'Four');
-CREATE OR REPLACE FUNCTION transition_table_base_upd_func ()
-    RETURNS TRIGGER
-    LANGUAGE plpgsql
-    AS $$
+    CREATE OR REPLACE FUNCTION transition_table_base_upd_func ( )
+        RETURNS TRIGGER
+        LANGUAGE plpgsql
+        AS $$
 DECLARE
     t text;
     l text;
@@ -5185,35 +5642,35 @@ BEGIN
     RAISE INFO '%', t;
     RETURN new;
 END;
-$$;
-CREATE TRIGGER transition_table_base_upd_trig
-    AFTER UPDATE ON transition_table_base REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
-    FOR EACH STATEMENT
-    EXECUTE PROCEDURE transition_table_base_upd_func ();
-UPDATE
-    transition_table_base
-SET
-    val = '*' || val || '*'
-WHERE
-    id BETWEEN 2 AND 3;
-CREATE TABLE transition_table_level1 (
-    level1_no serial NOT NULL,
-    level1_node_name varchar(255),
-    PRIMARY KEY (level1_no)) WITHOUT OIDS;
-CREATE TABLE transition_table_level2 (
-    level2_no serial NOT NULL,
-    parent_no int NOT NULL,
-    level1_node_name varchar(255),
-    PRIMARY KEY (level2_no)) WITHOUT OIDS;
-CREATE TABLE transition_table_status (
-    level int NOT NULL,
-    node_no int NOT NULL,
-    status int,
-    PRIMARY KEY (level, node_no)) WITHOUT OIDS;
-CREATE FUNCTION transition_table_level1_ri_parent_del_func ()
-    RETURNS TRIGGER
-    LANGUAGE plpgsql
-    AS $$
+    $$;
+    CREATE TRIGGER transition_table_base_upd_trig
+        AFTER UPDATE ON transition_table_base REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+        FOR EACH STATEMENT
+        EXECUTE PROCEDURE transition_table_base_upd_func ( );
+    UPDATE
+        transition_table_base
+    SET
+        val = '*' || val || '*'
+    WHERE
+        id BETWEEN 2 AND 3;
+    CREATE TABLE transition_table_level1 (
+        level1_no serial NOT NULL,
+        level1_node_name varchar(255 ),
+        PRIMARY KEY (level1_no ) ) WITHOUT OIDS;
+    CREATE TABLE transition_table_level2 (
+        level2_no serial NOT NULL,
+        parent_no int NOT NULL,
+        level1_node_name varchar(255 ),
+        PRIMARY KEY (level2_no ) ) WITHOUT OIDS;
+    CREATE TABLE transition_table_status (
+        level int NOT NULL,
+        node_no int NOT NULL,
+        status int,
+        PRIMARY KEY (level, node_no ) ) WITHOUT OIDS;
+    CREATE FUNCTION transition_table_level1_ri_parent_del_func ( )
+        RETURNS TRIGGER
+        LANGUAGE plpgsql
+        AS $$
 DECLARE
     n bigint;
 BEGIN
@@ -5515,14 +5972,14 @@ BEGIN
         a = a_val;
     RETURN result;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    get_from_partitioned_table (1) AS t;
-CREATE OR REPLACE FUNCTION list_partitioned_table ()
-    RETURNS SETOF partitioned_table.a % TYPE AS $$
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        get_from_partitioned_table (1) AS t;
+    CREATE OR REPLACE FUNCTION list_partitioned_table ( )
+        RETURNS SETOF partitioned_table.a % TYPE AS $$
 DECLARE
     ROW partitioned_table % ROWTYPE;
     a_val partitioned_table.a % TYPE;
@@ -5539,20 +5996,20 @@ BEGIN
         END LOOP;
     RETURN;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    *
-FROM
-    list_partitioned_table () AS t;
---
--- Check argument name is used instead of $n in error message
---
-CREATE FUNCTION fx (x WSlot)
-    RETURNS void AS $$
-BEGIN
-    GET DIAGNOSTICS x = ROW_COUNT;
-    RETURN;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        list_partitioned_table () AS t;
+    --
+    -- Check argument name is used instead of $n in error message
+    --
+    CREATE FUNCTION fx (x WSlot )
+        RETURNS void AS $$
+        BEGIN
+            GET DIAGNOSTICS x = ROW_COUNT;
+        RETURN;
 END;
-$$
-LANGUAGE plpgsql;
+        $$
+        LANGUAGE plpgsql;

@@ -106,6 +106,7 @@ CREATE FUNCTION least_accum (anyelement, VARIADIC anyarray)
     LANGUAGE sql
     AS 'select least($1, min($2[i])) from generate_subscripts($2,1) g(i)'
 ;
+
 CREATE AGGREGATE least_agg (VARIADIC items anyarray) (
     STYPE = anyelement,
     SFUNC = least_accum
@@ -301,6 +302,7 @@ CREATE FUNCTION float8mi_n (float8, float8)
     AS $$
     SELECT
         $1 - $2;
+
 $$
 LANGUAGE SQL;
 
@@ -318,6 +320,7 @@ CREATE FUNCTION float8mi_int (float8, float8)
     AS $$
     SELECT
         CAST($1 - $2 AS INT);
+
 $$
 LANGUAGE SQL;
 

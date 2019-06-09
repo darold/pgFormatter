@@ -515,6 +515,7 @@ CREATE OR REPLACE FUNCTION part_hashint4_noop (value int4, seed int8)
     AS $$
     SELECT
         value + seed;
+
 $$
 LANGUAGE sql
 IMMUTABLE;
@@ -1024,13 +1025,9 @@ INSERT INTO key_desc
 
 RESET ROLE;
 
-REVOKE ALL ON key_desc
-FROM
-    regress_insert_other_user;
+REVOKE ALL ON key_desc FROM regress_insert_other_user;
 
-REVOKE ALL ON key_desc_1
-FROM
-    regress_insert_other_user;
+REVOKE ALL ON key_desc_1 FROM regress_insert_other_user;
 
 DROP ROLE regress_insert_other_user;
 
@@ -1213,9 +1210,7 @@ GRANT INSERT ON inserttest3 TO regress_coldesc_role;
 
 GRANT INSERT ON brtrigpartcon TO regress_coldesc_role;
 
-REVOKE SELECT ON brtrigpartcon
-FROM
-    regress_coldesc_role;
+REVOKE SELECT ON brtrigpartcon FROM regress_coldesc_role;
 
 SET ROLE regress_coldesc_role;
 
@@ -1234,13 +1229,9 @@ FROM
 RESET ROLE;
 
 -- cleanup
-REVOKE ALL ON inserttest3
-FROM
-    regress_coldesc_role;
+REVOKE ALL ON inserttest3 FROM regress_coldesc_role;
 
-REVOKE ALL ON brtrigpartcon
-FROM
-    regress_coldesc_role;
+REVOKE ALL ON brtrigpartcon FROM regress_coldesc_role;
 
 DROP ROLE regress_coldesc_role;
 

@@ -23,6 +23,7 @@ CREATE FUNCTION get_all_persons ()
         *
     FROM
         persons;
+
 $$;
 
 SELECT

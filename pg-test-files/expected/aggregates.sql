@@ -1649,7 +1649,8 @@ SELECT
     (
         SELECT
             count(*) FILTER (WHERE outer_c <> 0)
-            FROM ( VALUES (1)) t0 (inner_c))
+        FROM (
+            VALUES (1)) t0 (inner_c))
 FROM (
     VALUES (2), (3)) t1 (outer_c);
 
@@ -1658,7 +1659,8 @@ SELECT
     (
         SELECT
             count(inner_c) FILTER (WHERE outer_c <> 0)
-            FROM ( VALUES (1)) t0 (inner_c))
+        FROM (
+            VALUES (1)) t0 (inner_c))
 FROM (
     VALUES (2), (3)) t1 (outer_c);
 

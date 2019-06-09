@@ -106,6 +106,7 @@ CREATE FUNCTION my_int_eq (int, int)
     STRICT IMMUTABLE PARALLEL SAFE
     AS $$
     int4eq$$;
+
 -- By default, planner does not think that's selective
 EXPLAIN (
     COSTS OFF
@@ -117,8 +118,10 @@ FROM
     JOIN tenk1 b ON a.unique1 = b.unique1
 WHERE
     my_int_eq (a.unique2, 42);
+
 -- With support function that knows it's int4eq, we get a different plan
 ALTER FUNCTION my_int_eq (int, int) SUPPORT test_support_func;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -129,6 +132,7 @@ FROM
     JOIN tenk1 b ON a.unique1 = b.unique1
 WHERE
     my_int_eq (a.unique2, 42);
+
 -- Also test non-default rowcount estimate
 CREATE FUNCTION my_gen_series (int, int)
     RETURNS SETOF integer

@@ -186,9 +186,7 @@ DROP PUBLICATION testpub2;
 
 SET ROLE regress_publication_user;
 
-REVOKE CREATE ON DATABASE regression
-FROM
-    regress_publication_user2;
+REVOKE CREATE ON DATABASE regression FROM regress_publication_user2;
 
 DROP TABLE testpub_parted;
 

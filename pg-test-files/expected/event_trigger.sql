@@ -1,5 +1,6 @@
 -- should fail, return type mismatch
-CREATE event TRIGGER regress_event_trigger ON ddl_command_start EXECUTE PROCEDURE pg_backend_pid();
+CREATE EVENT TRIGGER regress_event_trigger ON ddl_command_start
+    EXECUTE PROCEDURE pg_backend_pid();
 
 -- OK
 CREATE FUNCTION test_event_trigger ()
@@ -31,96 +32,88 @@ $$
 LANGUAGE sql;
 
 -- should fail, no elephant_bootstrap entry point
-CREATE event TRIGGER regress_event_trigger ON elephant_bootstrap EXECUTE PROCEDURE test_event_trigger ();
+CREATE EVENT TRIGGER regress_event_trigger ON elephant_bootstrap
+    EXECUTE PROCEDURE test_event_trigger ();
 
 -- OK
-CREATE event TRIGGER regress_event_trigger ON ddl_command_start EXECUTE PROCEDURE test_event_trigger ();
+CREATE EVENT TRIGGER regress_event_trigger ON ddl_command_start
+    EXECUTE PROCEDURE test_event_trigger ();
 
 -- OK
-CREATE event TRIGGER regress_event_trigger_end ON ddl_command_end EXECUTE FUNCTION test_event_trigger ();
+CREATE EVENT TRIGGER regress_event_trigger_end ON ddl_command_end
+    EXECUTE FUNCTION test_event_trigger ();
 
 -- should fail, food is not a valid filter variable
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN food IN (
-        'sandwich')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN food IN ('sandwich')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, sandwich is not a valid command tag
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'sandwich')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('sandwich')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, create skunkcabbage is not a valid command tag
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'create table',
-        'create skunkcabbage')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('create table', 'create skunkcabbage')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on event triggers
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'DROP EVENT TRIGGER')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('DROP EVENT TRIGGER')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on global objects
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'CREATE ROLE')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('CREATE ROLE')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on global objects
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'CREATE DATABASE')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('CREATE DATABASE')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on global objects
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'CREATE TABLESPACE')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('CREATE TABLESPACE')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have same filter variable twice
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'create table')
-    AND tag IN (
-        'CREATE FUNCTION')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('create table') AND tag IN ('CREATE FUNCTION')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have arguments
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start EXECUTE PROCEDURE test_event_trigger ('argument not allowed');
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    EXECUTE PROCEDURE test_event_trigger ('argument not allowed');
 
 -- OK
-CREATE event TRIGGER regress_event_trigger2 ON ddl_command_start
-WHEN tag IN (
-        'create table',
-        'CREATE FUNCTION')
+CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
+    WHEN tag IN ('create table', 'CREATE FUNCTION')
     EXECUTE PROCEDURE test_event_trigger ();
 
 -- OK
-COMMENT ON event TRIGGER regress_event_trigger IS 'test comment';
+COMMENT ON EVENT TRIGGER regress_event_trigger IS 'test comment';
 
 -- drop as non-superuser should fail
 CREATE ROLE regress_evt_user;
 
 SET ROLE regress_evt_user;
 
-CREATE event TRIGGER regress_event_trigger_noperms ON ddl_command_start EXECUTE PROCEDURE test_event_trigger ();
+CREATE EVENT TRIGGER regress_event_trigger_noperms ON ddl_command_start
+    EXECUTE PROCEDURE test_event_trigger ();
 
 RESET ROLE;
 
 -- test enabling and disabling
-ALTER event TRIGGER regress_event_trigger disable;
+ALTER EVENT TRIGGER regress_event_trigger disable;
 
 -- fires _trigger2 and _trigger_end should fire, but not _trigger
 CREATE TABLE event_trigger_fire1 (
     a int
 );
 
-ALTER event TRIGGER regress_event_trigger enable;
+ALTER EVENT TRIGGER regress_event_trigger enable;
 
 SET session_replication_role = REPLICA;
 
@@ -129,14 +122,14 @@ CREATE TABLE event_trigger_fire2 (
     a int
 );
 
-ALTER event TRIGGER regress_event_trigger enable REPLICA;
+ALTER EVENT TRIGGER regress_event_trigger enable REPLICA;
 
 -- fires only _trigger
 CREATE TABLE event_trigger_fire3 (
     a int
 );
 
-ALTER event TRIGGER regress_event_trigger enable always;
+ALTER EVENT TRIGGER regress_event_trigger enable always;
 
 -- fires only _trigger
 CREATE TABLE event_trigger_fire4 (
@@ -159,7 +152,7 @@ BEGIN
     CREATE TABLE event_trigger_fire6 (
         a int
     );
-RETURN 0;
+    RETURN 0;
 END
 $$;
 
@@ -180,7 +173,7 @@ $$;
 CALL p1 ();
 
 -- clean up
-ALTER event TRIGGER regress_event_trigger disable;
+ALTER EVENT TRIGGER regress_event_trigger disable;
 
 DROP TABLE event_trigger_fire2, event_trigger_fire3, event_trigger_fire4, event_trigger_fire5, event_trigger_fire6, event_trigger_fire7;
 
@@ -191,9 +184,7 @@ GRANT ALL ON TABLE event_trigger_fire1 TO public;
 
 COMMENT ON TABLE event_trigger_fire1 IS 'here is a comment';
 
-REVOKE ALL ON TABLE event_trigger_fire1
-FROM
-    public;
+REVOKE ALL ON TABLE event_trigger_fire1 FROM public;
 
 DROP TABLE event_trigger_fire1;
 
@@ -206,21 +197,21 @@ CREATE USER MAPPING FOR regress_evt_user SERVER useless_server;
 ALTER DEFAULT privileges FOR ROLE regress_evt_user REVOKE DELETE ON tables FROM regress_evt_user;
 
 -- alter owner to non-superuser should fail
-ALTER event TRIGGER regress_event_trigger OWNER TO regress_evt_user;
+ALTER EVENT TRIGGER regress_event_trigger OWNER TO regress_evt_user;
 
 -- alter owner to superuser should work
 ALTER ROLE regress_evt_user superuser;
 
-ALTER event TRIGGER regress_event_trigger OWNER TO regress_evt_user;
+ALTER EVENT TRIGGER regress_event_trigger OWNER TO regress_evt_user;
 
 -- should fail, name collision
-ALTER event TRIGGER regress_event_trigger RENAME TO regress_event_trigger2;
+ALTER EVENT TRIGGER regress_event_trigger RENAME TO regress_event_trigger2;
 
 -- OK
-ALTER event TRIGGER regress_event_trigger RENAME TO regress_event_trigger3;
+ALTER EVENT TRIGGER regress_event_trigger RENAME TO regress_event_trigger3;
 
 -- should fail, doesn't exist any more
-DROP event TRIGGER regress_event_trigger;
+DROP EVENT TRIGGER regress_event_trigger;
 
 -- should fail, regress_evt_user owns some objects
 DROP ROLE regress_evt_user;
@@ -228,13 +219,13 @@ DROP ROLE regress_evt_user;
 -- cleanup before next test
 -- these are all OK; the second one should emit a NOTICE
 
-DROP event TRIGGER IF EXISTS regress_event_trigger2;
+DROP EVENT TRIGGER IF EXISTS regress_event_trigger2;
 
-DROP event TRIGGER IF EXISTS regress_event_trigger2;
+DROP EVENT TRIGGER IF EXISTS regress_event_trigger2;
 
-DROP event TRIGGER regress_event_trigger3;
+DROP EVENT TRIGGER regress_event_trigger3;
 
-DROP event TRIGGER regress_event_trigger_end;
+DROP EVENT TRIGGER regress_event_trigger_end;
 
 -- test support for dropped objects
 CREATE SCHEMA schema_one AUTHORIZATION regress_evt_user;
@@ -338,9 +329,11 @@ BEGIN
         RAISE EXCEPTION 'object % of type % cannot be dropped', obj.object_identity, obj.object_type;
     END LOOP;
 END;
+
 $$;
 
-CREATE EVENT TRIGGER undroppable ON sql_drop EXECUTE PROCEDURE undroppable ();
+CREATE EVENT TRIGGER undroppable ON sql_drop
+    EXECUTE PROCEDURE undroppable ();
 
 CREATE OR REPLACE FUNCTION test_evtrig_dropped_objects ()
     RETURNS event_trigger
@@ -365,13 +358,7 @@ END
 $$;
 
 CREATE EVENT TRIGGER regress_event_trigger_drop_objects ON sql_drop
-WHEN TAG IN (
-        'drop table',
-        'drop function',
-        'drop view',
-        'drop owned',
-        'drop schema',
-        'alter table')
+    WHEN TAG IN ('drop table', 'drop function', 'drop view', 'drop owned', 'drop schema', 'alter table')
     EXECUTE PROCEDURE test_evtrig_dropped_objects ();
 
 ALTER TABLE schema_one.table_one
@@ -433,7 +420,8 @@ BEGIN
 END;
 $$;
 
-CREATE EVENT TRIGGER regress_event_trigger_report_dropped ON sql_drop EXECUTE PROCEDURE event_trigger_report_dropped ();
+CREATE EVENT TRIGGER regress_event_trigger_report_dropped ON sql_drop
+    EXECUTE PROCEDURE event_trigger_report_dropped ();
 
 CREATE SCHEMA evttrig CREATE TABLE one (
     col_a SERIAL PRIMARY KEY,
@@ -494,7 +482,8 @@ BEGIN
 END;
 $$;
 
-CREATE event TRIGGER no_rewrite_allowed ON table_rewrite EXECUTE PROCEDURE test_evtrig_no_rewrite ();
+CREATE EVENT TRIGGER no_rewrite_allowed ON table_rewrite
+    EXECUTE PROCEDURE test_evtrig_no_rewrite ();
 
 CREATE TABLE rewriteme (
     id serial PRIMARY KEY,
@@ -569,7 +558,7 @@ CREATE TYPE rewritetype AS (
         ALTER TYPE rewritetype
             ALTER attribute a TYPE varchar CASCADE;
         DROP TABLE rewriteme;
-        DROP event TRIGGER no_rewrite_allowed;
+        DROP EVENT TRIGGER no_rewrite_allowed;
         DROP FUNCTION test_evtrig_no_rewrite ();
         -- test Row Security Event Trigger
         RESET SESSION AUTHORIZATION;
@@ -605,22 +594,15 @@ $$
 LANGUAGE plpgsql;
 
 CREATE EVENT TRIGGER start_rls_command ON ddl_command_start
-WHEN TAG IN (
-        'CREATE POLICY',
-        'ALTER POLICY',
-        'DROP POLICY')
+    WHEN TAG IN ('CREATE POLICY', 'ALTER POLICY', 'DROP POLICY')
     EXECUTE PROCEDURE start_command ();
 
 CREATE EVENT TRIGGER end_rls_command ON ddl_command_end
-WHEN TAG IN (
-        'CREATE POLICY',
-        'ALTER POLICY',
-        'DROP POLICY')
+    WHEN TAG IN ('CREATE POLICY', 'ALTER POLICY', 'DROP POLICY')
     EXECUTE PROCEDURE end_command ();
 
 CREATE EVENT TRIGGER sql_drop_command ON sql_drop
-WHEN TAG IN (
-        'DROP POLICY')
+    WHEN TAG IN ('DROP POLICY')
     EXECUTE PROCEDURE drop_sql_command ();
 
 CREATE POLICY p1 ON event_trigger_test USING (FALSE);

@@ -83,7 +83,8 @@ SELECT
 FROM
     generate_series(1, 10) id;
 
-CREATE EVENT TRIGGER has_volatile_rewrite ON table_rewrite EXECUTE PROCEDURE log_rewrite ();
+CREATE EVENT TRIGGER has_volatile_rewrite ON table_rewrite
+    EXECUTE PROCEDURE log_rewrite ();
 
 -- only the last of these should trigger a rewrite
 ALTER TABLE has_volatile
@@ -234,13 +235,16 @@ FROM
     T
 ORDER BY
     pk;
-        SELECT
-            comp ();
-        DROP TABLE T;
-        -- Test expressions in the defaults
-        CREATE OR REPLACE FUNCTION foo (a INT )
-            RETURNS TEXT
-            AS $$
+
+SELECT
+    comp ();
+
+DROP TABLE T;
+
+-- Test expressions in the defaults
+CREATE OR REPLACE FUNCTION foo (a INT)
+    RETURNS TEXT
+    AS $$
 DECLARE
     res TEXT := '';
     i INT;
@@ -270,14 +274,14 @@ INSERT INTO T
 
 ALTER TABLE T
     ADD COLUMN c_bpchar BPCHAR(5) DEFAULT foo (4),
-        ALTER COLUMN c_int SET DEFAULT LENGTH(foo (8));
+    ALTER COLUMN c_int SET DEFAULT LENGTH(foo (8));
 
 INSERT INTO T
     VALUES (3), (4);
 
 ALTER TABLE T
     ADD COLUMN c_text TEXT DEFAULT foo (6),
-        ALTER COLUMN c_bpchar SET DEFAULT foo (3);
+    ALTER COLUMN c_bpchar SET DEFAULT foo (3);
 
 INSERT INTO T
     VALUES (5), (6);
@@ -298,7 +302,7 @@ INSERT INTO T
 
 ALTER TABLE T
     ADD COLUMN c_array TEXT[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::TEXT[],
-            ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31'::DATE + LENGTH(foo (30));
+    ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31'::DATE + LENGTH(foo (30));
 
 INSERT INTO T
     VALUES (11), (12);
@@ -603,30 +607,35 @@ SELECT
     2::int AS b
 FROM
     generate_series(1, 20) q;
-        ALTER TABLE t1
-            ADD COLUMN c text;
-        SELECT
-            a,
-            stddev(cast((
-                    SELECT
-                        sum(1)
-                    FROM generate_series(1, 20) x) AS float4)) OVER (PARTITION BY a, b, c ORDER BY b) AS z
-        FROM
-            t1;
-        DROP TABLE T;
-        -- test that we account for missing columns without defaults correctly
-        -- in expand_tuple, and that rows are correctly expanded for triggers
-        CREATE FUNCTION test_trigger ( )
-            RETURNS TRIGGER
-            LANGUAGE plpgsql
-            AS $$
+
+ALTER TABLE t1
+    ADD COLUMN c text;
+
+SELECT
+    a,
+    stddev(cast((
+            SELECT
+                sum(1)
+            FROM generate_series(1, 20) x) AS float4)) OVER (PARTITION BY a, b, c ORDER BY b) AS z
+FROM
+    t1;
+
+DROP TABLE T;
+
+-- test that we account for missing columns without defaults correctly
+-- in expand_tuple, and that rows are correctly expanded for triggers
+
+CREATE FUNCTION test_trigger ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
 BEGIN
     raise notice 'old tuple: %', to_json(OLD)::text;
-IF TG_OP = 'DELETE' THEN
-    RETURN OLD;
-ELSE
-    RETURN NEW;
-END IF;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    ELSE
+        RETURN NEW;
+    END IF;
 END;
 $$;
 

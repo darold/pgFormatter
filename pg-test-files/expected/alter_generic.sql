@@ -38,11 +38,13 @@ CREATE FUNCTION alt_func1 (int)
     LANGUAGE sql
     AS 'SELECT $1 + 1'
 ;
+
 CREATE FUNCTION alt_func2 (int)
     RETURNS int
     LANGUAGE sql
     AS 'SELECT $1 - 1'
 ;
+
 CREATE AGGREGATE alt_agg1 (
     SFUNC1 = int4pl,
     BASETYPE = int4,
@@ -106,11 +108,13 @@ CREATE FUNCTION alt_func1 (int)
     LANGUAGE sql
     AS 'SELECT $1 + 2'
 ;
+
 CREATE FUNCTION alt_func2 (int)
     RETURNS int
     LANGUAGE sql
     AS 'SELECT $1 - 2'
 ;
+
 CREATE AGGREGATE alt_agg1 (
     SFUNC1 = int4pl,
     BASETYPE = int4,

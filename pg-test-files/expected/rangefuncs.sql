@@ -602,21 +602,14 @@ SELECT
 FROM
     ROWS
 FROM (getrngfunc6 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text))
-    WITH ORDINALITY;
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text)) WITH ORDINALITY;
 
 CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
     getrngfunc6 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text);
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text);
 
 SELECT
     *
@@ -631,11 +624,7 @@ SELECT
 FROM
     ROWS
 FROM (getrngfunc6 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text))
-    WITH ORDINALITY;
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text)) WITH ORDINALITY;
 
 SELECT
     *
@@ -662,21 +651,14 @@ SELECT
 FROM
     ROWS
 FROM (getrngfunc7 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text))
-    WITH ORDINALITY;
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text)) WITH ORDINALITY;
 
 CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
     getrngfunc7 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text);
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text);
 
 SELECT
     *
@@ -691,11 +673,7 @@ SELECT
 FROM
     ROWS
 FROM (getrngfunc7 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text))
-    WITH ORDINALITY;
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text)) WITH ORDINALITY;
 
 SELECT
     *
@@ -807,17 +785,13 @@ FROM (getrngfunc1 (1),
     getrngfunc4 (1),
     getrngfunc5 (1),
     getrngfunc6 (1)
-    AS (
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text), getrngfunc7 (1)
+        AS (
 rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text),
-    getrngfunc7 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text),
-    getrngfunc8 (1),
-    getrngfunc9 (1))
+            rngfuncsubid int,
+            rngfuncname text),
+        getrngfunc8 (1),
+        getrngfunc9 (1))
     WITH ORDINALITY AS t1 (a, b, c, d, e, f, g, h, i, j, k, l, m, o, p, q, r, s, t, u);
 
 SELECT
@@ -827,20 +801,16 @@ FROM
 FROM (getrngfunc9 (1),
     getrngfunc8 (1),
     getrngfunc7 (1)
-    AS (
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text), getrngfunc6 (1)
+        AS (
 rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text),
-    getrngfunc6 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text),
-    getrngfunc5 (1),
-    getrngfunc4 (1),
-    getrngfunc3 (1),
-    getrngfunc2 (1),
-    getrngfunc1 (1))
+            rngfuncsubid int,
+            rngfuncname text),
+        getrngfunc5 (1),
+        getrngfunc4 (1),
+        getrngfunc3 (1),
+        getrngfunc2 (1),
+        getrngfunc1 (1))
     WITH ORDINALITY AS t1 (a, b, c, d, e, f, g, h, i, j, k, l, m, o, p, q, r, s, t, u);
 
 CREATE TEMPORARY VIEW vw_rngfunc AS
@@ -850,12 +820,7 @@ FROM
     ROWS
 FROM (getrngfunc9 (1),
     getrngfunc7 (1)
-    AS (
-rngfuncid int,
-        rngfuncsubid int,
-        rngfuncname text),
-    getrngfunc1 (1))
-    WITH ORDINALITY AS t1 (a, b, c, d, e, f, g, n);
+    AS (rngfuncid int, rngfuncsubid int, rngfuncname text), getrngfunc1 (1)) WITH ORDINALITY AS t1 (a, b, c, d, e, f, g, n);
 
 SELECT
     *
@@ -1777,6 +1742,7 @@ CREATE FUNCTION testrngfunc ()
     VALUES (1, 2)
 RETURNING
     *;
+
 $$
 LANGUAGE sql;
 
@@ -1804,6 +1770,7 @@ CREATE FUNCTION testrngfunc ()
     VALUES (1, 2), (3, 4)
 RETURNING
     *;
+
 $$
 LANGUAGE sql;
 
@@ -1857,6 +1824,7 @@ CREATE OR REPLACE FUNCTION get_first_user ()
     ORDER BY
         userid
     LIMIT 1;
+
 $$
 LANGUAGE sql
 STABLE;
@@ -1878,6 +1846,7 @@ CREATE OR REPLACE FUNCTION get_users ()
         users
     ORDER BY
         userid;
+
 $$
 LANGUAGE sql
 STABLE;
@@ -1976,6 +1945,7 @@ CREATE OR REPLACE FUNCTION rngfuncbar ()
     UNION ALL
     SELECT
         'bar'::varchar;
+
 $$
 LANGUAGE sql
 STABLE;

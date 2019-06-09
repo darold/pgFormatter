@@ -19,6 +19,7 @@ CREATE OR REPLACE FUNCTION chkrolattr ()
                 ('None', '-')) AS v (uname, keyword) ON (r.rolname = v.uname)
     ORDER BY
         1;
+
 $$
 LANGUAGE SQL;
 
@@ -47,6 +48,7 @@ IN ('Public',
 ORDER BY
     1,
     2;
+
 $$
 LANGUAGE SQL;
 
@@ -65,6 +67,7 @@ CREATE OR REPLACE FUNCTION chkumapping ()
     JOIN pg_foreign_server s ON (s.oid = m.umserver)
 ORDER BY
     2;
+
 $$
 LANGUAGE SQL;
 
@@ -880,61 +883,37 @@ FROM
 WHERE
     proname LIKE 'testagg_';
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg1 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg1 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg2 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg2 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg3 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg3 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg4 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg4 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg5 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg5 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg6 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg6 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg7 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg7 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg8 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg8 (int2) FROM PUBLIC;
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg1 (int2)
-TO PUBLIC;
+GRANT ALL PRIVILEGES ON FUNCTION testagg1 (int2) TO PUBLIC;
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg2 (int2)
-TO CURRENT_USER;
+GRANT ALL PRIVILEGES ON FUNCTION testagg2 (int2) TO CURRENT_USER;
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg3 (int2)
-TO "current_user";
+GRANT ALL PRIVILEGES ON FUNCTION testagg3 (int2) TO "current_user";
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg4 (int2)
-TO SESSION_USER;
+GRANT ALL PRIVILEGES ON FUNCTION testagg4 (int2) TO SESSION_USER;
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg5 (int2)
-TO "Public";
+GRANT ALL PRIVILEGES ON FUNCTION testagg5 (int2) TO "Public";
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg6 (int2)
-TO regress_testrolx;
+GRANT ALL PRIVILEGES ON FUNCTION testagg6 (int2) TO regress_testrolx;
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg7 (int2)
-TO "public";
+GRANT ALL PRIVILEGES ON FUNCTION testagg7 (int2) TO "public";
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg8 (int2)
-TO CURRENT_USER, public, regress_testrolx;
+GRANT ALL PRIVILEGES ON FUNCTION testagg8 (int2) TO CURRENT_USER, public, regress_testrolx;
 
 SELECT
     proname,
@@ -944,20 +923,16 @@ FROM
 WHERE
     proname LIKE 'testagg_';
 
-GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-TO CURRENT_ROLE;
+GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2) TO CURRENT_ROLE;
 
 --error
-GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-TO USER;
+GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2) TO USER;
 
 --error
-GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-TO NONE;
+GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2) TO NONE;
 
 --error
-GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-TO "none";
+GRANT ALL PRIVILEGES ON FUNCTION testagg9 (int2) TO "none";
 
 --error
 SELECT
@@ -968,37 +943,21 @@ FROM
 WHERE
     proname LIKE 'testagg_';
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg1 (int2)
-FROM
-    PUBLIC;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg1 (int2) FROM PUBLIC;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg2 (int2)
-FROM
-    CURRENT_USER;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg2 (int2) FROM CURRENT_USER;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg3 (int2)
-FROM
-    "current_user";
+REVOKE ALL PRIVILEGES ON FUNCTION testagg3 (int2) FROM "current_user";
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg4 (int2)
-FROM
-    SESSION_USER;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg4 (int2) FROM SESSION_USER;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg5 (int2)
-FROM
-    "Public";
+REVOKE ALL PRIVILEGES ON FUNCTION testagg5 (int2) FROM "Public";
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg6 (int2)
-FROM
-    regress_testrolx;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg6 (int2) FROM regress_testrolx;
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg7 (int2)
-FROM
-    "public";
+REVOKE ALL PRIVILEGES ON FUNCTION testagg7 (int2) FROM "public";
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg8 (int2)
-FROM
-    CURRENT_USER, public, regress_testrolx;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg8 (int2) FROM CURRENT_USER, public, regress_testrolx;
 
 SELECT
     proname,
@@ -1008,24 +967,16 @@ FROM
 WHERE
     proname LIKE 'testagg_';
 
-REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-FROM
-    CURRENT_ROLE;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2) FROM CURRENT_ROLE;
 
 --error
-REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-FROM
-    USER;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2) FROM USER;
 
 --error
-REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-FROM
-    NONE;
+REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2) FROM NONE;
 
 --error
-REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2)
-FROM
-    "none";
+REVOKE ALL PRIVILEGES ON FUNCTION testagg9 (int2) FROM "none";
 
 --error
 SELECT
@@ -1066,9 +1017,7 @@ WHERE
 
 RESET SESSION AUTHORIZATION;
 
-REVOKE pg_read_all_stats
-FROM
-    regress_role_haspriv;
+REVOKE pg_read_all_stats FROM regress_role_haspriv;
 
 -- pg_read_all_settings
 GRANT pg_read_all_settings TO regress_role_haspriv;
@@ -1085,9 +1034,7 @@ SHOW session_preload_libraries;
 RESET SESSION AUTHORIZATION;
 ROLLBACK;
 
-REVOKE pg_read_all_settings
-FROM
-    regress_role_haspriv;
+REVOKE pg_read_all_settings FROM regress_role_haspriv;
 
 -- clean up
 \c

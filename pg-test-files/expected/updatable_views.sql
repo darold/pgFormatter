@@ -1377,9 +1377,7 @@ RESET SESSION AUTHORIZATION;
 
 SET SESSION AUTHORIZATION regress_view_user1;
 
-REVOKE INSERT, DELETE ON base_tbl
-FROM
-    regress_view_user2;
+REVOKE INSERT, DELETE ON base_tbl FROM regress_view_user2;
 
 GRANT INSERT, DELETE ON rw_view1 TO regress_view_user2;
 
@@ -1635,9 +1633,7 @@ WHERE
 
 RESET SESSION AUTHORIZATION;
 
-REVOKE UPDATE ON base_tbl
-FROM
-    regress_view_user1;
+REVOKE UPDATE ON base_tbl FROM regress_view_user1;
 
 SET SESSION AUTHORIZATION regress_view_user1;
 

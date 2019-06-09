@@ -56,8 +56,8 @@ CREATE OR REPLACE FUNCTION f_leak (text)
     LANGUAGE plpgsql
     AS 'BEGIN RAISE NOTICE ''f_leak => %'', $1; RETURN true; END'
 ;
-GRANT EXECUTE ON FUNCTION f_leak (text)
-TO public;
+
+GRANT EXECUTE ON FUNCTION f_leak (text) TO public;
 
 -- BASIC Row-Level Security Scenario
 SET SESSION AUTHORIZATION regress_rls_alice;
@@ -3678,9 +3678,7 @@ DROP ROLE regress_rls_eve;
 --fails due to dependency on GRANT SELECT
 ROLLBACK TO q;
 
-REVOKE ALL ON TABLE tbl1
-FROM
-    regress_rls_eve;
+REVOKE ALL ON TABLE tbl1 FROM regress_rls_eve;
 
 SAVEPOINT q;
 

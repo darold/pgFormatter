@@ -389,6 +389,7 @@ SELECT
         'right'
     END;
 ROLLBACK;
+
 -- Test interaction of CASE with ArrayCoerceExpr (bug #15471)
 BEGIN;
 CREATE TYPE casetestenum AS ENUM (
@@ -404,8 +405,11 @@ SELECT
         ARRAY['x', 'y']
     END;
 ROLLBACK;
+
 --
 -- Clean up
 --
 DROP TABLE CASE_TBL;
+
 DROP TABLE CASE2_TBL;
+

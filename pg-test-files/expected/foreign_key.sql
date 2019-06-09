@@ -2575,8 +2575,8 @@ FOR VALUES IN (NULL, 500, 501, 502);
 
 ALTER TABLE fk_partitioned_fk
     ADD FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk MATCH SIMPLE ON DELETE SET NULL ON
-        UPDATE
-            SET NULL;
+    UPDATE
+        SET NULL;
 
 CREATE TABLE fk_partitioned_fk_2 PARTITION OF fk_partitioned_fk
 FOR VALUES IN (1500, 1502);
@@ -2698,8 +2698,8 @@ ALTER TABLE fk_partitioned_fk
 
 ALTER TABLE fk_partitioned_fk
     ADD FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk ON DELETE SET DEFAULT ON
-        UPDATE
-            SET DEFAULT;
+    UPDATE
+        SET DEFAULT;
 
 INSERT INTO fk_notpartitioned_pk
     VALUES (2502, 2503);
@@ -2741,8 +2741,8 @@ ALTER TABLE fk_partitioned_fk
 
 ALTER TABLE fk_partitioned_fk
     ADD FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk ON DELETE CASCADE ON
-        UPDATE
-            CASCADE;
+    UPDATE
+        CASCADE;
 
 UPDATE
     fk_notpartitioned_pk
@@ -2972,9 +2972,7 @@ DROP TABLE other_partitioned_fk;
 
 RESET ROLE;
 
-REVOKE ALL ON fk_notpartitioned_pk
-FROM
-    regress_other_partitioned_fk_owner;
+REVOKE ALL ON fk_notpartitioned_pk FROM regress_other_partitioned_fk_owner;
 
 DROP ROLE regress_other_partitioned_fk_owner;
 
@@ -3555,8 +3553,8 @@ FOR VALUES FROM (10) TO (100);
 
 ALTER TABLE fk
     ADD FOREIGN KEY (a) REFERENCES pk ON
-        UPDATE
-            CASCADE ON DELETE CASCADE;
+    UPDATE
+        CASCADE ON DELETE CASCADE;
 
 CREATE TABLE fk_d PARTITION OF fk DEFAULT;
 
@@ -3610,8 +3608,8 @@ FOR VALUES FROM (10) TO (100);
 
 ALTER TABLE fk
     ADD FOREIGN KEY (a) REFERENCES pk ON
-        UPDATE
-            SET NULL ON DELETE SET NULL;
+    UPDATE
+        SET NULL ON DELETE SET NULL;
 
 CREATE TABLE fk_d PARTITION OF fk DEFAULT;
 
@@ -3659,8 +3657,8 @@ FOR VALUES FROM (10) TO (100);
 
 ALTER TABLE fk
     ADD FOREIGN KEY (a) REFERENCES pk ON
-        UPDATE
-            SET DEFAULT ON DELETE SET DEFAULT;
+    UPDATE
+        SET DEFAULT ON DELETE SET DEFAULT;
 
 CREATE TABLE fk_d PARTITION OF fk DEFAULT;
 
@@ -3711,8 +3709,8 @@ FOR VALUES FROM (10) TO (100);
 
 ALTER TABLE fk
     ADD FOREIGN KEY (a) REFERENCES pk ON
-        UPDATE
-            RESTRICT ON DELETE RESTRICT;
+    UPDATE
+        RESTRICT ON DELETE RESTRICT;
 
 CREATE TABLE fk_d PARTITION OF fk DEFAULT;
 

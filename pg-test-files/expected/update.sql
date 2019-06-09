@@ -991,9 +991,7 @@ DROP POLICY policy_range_parted_subplan ON range_parted;
 
 DROP POLICY policy_range_parted_wholerow ON range_parted;
 
-REVOKE ALL ON range_parted, mintab
-FROM
-    regress_range_parted_user;
+REVOKE ALL ON range_parted, mintab FROM regress_range_parted_user;
 
 DROP USER regress_range_parted_user;
 

@@ -218,6 +218,7 @@ CREATE FUNCTION public.whoami ()
     SELECT
         'public'::text$$
         LANGUAGE sql;
+
 CREATE FUNCTION pg_temp.whoami ()
     RETURNS text AS
 $$

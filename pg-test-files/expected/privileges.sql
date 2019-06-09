@@ -103,9 +103,7 @@ BEGIN;
 LOCK atest1 IN ACCESS EXCLUSIVE MODE;
 COMMIT;
 
-REVOKE ALL ON atest1
-FROM
-    PUBLIC;
+REVOKE ALL ON atest1 FROM PUBLIC;
 
 SELECT
     *
@@ -1001,9 +999,7 @@ INSERT INTO atest5 (four)
 -- ok
 SET SESSION AUTHORIZATION regress_priv_user1;
 
-REVOKE ALL (one) ON atest5
-FROM
-    regress_priv_user4;
+REVOKE ALL (one) ON atest5 FROM regress_priv_user4;
 
 GRANT SELECT (one, two, blue) ON atest6 TO regress_priv_user4;
 
@@ -1104,9 +1100,7 @@ GRANT DELETE ON atest5 TO regress_priv_user3;
 
 GRANT SELECT (two) ON atest5 TO regress_priv_user3;
 
-REVOKE ALL (one) ON atest5
-FROM
-    regress_priv_user3;
+REVOKE ALL (one) ON atest5 FROM regress_priv_user3;
 
 GRANT SELECT (one) ON atest5 TO regress_priv_user4;
 
@@ -1150,9 +1144,7 @@ SET SESSION AUTHORIZATION regress_priv_user1;
 ALTER TABLE atest6
     DROP COLUMN two;
 
-REVOKE SELECT (one, blue) ON atest6
-FROM
-    regress_priv_user4;
+REVOKE SELECT (one, blue) ON atest6 FROM regress_priv_user4;
 
 SET SESSION AUTHORIZATION regress_priv_user4;
 
@@ -1271,8 +1263,7 @@ FROM
 \c -
 REVOKE ALL PRIVILEGES ON
 LANGUAGE sql
-FROM
-    PUBLIC;
+FROM PUBLIC;
 
 GRANT USAGE ON
 LANGUAGE sql
@@ -1310,44 +1301,28 @@ CREATE PROCEDURE priv_testproc1 (int
 )
 AS 'select $1;'
     LANGUAGE sql;
-        REVOKE ALL ON FUNCTION priv_testfunc1 (int), priv_testfunc2 (int), priv_testagg1 (int)
-    FROM
-        PUBLIC;
-        GRANT EXECUTE ON FUNCTION priv_testfunc1 (int), priv_testfunc2 (int), priv_testagg1 (int)
-        TO regress_priv_user2;
-        REVOKE ALL ON FUNCTION priv_testproc1 (int)
-    FROM
-        PUBLIC;
+        REVOKE ALL ON FUNCTION priv_testfunc1 (int), priv_testfunc2 (int), priv_testagg1 (int) FROM PUBLIC;
+        GRANT EXECUTE ON FUNCTION priv_testfunc1 (int), priv_testfunc2 (int), priv_testagg1 (int) TO regress_priv_user2;
+        REVOKE ALL ON FUNCTION priv_testproc1 (int) FROM PUBLIC;
         -- fail, not a function
-        REVOKE ALL ON PROCEDURE priv_testproc1 (int)
-    FROM
-        PUBLIC;
-        GRANT EXECUTE ON PROCEDURE priv_testproc1 (int)
-        TO regress_priv_user2;
-        GRANT USAGE ON FUNCTION priv_testfunc1 (int)
-        TO regress_priv_user3;
+        REVOKE ALL ON PROCEDURE priv_testproc1 (int) FROM PUBLIC;
+        GRANT EXECUTE ON PROCEDURE priv_testproc1 (int) TO regress_priv_user2;
+        GRANT USAGE ON FUNCTION priv_testfunc1 (int) TO regress_priv_user3;
         -- semantic error
-        GRANT USAGE ON FUNCTION priv_testagg1 (int)
-        TO regress_priv_user3;
+        GRANT USAGE ON FUNCTION priv_testagg1 (int) TO regress_priv_user3;
         -- semantic error
-        GRANT USAGE ON PROCEDURE priv_testproc1 (int)
-        TO regress_priv_user3;
+        GRANT USAGE ON PROCEDURE priv_testproc1 (int) TO regress_priv_user3;
         -- semantic error
-        GRANT ALL PRIVILEGES ON FUNCTION priv_testfunc1 (int)
-        TO regress_priv_user4;
-        GRANT ALL PRIVILEGES ON FUNCTION priv_testfunc_nosuch (int)
-        TO regress_priv_user4;
-        GRANT ALL PRIVILEGES ON FUNCTION priv_testagg1 (int)
-        TO regress_priv_user4;
-        GRANT ALL PRIVILEGES ON PROCEDURE priv_testproc1 (int)
-        TO regress_priv_user4;
+        GRANT ALL PRIVILEGES ON FUNCTION priv_testfunc1 (int) TO regress_priv_user4;
+        GRANT ALL PRIVILEGES ON FUNCTION priv_testfunc_nosuch (int) TO regress_priv_user4;
+        GRANT ALL PRIVILEGES ON FUNCTION priv_testagg1 (int) TO regress_priv_user4;
+        GRANT ALL PRIVILEGES ON PROCEDURE priv_testproc1 (int) TO regress_priv_user4;
         CREATE FUNCTION priv_testfunc4 (boolean )
             RETURNS text
             AS 'select col1 from atest2 where col2 = $1;'
     LANGUAGE sql
     SECURITY DEFINER;
-        GRANT EXECUTE ON FUNCTION priv_testfunc4 (boolean)
-        TO regress_priv_user3;
+        GRANT EXECUTE ON FUNCTION priv_testfunc4 (boolean) TO regress_priv_user3;
         SET SESSION AUTHORIZATION regress_priv_user2;
         SELECT
             priv_testfunc1 (5),
@@ -1420,9 +1395,7 @@ AS 'select $1;'
         BEGIN;
         SELECT
             '{1}'::int4[]::int8[];
-        REVOKE ALL ON FUNCTION int8(integer)
-    FROM
-        PUBLIC;
+        REVOKE ALL ON FUNCTION int8(integer) FROM PUBLIC;
         SELECT
             '{1}'::int4[]::int8[];
         --superuser, succeed
@@ -1438,18 +1411,14 @@ AS 'select $1;'
             a int,
             b text
 );
-        REVOKE USAGE ON TYPE priv_testtype1
-    FROM
-        PUBLIC;
+        REVOKE USAGE ON TYPE priv_testtype1 FROM PUBLIC;
         GRANT USAGE ON TYPE priv_testtype1 TO regress_priv_user2;
         GRANT USAGE ON TYPE _priv_testtype1 TO regress_priv_user2;
         -- fail
         GRANT USAGE ON DOMAIN priv_testtype1 TO regress_priv_user2;
         -- fail
         CREATE DOMAIN priv_testdomain1 AS int;
-        REVOKE USAGE ON DOMAIN priv_testdomain1
-    FROM
-        PUBLIC;
+        REVOKE USAGE ON DOMAIN priv_testdomain1 FROM PUBLIC;
         GRANT USAGE ON DOMAIN priv_testdomain1 TO regress_priv_user2;
         GRANT USAGE ON TYPE priv_testdomain1 TO regress_priv_user2;
         -- ok
@@ -1536,9 +1505,7 @@ CREATE TYPE test7a AS (
             SELECT
                 1::priv_testdomain1 AS a
             );
-        REVOKE ALL ON TYPE priv_testtype1
-    FROM
-        PUBLIC;
+        REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
         SET SESSION AUTHORIZATION regress_priv_user2;
         -- commands that should succeed
         CREATE AGGREGATE priv_testagg1b (priv_testdomain1 ) (
@@ -1618,9 +1585,7 @@ CREATE TYPE test7b AS (
             SELECT
                 1::priv_testdomain1 AS a
             );
-        REVOKE ALL ON TYPE priv_testtype1
-    FROM
-        PUBLIC;
+        REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
         \c -
         DROP AGGREGATE priv_testagg1b (priv_testdomain1);
         DROP DOMAIN priv_testdomain2b;
@@ -1966,9 +1931,7 @@ CREATE TYPE test7b AS (
             has_column_privilege('mytable', '........pg.dropped.2........', 'select');
         SELECT
             has_column_privilege('mytable', 2::int2, 'select');
-        REVOKE SELECT ON TABLE mytable
-    FROM
-        regress_priv_user3;
+        REVOKE SELECT ON TABLE mytable FROM regress_priv_user3;
         SELECT
             has_column_privilege('mytable', 2::int2, 'select');
         DROP TABLE mytable;
@@ -1986,20 +1949,14 @@ CREATE TYPE test7b AS (
         GRANT UPDATE ON atest4 TO regress_priv_user3;
         -- fail
         SET SESSION AUTHORIZATION regress_priv_user1;
-        REVOKE SELECT ON atest4
-    FROM
-        regress_priv_user3;
+        REVOKE SELECT ON atest4 FROM regress_priv_user3;
         -- does nothing
         SELECT
             has_table_privilege('regress_priv_user3', 'atest4', 'SELECT');
         -- true
-        REVOKE SELECT ON atest4
-    FROM
-        regress_priv_user2;
+        REVOKE SELECT ON atest4 FROM regress_priv_user2;
         -- fail
-        REVOKE GRANT OPTION FOR SELECT ON atest4
-        FROM
-            regress_priv_user2 CASCADE;
+        REVOKE GRANT OPTION FOR SELECT ON atest4 FROM regress_priv_user2 CASCADE;
         -- ok
         SELECT
             has_table_privilege('regress_priv_user2', 'atest4', 'SELECT');
@@ -2047,9 +2004,7 @@ CREATE TYPE test7b AS (
         DROP FUNCTION dogrant_fails ();
         SET SESSION AUTHORIZATION regress_priv_user4;
         DROP FUNCTION dogrant_ok ();
-        REVOKE regress_priv_group2
-    FROM
-        regress_priv_user5;
+        REVOKE regress_priv_group2 FROM regress_priv_user5;
         -- has_sequence_privilege tests
         \c -
         CREATE SEQUENCE x_seq;
@@ -2121,9 +2076,7 @@ CREATE TYPE test7b AS (
         GRANT SELECT ON LARGE OBJECT 1005 TO regress_priv_user3;
         GRANT UPDATE ON LARGE OBJECT 1006 TO regress_priv_user3;
         -- to be denied
-        REVOKE ALL ON LARGE OBJECT 2001, 2002
-    FROM
-        PUBLIC;
+        REVOKE ALL ON LARGE OBJECT 2001, 2002 FROM PUBLIC;
         GRANT ALL ON LARGE OBJECT 2001 TO regress_priv_user3;
         SELECT
             lo_unlink(1001);
@@ -2304,7 +2257,7 @@ CREATE TYPE test7b AS (
             has_schema_privilege('regress_priv_user2', 'testns4', 'CREATE');
         -- yes
         ALTER DEFAULT PRIVILEGES REVOKE ALL ON SCHEMAS FROM regress_priv_user2;
-        COMMIT;
+COMMIT;
         CREATE SCHEMA testns5;
         SELECT
             has_schema_privilege('regress_priv_user2', 'testns5', 'USAGE');
@@ -2414,9 +2367,7 @@ CREATE TYPE test7b AS (
         SELECT
             has_table_privilege('regress_priv_user1', 'testns.t2', 'SELECT');
         -- true
-        REVOKE ALL ON ALL TABLES IN SCHEMA testns
-    FROM
-        regress_priv_user1;
+        REVOKE ALL ON ALL TABLES IN SCHEMA testns FROM regress_priv_user1;
         SELECT
             has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT');
         -- false
@@ -2444,9 +2395,7 @@ CREATE TYPE test7b AS (
         SELECT
             has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE');
         -- true by default
-        REVOKE ALL ON ALL FUNCTIONS IN SCHEMA testns
-    FROM
-        PUBLIC;
+        REVOKE ALL ON ALL FUNCTIONS IN SCHEMA testns FROM PUBLIC;
         SELECT
             has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE');
         -- false
@@ -2456,9 +2405,7 @@ CREATE TYPE test7b AS (
         SELECT
             has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE');
         -- still true, not a function
-        REVOKE ALL ON ALL PROCEDURES IN SCHEMA testns
-    FROM
-        PUBLIC;
+        REVOKE ALL ON ALL PROCEDURES IN SCHEMA testns FROM PUBLIC;
         SELECT
             has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE');
         -- now false
@@ -2521,14 +2468,10 @@ CREATE TYPE test7b AS (
         GRANT SELECT ON dep_priv_test TO regress_priv_user5;
         \dp dep_priv_test
         SET session ROLE regress_priv_user2;
-        REVOKE SELECT ON dep_priv_test
-    FROM
-        regress_priv_user4 CASCADE;
+        REVOKE SELECT ON dep_priv_test FROM regress_priv_user4 CASCADE;
         \dp dep_priv_test
         SET session ROLE regress_priv_user3;
-        REVOKE SELECT ON dep_priv_test
-    FROM
-        regress_priv_user4 CASCADE;
+        REVOKE SELECT ON dep_priv_test FROM regress_priv_user4 CASCADE;
         \dp dep_priv_test
         SET session ROLE regress_priv_user1;
         DROP TABLE dep_priv_test;
@@ -2569,8 +2512,7 @@ CREATE TYPE test7b AS (
         -- these are needed to clean up permissions
         REVOKE USAGE ON
         LANGUAGE sql
-    FROM
-        regress_priv_user1;
+        FROM regress_priv_user1;
         DROP OWNED BY regress_priv_user1;
         DROP USER regress_priv_user1;
         DROP USER regress_priv_user2;
@@ -2599,9 +2541,7 @@ CREATE TYPE test7b AS (
         -- should fail
         ROLLBACK;
         \c
-        REVOKE SELECT ON lock_table
-    FROM
-        regress_locktable_user;
+        REVOKE SELECT ON lock_table FROM regress_locktable_user;
         -- LOCK TABLE and INSERT permission
         GRANT INSERT ON lock_table TO regress_locktable_user;
         SET SESSION AUTHORIZATION regress_locktable_user;
@@ -2618,9 +2558,7 @@ CREATE TYPE test7b AS (
         -- should fail
         ROLLBACK;
         \c
-        REVOKE INSERT ON lock_table
-    FROM
-        regress_locktable_user;
+        REVOKE INSERT ON lock_table FROM regress_locktable_user;
         -- LOCK TABLE and UPDATE permission
         GRANT UPDATE ON lock_table TO regress_locktable_user;
         SET SESSION AUTHORIZATION regress_locktable_user;
@@ -2637,9 +2575,7 @@ CREATE TYPE test7b AS (
         -- should pass
         COMMIT;
         \c
-        REVOKE UPDATE ON lock_table
-    FROM
-        regress_locktable_user;
+        REVOKE UPDATE ON lock_table FROM regress_locktable_user;
         -- LOCK TABLE and DELETE permission
         GRANT DELETE ON lock_table TO regress_locktable_user;
         SET SESSION AUTHORIZATION regress_locktable_user;
@@ -2656,9 +2592,7 @@ CREATE TYPE test7b AS (
         -- should pass
         COMMIT;
         \c
-        REVOKE DELETE ON lock_table
-    FROM
-        regress_locktable_user;
+        REVOKE DELETE ON lock_table FROM regress_locktable_user;
         -- LOCK TABLE and TRUNCATE permission
         GRANT TRUNCATE ON lock_table TO regress_locktable_user;
         SET SESSION AUTHORIZATION regress_locktable_user;
@@ -2675,9 +2609,7 @@ CREATE TYPE test7b AS (
         -- should pass
         COMMIT;
         \c
-        REVOKE TRUNCATE ON lock_table
-    FROM
-        regress_locktable_user;
+        REVOKE TRUNCATE ON lock_table FROM regress_locktable_user;
         -- clean up
         DROP TABLE lock_table;
         DROP USER regress_locktable_user;

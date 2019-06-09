@@ -206,11 +206,13 @@ CREATE FUNCTION do_analyze ()
     LANGUAGE SQL
     AS 'ANALYZE pg_am'
 ;
+
 CREATE FUNCTION wrap_do_analyze (c INT)
     RETURNS INT IMMUTABLE
     LANGUAGE SQL
     AS 'SELECT $1 FROM do_analyze()'
 ;
+
 CREATE INDEX ON vaccluster (wrap_do_analyze (i));
 
 INSERT INTO vaccluster

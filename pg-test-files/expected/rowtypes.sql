@@ -911,6 +911,7 @@ CREATE FUNCTION fcompos1 (v compos)
     AS $$
     INSERT INTO compos
     VALUES (v);
+
 -- fail
 $$
 LANGUAGE sql;
@@ -920,6 +921,7 @@ CREATE FUNCTION fcompos1 (v compos)
     AS $$
     INSERT INTO compos
     VALUES (v.*);
+
 $$
 LANGUAGE sql;
 
@@ -928,6 +930,7 @@ CREATE FUNCTION fcompos2 (v compos)
     AS $$
     SELECT
         fcompos1 (v);
+
 $$
 LANGUAGE sql;
 
@@ -936,6 +939,7 @@ CREATE FUNCTION fcompos3 (v compos)
     AS $$
     SELECT
         fcompos1 (fcompos3.v.*);
+
 $$
 LANGUAGE sql;
 
@@ -1025,25 +1029,31 @@ CREATE FUNCTION longname (fullname)
     AS $$
     SELECT
         $1.FIRST || ' ' || $1.last$$;
+
 SELECT
     f.longname
 FROM
     fullname f;
+
 SELECT
     longname (f)
 FROM
     fullname f;
+
 -- Starting in v11, the notational form does matter if there's ambiguity
 ALTER TABLE fullname
     ADD COLUMN longname text;
+
 SELECT
     f.longname
 FROM
     fullname f;
+
 SELECT
     longname (f)
 FROM
     fullname f;
+
 --
 -- Test that composite values are seen to have the correct column names
 -- (bug #11210 and other reports)
@@ -1052,25 +1062,30 @@ SELECT
     row_to_json(i)
 FROM
     int8_tbl i;
+
 SELECT
     row_to_json(i)
 FROM
     int8_tbl i (x,
         y);
+
 CREATE temp VIEW vv1 AS
 SELECT
     *
 FROM
     int8_tbl;
+
 SELECT
     row_to_json(i)
 FROM
     vv1 i;
+
 SELECT
     row_to_json(i)
 FROM
     vv1 i (x,
         y);
+
 SELECT
     row_to_json(ss)
 FROM (
@@ -1079,6 +1094,7 @@ FROM (
         q2
     FROM
         int8_tbl) AS ss;
+
 SELECT
     row_to_json(ss)
 FROM (
@@ -1087,6 +1103,7 @@ FROM (
         q2
     FROM
         int8_tbl offset 0) AS ss;
+
 SELECT
     row_to_json(ss)
 FROM (
@@ -1095,6 +1112,7 @@ FROM (
         q2 AS b
     FROM
         int8_tbl) AS ss;
+
 SELECT
     row_to_json(ss)
 FROM (
@@ -1103,6 +1121,7 @@ FROM (
         q2 AS b
     FROM
         int8_tbl offset 0) AS ss;
+
 SELECT
     row_to_json(ss)
 FROM (
@@ -1112,6 +1131,7 @@ FROM (
     FROM
         int8_tbl) AS ss (x,
         y);
+
 SELECT
     row_to_json(ss)
 FROM (
@@ -1121,6 +1141,7 @@ FROM (
     FROM
         int8_tbl offset 0) AS ss (x,
         y);
+
 EXPLAIN (
     COSTS OFF
 )
@@ -1135,6 +1156,7 @@ FROM (
     WHERE
         thousand = 42
         AND tenthous < 2000 offset 0) q;
+
 SELECT
     row_to_json(q)
 FROM (
@@ -1146,6 +1168,7 @@ FROM (
     WHERE
         thousand = 42
         AND tenthous < 2000 offset 0) q;
+
 SELECT
     row_to_json(q)
 FROM (
@@ -1157,6 +1180,7 @@ FROM (
     WHERE
         thousand = 42
         AND tenthous < 2000 offset 0) q;
+
 SELECT
     row_to_json(q)
 FROM (
@@ -1169,18 +1193,22 @@ FROM (
         thousand = 42
         AND tenthous < 2000 offset 0) q (a,
         b);
+
 CREATE temp TABLE tt1 AS
 SELECT
     *
 FROM
     int8_tbl
 LIMIT 2;
+
 CREATE temp TABLE tt2 ()
 INHERITS (
     tt1
 );
+
 INSERT INTO tt2
     VALUES (0, 0);
+
 SELECT
     row_to_json(r)
 FROM (
@@ -1189,17 +1217,21 @@ FROM (
         q1
     FROM
         tt1 offset 0) r;
+
 -- check no-op rowtype conversions
 CREATE temp TABLE tt3 ()
 INHERITS (
     tt2
 );
+
 INSERT INTO tt3
     VALUES (33, 44);
+
 SELECT
     row_to_json(tt3::tt2::tt1)
 FROM
     tt3;
+
 --
 -- IS [NOT] NULL should not recurse into nested composites (bug #14235)
 --
@@ -1218,6 +1250,7 @@ FROM (
         (NULL, ROW (1, 2)),
         (NULL, ROW (NULL, NULL)),
         (NULL, NULL)) r (a, b);
+
 SELECT
     r,
     r IS NULL AS ISNULL,
@@ -1229,6 +1262,7 @@ FROM (
         (NULL, ROW (1, 2)),
         (NULL, ROW (NULL, NULL)),
         (NULL, NULL)) r (a, b);
+
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -1273,6 +1307,7 @@ EXPLAIN (
         r IS NOT NULL AS isnotnull
     FROM
         r;
+
 WITH r (
     a,
     b
@@ -1314,6 +1349,7 @@ WITH r (
         r IS NOT NULL AS isnotnull
     FROM
         r;
+
 --
 -- Tests for component access / FieldSelect
 --
@@ -1321,8 +1357,10 @@ CREATE TABLE compositetable (
     a text,
     b text
 );
+
 INSERT INTO compositetable (a, b)
     VALUES ('fa', 'fb');
+
 -- composite type columns can't directly be accessed (error)
 SELECT
     d.a
@@ -1331,6 +1369,7 @@ FROM (
         compositetable AS d
     FROM
         compositetable) s;
+
 -- but can be accessed with proper parens
 SELECT
     (d).a,
@@ -1340,6 +1379,7 @@ FROM (
         compositetable AS d
     FROM
         compositetable) s;
+
 -- system columns can't be accessed in composite types (error)
 SELECT
     (d).ctid
@@ -1348,13 +1388,18 @@ FROM (
         compositetable AS d
     FROM
         compositetable) s;
+
 -- accessing non-existing column in NULL datum errors out
 SELECT
     (NULL::compositetable).nonexistant;
+
 -- existing column in a NULL composite yield NULL
 SELECT
     (NULL::compositetable).a;
+
 -- oids can't be accessed in composite types (error)
 SELECT
     (NULL::compositetable).oid;
+
 DROP TABLE compositetable;
+

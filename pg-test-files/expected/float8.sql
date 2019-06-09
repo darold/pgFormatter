@@ -662,6 +662,7 @@ CREATE FUNCTION xfloat8in (cstring)
     LANGUAGE internal
     AS 'int8in'
 ;
+
 CREATE FUNCTION xfloat8out (xfloat8) returns cstring immutable strict
   language internal as 'int8out';
 create type xfloat8 (input = xfloat8in, output = xfloat8out, like = float8);

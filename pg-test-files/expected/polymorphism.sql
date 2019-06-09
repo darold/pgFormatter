@@ -1158,6 +1158,7 @@ CREATE FUNCTION concat(text, VARIADIC anyarray)
         AS $$
     SELECT
         array_to_string($2, $1);
+
 $$
 LANGUAGE sql
 IMMUTABLE STRICT;
@@ -1182,6 +1183,7 @@ CREATE FUNCTION formarray (anyelement, VARIADIC anyarray)
     AS $$
     SELECT
         array_prepend($1, $2);
+
 $$
 LANGUAGE sql
 IMMUTABLE STRICT;
@@ -1259,6 +1261,7 @@ CREATE FUNCTION dfunc (a int = 1, int = 2)
     AS $$
     SELECT
         $1 + $2;
+
 $$
 LANGUAGE sql;
 
@@ -1294,6 +1297,7 @@ CREATE FUNCTION dfunc (a int = 1, b int)
     AS $$
     SELECT
         $1 + $2;
+
 $$
 LANGUAGE sql;
 
@@ -1303,6 +1307,7 @@ CREATE FUNCTION dfunc (a int = 1, out sum int, b int = 2
 AS $$
     SELECT
         $1 + $2;
+
 $$
 LANGUAGE sql;
 
@@ -1319,6 +1324,7 @@ CREATE FUNCTION dfunc (a int DEFAULT 1.0, int DEFAULT '-1')
     AS $$
     SELECT
         $1 + $2;
+
 $$
 LANGUAGE sql;
 
@@ -1330,6 +1336,7 @@ CREATE FUNCTION dfunc (a text DEFAULT 'Hello', b text DEFAULT 'World')
     AS $$
     SELECT
         $1 || ', ' || $2;
+
 $$
 LANGUAGE sql;
 
@@ -1364,6 +1371,7 @@ CREATE FUNCTION dfunc (int = 1, int = 2)
     AS $$
     SELECT
         2;
+
 $$
 LANGUAGE sql;
 
@@ -1372,6 +1380,7 @@ CREATE FUNCTION dfunc (int = 1, int = 2, int = 3, int = 4)
     AS $$
     SELECT
         4;
+
 $$
 LANGUAGE sql;
 
@@ -1414,6 +1423,7 @@ CREATE FUNCTION dfunc (out int = 20)
     AS $$
     SELECT
         1;
+
 $$
 LANGUAGE sql;
 
@@ -1423,6 +1433,7 @@ CREATE FUNCTION dfunc (anyelement = 'World' ::text)
     AS $$
     SELECT
         'Hello, ' || $1::text;
+
 $$
 LANGUAGE sql;
 
@@ -1497,6 +1508,7 @@ CREATE FUNCTION dfunc (int = 1, int = 2, int = 3)
     AS $$
     SELECT
         3;
+
 $$
 LANGUAGE sql;
 
@@ -1505,6 +1517,7 @@ CREATE FUNCTION dfunc (int = 1, int = 2)
     AS $$
     SELECT
         2;
+
 $$
 LANGUAGE sql;
 
@@ -1513,6 +1526,7 @@ CREATE FUNCTION dfunc (text)
     AS $$
     SELECT
         $1;
+
 $$
 LANGUAGE sql;
 
@@ -1546,6 +1560,7 @@ CREATE FUNCTION dfunc (a int, b int, c int = 0, d int = 0)
         $2,
         $3,
         $4;
+
 $$
 LANGUAGE sql;
 
@@ -1649,6 +1664,7 @@ CREATE FUNCTION dfunc (a varchar, b numeric, c date = CURRENT_DATE)
         $1,
         $2,
         $3;
+
 $$
 LANGUAGE sql;
 
@@ -1702,6 +1718,7 @@ CREATE FUNCTION dfunc (a varchar = 'def a', out _a varchar, c numeric = NULL, ou
     SELECT
         $1,
         $2;
+
 $$
 LANGUAGE sql;
 
@@ -1754,6 +1771,7 @@ CREATE OR REPLACE FUNCTION dfunc (a varchar = 'def a', out _a varchar, x numeric
     SELECT
         $1,
         $2;
+
 $$
 LANGUAGE sql;
 
@@ -1763,6 +1781,7 @@ CREATE OR REPLACE FUNCTION dfunc (a varchar = 'def a', out _a varchar, numeric =
     SELECT
         $1,
         $2;
+
 $$
 LANGUAGE sql;
 
@@ -1774,6 +1793,7 @@ CREATE FUNCTION testpolym (a int, a int)
     AS $$
     SELECT
         1;
+
 $$
 LANGUAGE sql;
 
@@ -1782,6 +1802,7 @@ CREATE FUNCTION testpolym (int, out a int, out a int)
     AS $$
     SELECT
         1;
+
 $$
 LANGUAGE sql;
 
@@ -1790,6 +1811,7 @@ CREATE FUNCTION testpolym (out a int, INOUT a int)
     AS $$
     SELECT
         1;
+
 $$
 LANGUAGE sql;
 
@@ -1798,6 +1820,7 @@ CREATE FUNCTION testpolym (a int, INOUT a int)
     AS $$
     SELECT
         1;
+
 $$
 LANGUAGE sql;
 
@@ -1807,6 +1830,7 @@ CREATE FUNCTION testpolym (a int, out a int)
     AS $$
     SELECT
         $1;
+
 $$
 LANGUAGE sql;
 
@@ -1822,6 +1846,7 @@ CREATE FUNCTION testpolym (a int)
     AS $$
     SELECT
         $1;
+
 $$
 LANGUAGE sql;
 
@@ -1842,6 +1867,7 @@ CREATE FUNCTION dfunc (a anyelement, b anyelement = NULL, flag bool = TRUE)
         ELSE
             $2
         END;
+
 $$
 LANGUAGE sql;
 

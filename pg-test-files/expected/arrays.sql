@@ -1395,6 +1395,7 @@ CREATE OR REPLACE FUNCTION unnest1 (anyarray)
         $1[s]
     FROM
         generate_subscripts($1, 1) g (s);
+
 $$
 LANGUAGE sql
 IMMUTABLE;
@@ -1407,6 +1408,7 @@ CREATE OR REPLACE FUNCTION unnest2 (anyarray)
     FROM
         generate_subscripts($1, 1) g1 (s1),
     generate_subscripts($1, 2) g2 (s2);
+
 $$
 LANGUAGE sql
 IMMUTABLE;

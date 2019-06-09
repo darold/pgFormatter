@@ -36,6 +36,7 @@ CREATE FUNCTION f_leak (text)
     COST 0.0000001
     AS 'BEGIN RAISE NOTICE ''f_leak => %'', $1; RETURN true; END'
 ;
+
 CREATE TABLE customer (
     cid int PRIMARY KEY,
     name text NOT NULL,

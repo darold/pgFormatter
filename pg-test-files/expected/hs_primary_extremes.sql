@@ -27,6 +27,7 @@ EXCEPTION
     WHEN raise_exception THEN
         NULL;
 END;
+
 $$;
 
 BEGIN;
@@ -58,6 +59,7 @@ EXCEPTION
     WHEN raise_exception THEN
         NULL;
 END;
+
 $$;
 
 CREATE OR REPLACE FUNCTION hs_locks_drop (n integer)
@@ -77,6 +79,7 @@ EXCEPTION
     WHEN raise_exception THEN
         NULL;
 END;
+
 $$;
 
 BEGIN;

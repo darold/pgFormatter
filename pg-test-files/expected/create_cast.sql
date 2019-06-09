@@ -31,6 +31,7 @@ CREATE FUNCTION casttestfunc (casttesttype)
     AS $$
     SELECT
         1;
+
 $$;
 
 SELECT
@@ -57,20 +58,26 @@ DROP CAST(text AS casttesttype);
 CREATE CAST( text AS casttesttype) WITHOUT FUNCTION
 AS IMPLICIT
 ;
+
 SELECT
     casttestfunc ('foo'::text);
+
 -- Should work now
 -- Try I/O conversion cast.
 SELECT
     1234::int4::casttesttype;
+
 -- No cast yet, should fail
 CREATE CAST( int4 AS casttesttype
 )
 WITH INOUT;
+
 SELECT
     1234::int4::casttesttype;
+
 -- Should work now
 DROP CAST(int4 AS casttesttype);
+
 -- Try cast with a function
 CREATE FUNCTION int4_casttesttype (int4)
     RETURNS casttesttype
@@ -79,7 +86,9 @@ CREATE FUNCTION int4_casttesttype (int4)
     SELECT
         (
             'foo' ::text || $1 ::text)::casttesttype;
+
 $$;
+
 CREATE CAST( int4 AS casttesttype
 )
 WITH FUNCTION int4_casttesttype (int4
