@@ -3095,11 +3095,8 @@ sub set_dicts {
     $self->{ 'dict' }->{ 'pg_keywords' }   = \@pg_keywords;
     $self->{ 'dict' }->{ 'pg_types' }      = \@pg_types;
     $self->{ 'dict' }->{ 'sql_keywords' }  = \@sql_keywords;
-    $self->{ 'dict' }->{ 'pg_functions' }  = \@pg_functions;
     $self->{ 'dict' }->{ 'pg_functions' }  = ();
-    foreach my $f (@pg_functions) {
-	    $self->{ 'dict' }->{ 'pg_functions' }{$f} = '';
-    }
+    map { $self->{ 'dict' }->{ 'pg_functions' }{$_} = ''; } @pg_functions;
     $self->{ 'dict' }->{ 'copy_keywords' } = \@copy_keywords;
     $self->{ 'dict' }->{ 'symbols' }       = \%symbols;
     $self->{ 'dict' }->{ 'brackets' }      = \@brackets;
