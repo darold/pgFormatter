@@ -1,0 +1,8 @@
+SELECT COUNT(*) customer, DATE_TRUNC('day', r.rental_date)
+FROM customer c
+JOIN rental r
+ON c.customer_id = r.rental_id
+JOIN inventory i
+ON r.rental_id = i.inventory_id
+GROUP BY 2
+ORDER BY 2 DESC;
