@@ -388,7 +388,7 @@ qq{<textarea name="original_content" id="originalcontent" style="display: none;"
     print qq{
     </td></tr>
     <tr><td>
-    <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.org</a> </div>
+    <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.com</a> </div>
     </td></tr></table>
     </td></tr></table> </form>
 };
