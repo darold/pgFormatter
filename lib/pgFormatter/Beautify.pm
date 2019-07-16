@@ -539,6 +539,7 @@ sub beautify {
     $self->{ '_is_in_aggregate' } = 0;
     $self->{ '_is_in_value' } = 0;
     $self->{ '_parenthesis_level_value' } = 0;
+    $self->{ '_parenthesis_with_level' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -579,8 +580,8 @@ sub beautify {
         ####
         if ( $token eq ')')
         {
-	    $self->{ '_parenthesis_filter_level' }-- if ($self->{ '_is_in_filter' } and $self->{ '_parenthesis_filter_level' });
-	    $self->{ '_parenthesis_with_level' }-- if ($self->{ '_is_in_with' } and $self->{ '_parenthesis_with_level' });
+	    $self->{ '_parenthesis_filter_level' }-- if ($self->{ '_parenthesis_filter_level' });
+	    $self->{ '_parenthesis_with_level' }-- if ($self->{ '_parenthesis_with_level' });
 	    $self->{ '_is_in_filter' } = 0 if (!$self->{ '_parenthesis_filter_level' });
 
             if (!$self->{ '_is_in_function' }) {
@@ -667,11 +668,13 @@ sub beautify {
 	    }
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
+	    $self->{ '_is_in_with' } = 0 if ($self->_next_token !~ /^AS|WITH|,$/i and !$self->{ '_parenthesis_with_level' });
 
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS' && !$self->{ '_is_in_with'}) {
                 $self->_new_line($token,$last);
 	    }
-            if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' }) && !$self->{ '_parenthesis_level' }
+            if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' })
+		    && !$self->{ '_parenthesis_level' } && !$self->{ '_parenthesis_with_level' }
 		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' }) {
                 $self->_new_line($token,$last) if (!$self->{ '_is_in_operator' } ||
 			(!$self->{ '_is_in_drop' } and $self->_next_token eq ';'));
@@ -1170,7 +1173,6 @@ sub beautify {
 
         elsif ( $token eq ')' )
 	{
-	    $self->{ '_is_in_with' } = 0 if ($self->{ '_is_in_with' } and $self->_next_token !~ /^AS|WITH|,$/i and !$self->{ '_parenthesis_with_level' });
 	    if ($self->{ '_is_in_constraint' } and defined $self->_next_token
 			    and ($self->_next_token eq ',' or $self->_next_token eq ')')) {
 		$self->{ '_is_in_constraint' } = 0;
@@ -1374,6 +1376,7 @@ sub beautify {
             $self->{ '_is_in_aggregate' } = 0;
             $self->{ '_is_in_value' } = 0;
             $self->{ '_parenthesis_level_value' } = 0;
+	    $self->{ '_parenthesis_with_level' } = 0;
 
 	    if ( $self->{ '_insert_values' } )
 	    {
