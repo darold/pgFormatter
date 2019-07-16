@@ -2855,20 +2855,21 @@ sub set_dicts {
         float8out float8pl float8recv float8send float8smaller float8um float8up
         floor flt4_mul_cash flt8_mul_cash fmgr_c_validator fmgr_internal_validator fmgr_sql_validator format
         format_type gb18030_to_utf8 gbk_to_utf8 gen_random_bytes gen_salt generate_series generate_subscripts
-        get_current_ts_config getdatabaseencoding getpgusername gin_cmp_prefix gin_cmp_tslexeme gin_extract_tsquery gin_extract_tsvector
-        gin_tsquery_consistent ginarrayconsistent ginarrayextract ginbeginscan ginbuild ginbuildempty ginbulkdelete
-        gincostestimate ginendscan gingetbitmap gininsert ginmarkpos ginoptions ginqueryarrayextract
-        ginrescan ginrestrpos ginvacuumcleanup gist_box_compress gist_box_consistent gist_box_decompress gist_box_penalty
-        gist_box_picksplit gist_box_same gist_box_union gist_circle_compress gist_circle_consistent gist_point_compress gist_point_consistent
-        gist_point_distance gist_poly_compress gist_poly_consistent gistbeginscan gistbuild gistbuildempty gistbulkdelete
-        gistcostestimate gistendscan gistgetbitmap gistgettuple gistinsert gistmarkpos gistoptions
-        gistrescan gistrestrpos gistvacuumcleanup gtsquery_compress gtsquery_consistent gtsquery_decompress gtsquery_penalty
-        gtsquery_picksplit gtsquery_same gtsquery_union gtsvector_compress gtsvector_consistent gtsvector_decompress gtsvector_penalty
-        gtsvector_picksplit gtsvector_same gtsvector_union gtsvectorin gtsvectorout has_any_column_privilege has_column_privilege
-        has_database_privilege has_foreign_data_wrapper_privilege has_function_privilege has_language_privilege
-	has_schema_privilege has_sequence_privilege has_server_privilege has_table_privilege has_tablespace_privilege
-	has_type_privilege hash_aclitem hash_array hash_numeric hash_range hashbeginscan hashbpchar hashbuild
-	hashbuildempty hashbulkdelete hashchar hashcostestimate hash_aclitem_extended 
+	geometry get_current_ts_config getdatabaseencoding getpgusername gin_cmp_prefix gin_cmp_tslexeme
+	gin_extract_tsquery gin_extract_tsvector gin_tsquery_consistent ginarrayconsistent ginarrayextract
+	ginbeginscan ginbuild ginbuildempty ginbulkdelete gincostestimate ginendscan gingetbitmap gininsert
+	ginmarkpos ginoptions ginqueryarrayextract ginrescan ginrestrpos ginvacuumcleanup gist_box_compress
+	gist_box_consistent gist_box_decompress gist_box_penalty gist_box_picksplit gist_box_same gist_box_union
+	gist_circle_compress gist_circle_consistent gist_point_compress gist_point_consistent gist_point_distance
+	gist_poly_compress gist_poly_consistent gistbeginscan gistbuild gistbuildempty gistbulkdelete
+        gistcostestimate gistendscan gistgetbitmap gistgettuple gistinsert gistmarkpos gistoptions gistrescan
+	gistrestrpos gistvacuumcleanup gtsquery_compress gtsquery_consistent gtsquery_decompress gtsquery_penalty
+        gtsquery_picksplit gtsquery_same gtsquery_union gtsvector_compress gtsvector_consistent gtsvector_decompress
+	gtsvector_penalty gtsvector_picksplit gtsvector_same gtsvector_union gtsvectorin gtsvectorout
+	has_any_column_privilege has_column_privilege has_database_privilege has_foreign_data_wrapper_privilege
+	has_function_privilege has_language_privilege has_schema_privilege has_sequence_privilege has_server_privilege
+	has_table_privilege has_tablespace_privilege has_type_privilege hash_aclitem hash_array hash_numeric hash_range
+	hashbeginscan hashbpchar hashbuild hashbuildempty hashbulkdelete hashchar hashcostestimate hash_aclitem_extended 
         hashendscan hashenum hashfloat4 hashfloat8 hashgetbitmap hashgettuple hashinet hashinsert hashint2
 	hashint2extended hashint2vector hashint4 hashint4extended hashint8 hashint8extended hashmacaddr
 	hashfloat4extended hashfloat8extended hashcharextended hashoidextended hashnameextended hashmarkpos
