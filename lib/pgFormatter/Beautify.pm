@@ -787,7 +787,7 @@ sub beautify {
 	####
 	# Mark that we are in a CALL statement to remove any new line
 	####
-	if ($token =~ /^CALL/i) {
+	if ($token =~ /^CALL$/i) {
 	    $self->{ '_is_in_call' } = 1;
 	}
 
