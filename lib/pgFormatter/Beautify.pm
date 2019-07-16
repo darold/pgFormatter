@@ -512,6 +512,7 @@ sub beautify {
     $self->{ '_is_in_index' } = 0;
     $self->{ '_is_in_with' }  = 0;
     $self->{ '_is_in_explain' }  = 0;
+    $self->{ '_is_in_overlaps' } = 0;
     $self->{ '_parenthesis_level' } = 0;
     $self->{ '_parenthesis_function_level' } = 0;
     $self->{ '_has_order_by' }  = 0;
@@ -579,6 +580,7 @@ sub beautify {
         if ( $token eq ')')
         {
 	    $self->{ '_parenthesis_filter_level' }-- if ($self->{ '_is_in_filter' } and $self->{ '_parenthesis_filter_level' });
+	    $self->{ '_parenthesis_with_level' }-- if ($self->{ '_is_in_with' } and $self->{ '_parenthesis_with_level' });
 	    $self->{ '_is_in_filter' } = 0 if (!$self->{ '_parenthesis_filter_level' });
 
             if (!$self->{ '_is_in_function' }) {
@@ -603,6 +605,7 @@ sub beautify {
         elsif ( $token eq '(')
         {
 	    $self->{ '_parenthesis_filter_level' }++ if ($self->{ '_is_in_filter' });
+	    $self->{ '_parenthesis_with_level' }++ if ($self->{ '_is_in_with' });
             if ($self->{ '_is_in_function' }) {
                 $self->{ '_parenthesis_function_level' }++;
 	        push(@{ $self->{ '_level_parenthesis_function' } } , $self->{ '_level' }) if ($self->{ '_parenthesis_function_level' } == 1);
@@ -663,7 +666,7 @@ sub beautify {
 		    next;
 	    }
 
-            $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } && !$self->{ '_parenthesis_level' });
+            $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
 
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS' && !$self->{ '_is_in_with'}) {
                 $self->_new_line($token,$last);
@@ -707,6 +710,10 @@ sub beautify {
         if ( uc($token) eq 'EXPLAIN' )
 	{
 	    $self->{ '_is_in_explain' }  = 1;
+        }
+	elsif ( uc($token) eq 'OVERLAPS' )
+	{
+		$self->{ '_is_in_overlaps' } = 1;
         } 
 
         ####
@@ -1163,13 +1170,14 @@ sub beautify {
 
         elsif ( $token eq ')' )
 	{
+	    $self->{ '_is_in_with' } = 0 if ($self->{ '_is_in_with' } and $self->_next_token !~ /^AS|WITH|,$/i and !$self->{ '_parenthesis_with_level' });
 	    if ($self->{ '_is_in_constraint' } and defined $self->_next_token
 			    and ($self->_next_token eq ',' or $self->_next_token eq ')')) {
 		$self->{ '_is_in_constraint' } = 0;
 	    }
             if ($self->{ '_is_in_with' } == 1 || $self->{ '_is_in_explain' }) {
                 $self->_back($token, $last);
-	        $self->_new_line($token,$last) if (!$self->{ 'wrap_after' });
+	        $self->_new_line($token,$last) if (!$self->{ 'wrap_after' } && !$self->{ '_is_in_overlaps' });
                 $self->_add_token( $token );
 		$self->{ '_is_in_explain' } = 0;
                 next;
@@ -1340,6 +1348,7 @@ sub beautify {
             $self->{ '_is_in_index' } = 0;
             $self->{ '_is_in_if' } = 0;
             $self->{ '_is_in_with' } = 0;
+            $self->{ '_is_in_overlaps' } = 0;
             $self->{ '_has_order_by' } = 0;
             $self->{ '_has_over_in_join' } = 0;
             $self->{ '_parenthesis_level' } = 0;
