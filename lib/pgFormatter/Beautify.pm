@@ -668,7 +668,7 @@ sub beautify {
 	    }
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
-	    $self->{ '_is_in_with' } = 0 if ($self->_next_token !~ /^AS|WITH|,$/i and !$self->{ '_parenthesis_with_level' });
+	    $self->{ '_is_in_with' } = 0 if (defined $self->_next_token and $self->_next_token !~ /^AS|WITH|,$/i and !$self->{ '_parenthesis_with_level' });
 
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS' && !$self->{ '_is_in_with'}) {
                 $self->_new_line($token,$last);
@@ -1319,6 +1319,8 @@ sub beautify {
             $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
 	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
+	    $add_newline = 0 if ($self->{ '_is_in_function' });
+
 	    $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'end');
         }
 
@@ -3092,8 +3094,8 @@ sub set_dicts {
         schema_to_xml schema_to_xmlschema schema_to_xml_and_xmlschema database_to_xml database_to_xmlschema xmlroot
         database_to_xml_and_xmlschema table_to_xml query_to_xmlcursor_to_xml xmlcomment xmlconcat xmlelement xmlforest
         xml_is_well_formed_content xml_is_well_formed_document xml_is_well_formed xml_out xml_recv xml_send xmlagg
-	xmlpi query_to_xml cursor_to_xml xmlserialize
-        );
+	xmlpi query_to_xml cursor_to_xml xmlserialize xmltable
+    );
 
     my @copy_keywords = ( 'STDIN', 'STDOUT' );
 
