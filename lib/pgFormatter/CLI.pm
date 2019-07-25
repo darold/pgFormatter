@@ -124,11 +124,13 @@ Saves beautified query to whatever is output filehandle
 
 sub save_output {
     my $self = shift;
-    my $fh = \*STDOUT;
+    my $fh;
     # Thanks to "autodie" I don't have to check if open() worked.
     if ( $self->{ 'cfg' }->{ 'output' } ne '-' ) {
         $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
         open $fh, '>', $self->{ 'cfg' }->{ 'output' };
+    } else {  
+    	$fh = \*STDOUT;
     }
     print $fh $self->{ 'ready' };
     close $fh;
@@ -235,9 +237,11 @@ Loads SQL from input file or stdin.
 sub load_sql {
     my $self = shift;
     local $/ = undef;
-    my $fh = \*STDIN;
+    my $fh;
     if ( $self->{ 'cfg' }->{ 'input' } ne '-' ) {
         open $fh, '<', $self->{ 'cfg' }->{ 'input' };
+    } else {
+        $fh = \*STDIN;
     }
     $self->{ 'query' } = <$fh>;
     close $fh;
