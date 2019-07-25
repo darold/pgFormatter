@@ -124,7 +124,12 @@ Saves beautified query to whatever is output filehandle
 
 sub save_output {
     my $self = shift;
-    my $fh   = delete $self->{ 'output' };
+    my $fh = \*STDOUT;
+    # Thanks to "autodie" I don't have to check if open() worked.
+    if ( $self->{ 'cfg' }->{ 'output' } ne '-' ) {
+        $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
+        open $fh, '>', $self->{ 'cfg' }->{ 'output' };
+    }
     print $fh $self->{ 'ready' };
     close $fh;
     return;
@@ -230,7 +235,10 @@ Loads SQL from input file or stdin.
 sub load_sql {
     my $self = shift;
     local $/ = undef;
-    my $fh = delete $self->{ 'input' };
+    my $fh = \*STDIN;
+    if ( $self->{ 'cfg' }->{ 'input' } ne '-' ) {
+        open $fh, '<', $self->{ 'cfg' }->{ 'input' };
+    }
     $self->{ 'query' } = <$fh>;
     close $fh;
     return;
@@ -310,25 +318,6 @@ sub validate_args {
 
     $self->show_help_and_die( 2, 'function-case can be only one of: 0, 1, 2, or 3.' ) unless $self->{ 'cfg' }->{ 'function-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'keyword-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'keyword-case' } =~ m{\A[0123]\z};
-
-    # Thanks to "autodie" I don't have to check if open() worked.
-    if ( $self->{ 'cfg' }->{ 'input' } eq '-' ) {
-        $self->{ 'input' } = \*STDIN;
-    }
-    else {
-        open my $fh, '<', $self->{ 'cfg' }->{ 'input' };
-        $self->{ 'input' } = $fh;
-    }
-
-    if ( $self->{ 'cfg' }->{ 'output' } eq '-' ) {
-        $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
-        $self->{ 'output' } = \*STDOUT;
-    }
-    else {
-        $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to %s', $self->{ 'cfg' }->{ 'output' } );
-        open my $fh, '>', $self->{ 'cfg' }->{ 'output' };
-        $self->{ 'output' } = $fh;
-    }
 
     if ($self->{ 'cfg' }->{ 'comma-end' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'end';
