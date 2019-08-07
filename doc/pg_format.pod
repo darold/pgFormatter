@@ -47,6 +47,8 @@ Options:
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
     -t | --format-type    : try another formatting type for some statements.
+    -T | --tabs           : use tabs instead of space characters, when used
+                            spaces is set to 1 whatever is the value set to -s.
     -u | --keyword-case N : Change the case of the reserved keyword. Default is
                             uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
