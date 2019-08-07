@@ -3,11 +3,10 @@ NAME
 
 DESCRIPTION
     This SQL formatter/beautifier supports keywords from SQL-92, SQL-99,
-    SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords. May
-    works with any other databases too.
+    SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords. Works with other databases too.
 
     pgFormatter can work as a console program or as a CGI. It will
-    automatically detect his environment and output as text or as HTML
+    automatically detect its environment and format output as text or as HTML
     following the context.
 
     Keywords highlighting will only be available in CGI context.
