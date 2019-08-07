@@ -83,8 +83,7 @@ WITH driver (
     name
 ) AS (
     SELECT DISTINCT
-        unnest(xpath('//driver/text()',
-                doc))::text
+        unnest(xpath('//driver/text()', doc))::text
     FROM
         printer
 )

@@ -23,7 +23,8 @@ WITH RECURSIVE employee_recursive (
         er.employee_name = e.manager_name
 )
 SELECT
-    distance, employee_name
+    distance,
+    employee_name
 FROM
     employee_recursive;
 
