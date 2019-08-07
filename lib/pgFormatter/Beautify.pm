@@ -1994,26 +1994,29 @@ sub beautify {
 	     # special case with comment
 	     if ($token =~ /(?:\s*--)[\ \t\S]*/s)
 	     {
-		 $token =~ s/^(\s*)(--.*)/$2/s;
-		 my $start = $1 || '';
-		 if ($start =~ /\n/s) {
-                     $self->_new_line($token,$last), $self->_add_token('') if (defined $last and $last eq ';' and $self->{ 'content' } !~ /\n$/s);
-		     $self->_new_line($token,$last);
-		 }
-		 $token =~ s/\s+$//s;
-		 $token =~ s/^\s+//s;
-                 $self->_add_token( $token );
-                 $self->_new_line($token,$last) if ($start || $self->{ 'content' } !~ /\n/s);
-		 # Add extra newline after the last comment if we are not in a block or a statement
-		 if (defined $self->_next_token and $self->_next_token !~ /^\s*--/) {
-                     $self->{ 'content' } .= "\n" if ($self->{ '_is_in_block' } == -1
-				     and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' }
-		                     and !$self->{ '_current_sql_stmt' }
-			     	     and defined $last and $self->_is_comment($last)
-		     		);
-		 }
-                 $last = $token;
-		 next;
+                 if ( !$self->{ 'no_comments' } )
+	         {
+                     $token =~ s/^(\s*)(--.*)/$2/s;
+                     my $start = $1 || '';
+                     if ($start =~ /\n/s) {
+                         $self->_new_line($token,$last), $self->_add_token('') if (defined $last and $last eq ';' and $self->{ 'content' } !~ /\n$/s);
+                         $self->_new_line($token,$last);
+                     }
+                     $token =~ s/\s+$//s;
+                     $token =~ s/^\s+//s;
+                     $self->_add_token( $token );
+                     $self->_new_line($token,$last) if ($start || $self->{ 'content' } !~ /\n/s);
+                     # Add extra newline after the last comment if we are not in a block or a statement
+                     if (defined $self->_next_token and $self->_next_token !~ /^\s*--/) {
+                         $self->{ 'content' } .= "\n" if ($self->{ '_is_in_block' } == -1
+                                         and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' }
+                                         and !$self->{ '_current_sql_stmt' }
+                                              and defined $last and $self->_is_comment($last)
+                                         );
+                     }
+                     $last = $token;
+                 }    
+                 next;
 	     }
 
              if ($last =~ /^(?:SEQUENCE)$/i and $self->_next_token !~ /^(OWNED|;)$/i)
@@ -3235,7 +3238,6 @@ sub _remove_comments
         $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
         $idx++;
     }
-
     my @lines = split(/\n/, $self->{ 'content' });
     for (my $j = 0; $j <= $#lines; $j++) {
         $lines[$j] //= '';
