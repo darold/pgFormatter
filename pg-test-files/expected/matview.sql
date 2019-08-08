@@ -626,19 +626,19 @@ FROM
 DROP MATERIALIZED VIEW mv_unspecified_types;
 
 -- make sure that create WITH NO DATA does not plan the query (bug #13907)
-CREATE materialized VIEW mvtest_error AS
+CREATE MATERIALIZED VIEW mvtest_error AS
 SELECT
     1 / 0 AS x;
 
 -- fail
-CREATE materialized VIEW mvtest_error AS
+CREATE MATERIALIZED VIEW mvtest_error AS
 SELECT
     1 / 0 AS x WITH NO data;
 
-refresh materialized VIEW mvtest_error;
+REFRESH MATERIALIZED VIEW mvtest_error;
 
 -- fail here
-DROP materialized VIEW mvtest_error;
+DROP MATERIALIZED VIEW mvtest_error;
 
 -- make sure that matview rows can be referenced as source rows (bug #9398)
 CREATE TABLE mvtest_v AS
