@@ -118,9 +118,7 @@ LANGUAGE SQL
 FROM
     SQL WITH FUNCTION prsd_lextype( internal
 ),
-    TO SQL WITH FUNCTION int4recv( internal
-)
-);
+    TO SQL WITH FUNCTION int4recv( internal));
 
 CREATE PUBLICATION addr_pub FOR TABLE addr_nsp.gentable;
 
@@ -304,9 +302,7 @@ WITH objects (
         ('index', '{addr_nsp, parttable_pkey}', '{}'),
         ('sequence', '{addr_nsp, gentable_a_seq}', '{}'),
         -- toast table
-        ('view',
-            '{addr_nsp, genview}',
-            '{}'),
+        ('view', '{addr_nsp, genview}', '{}'),
         ('materialized view', '{addr_nsp, genmatview}', '{}'),
         ('foreign table', '{addr_nsp, genftable}', '{}'),
         ('table column', '{addr_nsp, gentable, b}', '{}'),
@@ -326,9 +322,7 @@ WITH objects (
         ('default value', '{addr_nsp, gentable, b}', '{}'),
         ('language', '{plpgsql}', '{}'),
         -- large object
-        ('operator',
-            '{+}',
-            '{int4, int4}'),
+        ('operator', '{+}', '{int4, int4}'),
         ('operator class', '{btree, int4_ops}', '{}'),
         ('operator family', '{btree, integer_ops}', '{}'),
         ('operator of access method', '{btree,integer_ops,1}', '{integer,integer}'),
@@ -356,8 +350,7 @@ WITH objects (
         ('publication', '{addr_pub}', '{}'),
         ('publication relation', '{addr_nsp, gentable}', '{addr_pub}'),
         ('subscription', '{addr_sub}', '{}'),
-        ('statistics object', '{addr_nsp, gentable_stat}', '{}')
-)
+        ('statistics object', '{addr_nsp, gentable_stat}', '{}'))
 SELECT
     (pg_identify_object (addr1.classid, addr1.objid, addr1.objsubid)).*,
     -- test roundtrip through pg_identify_object_as_address

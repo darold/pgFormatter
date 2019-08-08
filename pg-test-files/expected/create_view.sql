@@ -681,8 +681,7 @@ FROM
 WHERE
     a <> 0;
 
-CREATE VIEW mysecview5 WITH ( security_barrier = 100
-) -- Error
+CREATE VIEW mysecview5 WITH ( security_barrier = 100) -- Error
 AS
 SELECT
     *
@@ -691,8 +690,7 @@ FROM
 WHERE
     a > 100;
 
-CREATE VIEW mysecview6 WITH ( invalid_option
-) -- Error
+CREATE VIEW mysecview6 WITH ( invalid_option) -- Error
 AS
 SELECT
     *

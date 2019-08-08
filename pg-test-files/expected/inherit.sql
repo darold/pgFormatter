@@ -1458,7 +1458,10 @@ WITH RECURSIVE r AS (
         r.inhrelid = c.inhparent
 )
 SELECT
-    a.attrelid::regclass, a.attname, a.attinhcount, e.expected
+    a.attrelid::regclass,
+    a.attname,
+    a.attinhcount,
+    e.expected
 FROM (
     SELECT
         inhrelid,

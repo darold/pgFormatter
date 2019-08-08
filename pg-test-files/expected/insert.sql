@@ -780,8 +780,7 @@ SELECT
     s.a,
     1
 FROM
-    generate_series(2,
-        39) s (a)
+    generate_series(2, 39) s (a)
 RETURNING
     tableoid::regclass,
     *
@@ -1219,8 +1218,8 @@ INSERT INTO brtrigpartcon
     VALUES (1,
         'hi there')
 RETURNING
-    1
-) INSERT INTO inserttest3 (f3)
+    1)
+INSERT INTO inserttest3 (f3)
 SELECT
     *
 FROM

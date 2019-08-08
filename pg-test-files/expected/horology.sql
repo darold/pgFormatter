@@ -256,8 +256,7 @@ SELECT
     date '1994-01-01' + timetz '11:00-5' AS "Jan_01_1994_8am";
 
 SELECT
-    timestamptz(date '1994-01-01', time WITH time zone '11:00-5'
-) AS "Jan_01_1994_8am";
+    timestamptz(date '1994-01-01', time WITH time zone '11:00-5') AS "Jan_01_1994_8am";
 
 SELECT
     '' AS "64",
@@ -284,26 +283,16 @@ SELECT
     timestamp WITH time zone '1999-12-01' + interval '1 month - 1 second' AS "Dec 31";
 
 SELECT
-    (timestamp WITH time zone 'today' = (
-            timestamp WITH time zone 'yesterday' + interval '1 day'
-)
-) AS "True";
+    (timestamp WITH time zone 'today' = (timestamp WITH time zone 'yesterday' + interval '1 day')) AS "True";
 
 SELECT
-    (timestamp WITH time zone 'today' = (
-            timestamp WITH time zone 'tomorrow' - interval '1 day'
-)
-) AS "True";
+    (timestamp WITH time zone 'today' = (timestamp WITH time zone 'tomorrow' - interval '1 day')) AS "True";
 
 SELECT
-    (timestamp WITH time zone 'tomorrow' = (
-            timestamp WITH time zone 'yesterday' + interval '2 days'
-)
-) AS "True";
+    (timestamp WITH time zone 'tomorrow' = (timestamp WITH time zone 'yesterday' + interval '2 days')) AS "True";
 
 SELECT
-    (timestamp WITH time zone 'tomorrow' > 'now'
-) AS "True";
+    (timestamp WITH time zone 'tomorrow' > 'now') AS "True";
 
 -- timestamp with time zone, interval arithmetic around DST change
 SET TIME ZONE 'CST7CDT';
@@ -329,16 +318,13 @@ SELECT
     timestamptz(date '1994-01-01', time '10:00') AS "Jan_01_1994_9am";
 
 SELECT
-    timestamptz(date '1994-01-01', time WITH time zone '11:00-8'
-) AS "Jan_01_1994_11am";
+    timestamptz(date '1994-01-01', time WITH time zone '11:00-8') AS "Jan_01_1994_11am";
 
 SELECT
-    timestamptz(date '1994-01-01', time WITH time zone '10:00-8'
-) AS "Jan_01_1994_10am";
+    timestamptz(date '1994-01-01', time WITH time zone '10:00-8') AS "Jan_01_1994_10am";
 
 SELECT
-    timestamptz(date '1994-01-01', time WITH time zone '11:00-5'
-) AS "Jan_01_1994_8am";
+    timestamptz(date '1994-01-01', time WITH time zone '11:00-5') AS "Jan_01_1994_8am";
 
 SELECT
     '' AS "64",
@@ -375,12 +361,10 @@ SELECT
     time '03:30' + interval '1 month 04:01' AS "07:31:00";
 
 SELECT
-    CAST(time WITH time zone '01:02-08' AS interval
-) AS "+00:01";
+    CAST(time WITH time zone '01:02-08' AS interval) AS "+00:01";
 
 SELECT
-    CAST(interval '02:03' AS time WITH time zone
-) AS "02:03:00-08";
+    CAST(interval '02:03' AS time WITH time zone) AS "02:03:00-08";
 
 SELECT
     time WITH time zone '01:30-08' - interval '02:01' AS "23:29:00-08";
@@ -395,14 +379,10 @@ SELECT
 -- Try the following two tests instead, as a poor substitute
 
 SELECT
-    CAST(CAST(date 'today' + time WITH time zone '05:30' + interval '02:01' AS time WITH time zone
-) AS time
-) AS "07:31:00";
+    CAST(CAST(date 'today' + time WITH time zone '05:30' + interval '02:01' AS time WITH time zone) AS time) AS "07:31:00";
 
 SELECT
-    CAST(cast(date 'today' + time WITH time zone '03:30' + interval '1 month 04:01' AS timestamp without time zone
-) AS time
-) AS "07:31:00";
+    CAST(cast(date 'today' + time WITH time zone '03:30' + interval '1 month 04:01' AS timestamp without time zone) AS time) AS "07:31:00";
 
 SELECT
     t.d1 AS t,
@@ -450,51 +430,33 @@ ORDER BY
 
 SELECT
     (timestamp WITH time zone '2000-11-27',
-        timestamp WITH time zone '2000-11-28'
-) OVERLAPS(
-        timestamp WITH time zone '2000-11-27 12:00',
-        timestamp WITH time zone '2000-11-30'
-) AS "True";
+        timestamp WITH time zone '2000-11-28')
+    OVERLAPS(timestamp WITH time zone '2000-11-27 12:00', timestamp WITH time zone '2000-11-30') AS "True";
 
 SELECT
     (timestamp WITH time zone '2000-11-26',
-        timestamp WITH time zone '2000-11-27'
-) OVERLAPS(
-        timestamp WITH time zone '2000-11-27 12:00',
-        timestamp WITH time zone '2000-11-30'
-) AS "False";
+        timestamp WITH time zone '2000-11-27')
+    OVERLAPS(timestamp WITH time zone '2000-11-27 12:00', timestamp WITH time zone '2000-11-30') AS "False";
 
 SELECT
     (timestamp WITH time zone '2000-11-27',
-        timestamp WITH time zone '2000-11-28'
-) OVERLAPS(
-        timestamp WITH time zone '2000-11-27 12:00',
-        interval '1 day'
-) AS "True";
+        timestamp WITH time zone '2000-11-28')
+    OVERLAPS(timestamp WITH time zone '2000-11-27 12:00', interval '1 day') AS "True";
 
 SELECT
     (timestamp WITH time zone '2000-11-27',
-        interval '12 hours'
-) OVERLAPS(
-        timestamp WITH time zone '2000-11-27 12:00',
-        timestamp WITH time zone '2000-11-30'
-) AS "False";
+        interval '12 hours')
+    OVERLAPS(timestamp WITH time zone '2000-11-27 12:00', timestamp WITH time zone '2000-11-30') AS "False";
 
 SELECT
     (timestamp WITH time zone '2000-11-27',
-        interval '12 hours'
-) OVERLAPS(
-        timestamp WITH time zone '2000-11-27',
-        interval '12 hours'
-) AS "True";
+        interval '12 hours')
+    OVERLAPS(timestamp WITH time zone '2000-11-27', interval '12 hours') AS "True";
 
 SELECT
     (timestamp WITH time zone '2000-11-27',
-        interval '12 hours'
-) OVERLAPS(
-        timestamp WITH time zone '2000-11-27 12:00',
-        interval '12 hours'
-) AS "False";
+        interval '12 hours')
+    OVERLAPS(timestamp WITH time zone '2000-11-27 12:00', interval '12 hours') AS "False";
 
 -- test without time zone
 SELECT

@@ -116,8 +116,7 @@ DROP SUBSCRIPTION testsub3;
 ALTER SUBSCRIPTION testsub CONNECTION 'foobar';
 
 \dRs+
-ALTER SUBSCRIPTION testsub SET PUBLICATION testpub2, testpub3 WITH ( refresh = FALSE
-);
+ALTER SUBSCRIPTION testsub SET PUBLICATION testpub2, testpub3 WITH ( REFRESH = FALSE);
 
 ALTER SUBSCRIPTION testsub CONNECTION 'dbname=doesnotexist2';
 

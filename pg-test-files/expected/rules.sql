@@ -2686,14 +2686,14 @@ WITH data (
 ),
         (
             'h7', 'forbidden'
-)
-) INSERT INTO hats
-    SELECT
-        *
-    FROM
-        data
-    RETURNING
-        *;
+))
+INSERT INTO hats
+SELECT
+    *
+FROM
+    data
+RETURNING
+    *;
 
 EXPLAIN (
     COSTS OFF
@@ -2709,14 +2709,14 @@ EXPLAIN (
 ),
         (
             'h7', 'forbidden'
-)
-) INSERT INTO hats
-    SELECT
-        *
-    FROM
-        data
-    RETURNING
-        *;
+))
+INSERT INTO hats
+SELECT
+    *
+FROM
+    data
+RETURNING
+    *;
 
 SELECT
     *

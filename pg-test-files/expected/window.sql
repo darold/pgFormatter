@@ -1571,10 +1571,7 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(1,
-            35,
-            2)
-)
+        generate_series(1, 35, 2))
 SELECT
     x,
     (sum(x) OVER w)
@@ -1588,10 +1585,7 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(1,
-            35,
-            2)
-)
+        generate_series(1, 35, 2))
 SELECT
     x,
     (sum(x) OVER w)
@@ -1605,10 +1599,7 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(1,
-            35,
-            2)
-)
+        generate_series(1, 35, 2))
 SELECT
     x,
     (sum(x) OVER w)
@@ -1631,10 +1622,7 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(5,
-            49,
-            2)
-)
+        generate_series(5, 49, 2))
 SELECT
     x,
     (sum(x) OVER w)
@@ -1657,10 +1645,7 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(5,
-            49,
-            2)
-)
+        generate_series(5, 49, 2))
 SELECT
     x,
     (sum(x) OVER w)
@@ -1683,10 +1668,7 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(5,
-            49,
-            2)
-)
+        generate_series(5, 49, 2))
 SELECT
     x,
     (sum(x) OVER w)
@@ -2210,8 +2192,7 @@ WITH vs AS (
         i,
         (random() * 100)::int4 AS v
     FROM
-        generate_series(1,
-            100) AS i
+        generate_series(1, 100) AS i
 ),
 sum_following AS (
     SELECT
@@ -2219,7 +2200,8 @@ sum_following AS (
         SUM(v) OVER (ORDER BY i DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS s
     FROM
         vs
-) SELECT DISTINCT
+)
+SELECT DISTINCT
     sum_following.s = sum_int_randomrestart (v) OVER fwd AS eq1,
     - sum_following.s = sum_int_randomrestart (- v) OVER fwd AS eq2,
     100 * 3 + (vs.i - 1) * 3 = length(logging_agg_nonstrict (''::text) OVER fwd) AS eq3

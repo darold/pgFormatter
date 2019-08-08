@@ -57,8 +57,7 @@ CREATE TABLE personsx OF person_type (
 CREATE TABLE persons2 OF person_type (
     id WITH OPTIONS PRIMARY KEY,
     UNIQUE (
-        name
-)
+        name)
 );
 
 \d persons2
@@ -110,8 +109,7 @@ FROM
 CREATE TABLE persons2 OF person_type (
     id WITH OPTIONS PRIMARY KEY,
     UNIQUE (
-        name
-)
+        name)
 );
 
 \d persons2

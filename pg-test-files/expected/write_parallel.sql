@@ -50,21 +50,21 @@ GROUP BY
 DROP TABLE parallel_write;
 EXPLAIN (
     COSTS OFF
-) CREATE materialized VIEW parallel_mat_view AS
+) CREATE MATERIALIZED VIEW parallel_mat_view AS
 SELECT
     length(stringu1)
 FROM
     tenk1
 GROUP BY
     length(stringu1);
-CREATE materialized VIEW parallel_mat_view AS
+CREATE MATERIALIZED VIEW parallel_mat_view AS
 SELECT
     length(stringu1)
 FROM
     tenk1
 GROUP BY
     length(stringu1);
-DROP materialized VIEW parallel_mat_view;
+DROP MATERIALIZED VIEW parallel_mat_view;
 PREPARE prep_stmt AS
 SELECT
     length(stringu1)

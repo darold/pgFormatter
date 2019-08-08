@@ -1094,8 +1094,8 @@ WITH aa AS (
         'int4_tbl' u
     FROM
         int4_tbl
-    LIMIT 1
-) INSERT INTO upsert
+    LIMIT 1)
+    INSERT INTO upsert
     VALUES (1, 'x'), (999, 'y') ON CONFLICT (KEY)
     DO
     UPDATE
@@ -1693,7 +1693,7 @@ WHERE
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-) WITH x AS materialized (
+) WITH x AS MATERIALIZED (
     SELECT
         *
     FROM (
@@ -1798,7 +1798,7 @@ WHERE
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-) WITH x AS NOT materialized (
+) WITH x AS NOT MATERIALIZED (
     SELECT
         *
     FROM (
@@ -1827,7 +1827,7 @@ EXPLAIN (
 ) AS ((
         VALUES ('a'),
             ('b'))
-    UNION ALL ( WITH z AS NOT materialized (
+    UNION ALL ( WITH z AS NOT MATERIALIZED (
             SELECT
                 *
             FROM
@@ -1854,7 +1854,7 @@ WITH RECURSIVE x (
 ) AS ((
         VALUES ('a'),
             ('b'))
-    UNION ALL ( WITH z AS NOT materialized (
+    UNION ALL ( WITH z AS NOT MATERIALIZED (
             SELECT
                 *
             FROM
@@ -1884,7 +1884,7 @@ EXPLAIN (
 ) AS ((
         VALUES ('a'),
             ('b'))
-    UNION ALL ( WITH z AS NOT materialized (
+    UNION ALL ( WITH z AS NOT MATERIALIZED (
             SELECT
                 *
             FROM
@@ -1900,17 +1900,17 @@ EXPLAIN (
 ) < 5
 )
 )
-    SELECT
-        *
-    FROM
-        x;
+SELECT
+    *
+FROM
+    x;
 
 WITH RECURSIVE x (
     a
 ) AS ((
         VALUES ('a'),
             ('b'))
-    UNION ALL ( WITH z AS NOT materialized (
+    UNION ALL ( WITH z AS NOT MATERIALIZED (
             SELECT
                 *
             FROM
@@ -1926,10 +1926,10 @@ WITH RECURSIVE x (
 ) < 5
 )
 )
-    SELECT
-        *
-    FROM
-        x;
+SELECT
+    *
+FROM
+    x;
 
 -- Check handling of outer references
 EXPLAIN (
@@ -1952,13 +1952,12 @@ FROM ( WITH y AS (
     SELECT
         *
     FROM
-        y
-) ss;
+        y) ss;
 
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-) WITH x AS materialized (
+) WITH x AS MATERIALIZED (
     SELECT
         *
     FROM
@@ -1966,8 +1965,7 @@ EXPLAIN (
 )
 SELECT
     *
-FROM (
-    WITH y AS (
+FROM ( WITH y AS (
         SELECT
             *
         FROM
@@ -1976,8 +1974,7 @@ FROM (
     SELECT
         *
     FROM
-        y
-) ss;
+        y) ss;
 
 -- Ensure that we inline the currect CTE when there are
 -- multiple CTEs with the same name
@@ -1998,8 +1995,7 @@ FROM ( WITH x AS (
     SELECT
         *
     FROM
-        x
-) ss;
+        x) ss;
 
 -- Row marks are not pushed into CTEs
 EXPLAIN (

@@ -5020,52 +5020,63 @@ CREATE OR REPLACE FUNCTION strtest ()
     RETURNS text AS $$
 BEGIN
     raise notice 'foo\\bar\041baz\';
-   return ' foo bar 041baz ';
- end
- $$ language plpgsql;
- 
- select strtest();
- 
- create or replace function strtest() returns text as $$
- begin
-   raise notice E' foo bar 041baz ';
-   return E' foo bar 041baz ';
- end
- $$ language plpgsql;
- 
- select strtest();
- 
- drop function strtest();
- 
- -- Test anonymous code blocks.
- 
- DO $$
- DECLARE r record;
- BEGIN
-     FOR r IN SELECT rtrim(roomno) AS roomno, comment FROM Room ORDER BY roomno
-     LOOP
-         RAISE NOTICE ' %, % ', r.roomno, r.comment;
-     END LOOP;
- END $$;
- 
- -- these are to check syntax error reporting
- DO LANGUAGE plpgsql $$ begin return 1; end $$;
- 
- DO $$
- DECLARE r record;
- BEGIN
-     FOR r IN SELECT rtrim(roomno) AS roomno, foo FROM Room ORDER BY roomno
-     LOOP
-         RAISE NOTICE ' %, % ', r.roomno, r.comment;
-     END LOOP;
- END $$;
- 
- -- Check handling of errors thrown from/into anonymous code blocks.
- do $outer$
- begin
-   for i in 1..10 loop
-    begin
-     execute $ex$
+   return ' foo bar '041baz\';
+END $$
+LANGUAGE plpgsql;
+SELECT
+    strtest ();
+CREATE OR REPLACE FUNCTION strtest ()
+    RETURNS text AS $$
+BEGIN
+    raise notice E'foo\\bar\041baz';
+    RETURN E'foo\\bar\041baz';
+END $$
+LANGUAGE plpgsql;
+SELECT
+    strtest ();
+DROP FUNCTION strtest ();
+-- Test anonymous code blocks.
+DO $$
+DECLARE
+    r record;
+BEGIN
+    FOR r IN
+    SELECT
+        rtrim(roomno) AS roomno,
+        COMMENT
+    FROM
+        Room
+    ORDER BY
+        roomno LOOP
+            RAISE NOTICE '%, %', r.roomno, r.comment;
+        END LOOP;
+END $$;
+-- these are to check syntax error reporting
+DO
+LANGUAGE plpgsql
+$$
+BEGIN
+    RETURN 1;
+END $$;
+DO $$ DECLARE r record;
+BEGIN
+    FOR r IN
+    SELECT
+        rtrim(roomno) AS roomno,
+        foo
+    FROM
+        Room
+    ORDER BY
+        roomno LOOP
+            RAISE NOTICE '%, %', r.roomno, r.comment;
+        END LOOP;
+END $$;
+-- Check handling of errors thrown from/into anonymous code blocks.
+DO $outer$
+BEGIN
+    FOR i IN 1..10 LOOP
+        BEGIN
+            EXECUTE $ex$
       do $$
       declare x int = 0;
       begin
@@ -5073,484 +5084,564 @@ BEGIN
       end;
       $$;
     $ex$;
-   exception when division_by_zero then
-     raise notice ' caught division BY
-        zero ';
-   end;
-   end loop;
- end;
- $outer$;
- 
- -- Check variable scoping -- a var is not available in its own or prior
- -- default expressions.
- 
- create function scope_test() returns int as $$
- declare x int := 42;
- begin
-   declare y int := x + 1;
-           x int := x + 2;
-   begin
-     return x * 100 + y;
-   end;
- end;
- $$ language plpgsql;
- 
- select scope_test();
- 
- drop function scope_test();
- 
- -- Check handling of conflicts between plpgsql vars and table columns.
- 
- set plpgsql.variable_conflict = error;
- 
- create function conflict_test() returns setof int8_tbl as $$
- declare r record;
-   q1 bigint := 42;
- begin
-   for r in select q1,q2 from int8_tbl loop
-     return next r;
-   end loop;
- end;
- $$ language plpgsql;
- 
- select * from conflict_test();
- 
- create or replace function conflict_test() returns setof int8_tbl as $$
- #variable_conflict use_variable
- declare r record;
-   q1 bigint := 42;
- begin
-   for r in select q1,q2 from int8_tbl loop
-     return next r;
-   end loop;
- end;
- $$ language plpgsql;
- 
- select * from conflict_test();
- 
- create or replace function conflict_test() returns setof int8_tbl as $$
- #variable_conflict use_column
- declare r record;
-   q1 bigint := 42;
- begin
-   for r in select q1,q2 from int8_tbl loop
-     return next r;
-   end loop;
- end;
- $$ language plpgsql;
- 
- select * from conflict_test();
- 
- drop function conflict_test();
- 
- -- Check that an unreserved keyword can be used as a variable name
- 
- create function unreserved_test() returns int as $$
- declare
-   forward int := 21;
- begin
-   forward := forward * 2;
-   return forward;
- end
- $$ language plpgsql;
- 
- select unreserved_test();
- 
- create or replace function unreserved_test() returns int as $$
- declare
-   return int := 42;
- begin
-   return := return + 1;
-   return return;
- end
- $$ language plpgsql;
- 
- select unreserved_test();
- 
- create or replace function unreserved_test() returns int as $$
- declare
-   comment int := 21;
- begin
-   comment := comment * 2;
-   comment on function unreserved_test() is ' this IS a test ';
-   return comment;
- end
- $$ language plpgsql;
- 
- select unreserved_test();
- 
- select obj_description(' unreserved_test () '::regprocedure, ' pg_proc ');
- 
- drop function unreserved_test();
- 
- --
- -- Test FOREACH over arrays
- --
- 
- create function foreach_test(anyarray)
- returns void as $$
- declare x int;
- begin
-   foreach x in array $1
-   loop
-     raise notice ' % ', x;
-   end loop;
-   end;
- $$ language plpgsql;
- 
- select foreach_test(ARRAY[1,2,3,4]);
- select foreach_test(ARRAY[[1,2],[3,4]]);
- 
- create or replace function foreach_test(anyarray)
- returns void as $$
- declare x int;
- begin
-   foreach x slice 1 in array $1
-   loop
-     raise notice ' % ', x;
-   end loop;
-   end;
- $$ language plpgsql;
- 
- -- should fail
- select foreach_test(ARRAY[1,2,3,4]);
- select foreach_test(ARRAY[[1,2],[3,4]]);
- 
- create or replace function foreach_test(anyarray)
- returns void as $$
- declare x int[];
- begin
-   foreach x slice 1 in array $1
-   loop
-     raise notice ' % ', x;
-   end loop;
-   end;
- $$ language plpgsql;
- 
- select foreach_test(ARRAY[1,2,3,4]);
- select foreach_test(ARRAY[[1,2],[3,4]]);
- 
- -- higher level of slicing
- create or replace function foreach_test(anyarray)
- returns void as $$
- declare x int[];
- begin
-   foreach x slice 2 in array $1
-   loop
-     raise notice ' % ', x;
-   end loop;
-   end;
- $$ language plpgsql;
- 
- -- should fail
- select foreach_test(ARRAY[1,2,3,4]);
- -- ok
- select foreach_test(ARRAY[[1,2],[3,4]]);
- select foreach_test(ARRAY[[[1,2]],[[3,4]]]);
- 
- create type xy_tuple AS (x int, y int);
- 
- -- iteration over array of records
- create or replace function foreach_test(anyarray)
- returns void as $$
- declare r record;
- begin
-   foreach r in array $1
-   loop
-     raise notice ' % ', r;
-   end loop;
-   end;
- $$ language plpgsql;
- 
- select foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]);
- select foreach_test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]);
- 
- create or replace function foreach_test(anyarray)
- returns void as $$
- declare x int; y int;
- begin
-   foreach x, y in array $1
-   loop
-     raise notice ' x = %, y = % ', x, y;
-   end loop;
-   end;
- $$ language plpgsql;
- 
- select foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]);
- select foreach_test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]);
- 
- -- slicing over array of composite types
- create or replace function foreach_test(anyarray)
- returns void as $$
- declare x xy_tuple[];
- begin
-   foreach x slice 1 in array $1
-   loop
-     raise notice ' % ', x;
-   end loop;
-   end;
- $$ language plpgsql;
- 
- select foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]);
- select foreach_test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]);
- 
- drop function foreach_test(anyarray);
- drop type xy_tuple;
- 
- --
- -- Assorted tests for array subscript assignment
- --
- 
- create temp table rtype (id int, ar text[]);
- 
- create function arrayassign1() returns text[] language plpgsql as $$
- declare
-  r record;
- begin
-   r := row(12, ' foo, bar, baz ')::rtype;
-   r.ar[2] := ' REPLACE ';
-   return r.ar;
- end $$;
- 
- select arrayassign1();
- select arrayassign1(); -- try again to exercise internal caching
- 
- create domain orderedarray as int[2]
-   constraint sorted check (value[1] < value[2]);
- 
- select ' 1, 2 '::orderedarray;
- select ' 2, 1 '::orderedarray;  -- fail
- 
- create function testoa(x1 int, x2 int, x3 int) returns orderedarray
- language plpgsql as $$
- declare res orderedarray;
- begin
-   res := array[x1, x2];
-   res[2] := x3;
-   return res;
- end $$;
- 
- select testoa(1,2,3);
- select testoa(1,2,3); -- try again to exercise internal caching
- select testoa(2,1,3); -- fail at initial assign
- select testoa(1,2,1); -- fail at update
- 
- drop function arrayassign1();
- drop function testoa(x1 int, x2 int, x3 int);
- 
- 
- --
- -- Test handling of expanded arrays
- --
- 
- create function returns_rw_array(int) returns int[]
- language plpgsql as $$
-   declare r int[];
-   begin r := array[$1, $1]; return r; end;
- $$ stable;
- 
- create function consumes_rw_array(int[]) returns int
- language plpgsql as $$
-   begin return $1[1]; end;
- $$ stable;
- 
- select consumes_rw_array(returns_rw_array(42));
- 
- -- bug #14174
- explain (verbose, costs off)
- select i, a from
-   (select returns_rw_array(1) as a offset 0) ss,
-   lateral consumes_rw_array(a) i;
- 
- select i, a from
-   (select returns_rw_array(1) as a offset 0) ss,
-   lateral consumes_rw_array(a) i;
- 
- explain (verbose, costs off)
- select consumes_rw_array(a), a from returns_rw_array(1) a;
- 
- select consumes_rw_array(a), a from returns_rw_array(1) a;
- 
- explain (verbose, costs off)
- select consumes_rw_array(a), a from
-   (values (returns_rw_array(1)), (returns_rw_array(2))) v(a);
- 
- select consumes_rw_array(a), a from
-   (values (returns_rw_array(1)), (returns_rw_array(2))) v(a);
- 
- do $$
- declare a int[] := array[1,2];
- begin
-   a := a || 3;
-   raise notice ' a = % ', a;
- end $$;
- 
- 
- --
- -- Test access to call stack
- --
- 
- create function inner_func(int)
- returns int as $$
- declare _context text;
- begin
-   get diagnostics _context = pg_context;
-   raise notice ' * * * % * * * ', _context;
-   -- lets do it again, just for fun..
-   get diagnostics _context = pg_context;
-   raise notice ' * * * % * * * ', _context;
-   raise notice ' lets make sure we didnt break anything ';
-   return 2 * $1;
- end;
- $$ language plpgsql;
- 
- create or replace function outer_func(int)
- returns int as $$
- declare
-   myresult int;
- begin
-   raise notice ' calling down INTO inner_func () ';
-   myresult := inner_func($1);
-   raise notice ' inner_func () done ';
-   return myresult;
- end;
- $$ language plpgsql;
- 
- create or replace function outer_outer_func(int)
- returns int as $$
- declare
-   myresult int;
- begin
-   raise notice ' calling down INTO outer_func () ';
-   myresult := outer_func($1);
-   raise notice ' outer_func () done ';
-   return myresult;
- end;
- $$ language plpgsql;
- 
- select outer_outer_func(10);
- -- repeated call should to work
- select outer_outer_func(20);
- 
- drop function outer_outer_func(int);
- drop function outer_func(int);
- drop function inner_func(int);
- 
- -- access to call stack from exception
- create function inner_func(int)
- returns int as $$
- declare
-   _context text;
-   sx int := 5;
- begin
-   begin
-     perform sx / 0;
-   exception
-     when division_by_zero then
-       get diagnostics _context = pg_context;
-       raise notice ' * * * % * * * ', _context;
-   end;
- 
-   -- lets do it again, just for fun..
-   get diagnostics _context = pg_context;
-   raise notice ' * * * % * * * ', _context;
-   raise notice ' lets make sure we didnt break anything ';
-   return 2 * $1;
- end;
- $$ language plpgsql;
- 
- create or replace function outer_func(int)
- returns int as $$
- declare
-   myresult int;
- begin
-   raise notice ' calling down INTO inner_func () ';
-   myresult := inner_func($1);
-   raise notice ' inner_func () done ';
-   return myresult;
- end;
- $$ language plpgsql;
- 
- create or replace function outer_outer_func(int)
- returns int as $$
- declare
-   myresult int;
- begin
-   raise notice ' calling down INTO outer_func () ';
-   myresult := outer_func($1);
-   raise notice ' outer_func () done ';
-   return myresult;
- end;
- $$ language plpgsql;
- 
- select outer_outer_func(10);
- -- repeated call should to work
- select outer_outer_func(20);
- 
- drop function outer_outer_func(int);
- drop function outer_func(int);
- drop function inner_func(int);
- 
- --
- -- Test ASSERT
- --
- 
- do $$
- begin
-   assert 1=1;  -- should succeed
- end;
- $$;
- 
- do $$
- begin
-   assert 1=0;  -- should fail
- end;
- $$;
- 
- do $$
- begin
-   assert NULL;  -- should fail
- end;
- $$;
- 
- -- check controlling GUC
- set plpgsql.check_asserts = off;
- do $$
- begin
-   assert 1=0;  -- won' t be tested
+        exception
+            WHEN division_by_zero THEN
+                raise notice 'caught division by zero';
+        END;
+    END LOOP;
 END;
-    $$;
-    RESET plpgsql.check_asserts;
-    -- test custom message
-    DO $$
+$outer$;
+-- Check variable scoping -- a var is not available in its own or prior
+-- default expressions.
+CREATE FUNCTION scope_test ()
+    RETURNS int AS $$
 DECLARE
-    var text := 'some value';
+    x int := 42;
 BEGIN
-    assert 1 = 0,
-    format('assertion failed, var = "%s"', var);
+    DECLARE y int := x + 1;
+    x int := x + 2;
+    BEGIN
+        RETURN x * 100 + y;
 END;
-    $$;
-    -- ensure assertions are not trapped by 'others'
+END;
+        $$
+        LANGUAGE plpgsql;
+        SELECT
+            scope_test ();
+        DROP FUNCTION scope_test ();
+        -- Check handling of conflicts between plpgsql vars and table columns.
+        SET plpgsql.variable_conflict = error;
+        CREATE FUNCTION conflict_test ( )
+            RETURNS SETOF int8_tbl AS $$
+DECLARE
+    r record;
+    q1 bigint := 42;
+BEGIN
+    FOR r IN
+    SELECT
+        q1,
+        q2
+    FROM
+        int8_tbl LOOP
+            RETURN NEXT r;
+        END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        conflict_test ();
+    CREATE OR REPLACE FUNCTION conflict_test ( )
+        RETURNS SETOF int8_tbl AS $$ # variable_conflict use_variable
+DECLARE
+    r record;
+    q1 bigint := 42;
+BEGIN
+    FOR r IN
+    SELECT
+        q1,
+        q2
+    FROM
+        int8_tbl LOOP
+            RETURN NEXT r;
+        END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        conflict_test ();
+    CREATE OR REPLACE FUNCTION conflict_test ( )
+        RETURNS SETOF int8_tbl AS $$ # variable_conflict use_column
+DECLARE
+    r record;
+    q1 bigint := 42;
+BEGIN
+    FOR r IN
+    SELECT
+        q1,
+        q2
+    FROM
+        int8_tbl LOOP
+            RETURN NEXT r;
+        END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        conflict_test ();
+    DROP FUNCTION conflict_test ();
+    -- Check that an unreserved keyword can be used as a variable name
+    CREATE FUNCTION unreserved_test ( )
+        RETURNS int AS $$
+DECLARE
+    FORWARD int := 21;
+BEGIN
+    FORWARD := FORWARD * 2;
+    RETURN FORWARD;
+END $$
+LANGUAGE plpgsql;
+SELECT
+    unreserved_test ();
+CREATE OR REPLACE FUNCTION unreserved_test ()
+    RETURNS int AS $$
+DECLARE
+    RETURN int := 42;
+BEGIN
+    RETURN := RETURN + 1;
+    RETURN RETURN;
+END $$
+LANGUAGE plpgsql;
+SELECT
+    unreserved_test ();
+CREATE OR REPLACE FUNCTION unreserved_test ()
+    RETURNS int AS $$
+DECLARE
+    COMMENT int := 21;
+BEGIN
+    COMMENT := COMMENT * 2;
+    COMMENT ON FUNCTION unreserved_test () IS 'this is a test';
+    RETURN COMMENT;
+END $$
+LANGUAGE plpgsql;
+SELECT
+    unreserved_test ();
+SELECT
+    obj_description('unreserved_test()'::regprocedure, 'pg_proc');
+DROP FUNCTION unreserved_test ();
+--
+-- Test FOREACH over arrays
+--
+CREATE FUNCTION foreach_test (anyarray)
+    RETURNS void AS $$
+DECLARE
+    x int;
+BEGIN
+    foreach x IN ARRAY $1 LOOP
+        raise notice '%', x;
+    END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        foreach_test (ARRAY[1, 2, 3, 4]);
+    SELECT
+        foreach_test (ARRAY[[1, 2],[3, 4]]);
+    CREATE OR REPLACE FUNCTION foreach_test (anyarray )
+        RETURNS void AS $$
+DECLARE
+    x int;
+BEGIN
+    foreach x slice 1 IN ARRAY $1 LOOP
+        raise notice '%', x;
+    END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    -- should fail
+    SELECT
+        foreach_test (ARRAY[1, 2, 3, 4]);
+    SELECT
+        foreach_test (ARRAY[[1, 2],[3, 4]]);
+    CREATE OR REPLACE FUNCTION foreach_test (anyarray )
+        RETURNS void AS $$
+DECLARE
+    x int[];
+BEGIN
+    foreach x slice 1 IN ARRAY $1 LOOP
+        raise notice '%', x;
+    END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        foreach_test (ARRAY[1, 2, 3, 4]);
+    SELECT
+        foreach_test (ARRAY[[1, 2],[3, 4]]);
+    -- higher level of slicing
+    CREATE OR REPLACE FUNCTION foreach_test (anyarray )
+        RETURNS void AS $$
+DECLARE
+    x int[];
+BEGIN
+    foreach x slice 2 IN ARRAY $1 LOOP
+        raise notice '%', x;
+    END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    -- should fail
+    SELECT
+        foreach_test (ARRAY[1, 2, 3, 4]);
+    -- ok
+    SELECT
+        foreach_test (ARRAY[[1, 2],[3, 4]]);
+    SELECT
+        foreach_test (ARRAY[[[1, 2]],[[3, 4]]]);
+    CREATE TYPE xy_tuple AS (
+        x int,
+        y int
+);
+    -- iteration over array of records
+    CREATE OR REPLACE FUNCTION foreach_test (anyarray )
+        RETURNS void AS $$
+DECLARE
+    r record;
+BEGIN
+    foreach r IN ARRAY $1 LOOP
+        raise notice '%', r;
+    END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        foreach_test (ARRAY[(10, 20), (40, 69), (35, 78)]::xy_tuple[]);
+    SELECT
+        foreach_test (ARRAY[[(10, 20), (40, 69)],[(35, 78), (88, 76)]]::xy_tuple[]);
+    CREATE OR REPLACE FUNCTION foreach_test (anyarray )
+        RETURNS void AS $$
+DECLARE
+    x int;
+    y int;
+BEGIN
+    foreach x,
+    y IN ARRAY $1 LOOP
+        raise notice 'x = %, y = %', x, y;
+    END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        foreach_test (ARRAY[(10, 20), (40, 69), (35, 78)]::xy_tuple[]);
+    SELECT
+        foreach_test (ARRAY[[(10, 20), (40, 69)],[(35, 78), (88, 76)]]::xy_tuple[]);
+    -- slicing over array of composite types
+    CREATE OR REPLACE FUNCTION foreach_test (anyarray )
+        RETURNS void AS $$
+DECLARE
+    x xy_tuple[];
+BEGIN
+    foreach x slice 1 IN ARRAY $1 LOOP
+        raise notice '%', x;
+    END LOOP;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        foreach_test (ARRAY[(10, 20), (40, 69), (35, 78)]::xy_tuple[]);
+    SELECT
+        foreach_test (ARRAY[[(10, 20), (40, 69)],[(35, 78), (88, 76)]]::xy_tuple[]);
+    DROP FUNCTION foreach_test (anyarray);
+    DROP TYPE xy_tuple;
+    --
+    -- Assorted tests for array subscript assignment
+    --
+    CREATE temp TABLE rtype (
+        id int,
+        ar text[]
+    );
+    CREATE FUNCTION arrayassign1 ( )
+        RETURNS text[]
+        LANGUAGE plpgsql
+        AS $$
+DECLARE
+    r record;
+BEGIN
+    r := ROW (12,
+        '{foo,bar,baz}')::rtype;
+    r.ar[2] := 'replace';
+    RETURN r.ar;
+END $$;
+SELECT
+    arrayassign1 ();
+SELECT
+    arrayassign1 ();
+-- try again to exercise internal caching
+CREATE DOMAIN orderedarray AS int[2] CONSTRAINT sorted CHECK (value[1] < value[2]);
+SELECT
+    '{1,2}'::orderedarray;
+SELECT
+    '{2,1}'::orderedarray;
+-- fail
+CREATE FUNCTION testoa (x1 int, x2 int, x3 int)
+    RETURNS orderedarray
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    res orderedarray;
+BEGIN
+    res := ARRAY[x1, x2];
+    res[2] := x3;
+    RETURN res;
+END $$;
+SELECT
+    testoa (1,
+        2,
+        3);
+SELECT
+    testoa (1,
+        2,
+        3);
+-- try again to exercise internal caching
+SELECT
+    testoa (2,
+        1,
+        3);
+-- fail at initial assign
+SELECT
+    testoa (1,
+        2,
+        1);
+-- fail at update
+DROP FUNCTION arrayassign1 ();
+DROP FUNCTION testoa (x1 int, x2 int, x3 int);
+--
+-- Test handling of expanded arrays
+--
+CREATE FUNCTION returns_rw_array (int)
+    RETURNS int[]
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    r int[];
+BEGIN
+    r := ARRAY[$1, $1];
+    RETURN r;
+END;
+    $$ STABLE;
+    CREATE FUNCTION consumes_rw_array (int[] )
+        RETURNS int
+        LANGUAGE plpgsql
+        AS $$
+        BEGIN
+            RETURN $1[1];
+END;
+        $$ STABLE;
+        SELECT
+            consumes_rw_array (returns_rw_array (42));
+        -- bug #14174
+        EXPLAIN (
+            VERBOSE,
+            COSTS OFF
+)
+        SELECT
+            i,
+            a
+        FROM (
+            SELECT
+                returns_rw_array (1) AS a offset 0) ss,
+        LATERAL consumes_rw_array (a) i;
+        SELECT
+            i,
+            a
+        FROM (
+            SELECT
+                returns_rw_array (1) AS a offset 0) ss,
+        LATERAL consumes_rw_array (a) i;
+        EXPLAIN (
+            VERBOSE,
+            COSTS OFF
+)
+        SELECT
+            consumes_rw_array (a),
+            a
+        FROM
+            returns_rw_array (1) a;
+        SELECT
+            consumes_rw_array (a),
+            a
+        FROM
+            returns_rw_array (1) a;
+        EXPLAIN (
+            VERBOSE,
+            COSTS OFF
+)
+        SELECT
+            consumes_rw_array (a),
+            a
+        FROM (
+            VALUES (returns_rw_array (1)),
+                (returns_rw_array (2))) v (a);
+        SELECT
+            consumes_rw_array (a),
+            a
+        FROM (
+            VALUES (returns_rw_array (1)),
+                (returns_rw_array (2))) v (a);
+        DO $$
+DECLARE
+    a int[] := ARRAY[1, 2];
+BEGIN
+    a := a || 3;
+    raise notice 'a = %', a;
+END $$;
+--
+-- Test access to call stack
+--
+CREATE FUNCTION inner_func (int)
+    RETURNS int AS $$
+DECLARE
+    _context text;
+BEGIN
+    get diagnostics _context = pg_context;
+    raise notice '***%***', _context;
+    -- lets do it again, just for fun..
+    get diagnostics _context = pg_context;
+    raise notice '***%***', _context;
+    raise notice 'lets make sure we didnt break anything';
+    RETURN 2 * $1;
+END;
+    $$
+    LANGUAGE plpgsql;
+    CREATE OR REPLACE FUNCTION outer_func (int )
+        RETURNS int AS $$
+DECLARE
+    myresult int;
+BEGIN
+    raise notice 'calling down into inner_func()';
+    myresult := inner_func ($1);
+    raise notice 'inner_func() done';
+    RETURN myresult;
+END;
+    $$
+    LANGUAGE plpgsql;
+    CREATE OR REPLACE FUNCTION outer_outer_func (int )
+        RETURNS int AS $$
+DECLARE
+    myresult int;
+BEGIN
+    raise notice 'calling down into outer_func()';
+    myresult := outer_func ($1);
+    raise notice 'outer_func() done';
+    RETURN myresult;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        outer_outer_func (10);
+    -- repeated call should to work
+    SELECT
+        outer_outer_func (20);
+    DROP FUNCTION outer_outer_func (int);
+    DROP FUNCTION outer_func (int);
+    DROP FUNCTION inner_func (int);
+    -- access to call stack from exception
+    CREATE FUNCTION inner_func (int )
+        RETURNS int AS $$
+DECLARE
+    _context text;
+    sx int := 5;
+BEGIN
+    BEGIN
+        PERFORM
+            sx / 0;
+    exception
+        WHEN division_by_zero THEN
+            get diagnostics _context = pg_context;
+    raise notice '***%***', _context;
+    END;
+    -- lets do it again, just for fun..
+    get diagnostics _context = pg_context;
+    raise notice '***%***', _context;
+    raise notice 'lets make sure we didnt break anything';
+    RETURN 2 * $1;
+END;
+$$
+LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION outer_func (int)
+    RETURNS int AS $$
+DECLARE
+    myresult int;
+BEGIN
+    raise notice 'calling down into inner_func()';
+    myresult := inner_func ($1);
+    raise notice 'inner_func() done';
+    RETURN myresult;
+END;
+    $$
+    LANGUAGE plpgsql;
+    CREATE OR REPLACE FUNCTION outer_outer_func (int )
+        RETURNS int AS $$
+DECLARE
+    myresult int;
+BEGIN
+    raise notice 'calling down into outer_func()';
+    myresult := outer_func ($1);
+    raise notice 'outer_func() done';
+    RETURN myresult;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        outer_outer_func (10);
+    -- repeated call should to work
+    SELECT
+        outer_outer_func (20);
+    DROP FUNCTION outer_outer_func (int);
+    DROP FUNCTION outer_func (int);
+    DROP FUNCTION inner_func (int);
+    --
+    -- Test ASSERT
+    --
     DO $$
     BEGIN
-        assert 1 = 0,
-        'unhandled assertion';
-    exception
-        WHEN OTHERS THEN
-            NULL;
-    -- do nothing
-    END;
-    $$;
-    -- Test use of plpgsql in a domain check constraint (cf. bug #14414)
-    CREATE FUNCTION plpgsql_domain_check (val int )
-        RETURNS boolean AS $$
+        assert 1 = 1;
+    -- should succeed
+END;
+        $$;
+        DO $$
         BEGIN
-            RETURN val > 0;
-        END $$
-        LANGUAGE plpgsql
-        IMMUTABLE;
-    CREATE DOMAIN plpgsql_domain AS integer CHECK (plpgsql_domain_check (value));
-    DO $$
+            assert 1 = 0;
+        -- should fail
+END;
+            $$;
+            DO $$
+            BEGIN
+                assert NULL;
+            -- should fail
+END;
+                $$;
+                -- check controlling GUC
+                SET plpgsql.check_asserts = OFF;
+                DO $$
+                BEGIN
+                    assert 1 = 0;
+                -- won't be tested
+END;
+                    $$;
+                    RESET plpgsql.check_asserts;
+                    -- test custom message
+                    DO $$ DECLARE var text := 'some value';
+                    BEGIN
+                        assert 1 = 0,
+                        format('assertion failed, var = "%s"', var);
+END;
+                        $$;
+                        -- ensure assertions are not trapped by 'others'
+                        DO $$
+                        BEGIN
+                            assert 1 = 0,
+                            'unhandled assertion';
+                        exception
+                            WHEN OTHERS THEN
+                                NULL;
+                        -- do nothing
+                        END;
+                        $$;
+                        -- Test use of plpgsql in a domain check constraint (cf. bug #14414)
+                        CREATE FUNCTION plpgsql_domain_check (val int )
+                            RETURNS boolean AS $$
+                            BEGIN
+                                RETURN val > 0;
+                            END $$
+                            LANGUAGE plpgsql
+                            IMMUTABLE;
+                        CREATE DOMAIN plpgsql_domain AS integer CHECK (plpgsql_domain_check (value));
+                        DO $$
 DECLARE
     v_test plpgsql_domain;
 BEGIN

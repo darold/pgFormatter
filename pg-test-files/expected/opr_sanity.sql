@@ -1326,7 +1326,9 @@ WITH funcdescs AS (
         o.oid <= 9999
 )
 SELECT
-    p_oid, proname, prodesc
+    p_oid,
+    proname,
+    prodesc
 FROM
     funcdescs
 WHERE

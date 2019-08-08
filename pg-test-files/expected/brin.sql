@@ -20,18 +20,15 @@ CREATE TABLE brintest (
     timestamptzcol timestamp WITH time zone,
     intervalcol interval,
     timetzcol time WITH time zone,
-    bitcol bit(
-        10
-),
-    varbitcol bit varying(
-        16
-),
+    bitcol bit(10),
+    varbitcol bit varying(16),
     numericcol numeric,
     uuidcol uuid,
     int4rangecol int4range,
     lsncol pg_lsn,
     boxcol box
-) WITH (
+)
+WITH (
     fillfactor = 10
 );
 

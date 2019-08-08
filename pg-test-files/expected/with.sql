@@ -26,8 +26,7 @@ FROM ( WITH q1 (
         SELECT
             random()
         FROM
-            generate_series(1,
-                5))
+            generate_series(1, 5))
     SELECT
         *
     FROM
@@ -36,8 +35,7 @@ FROM ( WITH q1 (
     SELECT
         *
     FROM
-        q1
-) ss;
+        q1) ss;
 
 -- WITH RECURSIVE
 -- sum of 1..100
@@ -73,10 +71,10 @@ WITH RECURSIVE t (
         WHERE
             n < 5
 )
-SELECT
-    *
-FROM
-    t;
+    SELECT
+        *
+    FROM
+        t;
 
 -- recursive view
 CREATE RECURSIVE VIEW nums (n) AS
@@ -186,7 +184,8 @@ WITH RECURSIVE t (
         length(n) < 20
 )
 SELECT
-    n, n IS OF (text) AS is_text
+    n,
+    n IS OF (text) AS is_text
 FROM
     t;
 
@@ -207,7 +206,8 @@ WITH RECURSIVE t (
         n < 10
 )
 SELECT
-    n, n IS OF (int) AS is_int
+    n,
+    n IS OF (int) AS is_int
 FROM
     t;
 
@@ -385,8 +385,7 @@ FROM ( WITH RECURSIVE t (
     SELECT
         *
     FROM
-        t
-) AS t
+        t) AS t
 WHERE
     n < (
         SELECT
@@ -411,8 +410,7 @@ WHERE
             WHERE
                 n < 50000) AS t
         WHERE
-            n < 100
-);
+            n < 100);
 
 -- use same CTE twice at different subquery levels
 WITH q1 (
@@ -510,8 +508,7 @@ WITH RECURSIVE q AS (
         SELECT
             *
         FROM
-            x)
-)
+            x))
 SELECT
     *
 FROM
@@ -541,8 +538,7 @@ WITH RECURSIVE q AS (
         SELECT
             *
         FROM
-            x)
-)
+            x))
 SELECT
     *
 FROM
@@ -565,8 +561,7 @@ WITH RECURSIVE t (
         UNION ALL
         SELECT
             3 AS i) AS t2
-        JOIN t ON (t2.i = t.i + 1)
-)
+        JOIN t ON (t2.i = t.i + 1))
 SELECT
     *
 FROM
@@ -599,8 +594,7 @@ WITH RECURSIVE t (
         t.path || tree.id
     FROM
         tree
-        JOIN t ON (tree.parent_id = t.id)
-)
+        JOIN t ON (tree.parent_id = t.id))
 SELECT
     t1.*,
     t2.*
@@ -625,8 +619,7 @@ WITH RECURSIVE t (
         t.path || tree.id
     FROM
         tree
-        JOIN t ON (tree.parent_id = t.id)
-)
+        JOIN t ON (tree.parent_id = t.id))
 SELECT
     t1.id,
     count(t2.*)
@@ -652,8 +645,7 @@ WITH RECURSIVE t (
         t.path || tree.id
     FROM
         tree
-        JOIN t ON (tree.parent_id = t.id)
-)
+        JOIN t ON (tree.parent_id = t.id))
 SELECT
     t1.id,
     t2.path,
@@ -792,8 +784,7 @@ WITH RECURSIVE x (
 y (
     id
 ) AS (
-    VALUES (1)
-)
+    VALUES (1))
 SELECT
     *
 FROM
@@ -824,7 +815,8 @@ y (
         id < 10
 )
 SELECT
-    y.*, x.*
+    y.*,
+    x.*
 FROM
     y
     LEFT JOIN x USING (id);
@@ -854,7 +846,8 @@ y (
         id < 10
 )
 SELECT
-    y.*, x.*
+    y.*,
+    x.*
 FROM
     y
     LEFT JOIN x USING (id);
@@ -967,8 +960,8 @@ WITH t AS (
     SELECT
         a
     FROM
-        y
-) INSERT INTO y
+        y)
+    INSERT INTO y
     SELECT
         a + 20
     FROM
@@ -985,8 +978,7 @@ WITH t AS (
     SELECT
         a
     FROM
-        y
-)
+        y)
 UPDATE
     y
 SET
@@ -1015,8 +1007,8 @@ WITH RECURSIVE t (
     FROM
         t
     WHERE
-        a < 50
-) DELETE FROM y USING t
+        a < 50)
+DELETE FROM y USING t
 WHERE t.a = y.a
 RETURNING
     y.a;
@@ -1225,8 +1217,7 @@ WITH RECURSIVE x (
             SELECT
                 *
             FROM
-                x)
-)
+                x))
 SELECT
     *
 FROM
@@ -1392,8 +1383,7 @@ WITH RECURSIVE foo (
         FROM
             foo
         WHERE
-            i < 5)
-)
+            i < 5))
 SELECT
     *
 FROM
@@ -1443,8 +1433,7 @@ WITH RECURSIVE foo (
         FROM
             foo
         WHERE
-            i < 5)
-)
+            i < 5))
 SELECT
     *
 FROM
@@ -1467,8 +1456,7 @@ WITH RECURSIVE foo (
         FROM
             foo
         WHERE
-            i < 5)
-)
+            i < 5))
 SELECT
     *
 FROM
@@ -1485,8 +1473,7 @@ WITH RECURSIVE foo (
             (2)) t (i)
     UNION ALL
     SELECT
-        (i + 1)::numeric(10,
-            0)
+        (i + 1)::numeric(10, 0)
     FROM
         foo
     WHERE
@@ -1509,8 +1496,7 @@ WITH RECURSIVE foo (
             (2)) t (i)
     UNION ALL
     SELECT
-        (i + 1)::numeric(10,
-            0)
+        (i + 1)::numeric(10, 0)
     FROM
         foo
     WHERE
@@ -1532,12 +1518,11 @@ UPDATE
         DO INSTEAD
         WITH t AS (
             SELECT
-                OLD.*
-)
-UPDATE
-    y SET
-    a = t.n FROM
-    t;
+                OLD.*)
+        UPDATE
+            y SET
+            a = t.n FROM
+            t;
 
 --
 -- test for bug #4902
@@ -1546,8 +1531,7 @@ UPDATE
 WITH cte (
     foo
 ) AS (
-    VALUES (42)
-)
+    VALUES (42))
 VALUES ((
         SELECT
             foo
@@ -1581,10 +1565,9 @@ SELECT
                 SELECT
                     foo
                 FROM
-                    cte)
-)
-FROM
-    int4_tbl;
+                    cte))
+    FROM
+        int4_tbl;
 
 SELECT
     ( WITH cte (
@@ -1595,8 +1578,7 @@ SELECT
                 SELECT
                     foo
                 FROM
-                    cte))
-)
+                    cte)))
 FROM
     int4_tbl;
 
@@ -1655,8 +1637,7 @@ WITH outermost (
             innermost
         UNION
         SELECT
-            3)
-)
+            3))
 SELECT
     *
 FROM
@@ -1681,8 +1662,7 @@ WITH outermost (
         SELECT
             *
         FROM
-            innermost)
-)
+            innermost))
 SELECT
     *
 FROM
@@ -1707,8 +1687,7 @@ WITH RECURSIVE outermost (
         SELECT
             *
         FROM
-            innermost)
-)
+            innermost))
 SELECT
     *
 FROM
@@ -1734,12 +1713,12 @@ WITH RECURSIVE outermost (
         FROM
             outermost
 )
-SELECT
-    *
-FROM
-    outermost
-ORDER BY
-    1;
+    SELECT
+        *
+    FROM
+        outermost
+    ORDER BY
+        1;
 
 --
 -- This test will fail with the old implementation of PARAM_EXEC parameter
@@ -1799,9 +1778,7 @@ WITH RECURSIVE tab (
         (5, 17)
 ),
 iter (
-    id_key,
-    row_type,
-    link
+    id_key, row_type, link
 ) AS (
     SELECT
         0, 'base', 17
@@ -1840,8 +1817,7 @@ iter (
         SELECT
             *
         FROM
-            effect)
-)
+            effect))
 SELECT
     *
 FROM
@@ -1859,9 +1835,7 @@ WITH RECURSIVE tab (
         (5, 17)
 ),
 iter (
-    id_key,
-    row_type,
-    link
+    id_key, row_type, link
 ) AS (
     SELECT
         0, 'base', 17
@@ -1900,8 +1874,7 @@ iter (
         SELECT
             *
         FROM
-            effect)
-)
+            effect))
 SELECT
     *
 FROM
@@ -1925,8 +1898,7 @@ INSERT INTO y
     (19),
     (20)
 RETURNING
-    *
-)
+    *)
 SELECT
     *
 FROM
@@ -2047,8 +2019,8 @@ FROM
 WITH t1 AS (
     DELETE FROM bug6051
 RETURNING
-    *
-) INSERT INTO bug6051
+    *)
+    INSERT INTO bug6051
     SELECT
         *
     FROM
@@ -2072,8 +2044,8 @@ CREATE RULE bug6051_ins AS ON INSERT TO bug6051
 WITH t1 AS (
     DELETE FROM bug6051
 RETURNING
-    *
-) INSERT INTO bug6051
+    *)
+    INSERT INTO bug6051
     SELECT
         *
     FROM
@@ -2130,8 +2102,8 @@ WITH t AS (
     DELETE FROM y
     WHERE a <= 10
     RETURNING
-        *
-) INSERT INTO y
+        *)
+INSERT INTO y
 SELECT
     - a
 FROM
@@ -2181,8 +2153,7 @@ INSERT INTO withz
         i,
         'insert'
     FROM
-        generate_series(0,
-            16) i ON CONFLICT (k)
+        generate_series(0, 16) i ON CONFLICT (k)
         DO
         UPDATE
         SET
@@ -2190,14 +2161,14 @@ INSERT INTO withz
         RETURNING
             *
 )
-SELECT
-    *
-FROM
-    t
-    JOIN y ON t.k = y.a
-ORDER BY
-    a,
-    k;
+    SELECT
+        *
+    FROM
+        t
+        JOIN y ON t.k = y.a
+    ORDER BY
+        a,
+        k;
 
 -- Test EXCLUDED.* reference within CTE
 WITH aa AS (
@@ -2234,8 +2205,8 @@ ORDER BY
 WITH aa AS (
     SELECT
         1 a,
-        2 b
-) INSERT INTO withz
+        2 b)
+INSERT INTO withz
     VALUES (1, 'insert') ON CONFLICT (k)
     DO
     UPDATE
@@ -2252,8 +2223,8 @@ WITH aa AS (
 WITH aa AS (
     SELECT
         1 a,
-        2 b
-) INSERT INTO withz
+        2 b)
+INSERT INTO withz
     VALUES (1, 'insert') ON CONFLICT (k)
     DO
     UPDATE
@@ -2269,8 +2240,8 @@ WITH aa AS (
 WITH aa AS (
     SELECT
         1 a,
-        2 b
-) INSERT INTO withz
+        2 b)
+INSERT INTO withz
     VALUES (1, 'insert') ON CONFLICT (k)
     DO
     UPDATE
@@ -2291,8 +2262,8 @@ WITH aa AS (
     UNION ALL
     SELECT
         'a' a,
-        'b' b
-) INSERT INTO withz
+        'b' b)
+INSERT INTO withz
     VALUES (1, 'insert') ON CONFLICT (k)
     DO
     UPDATE
@@ -2309,8 +2280,8 @@ WITH aa AS (
 WITH aa AS (
     SELECT
         1 a,
-        2 b
-) INSERT INTO withz
+        2 b)
+INSERT INTO withz
     VALUES (1, (
             SELECT
                 b || ' insert' FROM aa
@@ -2355,8 +2326,8 @@ INSERT INTO withz
                 simpletup.k = withz.k)
         RETURNING
             k,
-            v
-) INSERT INTO withz
+            v)
+INSERT INTO withz
     VALUES (2, 'Red') ON CONFLICT (k)
     DO
     UPDATE
@@ -2477,8 +2448,7 @@ INSERT INTO y
     (22),
     (23)
 RETURNING
-    *
-)
+    *)
 SELECT
     *
 FROM
@@ -2502,8 +2472,7 @@ INSERT INTO y
     (32),
     (33)
 RETURNING
-    *
-)
+    *)
 SELECT
     *
 FROM
@@ -2538,8 +2507,7 @@ INSERT INTO y
     (42),
     (43)
 RETURNING
-    *
-)
+    *)
 SELECT
     *
 FROM
@@ -2583,8 +2551,7 @@ WITH rcte AS (
     SELECT
         sum(id) AS totalid
     FROM
-        parent
-)
+        parent)
 UPDATE
     parent
 SET
@@ -2602,8 +2569,7 @@ INSERT INTO child1
     VALUES (42,
         'new')
 RETURNING
-    id AS newid
-)
+    id AS newid)
 UPDATE
     parent
 SET
@@ -2620,8 +2586,8 @@ WITH rcte AS (
     SELECT
         max(id) AS maxid
     FROM
-        parent
-) DELETE FROM parent USING rcte
+        parent)
+DELETE FROM parent USING rcte
 WHERE id = maxid;
 
 SELECT
@@ -2634,8 +2600,8 @@ INSERT INTO child2
     VALUES (42,
         'new2')
 RETURNING
-    id AS newid
-) DELETE FROM parent USING wcte
+    id AS newid)
+DELETE FROM parent USING wcte
 WHERE id = newid;
 
 SELECT
@@ -2652,8 +2618,8 @@ INSERT INTO int8_tbl
     VALUES (42,
         47)
 RETURNING
-    q2
-) DELETE FROM a USING wcte
+    q2)
+DELETE FROM a USING wcte
 WHERE aa = q2;
 
 -- error cases
@@ -2664,15 +2630,13 @@ INSERT INTO y
     SELECT
         *
     FROM
-        t
-)
+        t)
 VALUES (FALSE);
 
 -- no RETURNING in a referenced data-modifying WITH
 WITH t AS (
 INSERT INTO y
-    VALUES (0)
-)
+    VALUES (0))
 SELECT
     *
 FROM
@@ -2692,8 +2656,7 @@ FROM ( WITH t AS (
     SELECT
         *
     FROM
-        t
-) ss;
+        t) ss;
 
 -- most variants of rules aren't allowed
 CREATE RULE y_rule AS ON INSERT TO y WHERE
@@ -2703,8 +2666,7 @@ CREATE RULE y_rule AS ON INSERT TO y WHERE
 
 WITH t AS (
 INSERT INTO y
-    VALUES (0)
-)
+    VALUES (0))
     VALUES (FALSE);
 
 DROP RULE y_rule ON y;
@@ -2732,8 +2694,8 @@ FROM
 -- check sane response to attempt to modify CTE relation
 WITH test AS (
     SELECT
-        42
-) INSERT INTO test
+        42)
+INSERT INTO test
     VALUES (1);
 
 -- check response to attempt to modify table with same name as a CTE (perhaps
@@ -2746,8 +2708,8 @@ CREATE temp TABLE test (
 
 WITH test AS (
     SELECT
-        42
-) INSERT INTO test
+        42)
+INSERT INTO test
 SELECT
     *
 FROM

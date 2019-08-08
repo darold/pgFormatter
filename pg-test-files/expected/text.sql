@@ -91,185 +91,80 @@ SELECT
 
 SELECT
     quote_literal(e '\\');
-
--- check variadic labeled argument
-SELECT
-    concat(VARIADIC ARRAY[1, 2, 3]);
-
-SELECT
-    concat_ws(',', VARIADIC ARRAY[1, 2, 3]);
-
-SELECT
-    concat_ws(',', VARIADIC NULL::int[]);
-
-SELECT
-    concat(VARIADIC NULL::int[]) IS NULL;
-
-SELECT
-    concat(VARIADIC '{}'::int[]) = '';
-
---should fail
-SELECT
-    concat_ws(',', VARIADIC 10);
-
-
-/*
- * format
- */
-SELECT
-    format(NULL);
-
-SELECT
-    format('Hello');
-
-SELECT
-    format('Hello %s', 'World');
-
-SELECT
-    format('Hello %%');
-
-SELECT
-    format('Hello %%%%');
-
--- should fail
-SELECT
-    format('Hello %s %s', 'World');
-
-SELECT
-    format('Hello %s');
-
-SELECT
-    format('Hello %x', 20);
-
--- check literal and sql identifiers
-SELECT
-    format('INSERT INTO %I VALUES(%L,%L)', 'mytab', 10, 'Hello');
-
-SELECT
-    format('%s%s%s', 'Hello', NULL, 'World');
-
-SELECT
-    format('INSERT INTO %I VALUES(%L,%L)', 'mytab', 10, NULL);
-
-SELECT
-    format('INSERT INTO %I VALUES(%L,%L)', 'mytab', NULL, 'Hello');
-
--- should fail, sql identifier cannot be NULL
-SELECT
-    format('INSERT INTO %I VALUES(%L,%L)', NULL, 10, 'Hello');
-
--- check positional placeholders
-SELECT
-    format('%1$s %3$s', 1, 2, 3);
-
-SELECT
-    format('%1$s %12$s', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-
--- should fail
-SELECT
-    format('%1$s %4$s', 1, 2, 3);
-
-SELECT
-    format('%1$s %13$s', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-
-SELECT
-    format('%0$s', 'Hello');
-
-SELECT
-    format('%*0$s', 'Hello');
-
-SELECT
-    format('%1$', 1);
-
-SELECT
-    format('%1$1', 1);
-
--- check mix of positional and ordered placeholders
-SELECT
-    format('Hello %s %1$s %s', 'World', 'Hello again');
-
-SELECT
-    format('Hello %s %s, %2$s %2$s', 'World', 'Hello again');
-
--- check variadic labeled arguments
-SELECT
-    format('%s, %s', VARIADIC ARRAY['Hello', 'World']);
-
-SELECT
-    format('%s, %s', VARIADIC ARRAY[1, 2]);
-
-SELECT
-    format('%s, %s', VARIADIC ARRAY[TRUE, FALSE]);
-
-SELECT
-    format('%s, %s', VARIADIC ARRAY[TRUE, FALSE]::text[]);
-
--- check variadic with positional placeholders
-SELECT
-    format('%2$s, %1$s', VARIADIC ARRAY['first', 'second']);
-
-SELECT
-    format('%2$s, %1$s', VARIADIC ARRAY[1, 2]);
-
--- variadic argument can be array type NULL, but should not be referenced
-SELECT
-    format('Hello', VARIADIC NULL::int[]);
-
--- variadic argument allows simulating more than FUNC_MAX_ARGS parameters
-SELECT
-    format(string_agg('%s', ','), VARIADIC array_agg(i))
-FROM
-    generate_series(1, 200) g (i);
-
--- check field widths and left, right alignment
-SELECT
-    format('>>%10s<<', 'Hello');
-
-SELECT
-    format('>>%10s<<', NULL);
-
-SELECT
-    format('>>%10s<<', '');
-
-SELECT
-    format('>>%-10s<<', '');
-
-SELECT
-    format('>>%-10s<<', 'Hello');
-
-SELECT
-    format('>>%-10s<<', NULL);
-
-SELECT
-    format('>>%1$10s<<', 'Hello');
-
-SELECT
-    format('>>%1$-10I<<', 'Hello');
-
-SELECT
-    format('>>%2$*1$L<<', 10, 'Hello');
-
-SELECT
-    format('>>%2$*1$L<<', 10, NULL);
-
-SELECT
-    format('>>%2$*1$L<<', - 10, NULL);
-
-SELECT
-    format('>>%*s<<', 10, 'Hello');
-
-SELECT
-    format('>>%*1$s<<', 10, 'Hello');
-
-SELECT
-    format('>>%-s<<', 'Hello');
-
-SELECT
-    format('>>%10L<<', NULL);
-
-SELECT
-    format('>>%2$*1$L<<', NULL, 'Hello');
-
-SELECT
-    format('>>%2$*1$L<<', 0, 'Hello');
+ -- check variadic labeled argument
+ select concat(variadic array[1,2,3]);
+ select concat_ws(', ', variadic array[1,2,3]);
+ select concat_ws(', ', variadic NULL::int[]);
+ select concat(variadic NULL::int[]) is NULL;
+ select concat(variadic ' '::int[]) = '';
+ --should fail
+ select concat_ws(', ', variadic 10);
+ 
+ /*
+  * format
+  */
+ select format(NULL);
+ select format(' Hello ');
+ select format(' Hello % s ', ' World ');
+ select format(' Hello % % ');
+ select format(' Hello % % % % ');
+ -- should fail
+ select format(' Hello % s % s ', ' World ');
+ select format(' Hello % s ');
+ select format(' Hello % x ', 20);
+ -- check literal and sql identifiers
+ select format(' INSERT INTO % I
+        VALUES (% L, % L) ', ' mytab ', 10, ' Hello ');
+ select format(' % s % s % s ',' Hello ', NULL,' World ');
+ select format(' INSERT INTO % I
+        VALUES (% L, % L) ', ' mytab ', 10, NULL);
+ select format(' INSERT INTO % I
+        VALUES (% L, % L) ', ' mytab ', NULL, ' Hello ');
+ -- should fail, sql identifier cannot be NULL
+ select format(' INSERT INTO % I
+        VALUES (% L, % L) ', NULL, 10, ' Hello ');
+ -- check positional placeholders
+ select format(' % 1$s % 3$s ', 1, 2, 3);
+ select format(' % 1$s % 12$s ', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+ -- should fail
+ select format(' % 1$s % 4$s ', 1, 2, 3);
+ select format(' % 1$s % 13$s ', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+ select format(' % 0$s ', ' Hello ');
+ select format(' % * 0$s ', ' Hello ');
+ select format(' % 1$ ', 1);
+ select format(' % 1$1 ', 1);
+ -- check mix of positional and ordered placeholders
+ select format(' Hello % s % 1$s % s ', ' World ', ' Hello again ');
+ select format(' Hello % s % s, % 2$s % 2$s ', ' World ', ' Hello again ');
+ -- check variadic labeled arguments
+ select format(' % s, % s ', variadic array[' Hello ',' World ']);
+ select format(' % s, % s ', variadic array[1, 2]);
+ select format(' % s, % s ', variadic array[true, false]);
+ select format(' % s, % s ', variadic array[true, false]::text[]);
+ -- check variadic with positional placeholders
+ select format(' % 2$s, % 1$s ', variadic array[' FIRST ', ' second ']);
+ select format(' % 2$s, % 1$s ', variadic array[1, 2]);
+ -- variadic argument can be array type NULL, but should not be referenced
+ select format(' Hello ', variadic NULL::int[]);
+ -- variadic argument allows simulating more than FUNC_MAX_ARGS parameters
+ select format(string_agg(' % s ',', '), variadic array_agg(i))
+ from generate_series(1,200) g(i);
+ -- check field widths and left, right alignment
+ select format(' >> % 10s << ', ' Hello ');
+ select format(' >> % 10s << ', NULL);
+ select format(' >> % 10s << ', '');
+ select format(' >> % - 10s << ', '');
+ select format(' >> % - 10s << ', ' Hello ');
+ select format(' >> % - 10s << ', NULL);
+ select format(' >> % 1$10s << ', ' Hello ');
+ select format(' >> % 1$ - 10I << ', ' Hello ');
+ select format(' >> % 2$ * 1$L << ', 10, ' Hello ');
+ select format(' >> % 2$ * 1$L << ', 10, NULL);
+ select format(' >> % 2$ * 1$L << ', -10, NULL);
+ select format(' >> % * s << ', 10, ' Hello ');
+ select format(' >> % * 1$s << ', 10, ' Hello ');
+ select format(' >> % - s << ', ' Hello ');
+ select format(' >> % 10L << ', NULL);
+ select format(' >> % 2$ * 1$L << ', NULL, ' Hello ');
+ select format(' >> % 2$ * 1$L << ', 0, ' Hello);
 

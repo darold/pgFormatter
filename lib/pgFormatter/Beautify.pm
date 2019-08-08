@@ -640,7 +640,7 @@ sub beautify {
         ####
         if ($token =~ /^WITH$/i && (!defined $last || $last ne ')')
 		&& !$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' }
-		&& !$self->{ '_is_in_policy' })
+		&& !$self->{ '_is_in_policy' } && uc($self->_next_token) ne 'TIME')
 	{
 		$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' } && uc($self->_next_token) ne 'ORDINALITY' && uc($last) ne 'START');
 		$self->{ 'no_break' } = 1 if (uc($self->_next_token) eq 'ORDINALITY');

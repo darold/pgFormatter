@@ -2981,8 +2981,7 @@ FROM
     rw_view1
 WHERE
     snoop (
-        person
-);
+        person);
 
 SELECT
     table_name,
@@ -3226,8 +3225,7 @@ WHERE
         FROM
             t12
         WHERE
-            t12.a = t1.a
-);
+            t12.a = t1.a);
 
 SELECT
     *

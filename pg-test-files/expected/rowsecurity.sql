@@ -2274,9 +2274,7 @@ FROM
     q,
     z1
 WHERE
-    f_leak (
-        z1.b
-);
+    f_leak (z1.b);
 
 EXPLAIN (
     COSTS OFF
@@ -2637,8 +2635,7 @@ FROM
     y1
 WHERE
     f_leak (
-        b
-);
+        b);
 
 EXPLAIN (
     COSTS OFF
@@ -2662,8 +2659,7 @@ FROM
     y1
 WHERE
     f_leak (
-        b
-);
+        b);
 
 EXPLAIN (
     COSTS OFF
@@ -2923,8 +2919,7 @@ INSERT INTO t1
     VALUES (21,
         'Fail')
 RETURNING
-    *
-)
+    *)
 SELECT
     *
 FROM
@@ -2936,8 +2931,7 @@ INSERT INTO t1
     VALUES (20,
         'Success')
 RETURNING
-    *
-)
+    *)
 SELECT
     *
 FROM

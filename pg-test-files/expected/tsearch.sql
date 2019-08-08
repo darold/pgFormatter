@@ -1559,5 +1559,5 @@ SELECT
     websearch_to_tsquery ('\abc');
 
 SELECT
-    websearch_to_tsquery ();
+    websearch_to_tsquery ('\');
 

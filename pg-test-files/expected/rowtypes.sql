@@ -1269,17 +1269,14 @@ EXPLAIN (
 ) WITH r (
     a,
     b
-) AS materialized (
+) AS MATERIALIZED (
     VALUES (
             1, ROW (
                 1, 2
 )
-),
-        (
-            1,
-            ROW (
-                NULL,
-                NULL
+), (
+            1, ROW (
+                NULL, NULL
 )
 ),
         (
@@ -1289,39 +1286,33 @@ EXPLAIN (
             NULL, ROW (
                 1, 2
 )
-),
-        (
-            NULL,
-            ROW (
-                NULL,
-                NULL
+), (
+            NULL, ROW (
+                NULL, NULL
 )
 ),
         (
             NULL, NULL
 )
 )
-    SELECT
-        r,
-        r IS NULL AS ISNULL,
-        r IS NOT NULL AS isnotnull
-    FROM
-        r;
+SELECT
+    r,
+    r IS NULL AS ISNULL,
+    r IS NOT NULL AS isnotnull
+FROM
+    r;
 
 WITH r (
     a,
     b
-) AS materialized (
+) AS MATERIALIZED (
     VALUES (
             1, ROW (
                 1, 2
 )
-),
-        (
-            1,
-            ROW (
-                NULL,
-                NULL
+), (
+            1, ROW (
+                NULL, NULL
 )
 ),
         (
@@ -1331,24 +1322,21 @@ WITH r (
             NULL, ROW (
                 1, 2
 )
-),
-        (
-            NULL,
-            ROW (
-                NULL,
-                NULL
+), (
+            NULL, ROW (
+                NULL, NULL
 )
 ),
         (
             NULL, NULL
 )
 )
-    SELECT
-        r,
-        r IS NULL AS ISNULL,
-        r IS NOT NULL AS isnotnull
-    FROM
-        r;
+SELECT
+    r,
+    r IS NULL AS ISNULL,
+    r IS NOT NULL AS isnotnull
+FROM
+    r;
 
 --
 -- Tests for component access / FieldSelect

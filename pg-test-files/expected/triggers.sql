@@ -2536,8 +2536,8 @@ INSERT INTO parted2_stmt_trig
     VALUES (1),
     (2)
 RETURNING
-    a
-) INSERT INTO parted_stmt_trig
+    a)
+INSERT INTO parted_stmt_trig
 SELECT
     a
 FROM
@@ -2550,8 +2550,7 @@ WITH upd AS (
     UPDATE
         parted2_stmt_trig
     SET
-        a = a
-)
+        a = a)
 UPDATE
     parted_stmt_trig
 SET
@@ -3356,35 +3355,35 @@ PARTITION BY LIST (a );
             EXECUTE PROCEDURE dump_insert ( );
         WITH wcte AS (
 INSERT INTO table1
-            VALUES (42)
-) INSERT INTO table2
+            VALUES (42))
+    INSERT INTO table2
     VALUES ('hello world');
-        WITH wcte AS (
+            WITH wcte AS (
 INSERT INTO table1
-            VALUES (43)
-) INSERT INTO table1
-    VALUES (44);
-        SELECT
-            *
-        FROM
-            table1;
-        SELECT
-            *
-        FROM
-            table2;
-        DROP TABLE table1;
-        DROP TABLE table2;
-        --
-        -- Verify behavior of INSERT ... ON CONFLICT DO UPDATE ... with
-        -- transition tables.
-        --
-        CREATE TABLE my_table (
-            a int PRIMARY KEY,
-            b text
-        );
-        CREATE TRIGGER my_table_insert_trig
-            AFTER INSERT ON my_table referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
+                VALUES (43))
+        INSERT INTO table1
+        VALUES (44);
+                SELECT
+                    *
+                FROM
+                    table1;
+                SELECT
+                    *
+                FROM
+                    table2;
+                DROP TABLE table1;
+                DROP TABLE table2;
+                --
+                -- Verify behavior of INSERT ... ON CONFLICT DO UPDATE ... with
+                -- transition tables.
+                --
+                CREATE TABLE my_table (
+                    a int PRIMARY KEY,
+                    b text
+                );
+            CREATE TRIGGER my_table_insert_trig
+                AFTER INSERT ON my_table referencing new TABLE AS new_table FOR EACH statement
+                EXECUTE PROCEDURE dump_insert ( );
         CREATE TRIGGER my_table_update_trig
             AFTER UPDATE ON my_table referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
             EXECUTE PROCEDURE dump_update ( );

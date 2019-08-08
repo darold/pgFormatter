@@ -447,28 +447,21 @@ WHERE
 
 SELECT
     '' AS date_trunc_week,
-    date_trunc('week', timestamp WITH time zone '2004-02-29 15:44:17.71393'
-) AS week_trunc;
+    date_trunc('week', timestamp WITH time zone '2004-02-29 15:44:17.71393') AS week_trunc;
 
 SELECT
     '' AS date_trunc_at_tz,
-    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00',
-        'Australia/Sydney'
-) AS sydney_trunc;
+    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00', 'Australia/Sydney') AS sydney_trunc;
 
 -- zone name
 SELECT
     '' AS date_trunc_at_tz,
-    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00',
-        'GMT'
-) AS gmt_trunc;
+    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00', 'GMT') AS gmt_trunc;
 
 -- fixed-offset abbreviation
 SELECT
     '' AS date_trunc_at_tz,
-    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00',
-        'VET'
-) AS vet_trunc;
+    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00', 'VET') AS vet_trunc;
 
 -- variable-offset abbreviation
 -- Test casting within a BETWEEN qualifier
@@ -727,8 +720,7 @@ WITH tzs (
         ('+10:00:'),
         ('+10:00:1'),
         ('+10:00:01'),
-        ('+10:00:10')
-)
+        ('+10:00:10'))
 SELECT
     make_timestamptz (2010, 2, 27, 3, 45, 00, tz),
     tz
