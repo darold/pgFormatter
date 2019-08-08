@@ -245,6 +245,9 @@ sub query {
     }
     $self->{ 'query' } = join('', @temp_content);
 
+    # Replace any \' by %BSLH%
+    $self->{ 'query' } =~ s/\\'/PGFBSLHQ/g;
+
     # Store values of code that must not be changed following the given placeholder
     if ($self->{ 'placeholder' }) {
         while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/) {
@@ -291,6 +294,9 @@ sub content
         $self->{ 'content' } =~ s/PLACEHOLDER(\d+)PLACEHOLDER/$self->{ 'placeholder_values' }[$1]/igs;
         $self->{ 'content' } =~ s/CODEPART(\d+)CODEPART/$self->{ 'placeholder_values' }[$1]/igs;
     }
+
+    # Replace any %BSLH% by \'
+    $self->{ 'content' } =~ s/PGFBSLHQ/\\'/g;
 
     return $self->{ 'content' };
 }
@@ -435,6 +441,8 @@ sub tokenize_sql {
                 |
                 \"\"(?!\"")             # empty double quoted string
                 |
+                '[^']+'(?!')            # anyhing into single quoted string
+                |
                 "(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
                 |
                 `(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
@@ -459,6 +467,7 @@ sub tokenize_sql {
 
     my @query = ();
     @query = grep { /\S/ } $query =~ m{$re}smxg;
+    map { s/(.*PGFBSLHQ)$/'$1/; } @query;
     $self->{ '_tokens' } = \@query;
 
     return @query;
