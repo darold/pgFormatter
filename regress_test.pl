@@ -1,7 +1,9 @@
 my @files = `find samples/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
 
-foreach my $f (@files) {
+foreach my $f (@files)
+{
+	next if ( $#ARGV >= 0 and lc($ARGV[0]) ne 'update' and !grep(m#^$f$#, @ARGV) );
 	print "Running test on file $f...\n";
 	my $opt = '';
 	$opt = "-S '\$f\$'" if ($f =~ m#/ex19.sql$#);
@@ -28,7 +30,9 @@ foreach my $f (@files) {
 @files = `find pg-test-files/sql/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
 
-foreach my $f (@files) {
+foreach my $f (@files)
+{
+	next if ( $#ARGV >= 0 and lc($ARGV[0]) ne 'update' and !grep(m#^$f$#, @ARGV) );
 	print "Running test on file $f...\n";
 	my $opt = '';
 	$opt .= ' -t' if (grep(/^-t/, @ARGV));
