@@ -1039,10 +1039,7 @@ FROM
 
 BEGIN;
 CREATE TABLE t ();
-INSERT INTO t DEFAULT
-    VALUES
-;
-ALTER TABLE t
+INSERT INTO t DEFAULT VALUES; ALTER TABLE t
     ADD COLUMN a int DEFAULT 1;
 CREATE INDEX ON t (a);
 -- set column with a default 1 to NULL, due to a bug that wasn't

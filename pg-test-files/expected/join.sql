@@ -77,11 +77,7 @@ INSERT INTO J2_TBL
 -- useful in some tests below
 CREATE temp TABLE onerow ();
 
-INSERT INTO onerow DEFAULT
-    VALUES
-;
-
-ANALYZE onerow;
+INSERT INTO onerow DEFAULT VALUES; ANALYZE onerow;
 
 --
 -- CORRELATION NAMES

@@ -42,16 +42,14 @@ SELECT
     *
 FROM
     tidscan
-WHERE
-    '(0,1)' = ctid;
+WHERE '(0,1)' = ctid;
 
 SELECT
     ctid,
     *
 FROM
     tidscan
-WHERE
-    '(0,1)' = ctid;
+WHERE '(0,1)' = ctid;
 
 -- OR'd clauses
 EXPLAIN (

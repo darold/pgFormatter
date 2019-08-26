@@ -116,10 +116,14 @@ f2 int42);
 
 CREATE FUNCTION get_default_test ()
     RETURNS SETOF default_test_row
-    AS '
-   SELECT * FROM default_test;
- '
-    LANGUAGE SQL;
+    AS $$
+    SELECT
+        *
+    FROM
+        default_test;
+
+$$
+LANGUAGE SQL;
 
 SELECT
     *
@@ -157,12 +161,14 @@ CREATE TYPE not_existing_type (
 
 -- Check dependency transfer of opaque functions when creating a new type
 CREATE FUNCTION base_fn_in (cstring)
-    RETURNS opaque AS 'boolin'
+    RETURNS opaque
+    AS 'boolin'
     LANGUAGE internal
     IMMUTABLE STRICT;
 
 CREATE FUNCTION base_fn_out (opaque)
-    RETURNS opaque AS 'boolout'
+    RETURNS opaque
+    AS 'boolout'
     LANGUAGE internal
     IMMUTABLE STRICT;
 
@@ -184,6 +190,7 @@ DROP TYPE base_type CASCADE;
 
 -- Check usage of typmod with a user-defined type
 -- (we have borrowed numeric's typmod functions)
+
 CREATE TEMP TABLE mytab (
     foo widget (42,
         13,

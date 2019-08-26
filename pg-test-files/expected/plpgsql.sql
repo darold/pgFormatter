@@ -129,15 +129,20 @@ USING btree (slotname bpchar_ops);
 
 CREATE FUNCTION tg_room_au ()
     RETURNS TRIGGER
-    AS '
- begin
-     if new.roomno != old.roomno then
-         update WSlot set roomno = new.roomno where roomno = old.roomno;
-     end if;
-     return new;
- end;
- '
-    LANGUAGE plpgsql;
+    AS $$
+BEGIN
+    IF new.roomno != old.roomno THEN
+        UPDATE
+            WSlot
+        SET
+            roomno = new.roomno
+        WHERE
+            roomno = old.roomno;
+    END IF;
+    RETURN new;
+END;
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_room_au
     AFTER UPDATE ON Room FOR EACH ROW
@@ -147,14 +152,17 @@ CREATE TRIGGER tg_room_au
 -- * AFTER DELETE on Room
 -- *	- delete wall slots in this room
 -- ************************************************************
+
 CREATE FUNCTION tg_room_ad ()
-    RETURNS TRIGGER AS '
- begin
-     delete from WSlot where roomno = old.roomno;
-     return old;
- end;
- '
-    LANGUAGE plpgsql;
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    DELETE FROM WSlot
+    WHERE roomno = old.roomno;
+    RETURN old;
+END;
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_room_ad
     AFTER DELETE ON Room FOR EACH ROW
@@ -164,8 +172,10 @@ CREATE TRIGGER tg_room_ad
 -- * BEFORE INSERT or UPDATE on WSlot
 -- *	- Check that room exists
 -- ************************************************************
+
 CREATE FUNCTION tg_wslot_biu ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     IF count(*) = 0
     FROM
@@ -189,16 +199,23 @@ CREATE TRIGGER tg_wslot_biu
 -- * AFTER UPDATE on PField
 -- *	- Let PSlots of this field follow
 -- ************************************************************
+
 CREATE FUNCTION tg_pfield_au ()
-    RETURNS TRIGGER AS '
- begin
-     if new.name != old.name then
-         update PSlot set pfname = new.name where pfname = old.name;
-     end if;
-     return new;
- end;
- '
-    LANGUAGE plpgsql;
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    IF new.name != old.name THEN
+        UPDATE
+            PSlot
+        SET
+            pfname = new.name
+        WHERE
+            pfname = old.name;
+    END IF;
+    RETURN new;
+END;
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pfield_au
     AFTER UPDATE ON PField FOR EACH ROW
@@ -208,14 +225,17 @@ CREATE TRIGGER tg_pfield_au
 -- * AFTER DELETE on PField
 -- *	- Remove all slots of this patchfield
 -- ************************************************************
+
 CREATE FUNCTION tg_pfield_ad ()
-    RETURNS TRIGGER AS '
- begin
-     delete from PSlot where pfname = old.name;
-     return old;
- end;
- '
-    LANGUAGE plpgsql;
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    DELETE FROM PSlot
+    WHERE pfname = old.name;
+    RETURN old;
+END;
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pfield_ad
     AFTER DELETE ON PField FOR EACH ROW
@@ -225,8 +245,10 @@ CREATE TRIGGER tg_pfield_ad
 -- * BEFORE INSERT or UPDATE on PSlot
 -- *	- Ensure that our patchfield does exist
 -- ************************************************************
+
 CREATE FUNCTION tg_pslot_biu ()
-    RETURNS TRIGGER AS $proc$
+    RETURNS TRIGGER
+    AS $proc$
 DECLARE
     pfrec record;
     ps alias FOR new;
@@ -255,16 +277,23 @@ CREATE TRIGGER tg_pslot_biu
 -- * AFTER UPDATE on System
 -- *	- If system name changes let interfaces follow
 -- ************************************************************
+
 CREATE FUNCTION tg_system_au ()
-    RETURNS TRIGGER AS '
- begin
-     if new.name != old.name then
-         update IFace set sysname = new.name where sysname = old.name;
-     end if;
-     return new;
- end;
- '
-    LANGUAGE plpgsql;
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    IF new.name != old.name THEN
+        UPDATE
+            IFace
+        SET
+            sysname = new.name
+        WHERE
+            sysname = old.name;
+    END IF;
+    RETURN new;
+END;
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_system_au
     AFTER UPDATE ON SYSTEM FOR EACH ROW
@@ -274,8 +303,10 @@ CREATE TRIGGER tg_system_au
 -- * BEFORE INSERT or UPDATE on IFace
 -- *	- set the slotname to IF.sysname.ifname
 -- ************************************************************
+
 CREATE FUNCTION tg_iface_biu ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 DECLARE
     sname text;
     sysrec record;
@@ -311,30 +342,43 @@ CREATE TRIGGER tg_iface_biu
 -- * AFTER INSERT or UPDATE or DELETE on Hub
 -- *	- insert/delete/rename slots as required
 -- ************************************************************
+
 CREATE FUNCTION tg_hub_a ()
-    RETURNS TRIGGER AS '
- declare
-     hname	text;
-     dummy	integer;
- begin
-     if tg_op = ''INSERT'' then
- 	dummy := tg_hub_adjustslots(new.name, 0, new.nslots);
- 	return new;
-     end if;
-     if tg_op = ''UPDATE'' then
- 	if new.name != old.name then
- 	    update HSlot set hubname = new.name where hubname = old.name;
- 	end if;
- 	dummy := tg_hub_adjustslots(new.name, old.nslots, new.nslots);
- 	return new;
-     end if;
-     if tg_op = ''DELETE'' then
- 	dummy := tg_hub_adjustslots(old.name, old.nslots, 0);
- 	return old;
-     end if;
- end;
- '
-    LANGUAGE plpgsql;
+    RETURNS TRIGGER
+    AS $$
+DECLARE
+    hname text;
+    dummy integer;
+BEGIN
+    IF tg_op = '' INSERT '' THEN
+        dummy := tg_hub_adjustslots (new.name, 0, new.nslots);
+        RETURN new;
+    END IF;
+    IF tg_op = ''
+        UPDATE
+            '' THEN
+        IF new.name != old.name THEN
+            UPDATE
+                HSlot
+            SET
+                hubname = new.name
+            WHERE
+                hubname = old.name;
+        END IF;
+        dummy := tg_hub_adjustslots (new.name,
+            old.nslots,
+            new.nslots);
+        RETURN new;
+    END IF;
+    IF tg_op = '' DELETE '' THEN
+        dummy := tg_hub_adjustslots (old.name,
+            old.nslots,
+            0);
+        RETURN old;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hub_a
     AFTER INSERT
@@ -345,8 +389,10 @@ CREATE TRIGGER tg_hub_a
 -- ************************************************************
 -- * Support function to add/remove slots of Hub
 -- ************************************************************
+
 CREATE FUNCTION tg_hub_adjustslots (hname bpchar, oldnslots integer, newnslots integer)
-    RETURNS integer AS '
+    RETURNS integer
+    AS '
  begin
      if newnslots = oldnslots then
          return 0;
@@ -383,35 +429,47 @@ COMMENT ON FUNCTION tg_hub_adjustslots (bpchar,
 -- *	- set the slotname to HS.hubname.slotno
 -- ************************************************************
 CREATE FUNCTION tg_hslot_biu ()
-    RETURNS TRIGGER AS '
- declare
-     sname	text;
-     xname	HSlot.slotname%TYPE;
-     hubrec	record;
- begin
-     select into hubrec * from Hub where name = new.hubname;
-     if not found then
-         raise exception ''no manual manipulation of HSlot'';
-     end if;
-     if new.slotno < 1 or new.slotno > hubrec.nslots then
-         raise exception ''no manual manipulation of HSlot'';
-     end if;
-     if tg_op = ''UPDATE'' and new.hubname != old.hubname then
- 	if count(*) > 0 from Hub where name = old.hubname then
- 	    raise exception ''no manual manipulation of HSlot'';
- 	end if;
-     end if;
-     sname := ''HS.'' || trim(new.hubname);
-     sname := sname || ''.'';
-     sname := sname || new.slotno::text;
-     if length(sname) > 20 then
-         raise exception ''HSlot slotname "%" too long (20 char max)'', sname;
-     end if;
-     new.slotname := sname;
-     return new;
- end;
- '
-    LANGUAGE plpgsql;
+    RETURNS TRIGGER AS $$
+DECLARE
+    sname text;
+    xname HSlot.slotname % TYPE;
+    hubrec record;
+BEGIN
+    SELECT
+        INTO hubrec *
+    FROM
+        Hub
+    WHERE
+        name = new.hubname;
+    IF NOT found THEN
+        raise exception '' NO manual manipulation OF HSlot '';
+    END IF;
+    IF new.slotno < 1 OR new.slotno > hubrec.nslots THEN
+        raise exception '' NO manual manipulation OF HSlot '';
+    END IF;
+    IF tg_op = ''
+        UPDATE
+            '' AND new.hubname != old.hubname THEN
+        IF count(*) > 0
+        FROM
+            Hub
+        WHERE
+            name = old.hubname THEN
+            raise exception '' NO manual manipulation OF HSlot '';
+        END IF;
+    END IF;
+    sname := '' HS. '' || trim(new.hubname);
+    sname := sname || ''.'';
+    sname := sname || new.slotno::text;
+    IF length(sname) > 20 THEN
+        raise exception '' HSlot slotname "%" too long (20 char max) '', sname;
+    END IF;
+    new.slotname := sname;
+    RETURN new;
+END;
+
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hslot_biu
     BEFORE INSERT
@@ -423,21 +481,27 @@ CREATE TRIGGER tg_hslot_biu
 -- *	- prevent from manual manipulation
 -- ************************************************************
 CREATE FUNCTION tg_hslot_bd ()
-    RETURNS TRIGGER AS '
- declare
-     hubrec	record;
- begin
-     select into hubrec * from Hub where name = old.hubname;
-     if not found then
-         return old;
-     end if;
-     if old.slotno > hubrec.nslots then
-         return old;
-     end if;
-     raise exception ''no manual manipulation of HSlot'';
- end;
- '
-    LANGUAGE plpgsql;
+    RETURNS TRIGGER AS $$
+DECLARE
+    hubrec record;
+BEGIN
+    SELECT
+        INTO hubrec *
+    FROM
+        Hub
+    WHERE
+        name = old.hubname;
+    IF NOT found THEN
+        RETURN old;
+    END IF;
+    IF old.slotno > hubrec.nslots THEN
+        RETURN old;
+    END IF;
+    raise exception '' NO manual manipulation OF HSlot '';
+END;
+
+$$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hslot_bd
     BEFORE DELETE ON HSlot FOR EACH ROW
@@ -448,403 +512,372 @@ CREATE TRIGGER tg_hslot_bd
 -- *	- Check name prefix
 -- ************************************************************
 CREATE FUNCTION tg_chkslotname ()
-    RETURNS TRIGGER AS '
- begin
-     if substr(new.slotname, 1, 2) != tg_argv[0] then
-         raise exception ''slotname must begin with %'', tg_argv[0];
-     end if;
-     return new;
- end;
- '
+    RETURNS TRIGGER AS $$
+BEGIN
+    IF substr(new.slotname, 1, 2) != tg_argv[0] THEN
+        raise exception '' slotname must
+            BEGIN
+                WITH % '',
+                tg_argv[0];
+        END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON PSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotname ('PS');
-
-CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON WSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotname ('WS');
-
-CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON PLine FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotname ('PL');
-
-CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON IFace FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotname ('IF');
-
-CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON PHone FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotname ('PH');
-
--- ************************************************************
--- * BEFORE INSERT or UPDATE on all slots with slotlink
--- *	- Set slotlink to empty string if NULL value given
--- ************************************************************
-CREATE FUNCTION tg_chkslotlink ()
-    RETURNS TRIGGER AS '
- begin
-     if new.slotlink isnull then
-         new.slotlink := '''';
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_chkslotname
+        BEFORE INSERT ON PSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotname ('PS' );
+    CREATE TRIGGER tg_chkslotname
+        BEFORE INSERT ON WSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotname ('WS' );
+    CREATE TRIGGER tg_chkslotname
+        BEFORE INSERT ON PLine FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotname ('PL' );
+    CREATE TRIGGER tg_chkslotname
+        BEFORE INSERT ON IFace FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotname ('IF' );
+    CREATE TRIGGER tg_chkslotname
+        BEFORE INSERT ON PHone FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotname ('PH' );
+    -- ************************************************************
+    -- * BEFORE INSERT or UPDATE on all slots with slotlink
+    -- *	- Set slotlink to empty string if NULL value given
+    -- ************************************************************
+    CREATE FUNCTION tg_chkslotlink ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.slotlink ISNULL THEN
+                new.slotlink := '''';
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT
-    OR UPDATE ON PSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotlink ();
-
-CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT
-    OR UPDATE ON WSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotlink ();
-
-CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT
-    OR UPDATE ON IFace FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotlink ();
-
-CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT
-    OR UPDATE ON HSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotlink ();
-
-CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT
-    OR UPDATE ON PHone FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkslotlink ();
-
--- ************************************************************
--- * BEFORE INSERT or UPDATE on all slots with backlink
--- *	- Set backlink to empty string if NULL value given
--- ************************************************************
-CREATE FUNCTION tg_chkbacklink ()
-    RETURNS TRIGGER AS '
- begin
-     if new.backlink isnull then
-         new.backlink := '''';
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_chkslotlink
+        BEFORE INSERT
+        OR UPDATE ON PSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotlink ( );
+    CREATE TRIGGER tg_chkslotlink
+        BEFORE INSERT
+        OR UPDATE ON WSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotlink ( );
+    CREATE TRIGGER tg_chkslotlink
+        BEFORE INSERT
+        OR UPDATE ON IFace FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotlink ( );
+    CREATE TRIGGER tg_chkslotlink
+        BEFORE INSERT
+        OR UPDATE ON HSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotlink ( );
+    CREATE TRIGGER tg_chkslotlink
+        BEFORE INSERT
+        OR UPDATE ON PHone FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkslotlink ( );
+    -- ************************************************************
+    -- * BEFORE INSERT or UPDATE on all slots with backlink
+    -- *	- Set backlink to empty string if NULL value given
+    -- ************************************************************
+    CREATE FUNCTION tg_chkbacklink ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.backlink ISNULL THEN
+                new.backlink := '''';
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_chkbacklink
-    BEFORE INSERT
-    OR UPDATE ON PSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkbacklink ();
-
-CREATE TRIGGER tg_chkbacklink
-    BEFORE INSERT
-    OR UPDATE ON WSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkbacklink ();
-
-CREATE TRIGGER tg_chkbacklink
-    BEFORE INSERT
-    OR UPDATE ON PLine FOR EACH ROW
-    EXECUTE PROCEDURE tg_chkbacklink ();
-
--- ************************************************************
--- * BEFORE UPDATE on PSlot
--- *	- do delete/insert instead of update if name changes
--- ************************************************************
-CREATE FUNCTION tg_pslot_bu ()
-    RETURNS TRIGGER AS '
- begin
-     if new.slotname != old.slotname then
-         delete from PSlot where slotname = old.slotname;
- 	insert into PSlot (
- 		    slotname,
- 		    pfname,
- 		    slotlink,
- 		    backlink
- 		) values (
- 		    new.slotname,
- 		    new.pfname,
- 		    new.slotlink,
- 		    new.backlink
- 		);
-         return null;
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_chkbacklink
+        BEFORE INSERT
+        OR UPDATE ON PSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkbacklink ( );
+    CREATE TRIGGER tg_chkbacklink
+        BEFORE INSERT
+        OR UPDATE ON WSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkbacklink ( );
+    CREATE TRIGGER tg_chkbacklink
+        BEFORE INSERT
+        OR UPDATE ON PLine FOR EACH ROW
+        EXECUTE PROCEDURE tg_chkbacklink ( );
+    -- ************************************************************
+    -- * BEFORE UPDATE on PSlot
+    -- *	- do delete/insert instead of update if name changes
+    -- ************************************************************
+    CREATE FUNCTION tg_pslot_bu ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.slotname != old.slotname THEN
+                DELETE FROM PSlot
+                WHERE slotname = old.slotname;
+                INSERT INTO PSlot (slotname, pfname, slotlink, backlink)
+                VALUES (new.slotname, new.pfname, new.slotlink, new.backlink);
+                RETURN NULL;
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_pslot_bu
-    BEFORE UPDATE ON PSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_pslot_bu ();
-
--- ************************************************************
--- * BEFORE UPDATE on WSlot
--- *	- do delete/insert instead of update if name changes
--- ************************************************************
-CREATE FUNCTION tg_wslot_bu ()
-    RETURNS TRIGGER AS '
- begin
-     if new.slotname != old.slotname then
-         delete from WSlot where slotname = old.slotname;
- 	insert into WSlot (
- 		    slotname,
- 		    roomno,
- 		    slotlink,
- 		    backlink
- 		) values (
- 		    new.slotname,
- 		    new.roomno,
- 		    new.slotlink,
- 		    new.backlink
- 		);
-         return null;
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_pslot_bu
+        BEFORE UPDATE ON PSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_pslot_bu ( );
+    -- ************************************************************
+    -- * BEFORE UPDATE on WSlot
+    -- *	- do delete/insert instead of update if name changes
+    -- ************************************************************
+    CREATE FUNCTION tg_wslot_bu ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.slotname != old.slotname THEN
+                DELETE FROM WSlot
+                WHERE slotname = old.slotname;
+                INSERT INTO WSlot (slotname, roomno, slotlink, backlink)
+                VALUES (new.slotname, new.roomno, new.slotlink, new.backlink);
+                RETURN NULL;
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_wslot_bu
-    BEFORE UPDATE ON WSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_Wslot_bu ();
-
--- ************************************************************
--- * BEFORE UPDATE on PLine
--- *	- do delete/insert instead of update if name changes
--- ************************************************************
-CREATE FUNCTION tg_pline_bu ()
-    RETURNS TRIGGER AS '
- begin
-     if new.slotname != old.slotname then
-         delete from PLine where slotname = old.slotname;
- 	insert into PLine (
- 		    slotname,
- 		    phonenumber,
- 		    comment,
- 		    backlink
- 		) values (
- 		    new.slotname,
- 		    new.phonenumber,
- 		    new.comment,
- 		    new.backlink
- 		);
-         return null;
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_wslot_bu
+        BEFORE UPDATE ON WSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_Wslot_bu ( );
+    -- ************************************************************
+    -- * BEFORE UPDATE on PLine
+    -- *	- do delete/insert instead of update if name changes
+    -- ************************************************************
+    CREATE FUNCTION tg_pline_bu ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.slotname != old.slotname THEN
+                DELETE FROM PLine
+                WHERE slotname = old.slotname;
+                INSERT INTO PLine (slotname, phonenumber, COMMENT,
+                    backlink)
+            VALUES (new.slotname,
+                new.phonenumber,
+                new.comment,
+                new.backlink);
+                RETURN NULL;
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_pline_bu
-    BEFORE UPDATE ON PLine FOR EACH ROW
-    EXECUTE PROCEDURE tg_pline_bu ();
-
--- ************************************************************
--- * BEFORE UPDATE on IFace
--- *	- do delete/insert instead of update if name changes
--- ************************************************************
-CREATE FUNCTION tg_iface_bu ()
-    RETURNS TRIGGER AS '
- begin
-     if new.slotname != old.slotname then
-         delete from IFace where slotname = old.slotname;
- 	insert into IFace (
- 		    slotname,
- 		    sysname,
- 		    ifname,
- 		    slotlink
- 		) values (
- 		    new.slotname,
- 		    new.sysname,
- 		    new.ifname,
- 		    new.slotlink
- 		);
-         return null;
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_pline_bu
+        BEFORE UPDATE ON PLine FOR EACH ROW
+        EXECUTE PROCEDURE tg_pline_bu ( );
+    -- ************************************************************
+    -- * BEFORE UPDATE on IFace
+    -- *	- do delete/insert instead of update if name changes
+    -- ************************************************************
+    CREATE FUNCTION tg_iface_bu ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.slotname != old.slotname THEN
+                DELETE FROM IFace
+                WHERE slotname = old.slotname;
+                INSERT INTO IFace (slotname, sysname, ifname, slotlink)
+                VALUES (new.slotname, new.sysname, new.ifname, new.slotlink);
+                RETURN NULL;
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_iface_bu
-    BEFORE UPDATE ON IFace FOR EACH ROW
-    EXECUTE PROCEDURE tg_iface_bu ();
-
--- ************************************************************
--- * BEFORE UPDATE on HSlot
--- *	- do delete/insert instead of update if name changes
--- ************************************************************
-CREATE FUNCTION tg_hslot_bu ()
-    RETURNS TRIGGER AS '
- begin
-     if new.slotname != old.slotname or new.hubname != old.hubname then
-         delete from HSlot where slotname = old.slotname;
- 	insert into HSlot (
- 		    slotname,
- 		    hubname,
- 		    slotno,
- 		    slotlink
- 		) values (
- 		    new.slotname,
- 		    new.hubname,
- 		    new.slotno,
- 		    new.slotlink
- 		);
-         return null;
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_iface_bu
+        BEFORE UPDATE ON IFace FOR EACH ROW
+        EXECUTE PROCEDURE tg_iface_bu ( );
+    -- ************************************************************
+    -- * BEFORE UPDATE on HSlot
+    -- *	- do delete/insert instead of update if name changes
+    -- ************************************************************
+    CREATE FUNCTION tg_hslot_bu ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.slotname != old.slotname OR new.hubname != old.hubname THEN
+                DELETE FROM HSlot
+                WHERE slotname = old.slotname;
+                INSERT INTO HSlot (slotname, hubname, slotno, slotlink)
+                VALUES (new.slotname, new.hubname, new.slotno, new.slotlink);
+                RETURN NULL;
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_hslot_bu
-    BEFORE UPDATE ON HSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_hslot_bu ();
-
--- ************************************************************
--- * BEFORE UPDATE on PHone
--- *	- do delete/insert instead of update if name changes
--- ************************************************************
-CREATE FUNCTION tg_phone_bu ()
-    RETURNS TRIGGER AS '
- begin
-     if new.slotname != old.slotname then
-         delete from PHone where slotname = old.slotname;
- 	insert into PHone (
- 		    slotname,
- 		    comment,
- 		    slotlink
- 		) values (
- 		    new.slotname,
- 		    new.comment,
- 		    new.slotlink
- 		);
-         return null;
-     end if;
-     return new;
- end;
- '
+    CREATE TRIGGER tg_hslot_bu
+        BEFORE UPDATE ON HSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_hslot_bu ( );
+    -- ************************************************************
+    -- * BEFORE UPDATE on PHone
+    -- *	- do delete/insert instead of update if name changes
+    -- ************************************************************
+    CREATE FUNCTION tg_phone_bu ( )
+        RETURNS TRIGGER AS $$
+        BEGIN
+            IF new.slotname != old.slotname THEN
+                DELETE FROM PHone
+                WHERE slotname = old.slotname;
+                INSERT INTO PHone (slotname, COMMENT,
+                    slotlink)
+            VALUES (new.slotname,
+                new.comment,
+                new.slotlink);
+                RETURN NULL;
+            END IF;
+        RETURN new;
+        END;
+    $$
     LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_phone_bu
-    BEFORE UPDATE ON PHone FOR EACH ROW
-    EXECUTE PROCEDURE tg_phone_bu ();
-
--- ************************************************************
--- * AFTER INSERT or UPDATE or DELETE on slot with backlink
--- *	- Ensure that the opponent correctly points back to us
--- ************************************************************
-CREATE FUNCTION tg_backlink_a ()
-    RETURNS TRIGGER AS '
- declare
-     dummy	integer;
- begin
-     if tg_op = ''INSERT'' then
-         if new.backlink != '''' then
- 	    dummy := tg_backlink_set(new.backlink, new.slotname);
- 	end if;
- 	return new;
-     end if;
-     if tg_op = ''UPDATE'' then
-         if new.backlink != old.backlink then
- 	    if old.backlink != '''' then
- 	        dummy := tg_backlink_unset(old.backlink, old.slotname);
- 	    end if;
- 	    if new.backlink != '''' then
- 	        dummy := tg_backlink_set(new.backlink, new.slotname);
- 	    end if;
- 	else
- 	    if new.slotname != old.slotname and new.backlink != '''' then
- 	        dummy := tg_slotlink_set(new.backlink, new.slotname);
- 	    end if;
- 	end if;
- 	return new;
-     end if;
-     if tg_op = ''DELETE'' then
-         if old.backlink != '''' then
- 	    dummy := tg_backlink_unset(old.backlink, old.slotname);
- 	end if;
- 	return old;
-     end if;
- end;
- '
+    CREATE TRIGGER tg_phone_bu
+        BEFORE UPDATE ON PHone FOR EACH ROW
+        EXECUTE PROCEDURE tg_phone_bu ( );
+    -- ************************************************************
+    -- * AFTER INSERT or UPDATE or DELETE on slot with backlink
+    -- *	- Ensure that the opponent correctly points back to us
+    -- ************************************************************
+    CREATE FUNCTION tg_backlink_a ( )
+        RETURNS TRIGGER AS $$
+DECLARE
+    dummy integer;
+BEGIN
+    IF tg_op = '' INSERT '' THEN
+        IF new.backlink != '''' THEN
+            dummy := tg_backlink_set (new.backlink, new.slotname);
+        END IF;
+        RETURN new;
+    END IF;
+    IF tg_op = ''
+        UPDATE
+            '' THEN
+        IF new.backlink != old.backlink THEN
+            IF old.backlink != '''' THEN
+                dummy := tg_backlink_unset (old.backlink,
+                    old.slotname);
+            END IF;
+            IF new.backlink != '''' THEN
+                dummy := tg_backlink_set (new.backlink,
+                    new.slotname);
+            END IF;
+        ELSE
+            IF new.slotname != old.slotname AND new.backlink != '''' THEN
+                dummy := tg_slotlink_set (new.backlink,
+                    new.slotname);
+            END IF;
+        END IF;
+        RETURN new;
+    END IF;
+    IF tg_op = '' DELETE '' THEN
+        IF old.backlink != '''' THEN
+            dummy := tg_backlink_unset (old.backlink,
+                old.slotname);
+        END IF;
+        RETURN old;
+    END IF;
+END;
+    $$
     LANGUAGE plpgsql;
+    CREATE TRIGGER tg_backlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON PSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_backlink_a ('PS' );
+    CREATE TRIGGER tg_backlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON WSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_backlink_a ('WS' );
+    CREATE TRIGGER tg_backlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON PLine FOR EACH ROW
+        EXECUTE PROCEDURE tg_backlink_a ('PL' );
+    -- ************************************************************
+    -- * Support function to set the opponents backlink field
+    -- * if it does not already point to the requested slot
+    -- ************************************************************
+    CREATE FUNCTION tg_backlink_set (myname bpchar, blname bpchar )
+        RETURNS integer AS $$
+DECLARE
+    mytype char(2);
+    link char(4);
+    rec record;
+BEGIN
+    mytype := substr(myname, 1, 2);
+    link := mytype || substr(blname, 1, 2);
+    IF link = '' PLPL '' THEN
+        raise exception '' backlink BETWEEN two phone lines does NOT make sense '';
+    END IF;
+    IF link IN ('' PLWS '',
+        '' WSPL '') THEN
+        raise exception '' direct link OF phone line TO wall slot NOT permitted '';
+    END IF;
+    IF mytype = '' PS '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            PSlot
+        WHERE
+            slotname = myname;
+        IF NOT found THEN
+            raise exception '' % does NOT exist '', myname;
+        END IF;
+        IF rec.backlink != blname THEN
+            UPDATE
+                PSlot
+            SET
+                backlink = blname
+            WHERE
+                slotname = myname;
+        END IF;
+        RETURN 0;
+    END IF;
+    IF mytype = '' WS '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            WSlot
+        WHERE
+            slotname = myname;
+        IF NOT found THEN
+            raise exception '' % does NOT exist '', myname;
+        END IF;
+        IF rec.backlink != blname THEN
+            UPDATE
+                WSlot
+            SET
+                backlink = blname
+            WHERE
+                slotname = myname;
+        END IF;
+        RETURN 0;
+    END IF;
+    IF mytype = '' PL '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            PLine
+        WHERE
+            slotname = myname;
+        IF NOT found THEN
+            raise exception '' % does NOT exist '', myname;
+        END IF;
+        IF rec.backlink != blname THEN
+            UPDATE
+                PLine
+            SET
+                backlink = blname
+            WHERE
+                slotname = myname;
+        END IF;
+        RETURN 0;
+    END IF;
+    raise exception '' illegal backlink beginning WITH % '',
+    mytype;
+END;
 
-CREATE TRIGGER tg_backlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON PSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_backlink_a ('PS');
-
-CREATE TRIGGER tg_backlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON WSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_backlink_a ('WS');
-
-CREATE TRIGGER tg_backlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON PLine FOR EACH ROW
-    EXECUTE PROCEDURE tg_backlink_a ('PL');
-
--- ************************************************************
--- * Support function to set the opponents backlink field
--- * if it does not already point to the requested slot
--- ************************************************************
-CREATE FUNCTION tg_backlink_set (myname bpchar, blname bpchar)
-    RETURNS integer AS '
- declare
-     mytype	char(2);
-     link	char(4);
-     rec		record;
- begin
-     mytype := substr(myname, 1, 2);
-     link := mytype || substr(blname, 1, 2);
-     if link = ''PLPL'' then
-         raise exception
- 		''backlink between two phone lines does not make sense'';
-     end if;
-     if link in (''PLWS'', ''WSPL'') then
-         raise exception
- 		''direct link of phone line to wall slot not permitted'';
-     end if;
-     if mytype = ''PS'' then
-         select into rec * from PSlot where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.backlink != blname then
- 	    update PSlot set backlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''WS'' then
-         select into rec * from WSlot where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.backlink != blname then
- 	    update WSlot set backlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''PL'' then
-         select into rec * from PLine where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.backlink != blname then
- 	    update PLine set backlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     raise exception ''illegal backlink beginning with %'', mytype;
- end;
- '
-    LANGUAGE plpgsql;
+$$
+LANGUAGE plpgsql;
 
 -- ************************************************************
 -- * Support function to clear out the backlink field if
@@ -898,1522 +931,1471 @@ CREATE FUNCTION tg_backlink_unset (bpchar, bpchar)
 -- *	- Ensure that the opponent correctly points back to us
 -- ************************************************************
 CREATE FUNCTION tg_slotlink_a ()
-    RETURNS TRIGGER AS '
- declare
-     dummy	integer;
- begin
-     if tg_op = ''INSERT'' then
-         if new.slotlink != '''' then
- 	    dummy := tg_slotlink_set(new.slotlink, new.slotname);
- 	end if;
- 	return new;
-     end if;
-     if tg_op = ''UPDATE'' then
-         if new.slotlink != old.slotlink then
- 	    if old.slotlink != '''' then
- 	        dummy := tg_slotlink_unset(old.slotlink, old.slotname);
- 	    end if;
- 	    if new.slotlink != '''' then
- 	        dummy := tg_slotlink_set(new.slotlink, new.slotname);
- 	    end if;
- 	else
- 	    if new.slotname != old.slotname and new.slotlink != '''' then
- 	        dummy := tg_slotlink_set(new.slotlink, new.slotname);
- 	    end if;
- 	end if;
- 	return new;
-     end if;
-     if tg_op = ''DELETE'' then
-         if old.slotlink != '''' then
- 	    dummy := tg_slotlink_unset(old.slotlink, old.slotname);
- 	end if;
- 	return old;
-     end if;
- end;
- '
+    RETURNS TRIGGER AS $$
+DECLARE
+    dummy integer;
+BEGIN
+    IF tg_op = '' INSERT '' THEN
+        IF new.slotlink != '''' THEN
+            dummy := tg_slotlink_set (new.slotlink, new.slotname);
+        END IF;
+        RETURN new;
+    END IF;
+    IF tg_op = ''
+        UPDATE
+            '' THEN
+        IF new.slotlink != old.slotlink THEN
+            IF old.slotlink != '''' THEN
+                dummy := tg_slotlink_unset (old.slotlink,
+                    old.slotname);
+            END IF;
+            IF new.slotlink != '''' THEN
+                dummy := tg_slotlink_set (new.slotlink,
+                    new.slotname);
+            END IF;
+        ELSE
+            IF new.slotname != old.slotname AND new.slotlink != '''' THEN
+                dummy := tg_slotlink_set (new.slotlink,
+                    new.slotname);
+            END IF;
+        END IF;
+        RETURN new;
+    END IF;
+    IF tg_op = '' DELETE '' THEN
+        IF old.slotlink != '''' THEN
+            dummy := tg_slotlink_unset (old.slotlink,
+                old.slotname);
+        END IF;
+        RETURN old;
+    END IF;
+END;
+    $$
     LANGUAGE plpgsql;
+    CREATE TRIGGER tg_slotlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON PSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_slotlink_a ('PS' );
+    CREATE TRIGGER tg_slotlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON WSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_slotlink_a ('WS' );
+    CREATE TRIGGER tg_slotlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON IFace FOR EACH ROW
+        EXECUTE PROCEDURE tg_slotlink_a ('IF' );
+    CREATE TRIGGER tg_slotlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON HSlot FOR EACH ROW
+        EXECUTE PROCEDURE tg_slotlink_a ('HS' );
+    CREATE TRIGGER tg_slotlink_a
+        AFTER INSERT
+        OR UPDATE
+        OR DELETE ON PHone FOR EACH ROW
+        EXECUTE PROCEDURE tg_slotlink_a ('PH' );
+    -- ************************************************************
+    -- * Support function to set the opponents slotlink field
+    -- * if it does not already point to the requested slot
+    -- ************************************************************
+    CREATE FUNCTION tg_slotlink_set (bpchar, bpchar )
+        RETURNS integer AS $$
+DECLARE
+    myname alias FOR $1;
+    blname alias FOR $2;
+    mytype char(2);
+    link char(4);
+    rec record;
+BEGIN
+    mytype := substr(myname, 1, 2);
+    link := mytype || substr(blname, 1, 2);
+    IF link = '' PHPH '' THEN
+        raise exception '' slotlink BETWEEN two phones does NOT make sense '';
+    END IF;
+    IF link IN ('' PHHS '',
+        '' HSPH '') THEN
+        raise exception '' link OF phone TO hub does NOT make sense '';
+    END IF;
+    IF link IN ('' PHIF '',
+        '' IFPH '') THEN
+        raise exception '' link OF phone TO hub does NOT make sense '';
+    END IF;
+    IF link IN ('' PSWS '',
+        '' WSPS '') THEN
+        raise exception '' slotlink
+        FROM
+            patchslot TO wallslot NOT permitted '';
+    END IF;
+    IF mytype = '' PS '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            PSlot
+        WHERE
+            slotname = myname;
+        IF NOT found THEN
+            raise exception '' % does NOT exist '', myname;
+        END IF;
+        IF rec.slotlink != blname THEN
+            UPDATE
+                PSlot
+            SET
+                slotlink = blname
+            WHERE
+                slotname = myname;
+        END IF;
+        RETURN 0;
+    END IF;
+    IF mytype = '' WS '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            WSlot
+        WHERE
+            slotname = myname;
+        IF NOT found THEN
+            raise exception '' % does NOT exist '', myname;
+        END IF;
+        IF rec.slotlink != blname THEN
+            UPDATE
+                WSlot
+            SET
+                slotlink = blname
+            WHERE
+                slotname = myname;
+        END IF;
+        RETURN 0;
+    END IF;
+    IF mytype = '' IF '' THEN
+            SELECT
+                INTO rec *
+            FROM
+                IFace
+            WHERE
+                slotname = myname;
+            IF NOT found THEN
+                raise exception '' % does NOT exist '', myname;
+            END IF;
+            IF rec.slotlink != blname THEN
+                UPDATE
+                    IFace
+                SET
+                    slotlink = blname
+                WHERE
+                    slotname = myname;
+            END IF;
+            RETURN 0;
+        END IF;
+        IF mytype = '' HS '' THEN
+            SELECT
+                INTO rec *
+            FROM
+                HSlot
+            WHERE
+                slotname = myname;
+            IF NOT found THEN
+                raise exception '' % does NOT exist '', myname;
+            END IF;
+            IF rec.slotlink != blname THEN
+                UPDATE
+                    HSlot
+                SET
+                    slotlink = blname
+                WHERE
+                    slotname = myname;
+            END IF;
+            RETURN 0;
+        END IF;
+        IF mytype = '' PH '' THEN
+            SELECT
+                INTO rec *
+            FROM
+                PHone
+            WHERE
+                slotname = myname;
+            IF NOT found THEN
+                raise exception '' % does NOT exist '', myname;
+            END IF;
+            IF rec.slotlink != blname THEN
+                UPDATE
+                    PHone
+                SET
+                    slotlink = blname
+                WHERE
+                    slotname = myname;
+            END IF;
+            RETURN 0;
+        END IF;
+        raise exception '' illegal slotlink beginning WITH % '',
+            mytype;
+        END;
 
-CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON PSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_slotlink_a ('PS');
-
-CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON WSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_slotlink_a ('WS');
-
-CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON IFace FOR EACH ROW
-    EXECUTE PROCEDURE tg_slotlink_a ('IF');
-
-CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON HSlot FOR EACH ROW
-    EXECUTE PROCEDURE tg_slotlink_a ('HS');
-
-CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON PHone FOR EACH ROW
-    EXECUTE PROCEDURE tg_slotlink_a ('PH');
-
--- ************************************************************
--- * Support function to set the opponents slotlink field
--- * if it does not already point to the requested slot
--- ************************************************************
-CREATE FUNCTION tg_slotlink_set (bpchar, bpchar)
-    RETURNS integer AS '
- declare
-     myname	alias for $1;
-     blname	alias for $2;
-     mytype	char(2);
-     link	char(4);
-     rec		record;
- begin
-     mytype := substr(myname, 1, 2);
-     link := mytype || substr(blname, 1, 2);
-     if link = ''PHPH'' then
-         raise exception
- 		''slotlink between two phones does not make sense'';
-     end if;
-     if link in (''PHHS'', ''HSPH'') then
-         raise exception
- 		''link of phone to hub does not make sense'';
-     end if;
-     if link in (''PHIF'', ''IFPH'') then
-         raise exception
- 		''link of phone to hub does not make sense'';
-     end if;
-     if link in (''PSWS'', ''WSPS'') then
-         raise exception
- 		''slotlink from patchslot to wallslot not permitted'';
-     end if;
-     if mytype = ''PS'' then
-         select into rec * from PSlot where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.slotlink != blname then
- 	    update PSlot set slotlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''WS'' then
-         select into rec * from WSlot where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.slotlink != blname then
- 	    update WSlot set slotlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''IF'' then
-         select into rec * from IFace where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.slotlink != blname then
- 	    update IFace set slotlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''HS'' then
-         select into rec * from HSlot where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.slotlink != blname then
- 	    update HSlot set slotlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''PH'' then
-         select into rec * from PHone where slotname = myname;
- 	if not found then
- 	    raise exception ''% does not exist'', myname;
- 	end if;
- 	if rec.slotlink != blname then
- 	    update PHone set slotlink = blname where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     raise exception ''illegal slotlink beginning with %'', mytype;
- end;
- '
-    LANGUAGE plpgsql;
+$$
+LANGUAGE plpgsql;
 
 -- ************************************************************
 -- * Support function to clear out the slotlink field if
 -- * it still points to specific slot
 -- ************************************************************
 CREATE FUNCTION tg_slotlink_unset (bpchar, bpchar)
-    RETURNS integer AS '
- declare
-     myname	alias for $1;
-     blname	alias for $2;
-     mytype	char(2);
-     rec		record;
- begin
-     mytype := substr(myname, 1, 2);
-     if mytype = ''PS'' then
-         select into rec * from PSlot where slotname = myname;
- 	if not found then
- 	    return 0;
- 	end if;
- 	if rec.slotlink = blname then
- 	    update PSlot set slotlink = '''' where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''WS'' then
-         select into rec * from WSlot where slotname = myname;
- 	if not found then
- 	    return 0;
- 	end if;
- 	if rec.slotlink = blname then
- 	    update WSlot set slotlink = '''' where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''IF'' then
-         select into rec * from IFace where slotname = myname;
- 	if not found then
- 	    return 0;
- 	end if;
- 	if rec.slotlink = blname then
- 	    update IFace set slotlink = '''' where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''HS'' then
-         select into rec * from HSlot where slotname = myname;
- 	if not found then
- 	    return 0;
- 	end if;
- 	if rec.slotlink = blname then
- 	    update HSlot set slotlink = '''' where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
-     if mytype = ''PH'' then
-         select into rec * from PHone where slotname = myname;
- 	if not found then
- 	    return 0;
- 	end if;
- 	if rec.slotlink = blname then
- 	    update PHone set slotlink = '''' where slotname = myname;
- 	end if;
- 	return 0;
-     end if;
- end;
- '
-    LANGUAGE plpgsql;
-
--- ************************************************************
--- * Describe the backside of a patchfield slot
--- ************************************************************
-CREATE FUNCTION pslot_backlink_view (bpchar)
-    RETURNS text AS '
- <<outer>>
- declare
-     rec		record;
-     bltype	char(2);
-     retval	text;
- begin
-     select into rec * from PSlot where slotname = $1;
-     if not found then
-         return '''';
-     end if;
-     if rec.backlink = '''' then
-         return ''-'';
-     end if;
-     bltype := substr(rec.backlink, 1, 2);
-     if bltype = ''PL'' then
-         declare
- 	    rec		record;
- 	begin
- 	    select into rec * from PLine where slotname = "outer".rec.backlink;
- 	    retval := ''Phone line '' || trim(rec.phonenumber);
- 	    if rec.comment != '''' then
- 	        retval := retval || '' ('';
- 		retval := retval || rec.comment;
- 		retval := retval || '')'';
- 	    end if;
- 	    return retval;
- 	end;
-     end if;
-     if bltype = ''WS'' then
-         select into rec * from WSlot where slotname = rec.backlink;
- 	retval := trim(rec.slotname) || '' in room '';
- 	retval := retval || trim(rec.roomno);
- 	retval := retval || '' -> '';
- 	return retval || wslot_slotlink_view(rec.slotname);
-     end if;
-     return rec.backlink;
- end;
- '
-    LANGUAGE plpgsql;
-
--- ************************************************************
--- * Describe the front of a patchfield slot
--- ************************************************************
-CREATE FUNCTION pslot_slotlink_view (bpchar)
-    RETURNS text AS '
- declare
-     psrec	record;
-     sltype	char(2);
-     retval	text;
- begin
-     select into psrec * from PSlot where slotname = $1;
-     if not found then
-         return '''';
-     end if;
-     if psrec.slotlink = '''' then
-         return ''-'';
-     end if;
-     sltype := substr(psrec.slotlink, 1, 2);
-     if sltype = ''PS'' then
- 	retval := trim(psrec.slotlink) || '' -> '';
- 	return retval || pslot_backlink_view(psrec.slotlink);
-     end if;
-     if sltype = ''HS'' then
-         retval := comment from Hub H, HSlot HS
- 			where HS.slotname = psrec.slotlink
- 			  and H.name = HS.hubname;
-         retval := retval || '' slot '';
- 	retval := retval || slotno::text from HSlot
- 			where slotname = psrec.slotlink;
- 	return retval;
-     end if;
-     return psrec.slotlink;
- end;
- '
-    LANGUAGE plpgsql;
-
--- ************************************************************
--- * Describe the front of a wall connector slot
--- ************************************************************
-CREATE FUNCTION wslot_slotlink_view (bpchar)
-    RETURNS text AS '
- declare
-     rec		record;
-     sltype	char(2);
-     retval	text;
- begin
-     select into rec * from WSlot where slotname = $1;
-     if not found then
-         return '''';
-     end if;
-     if rec.slotlink = '''' then
-         return ''-'';
-     end if;
-     sltype := substr(rec.slotlink, 1, 2);
-     if sltype = ''PH'' then
-         select into rec * from PHone where slotname = rec.slotlink;
- 	retval := ''Phone '' || trim(rec.slotname);
- 	if rec.comment != '''' then
- 	    retval := retval || '' ('';
- 	    retval := retval || rec.comment;
- 	    retval := retval || '')'';
- 	end if;
- 	return retval;
-     end if;
-     if sltype = ''IF'' then
- 	declare
- 	    syrow	System%RowType;
- 	    ifrow	IFace%ROWTYPE;
-         begin
- 	    select into ifrow * from IFace where slotname = rec.slotlink;
- 	    select into syrow * from System where name = ifrow.sysname;
- 	    retval := syrow.name || '' IF '';
- 	    retval := retval || ifrow.ifname;
- 	    if syrow.comment != '''' then
- 	        retval := retval || '' ('';
- 		retval := retval || syrow.comment;
- 		retval := retval || '')'';
- 	    end if;
- 	    return retval;
- 	end;
-     end if;
-     return rec.slotlink;
- end;
- '
-    LANGUAGE plpgsql;
-
--- ************************************************************
--- * View of a patchfield describing backside and patches
--- ************************************************************
-CREATE VIEW Pfield_v1 AS
-SELECT
-    PF.pfname,
-    PF.slotname,
-    pslot_backlink_view (PF.slotname) AS backside,
-    pslot_slotlink_view (PF.slotname) AS patch
-FROM
-    PSlot PF;
-
---
--- First we build the house - so we create the rooms
---
-INSERT INTO Room
-    VALUES ('001', 'Entrance');
-
-INSERT INTO Room
-    VALUES ('002', 'Office');
-
-INSERT INTO Room
-    VALUES ('003', 'Office');
-
-INSERT INTO Room
-    VALUES ('004', 'Technical');
-
-INSERT INTO Room
-    VALUES ('101', 'Office');
-
-INSERT INTO Room
-    VALUES ('102', 'Conference');
-
-INSERT INTO Room
-    VALUES ('103', 'Restroom');
-
-INSERT INTO Room
-    VALUES ('104', 'Technical');
-
-INSERT INTO Room
-    VALUES ('105', 'Office');
-
-INSERT INTO Room
-    VALUES ('106', 'Office');
-
---
--- Second we install the wall connectors
---
-INSERT INTO WSlot
-    VALUES ('WS.001.1a', '001', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.001.1b', '001', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.001.2a', '001', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.001.2b', '001', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.001.3a', '001', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.001.3b', '001', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.002.1a', '002', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.002.1b', '002', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.002.2a', '002', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.002.2b', '002', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.002.3a', '002', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.002.3b', '002', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.003.1a', '003', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.003.1b', '003', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.003.2a', '003', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.003.2b', '003', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.003.3a', '003', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.003.3b', '003', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.101.1a', '101', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.101.1b', '101', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.101.2a', '101', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.101.2b', '101', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.101.3a', '101', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.101.3b', '101', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.102.1a', '102', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.102.1b', '102', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.102.2a', '102', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.102.2b', '102', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.102.3a', '102', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.102.3b', '102', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.105.1a', '105', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.105.1b', '105', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.105.2a', '105', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.105.2b', '105', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.105.3a', '105', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.105.3b', '105', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.106.1a', '106', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.106.1b', '106', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.106.2a', '106', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.106.2b', '106', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.106.3a', '106', '', '');
-
-INSERT INTO WSlot
-    VALUES ('WS.106.3b', '106', '', '');
-
---
--- Now create the patch fields and their slots
---
-INSERT INTO PField
-    VALUES ('PF0_1', 'Wallslots basement');
-
---
--- The cables for these will be made later, so they are unconnected for now
---
-INSERT INTO PSlot
-    VALUES ('PS.base.a1', 'PF0_1', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.a2', 'PF0_1', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.a3', 'PF0_1', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.a4', 'PF0_1', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.a5', 'PF0_1', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.a6', 'PF0_1', '', '');
-
---
--- These are already wired to the wall connectors
---
-INSERT INTO PSlot
-    VALUES ('PS.base.b1', 'PF0_1', '', 'WS.002.1a');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.b2', 'PF0_1', '', 'WS.002.1b');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.b3', 'PF0_1', '', 'WS.002.2a');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.b4', 'PF0_1', '', 'WS.002.2b');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.b5', 'PF0_1', '', 'WS.002.3a');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.b6', 'PF0_1', '', 'WS.002.3b');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.c1', 'PF0_1', '', 'WS.003.1a');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.c2', 'PF0_1', '', 'WS.003.1b');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.c3', 'PF0_1', '', 'WS.003.2a');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.c4', 'PF0_1', '', 'WS.003.2b');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.c5', 'PF0_1', '', 'WS.003.3a');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.c6', 'PF0_1', '', 'WS.003.3b');
-
---
--- This patchfield will be renamed later into PF0_2 - so its
--- slots references in pfname should follow
---
-INSERT INTO PField
-    VALUES ('PF0_X', 'Phonelines basement');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.ta1', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.ta2', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.ta3', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.ta4', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.ta5', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.ta6', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.tb1', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.tb2', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.tb3', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.tb4', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.tb5', 'PF0_X', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.base.tb6', 'PF0_X', '', '');
-
-INSERT INTO PField
-    VALUES ('PF1_1', 'Wallslots first floor');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.a1', 'PF1_1', '', 'WS.101.1a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.a2', 'PF1_1', '', 'WS.101.1b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.a3', 'PF1_1', '', 'WS.101.2a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.a4', 'PF1_1', '', 'WS.101.2b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.a5', 'PF1_1', '', 'WS.101.3a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.a6', 'PF1_1', '', 'WS.101.3b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.b1', 'PF1_1', '', 'WS.102.1a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.b2', 'PF1_1', '', 'WS.102.1b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.b3', 'PF1_1', '', 'WS.102.2a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.b4', 'PF1_1', '', 'WS.102.2b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.b5', 'PF1_1', '', 'WS.102.3a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.b6', 'PF1_1', '', 'WS.102.3b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.c1', 'PF1_1', '', 'WS.105.1a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.c2', 'PF1_1', '', 'WS.105.1b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.c3', 'PF1_1', '', 'WS.105.2a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.c4', 'PF1_1', '', 'WS.105.2b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.c5', 'PF1_1', '', 'WS.105.3a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.c6', 'PF1_1', '', 'WS.105.3b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.d1', 'PF1_1', '', 'WS.106.1a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.d2', 'PF1_1', '', 'WS.106.1b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.d3', 'PF1_1', '', 'WS.106.2a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.d4', 'PF1_1', '', 'WS.106.2b');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.d5', 'PF1_1', '', 'WS.106.3a');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.d6', 'PF1_1', '', 'WS.106.3b');
-
---
--- Now we wire the wall connectors 1a-2a in room 001 to the
--- patchfield. In the second update we make an error, and
--- correct it after
---
-UPDATE
-    PSlot
-SET
-    backlink = 'WS.001.1a'
-WHERE
-    slotname = 'PS.base.a1';
-
-UPDATE
-    PSlot
-SET
-    backlink = 'WS.001.1b'
-WHERE
-    slotname = 'PS.base.a3';
-
-SELECT
-    *
-FROM
-    WSlot
-WHERE
-    roomno = '001'
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    PSlot
-WHERE
-    slotname ~ 'PS.base.a'
-ORDER BY
-    slotname;
-
-UPDATE
-    PSlot
-SET
-    backlink = 'WS.001.2a'
-WHERE
-    slotname = 'PS.base.a3';
-
-SELECT
-    *
-FROM
-    WSlot
-WHERE
-    roomno = '001'
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    PSlot
-WHERE
-    slotname ~ 'PS.base.a'
-ORDER BY
-    slotname;
-
-UPDATE
-    PSlot
-SET
-    backlink = 'WS.001.1b'
-WHERE
-    slotname = 'PS.base.a2';
-
-SELECT
-    *
-FROM
-    WSlot
-WHERE
-    roomno = '001'
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    PSlot
-WHERE
-    slotname ~ 'PS.base.a'
-ORDER BY
-    slotname;
-
---
--- Same procedure for 2b-3b but this time updating the WSlot instead
--- of the PSlot. Due to the triggers the result is the same:
--- WSlot and corresponding PSlot point to each other.
---
-UPDATE
-    WSlot
-SET
-    backlink = 'PS.base.a4'
-WHERE
-    slotname = 'WS.001.2b';
-
-UPDATE
-    WSlot
-SET
-    backlink = 'PS.base.a6'
-WHERE
-    slotname = 'WS.001.3a';
-
-SELECT
-    *
-FROM
-    WSlot
-WHERE
-    roomno = '001'
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    PSlot
-WHERE
-    slotname ~ 'PS.base.a'
-ORDER BY
-    slotname;
-
-UPDATE
-    WSlot
-SET
-    backlink = 'PS.base.a6'
-WHERE
-    slotname = 'WS.001.3b';
-
-SELECT
-    *
-FROM
-    WSlot
-WHERE
-    roomno = '001'
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    PSlot
-WHERE
-    slotname ~ 'PS.base.a'
-ORDER BY
-    slotname;
-
-UPDATE
-    WSlot
-SET
-    backlink = 'PS.base.a5'
-WHERE
-    slotname = 'WS.001.3a';
-
-SELECT
-    *
-FROM
-    WSlot
-WHERE
-    roomno = '001'
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    PSlot
-WHERE
-    slotname ~ 'PS.base.a'
-ORDER BY
-    slotname;
-
-INSERT INTO PField
-    VALUES ('PF1_2', 'Phonelines first floor');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.ta1', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.ta2', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.ta3', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.ta4', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.ta5', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.ta6', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.tb1', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.tb2', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.tb3', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.tb4', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.tb5', 'PF1_2', '', '');
-
-INSERT INTO PSlot
-    VALUES ('PS.first.tb6', 'PF1_2', '', '');
-
---
--- Fix the wrong name for patchfield PF0_2
---
-UPDATE
-    PField
-SET
-    name = 'PF0_2'
-WHERE
-    name = 'PF0_X';
-
-SELECT
-    *
-FROM
-    PSlot
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    WSlot
-ORDER BY
-    slotname;
-
---
--- Install the central phone system and create the phone numbers.
--- They are wired on insert to the patchfields. Again the
--- triggers automatically tell the PSlots to update their
--- backlink field.
---
-INSERT INTO PLine
-    VALUES ('PL.001', '-0', 'Central call', 'PS.base.ta1');
-
-INSERT INTO PLine
-    VALUES ('PL.002', '-101', '', 'PS.base.ta2');
-
-INSERT INTO PLine
-    VALUES ('PL.003', '-102', '', 'PS.base.ta3');
-
-INSERT INTO PLine
-    VALUES ('PL.004', '-103', '', 'PS.base.ta5');
-
-INSERT INTO PLine
-    VALUES ('PL.005', '-104', '', 'PS.base.ta6');
-
-INSERT INTO PLine
-    VALUES ('PL.006', '-106', '', 'PS.base.tb2');
-
-INSERT INTO PLine
-    VALUES ('PL.007', '-108', '', 'PS.base.tb3');
-
-INSERT INTO PLine
-    VALUES ('PL.008', '-109', '', 'PS.base.tb4');
-
-INSERT INTO PLine
-    VALUES ('PL.009', '-121', '', 'PS.base.tb5');
-
-INSERT INTO PLine
-    VALUES ('PL.010', '-122', '', 'PS.base.tb6');
-
-INSERT INTO PLine
-    VALUES ('PL.015', '-134', '', 'PS.first.ta1');
-
-INSERT INTO PLine
-    VALUES ('PL.016', '-137', '', 'PS.first.ta3');
-
-INSERT INTO PLine
-    VALUES ('PL.017', '-139', '', 'PS.first.ta4');
-
-INSERT INTO PLine
-    VALUES ('PL.018', '-362', '', 'PS.first.tb1');
-
-INSERT INTO PLine
-    VALUES ('PL.019', '-363', '', 'PS.first.tb2');
-
-INSERT INTO PLine
-    VALUES ('PL.020', '-364', '', 'PS.first.tb3');
-
-INSERT INTO PLine
-    VALUES ('PL.021', '-365', '', 'PS.first.tb5');
-
-INSERT INTO PLine
-    VALUES ('PL.022', '-367', '', 'PS.first.tb6');
-
-INSERT INTO PLine
-    VALUES ('PL.028', '-501', 'Fax entrance', 'PS.base.ta2');
-
-INSERT INTO PLine
-    VALUES ('PL.029', '-502', 'Fax first floor', 'PS.first.ta1');
-
---
--- Buy some phones, plug them into the wall and patch the
--- phone lines to the corresponding patchfield slots.
---
-INSERT INTO PHone
-    VALUES ('PH.hc001', 'Hicom standard', 'WS.001.1a');
-
-UPDATE
-    PSlot
-SET
-    slotlink = 'PS.base.ta1'
-WHERE
-    slotname = 'PS.base.a1';
-
-INSERT INTO PHone
-    VALUES ('PH.hc002', 'Hicom standard', 'WS.002.1a');
-
-UPDATE
-    PSlot
-SET
-    slotlink = 'PS.base.ta5'
-WHERE
-    slotname = 'PS.base.b1';
-
-INSERT INTO PHone
-    VALUES ('PH.hc003', 'Hicom standard', 'WS.002.2a');
-
-UPDATE
-    PSlot
-SET
-    slotlink = 'PS.base.tb2'
-WHERE
-    slotname = 'PS.base.b3';
-
-INSERT INTO PHone
-    VALUES ('PH.fax001', 'Canon fax', 'WS.001.2a');
-
-UPDATE
-    PSlot
-SET
-    slotlink = 'PS.base.ta2'
-WHERE
-    slotname = 'PS.base.a3';
-
---
--- Install a hub at one of the patchfields, plug a computers
--- ethernet interface into the wall and patch it to the hub.
---
-INSERT INTO Hub
-    VALUES ('base.hub1', 'Patchfield PF0_1 hub', 16);
-
-INSERT INTO SYSTEM
-    VALUES ('orion', 'PC');
-
-INSERT INTO IFace
-    VALUES ('IF', 'orion', 'eth0', 'WS.002.1b');
-
-UPDATE
-    PSlot
-SET
-    slotlink = 'HS.base.hub1.1'
-WHERE
-    slotname = 'PS.base.b2';
-
---
--- Now we take a look at the patchfield
---
-SELECT
-    *
-FROM
-    PField_v1
-WHERE
-    pfname = 'PF0_1'
-ORDER BY
-    slotname;
-
-SELECT
-    *
-FROM
-    PField_v1
-WHERE
-    pfname = 'PF0_2'
-ORDER BY
-    slotname;
-
---
--- Finally we want errors
---
-INSERT INTO PField
-    VALUES ('PF1_1', 'should fail due to unique index');
-
-UPDATE
-    PSlot
-SET
-    backlink = 'WS.not.there'
-WHERE
-    slotname = 'PS.base.a1';
-
-UPDATE
-    PSlot
-SET
-    backlink = 'XX.illegal'
-WHERE
-    slotname = 'PS.base.a1';
-
-UPDATE
-    PSlot
-SET
-    slotlink = 'PS.not.there'
-WHERE
-    slotname = 'PS.base.a1';
-
-UPDATE
-    PSlot
-SET
-    slotlink = 'XX.illegal'
-WHERE
-    slotname = 'PS.base.a1';
-
-INSERT INTO HSlot
-    VALUES ('HS', 'base.hub1', 1, '');
-
-INSERT INTO HSlot
-    VALUES ('HS', 'base.hub1', 20, '');
-
-DELETE FROM HSlot;
-
-INSERT INTO IFace
-    VALUES ('IF', 'notthere', 'eth0', '');
-
-INSERT INTO IFace
-    VALUES ('IF', 'orion', 'ethernet_interface_name_too_long', '');
-
---
--- The following tests are unrelated to the scenario outlined above;
--- they merely exercise specific parts of PL/pgSQL
---
---
--- Test recursion, per bug report 7-Sep-01
---
-CREATE FUNCTION recursion_test (int, int)
-    RETURNS text AS '
- DECLARE rslt text;
- BEGIN
-     IF $1 <= 0 THEN
-         rslt = CAST($2 AS TEXT);
-     ELSE
-         rslt = CAST($1 AS TEXT) || '','' || recursion_test($1 - 1, $2);
-     END IF;
-     RETURN rslt;
- END;'
-    LANGUAGE plpgsql;
-
-SELECT
-    recursion_test (4,
-        3);
-
---
--- Test the FOUND magic variable
---
-CREATE TABLE found_test_tbl (
-    a int
-);
-
-CREATE FUNCTION test_found ()
-    RETURNS boolean AS '
-   declare
-   begin
-   insert into found_test_tbl values (1);
-   if FOUND then
-      insert into found_test_tbl values (2);
-   end if;
- 
-   update found_test_tbl set a = 100 where a = 1;
-   if FOUND then
-     insert into found_test_tbl values (3);
-   end if;
- 
-   delete from found_test_tbl where a = 9999; -- matches no rows
-   if not FOUND then
-     insert into found_test_tbl values (4);
-   end if;
- 
-   for i in 1 .. 10 loop
-     -- no need to do anything
-   end loop;
-   if FOUND then
-     insert into found_test_tbl values (5);
-   end if;
- 
-   -- never executes the loop
-   for i in 2 .. 1 loop
-     -- no need to do anything
-   end loop;
-   if not FOUND then
-     insert into found_test_tbl values (6);
-   end if;
-   return true;
-   end;'
-    LANGUAGE plpgsql;
-
-SELECT
-    test_found ();
-
-SELECT
-    *
-FROM
-    found_test_tbl;
-
---
--- Test set-returning functions for PL/pgSQL
---
-CREATE FUNCTION test_table_func_rec ()
-    RETURNS SETOF found_test_tbl AS '
- DECLARE
- 	rec RECORD;
- BEGIN
- 	FOR rec IN select * from found_test_tbl LOOP
- 		RETURN NEXT rec;
- 	END LOOP;
- 	RETURN;
- END;'
-    LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    test_table_func_rec ();
-
-CREATE FUNCTION test_table_func_row ()
-    RETURNS SETOF found_test_tbl AS '
- DECLARE
- 	row found_test_tbl%ROWTYPE;
- BEGIN
- 	FOR row IN select * from found_test_tbl LOOP
- 		RETURN NEXT row;
- 	END LOOP;
- 	RETURN;
- END;'
-    LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    test_table_func_row ();
-
-CREATE FUNCTION test_ret_set_scalar (int, int)
-    RETURNS SETOF int AS '
- DECLARE
- 	i int;
- BEGIN
- 	FOR i IN $1 .. $2 LOOP
- 		RETURN NEXT i + 1;
- 	END LOOP;
- 	RETURN;
- END;'
-    LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    test_ret_set_scalar (1,
-        10);
-
-CREATE FUNCTION test_ret_set_rec_dyn (int)
-    RETURNS SETOF record AS '
- DECLARE
- 	retval RECORD;
- BEGIN
- 	IF $1 > 10 THEN
- 		SELECT INTO retval 5, 10, 15;
- 		RETURN NEXT retval;
- 		RETURN NEXT retval;
- 	ELSE
- 		SELECT INTO retval 50, 5::numeric, ''xxx''::text;
- 		RETURN NEXT retval;
- 		RETURN NEXT retval;
- 	END IF;
- 	RETURN;
- END;'
-    LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    test_ret_set_rec_dyn (1500)
-    AS (a int, b int, c int);
-
-SELECT
-    *
-FROM
-    test_ret_set_rec_dyn (5)
-    AS (a int, b numeric, c text);
-
-CREATE FUNCTION test_ret_rec_dyn (int)
-    RETURNS record AS '
- DECLARE
- 	retval RECORD;
- BEGIN
- 	IF $1 > 10 THEN
- 		SELECT INTO retval 5, 10, 15;
- 		RETURN retval;
- 	ELSE
- 		SELECT INTO retval 50, 5::numeric, ''xxx''::text;
- 		RETURN retval;
- 	END IF;
- END;'
-    LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    test_ret_rec_dyn (1500)
-    AS (a int, b int, c int);
-
-SELECT
-    *
-FROM
-    test_ret_rec_dyn (5)
-    AS (a int, b numeric, c text);
-
---
--- Test handling of OUT parameters, including polymorphic cases.
--- Note that RETURN is optional with OUT params; we try both ways.
---
--- wrong way to do it:
-CREATE FUNCTION f1 (IN i int, out j int)
-    RETURNS int AS $$
+    RETURNS integer AS $$
+DECLARE
+    myname alias FOR $1;
+    blname alias FOR $2;
+    mytype char(2);
+    rec record;
 BEGIN
-    RETURN i + 1;
-END $$
-LANGUAGE plpgsql;
-
-CREATE FUNCTION f1 (IN i int, out j int
-) AS $$
+    mytype := substr(myname, 1, 2);
+    IF mytype = '' PS '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            PSlot
+        WHERE
+            slotname = myname;
+        IF NOT found THEN
+            RETURN 0;
+        END IF;
+        IF rec.slotlink = blname THEN
+            UPDATE
+                PSlot
+            SET
+                slotlink = ''''
+            WHERE
+                slotname = myname;
+        END IF;
+        RETURN 0;
+    END IF;
+    IF mytype = '' WS '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            WSlot
+        WHERE
+            slotname = myname;
+        IF NOT found THEN
+            RETURN 0;
+        END IF;
+        IF rec.slotlink = blname THEN
+            UPDATE
+                WSlot
+            SET
+                slotlink = ''''
+            WHERE
+                slotname = myname;
+        END IF;
+        RETURN 0;
+    END IF;
+    IF mytype = '' IF '' THEN
+            SELECT
+                INTO rec *
+            FROM
+                IFace
+            WHERE
+                slotname = myname;
+            IF NOT found THEN
+                RETURN 0;
+            END IF;
+            IF rec.slotlink = blname THEN
+                UPDATE
+                    IFace
+                SET
+                    slotlink = ''''
+                WHERE
+                    slotname = myname;
+            END IF;
+            RETURN 0;
+        END IF;
+        IF mytype = '' HS '' THEN
+            SELECT
+                INTO rec *
+            FROM
+                HSlot
+            WHERE
+                slotname = myname;
+            IF NOT found THEN
+                RETURN 0;
+            END IF;
+            IF rec.slotlink = blname THEN
+                UPDATE
+                    HSlot
+                SET
+                    slotlink = ''''
+                WHERE
+                    slotname = myname;
+            END IF;
+            RETURN 0;
+        END IF;
+        IF mytype = '' PH '' THEN
+            SELECT
+                INTO rec *
+            FROM
+                PHone
+            WHERE
+                slotname = myname;
+            IF NOT found THEN
+                RETURN 0;
+            END IF;
+            IF rec.slotlink = blname THEN
+                UPDATE
+                    PHone
+                SET
+                    slotlink = ''''
+                WHERE
+                    slotname = myname;
+            END IF;
+            RETURN 0;
+        END IF;
+END;
+    $$
+    LANGUAGE plpgsql;
+    -- ************************************************************
+    -- * Describe the backside of a patchfield slot
+    -- ************************************************************
+    CREATE FUNCTION pslot_backlink_view (bpchar )
+        RETURNS text AS $$ <<
+        OUTER >>
+DECLARE
+    rec record;
+    bltype char(2);
+    retval text;
 BEGIN
-    j := i + 1;
+    SELECT
+        INTO rec *
+    FROM
+        PSlot
+    WHERE
+        slotname = $1;
+    IF NOT found THEN
+        RETURN '''';
+    END IF;
+    IF rec.backlink = '''' THEN
+        RETURN '' - '';
+    END IF;
+    bltype := substr(rec.backlink, 1, 2);
+    IF bltype = '' PL '' THEN
+        DECLARE rec record;
+        BEGIN
+            SELECT
+                INTO rec *
+            FROM
+                PLine
+            WHERE
+                slotname = "outer".rec.backlink;
+        retval := '' Phone line '' || trim(rec.phonenumber);
+        IF rec.comment != '''' THEN
+            retval := retval || '' ('';
+            retval := retval || rec.comment;
+            retval := retval || '') '';
+        END IF;
+        RETURN retval;
+END;
+END IF;
+        IF bltype = '' WS '' THEN
+            SELECT
+                INTO rec *
+            FROM
+                WSlot
+            WHERE
+                slotname = rec.backlink;
+            retval := trim(rec.slotname) || '' IN room '';
+            retval := retval || trim(rec.roomno);
+            retval := retval || '' -> '';
+            RETURN retval || wslot_slotlink_view (rec.slotname);
+        END IF;
+        RETURN rec.backlink;
+END;
+        $$
+        LANGUAGE plpgsql;
+        -- ************************************************************
+        -- * Describe the front of a patchfield slot
+        -- ************************************************************
+        CREATE FUNCTION pslot_slotlink_view (bpchar )
+            RETURNS text AS $$
+DECLARE
+    psrec record;
+    sltype char(2);
+    retval text;
+BEGIN
+    SELECT
+        INTO psrec *
+    FROM
+        PSlot
+    WHERE
+        slotname = $1;
+    IF NOT found THEN
+        RETURN '''';
+    END IF;
+    IF psrec.slotlink = '''' THEN
+        RETURN '' - '';
+    END IF;
+    sltype := substr(psrec.slotlink, 1, 2);
+    IF sltype = '' PS '' THEN
+        retval := trim(psrec.slotlink) || '' -> '';
+        RETURN retval || pslot_backlink_view (psrec.slotlink);
+    END IF;
+    IF sltype = '' HS '' THEN
+        retval := COMMENT
+    FROM
+        Hub H,
+        HSlot HS
+    WHERE
+        HS.slotname = psrec.slotlink
+            AND H.name = HS.hubname;
+        retval := retval || '' slot '';
+        retval := retval || slotno::text
+    FROM
+        HSlot
+    WHERE
+        slotname = psrec.slotlink;
+        RETURN retval;
+    END IF;
+    RETURN psrec.slotlink;
+END;
+    $$
+    LANGUAGE plpgsql;
+    -- ************************************************************
+    -- * Describe the front of a wall connector slot
+    -- ************************************************************
+    CREATE FUNCTION wslot_slotlink_view (bpchar )
+        RETURNS text AS $$
+DECLARE
+    rec record;
+    sltype char(2);
+    retval text;
+BEGIN
+    SELECT
+        INTO rec *
+    FROM
+        WSlot
+    WHERE
+        slotname = $1;
+    IF NOT found THEN
+        RETURN '''';
+    END IF;
+    IF rec.slotlink = '''' THEN
+        RETURN '' - '';
+    END IF;
+    sltype := substr(rec.slotlink, 1, 2);
+    IF sltype = '' PH '' THEN
+        SELECT
+            INTO rec *
+        FROM
+            PHone
+        WHERE
+            slotname = rec.slotlink;
+        retval := '' Phone '' || trim(rec.slotname);
+        IF rec.comment != '''' THEN
+            retval := retval || '' ('';
+            retval := retval || rec.comment;
+            retval := retval || '') '';
+        END IF;
+        RETURN retval;
+    END IF;
+    IF sltype = '' IF '' THEN
+            DECLARE syrow SYSTEM % RowType;
+            ifrow IFace % ROWTYPE;
+            BEGIN
+                SELECT
+                    INTO ifrow *
+                FROM
+                    IFace
+                WHERE
+                    slotname = rec.slotlink;
+            SELECT
+                INTO syrow *
+            FROM
+                SYSTEM
+            WHERE
+                name = ifrow.sysname;
+            retval := syrow.name || '' IF '';
+                retval := retval || ifrow.ifname;
+                IF syrow.comment != '''' THEN
+                    retval := retval || '' ('';
+                    retval := retval || syrow.comment;
+                    retval := retval || '') '';
+                END IF;
+                RETURN retval;
+END;
+END IF;
+        RETURN rec.slotlink;
+END;
+        $$
+        LANGUAGE plpgsql;
+        -- ************************************************************
+        -- * View of a patchfield describing backside and patches
+        -- ************************************************************
+        CREATE VIEW Pfield_v1 AS
+        SELECT
+            PF.pfname,
+            PF.slotname,
+            pslot_backlink_view (PF.slotname) AS backside,
+            pslot_slotlink_view (PF.slotname) AS patch
+        FROM
+            PSlot PF;
+        --
+        -- First we build the house - so we create the rooms
+        --
+        INSERT INTO Room
+        VALUES ('001', 'Entrance');
+        INSERT INTO Room
+        VALUES ('002', 'Office');
+        INSERT INTO Room
+        VALUES ('003', 'Office');
+        INSERT INTO Room
+        VALUES ('004', 'Technical');
+        INSERT INTO Room
+        VALUES ('101', 'Office');
+        INSERT INTO Room
+        VALUES ('102', 'Conference');
+        INSERT INTO Room
+        VALUES ('103', 'Restroom');
+        INSERT INTO Room
+        VALUES ('104', 'Technical');
+        INSERT INTO Room
+        VALUES ('105', 'Office');
+        INSERT INTO Room
+        VALUES ('106', 'Office');
+        --
+        -- Second we install the wall connectors
+        --
+        INSERT INTO WSlot
+        VALUES ('WS.001.1a', '001', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.001.1b', '001', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.001.2a', '001', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.001.2b', '001', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.001.3a', '001', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.001.3b', '001', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.002.1a', '002', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.002.1b', '002', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.002.2a', '002', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.002.2b', '002', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.002.3a', '002', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.002.3b', '002', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.003.1a', '003', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.003.1b', '003', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.003.2a', '003', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.003.2b', '003', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.003.3a', '003', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.003.3b', '003', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.101.1a', '101', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.101.1b', '101', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.101.2a', '101', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.101.2b', '101', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.101.3a', '101', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.101.3b', '101', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.102.1a', '102', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.102.1b', '102', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.102.2a', '102', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.102.2b', '102', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.102.3a', '102', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.102.3b', '102', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.105.1a', '105', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.105.1b', '105', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.105.2a', '105', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.105.2b', '105', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.105.3a', '105', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.105.3b', '105', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.106.1a', '106', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.106.1b', '106', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.106.2a', '106', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.106.2b', '106', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.106.3a', '106', '', '');
+        INSERT INTO WSlot
+        VALUES ('WS.106.3b', '106', '', '');
+        --
+        -- Now create the patch fields and their slots
+        --
+        INSERT INTO PField
+        VALUES ('PF0_1', 'Wallslots basement');
+        --
+        -- The cables for these will be made later, so they are unconnected for now
+        --
+        INSERT INTO PSlot
+        VALUES ('PS.base.a1', 'PF0_1', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.a2', 'PF0_1', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.a3', 'PF0_1', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.a4', 'PF0_1', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.a5', 'PF0_1', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.a6', 'PF0_1', '', '');
+        --
+        -- These are already wired to the wall connectors
+        --
+        INSERT INTO PSlot
+        VALUES ('PS.base.b1', 'PF0_1', '', 'WS.002.1a');
+        INSERT INTO PSlot
+        VALUES ('PS.base.b2', 'PF0_1', '', 'WS.002.1b');
+        INSERT INTO PSlot
+        VALUES ('PS.base.b3', 'PF0_1', '', 'WS.002.2a');
+        INSERT INTO PSlot
+        VALUES ('PS.base.b4', 'PF0_1', '', 'WS.002.2b');
+        INSERT INTO PSlot
+        VALUES ('PS.base.b5', 'PF0_1', '', 'WS.002.3a');
+        INSERT INTO PSlot
+        VALUES ('PS.base.b6', 'PF0_1', '', 'WS.002.3b');
+        INSERT INTO PSlot
+        VALUES ('PS.base.c1', 'PF0_1', '', 'WS.003.1a');
+        INSERT INTO PSlot
+        VALUES ('PS.base.c2', 'PF0_1', '', 'WS.003.1b');
+        INSERT INTO PSlot
+        VALUES ('PS.base.c3', 'PF0_1', '', 'WS.003.2a');
+        INSERT INTO PSlot
+        VALUES ('PS.base.c4', 'PF0_1', '', 'WS.003.2b');
+        INSERT INTO PSlot
+        VALUES ('PS.base.c5', 'PF0_1', '', 'WS.003.3a');
+        INSERT INTO PSlot
+        VALUES ('PS.base.c6', 'PF0_1', '', 'WS.003.3b');
+        --
+        -- This patchfield will be renamed later into PF0_2 - so its
+        -- slots references in pfname should follow
+        --
+        INSERT INTO PField
+        VALUES ('PF0_X', 'Phonelines basement');
+        INSERT INTO PSlot
+        VALUES ('PS.base.ta1', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.ta2', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.ta3', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.ta4', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.ta5', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.ta6', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.tb1', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.tb2', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.tb3', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.tb4', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.tb5', 'PF0_X', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.base.tb6', 'PF0_X', '', '');
+        INSERT INTO PField
+        VALUES ('PF1_1', 'Wallslots first floor');
+        INSERT INTO PSlot
+        VALUES ('PS.first.a1', 'PF1_1', '', 'WS.101.1a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.a2', 'PF1_1', '', 'WS.101.1b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.a3', 'PF1_1', '', 'WS.101.2a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.a4', 'PF1_1', '', 'WS.101.2b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.a5', 'PF1_1', '', 'WS.101.3a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.a6', 'PF1_1', '', 'WS.101.3b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.b1', 'PF1_1', '', 'WS.102.1a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.b2', 'PF1_1', '', 'WS.102.1b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.b3', 'PF1_1', '', 'WS.102.2a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.b4', 'PF1_1', '', 'WS.102.2b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.b5', 'PF1_1', '', 'WS.102.3a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.b6', 'PF1_1', '', 'WS.102.3b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.c1', 'PF1_1', '', 'WS.105.1a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.c2', 'PF1_1', '', 'WS.105.1b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.c3', 'PF1_1', '', 'WS.105.2a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.c4', 'PF1_1', '', 'WS.105.2b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.c5', 'PF1_1', '', 'WS.105.3a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.c6', 'PF1_1', '', 'WS.105.3b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.d1', 'PF1_1', '', 'WS.106.1a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.d2', 'PF1_1', '', 'WS.106.1b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.d3', 'PF1_1', '', 'WS.106.2a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.d4', 'PF1_1', '', 'WS.106.2b');
+        INSERT INTO PSlot
+        VALUES ('PS.first.d5', 'PF1_1', '', 'WS.106.3a');
+        INSERT INTO PSlot
+        VALUES ('PS.first.d6', 'PF1_1', '', 'WS.106.3b');
+        --
+        -- Now we wire the wall connectors 1a-2a in room 001 to the
+        -- patchfield. In the second update we make an error, and
+        -- correct it after
+        --
+        UPDATE
+            PSlot
+        SET
+            backlink = 'WS.001.1a'
+        WHERE
+            slotname = 'PS.base.a1';
+        UPDATE
+            PSlot
+        SET
+            backlink = 'WS.001.1b'
+        WHERE
+            slotname = 'PS.base.a3';
+        SELECT
+            *
+        FROM
+            WSlot
+        WHERE
+            roomno = '001'
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            PSlot
+        WHERE
+            slotname ~ 'PS.base.a'
+        ORDER BY
+            slotname;
+        UPDATE
+            PSlot
+        SET
+            backlink = 'WS.001.2a'
+        WHERE
+            slotname = 'PS.base.a3';
+        SELECT
+            *
+        FROM
+            WSlot
+        WHERE
+            roomno = '001'
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            PSlot
+        WHERE
+            slotname ~ 'PS.base.a'
+        ORDER BY
+            slotname;
+        UPDATE
+            PSlot
+        SET
+            backlink = 'WS.001.1b'
+        WHERE
+            slotname = 'PS.base.a2';
+        SELECT
+            *
+        FROM
+            WSlot
+        WHERE
+            roomno = '001'
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            PSlot
+        WHERE
+            slotname ~ 'PS.base.a'
+        ORDER BY
+            slotname;
+        --
+        -- Same procedure for 2b-3b but this time updating the WSlot instead
+        -- of the PSlot. Due to the triggers the result is the same:
+        -- WSlot and corresponding PSlot point to each other.
+        --
+        UPDATE
+            WSlot
+        SET
+            backlink = 'PS.base.a4'
+        WHERE
+            slotname = 'WS.001.2b';
+        UPDATE
+            WSlot
+        SET
+            backlink = 'PS.base.a6'
+        WHERE
+            slotname = 'WS.001.3a';
+        SELECT
+            *
+        FROM
+            WSlot
+        WHERE
+            roomno = '001'
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            PSlot
+        WHERE
+            slotname ~ 'PS.base.a'
+        ORDER BY
+            slotname;
+        UPDATE
+            WSlot
+        SET
+            backlink = 'PS.base.a6'
+        WHERE
+            slotname = 'WS.001.3b';
+        SELECT
+            *
+        FROM
+            WSlot
+        WHERE
+            roomno = '001'
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            PSlot
+        WHERE
+            slotname ~ 'PS.base.a'
+        ORDER BY
+            slotname;
+        UPDATE
+            WSlot
+        SET
+            backlink = 'PS.base.a5'
+        WHERE
+            slotname = 'WS.001.3a';
+        SELECT
+            *
+        FROM
+            WSlot
+        WHERE
+            roomno = '001'
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            PSlot
+        WHERE
+            slotname ~ 'PS.base.a'
+        ORDER BY
+            slotname;
+        INSERT INTO PField
+        VALUES ('PF1_2', 'Phonelines first floor');
+        INSERT INTO PSlot
+        VALUES ('PS.first.ta1', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.ta2', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.ta3', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.ta4', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.ta5', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.ta6', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.tb1', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.tb2', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.tb3', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.tb4', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.tb5', 'PF1_2', '', '');
+        INSERT INTO PSlot
+        VALUES ('PS.first.tb6', 'PF1_2', '', '');
+        --
+        -- Fix the wrong name for patchfield PF0_2
+        --
+        UPDATE
+            PField
+        SET
+            name = 'PF0_2'
+        WHERE
+            name = 'PF0_X';
+        SELECT
+            *
+        FROM
+            PSlot
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            WSlot
+        ORDER BY
+            slotname;
+        --
+        -- Install the central phone system and create the phone numbers.
+        -- They are wired on insert to the patchfields. Again the
+        -- triggers automatically tell the PSlots to update their
+        -- backlink field.
+        --
+        INSERT INTO PLine
+        VALUES ('PL.001', '-0', 'Central call', 'PS.base.ta1');
+        INSERT INTO PLine
+        VALUES ('PL.002', '-101', '', 'PS.base.ta2');
+        INSERT INTO PLine
+        VALUES ('PL.003', '-102', '', 'PS.base.ta3');
+        INSERT INTO PLine
+        VALUES ('PL.004', '-103', '', 'PS.base.ta5');
+        INSERT INTO PLine
+        VALUES ('PL.005', '-104', '', 'PS.base.ta6');
+        INSERT INTO PLine
+        VALUES ('PL.006', '-106', '', 'PS.base.tb2');
+        INSERT INTO PLine
+        VALUES ('PL.007', '-108', '', 'PS.base.tb3');
+        INSERT INTO PLine
+        VALUES ('PL.008', '-109', '', 'PS.base.tb4');
+        INSERT INTO PLine
+        VALUES ('PL.009', '-121', '', 'PS.base.tb5');
+        INSERT INTO PLine
+        VALUES ('PL.010', '-122', '', 'PS.base.tb6');
+        INSERT INTO PLine
+        VALUES ('PL.015', '-134', '', 'PS.first.ta1');
+        INSERT INTO PLine
+        VALUES ('PL.016', '-137', '', 'PS.first.ta3');
+        INSERT INTO PLine
+        VALUES ('PL.017', '-139', '', 'PS.first.ta4');
+        INSERT INTO PLine
+        VALUES ('PL.018', '-362', '', 'PS.first.tb1');
+        INSERT INTO PLine
+        VALUES ('PL.019', '-363', '', 'PS.first.tb2');
+        INSERT INTO PLine
+        VALUES ('PL.020', '-364', '', 'PS.first.tb3');
+        INSERT INTO PLine
+        VALUES ('PL.021', '-365', '', 'PS.first.tb5');
+        INSERT INTO PLine
+        VALUES ('PL.022', '-367', '', 'PS.first.tb6');
+        INSERT INTO PLine
+        VALUES ('PL.028', '-501', 'Fax entrance', 'PS.base.ta2');
+        INSERT INTO PLine
+        VALUES ('PL.029', '-502', 'Fax first floor', 'PS.first.ta1');
+        --
+        -- Buy some phones, plug them into the wall and patch the
+        -- phone lines to the corresponding patchfield slots.
+        --
+        INSERT INTO PHone
+        VALUES ('PH.hc001', 'Hicom standard', 'WS.001.1a');
+        UPDATE
+            PSlot
+        SET
+            slotlink = 'PS.base.ta1'
+        WHERE
+            slotname = 'PS.base.a1';
+        INSERT INTO PHone
+        VALUES ('PH.hc002', 'Hicom standard', 'WS.002.1a');
+        UPDATE
+            PSlot
+        SET
+            slotlink = 'PS.base.ta5'
+        WHERE
+            slotname = 'PS.base.b1';
+        INSERT INTO PHone
+        VALUES ('PH.hc003', 'Hicom standard', 'WS.002.2a');
+        UPDATE
+            PSlot
+        SET
+            slotlink = 'PS.base.tb2'
+        WHERE
+            slotname = 'PS.base.b3';
+        INSERT INTO PHone
+        VALUES ('PH.fax001', 'Canon fax', 'WS.001.2a');
+        UPDATE
+            PSlot
+        SET
+            slotlink = 'PS.base.ta2'
+        WHERE
+            slotname = 'PS.base.a3';
+        --
+        -- Install a hub at one of the patchfields, plug a computers
+        -- ethernet interface into the wall and patch it to the hub.
+        --
+        INSERT INTO Hub
+        VALUES ('base.hub1', 'Patchfield PF0_1 hub', 16);
+        INSERT INTO SYSTEM
+        VALUES ('orion', 'PC');
+        INSERT INTO IFace
+        VALUES ('IF', 'orion', 'eth0', 'WS.002.1b');
+        UPDATE
+            PSlot
+        SET
+            slotlink = 'HS.base.hub1.1'
+        WHERE
+            slotname = 'PS.base.b2';
+        --
+        -- Now we take a look at the patchfield
+        --
+        SELECT
+            *
+        FROM
+            PField_v1
+        WHERE
+            pfname = 'PF0_1'
+        ORDER BY
+            slotname;
+        SELECT
+            *
+        FROM
+            PField_v1
+        WHERE
+            pfname = 'PF0_2'
+        ORDER BY
+            slotname;
+        --
+        -- Finally we want errors
+        --
+        INSERT INTO PField
+        VALUES ('PF1_1', 'should fail due to unique index');
+        UPDATE
+            PSlot
+        SET
+            backlink = 'WS.not.there'
+        WHERE
+            slotname = 'PS.base.a1';
+        UPDATE
+            PSlot
+        SET
+            backlink = 'XX.illegal'
+        WHERE
+            slotname = 'PS.base.a1';
+        UPDATE
+            PSlot
+        SET
+            slotlink = 'PS.not.there'
+        WHERE
+            slotname = 'PS.base.a1';
+        UPDATE
+            PSlot
+        SET
+            slotlink = 'XX.illegal'
+        WHERE
+            slotname = 'PS.base.a1';
+        INSERT INTO HSlot
+        VALUES ('HS', 'base.hub1', 1, '');
+        INSERT INTO HSlot
+        VALUES ('HS', 'base.hub1', 20, '');
+        DELETE FROM HSlot;
+        INSERT INTO IFace
+        VALUES ('IF', 'notthere', 'eth0', '');
+        INSERT INTO IFace
+        VALUES ('IF', 'orion', 'ethernet_interface_name_too_long', '');
+        --
+        -- The following tests are unrelated to the scenario outlined above;
+        -- they merely exercise specific parts of PL/pgSQL
+        --
+        --
+        -- Test recursion, per bug report 7-Sep-01
+        --
+        CREATE FUNCTION recursion_test (int, int )
+            RETURNS text AS $$
+DECLARE
+    rslt text;
+BEGIN
+    IF $1 <= 0 THEN
+        rslt = CAST($2 AS TEXT);
+    ELSE
+        rslt = CAST($1 AS TEXT) || '',
+        '' || recursion_test ($1 - 1,
+            $2);
+    END IF;
+    RETURN rslt;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        recursion_test (4,
+            3);
+    --
+    -- Test the FOUND magic variable
+    --
+    CREATE TABLE found_test_tbl (
+        a int
+    );
+    CREATE FUNCTION test_found ( )
+        RETURNS boolean AS $$
+DECLARE
+BEGIN
+    INSERT INTO found_test_tbl
+    VALUES (1);
+    IF FOUND THEN
+        INSERT INTO found_test_tbl
+        VALUES (2);
+    END IF;
+    UPDATE
+        found_test_tbl
+    SET
+        a = 100
+    WHERE
+        a = 1;
+    IF FOUND THEN
+        INSERT INTO found_test_tbl
+        VALUES (3);
+    END IF;
+    DELETE FROM found_test_tbl
+    WHERE a = 9999;
+    -- matches no rows
+    IF NOT FOUND THEN
+        INSERT INTO found_test_tbl
+        VALUES (4);
+    END IF;
+    FOR i IN 1..10 LOOP
+        -- no need to do anything
+    END LOOP;
+    IF FOUND THEN
+        INSERT INTO found_test_tbl
+        VALUES (5);
+    END IF;
+    -- never executes the loop
+    FOR i IN 2..1 LOOP
+        -- no need to do anything
+    END LOOP;
+    IF NOT FOUND THEN
+        INSERT INTO found_test_tbl
+        VALUES (6);
+    END IF;
+    RETURN TRUE;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        test_found ();
+    SELECT
+        *
+    FROM
+        found_test_tbl;
+    --
+    -- Test set-returning functions for PL/pgSQL
+    --
+    CREATE FUNCTION test_table_func_rec ( )
+        RETURNS SETOF found_test_tbl AS $$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+    SELECT
+        *
+    FROM
+        found_test_tbl LOOP
+            RETURN NEXT rec;
+        END LOOP;
     RETURN;
-END $$
-LANGUAGE plpgsql;
-
-SELECT
-    f1 (42);
-
-SELECT
-    *
-FROM
-    f1 (42);
-
-CREATE OR REPLACE FUNCTION f1 (INOUT i int
-) AS $$
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        test_table_func_rec ();
+    CREATE FUNCTION test_table_func_row ( )
+        RETURNS SETOF found_test_tbl AS $$
+DECLARE
+    ROW found_test_tbl % ROWTYPE;
 BEGIN
-    i := i + 1;
-END $$
-LANGUAGE plpgsql;
-
-SELECT
-    f1 (42);
-
-SELECT
-    *
-FROM
-    f1 (42);
-
-DROP FUNCTION f1 (int);
-
-CREATE FUNCTION f1 (IN i int, out j int)
-    RETURNS SETOF int AS $$
-BEGIN
-    j := i + 1;
-    RETURN NEXT;
-    j := i + 2;
-    RETURN NEXT;
+    FOR ROW IN
+    SELECT
+        *
+    FROM
+        found_test_tbl LOOP
+            RETURN NEXT ROW;
+        END LOOP;
     RETURN;
-END $$
-LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    f1 (42);
-
-DROP FUNCTION f1 (int);
-
-CREATE FUNCTION f1 (IN i int, out j int, out k text
-) AS $$
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        test_table_func_row ();
+    CREATE FUNCTION test_ret_set_scalar (int, int )
+        RETURNS SETOF int AS $$
+DECLARE
+    i int;
 BEGIN
-    j := i;
+    FOR i IN $1..$2 LOOP
+        RETURN NEXT i + 1;
+    END LOOP;
+    RETURN;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        test_ret_set_scalar (1,
+            10);
+    CREATE FUNCTION test_ret_set_rec_dyn (int )
+        RETURNS SETOF record AS $$
+DECLARE
+    retval RECORD;
+BEGIN
+    IF $1 > 10 THEN
+        SELECT
+            INTO retval 5,
+            10,
+            15;
+        RETURN NEXT retval;
+        RETURN NEXT retval;
+    ELSE
+        SELECT
+            INTO retval 50,
+            5::numeric,
+            '' xxx ''::text;
+        RETURN NEXT retval;
+        RETURN NEXT retval;
+    END IF;
+    RETURN;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        test_ret_set_rec_dyn (1500)
+        AS (a int, b int, c int);
+    SELECT
+        *
+    FROM
+        test_ret_set_rec_dyn (5)
+        AS (a int, b numeric, c text);
+    CREATE FUNCTION test_ret_rec_dyn (int )
+        RETURNS record AS $$
+DECLARE
+    retval RECORD;
+BEGIN
+    IF $1 > 10 THEN
+        SELECT
+            INTO retval 5,
+            10,
+            15;
+        RETURN retval;
+    ELSE
+        SELECT
+            INTO retval 50,
+            5::numeric,
+            '' xxx ''::text;
+        RETURN retval;
+    END IF;
+END;
+    $$
+    LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        test_ret_rec_dyn (1500)
+        AS (a int, b int, c int);
+    SELECT
+        *
+    FROM
+        test_ret_rec_dyn (5)
+        AS (a int, b numeric, c text);
+    --
+    -- Test handling of OUT parameters, including polymorphic cases.
+    -- Note that RETURN is optional with OUT params; we try both ways.
+    --
+    -- wrong way to do it:
+    CREATE FUNCTION f1 (IN i int, out j int )
+        RETURNS int AS $$
+        BEGIN
+            RETURN i + 1;
+        END $$
+        LANGUAGE plpgsql;
+    CREATE FUNCTION f1 (IN i int, out j int
+ ) AS $$
+    BEGIN
+        j := i + 1;
+    RETURN;
+    END $$
+    LANGUAGE plpgsql;
+    SELECT
+        f1 (42);
+    SELECT
+        *
+    FROM
+        f1 (42);
+    CREATE OR REPLACE FUNCTION f1 (INOUT i int
+ ) AS $$
+    BEGIN
+        i := i + 1;
+    END $$
+    LANGUAGE plpgsql;
+    SELECT
+        f1 (42);
+    SELECT
+        *
+    FROM
+        f1 (42);
+    DROP FUNCTION f1 (int);
+    CREATE FUNCTION f1 (IN i int, out j int )
+        RETURNS SETOF int AS $$
+        BEGIN
+            j := i + 1;
+        RETURN NEXT;
+        j := i + 2;
+        RETURN NEXT;
+        RETURN;
+        END $$
+        LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        f1 (42);
+    DROP FUNCTION f1 (int);
+    CREATE FUNCTION f1 (IN i int, out j int, out k text
+ ) AS $$
+    BEGIN
+        j := i;
     j := j + 1;
     k := 'foo';
-END $$
-LANGUAGE plpgsql;
-
-SELECT
-    f1 (42);
-
-SELECT
-    *
-FROM
-    f1 (42);
-
-DROP FUNCTION f1 (int);
-
-CREATE FUNCTION f1 (IN i int, out j int, out k text)
-    RETURNS SETOF record AS $$
-BEGIN
-    j := i + 1;
-    k := 'foo';
-    RETURN NEXT;
-    j := j + 1;
-    k := 'foot';
-    RETURN NEXT;
-END $$
-LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    f1 (42);
-
-DROP FUNCTION f1 (int);
-
-CREATE FUNCTION duplic (IN i anyelement, out j anyelement, out k anyarray
-) AS $$
-BEGIN
-    j := i;
+    END $$
+    LANGUAGE plpgsql;
+    SELECT
+        f1 (42);
+    SELECT
+        *
+    FROM
+        f1 (42);
+    DROP FUNCTION f1 (int);
+    CREATE FUNCTION f1 (IN i int, out j int, out k text )
+        RETURNS SETOF record AS $$
+        BEGIN
+            j := i + 1;
+        k := 'foo';
+        RETURN NEXT;
+        j := j + 1;
+        k := 'foot';
+        RETURN NEXT;
+        END $$
+        LANGUAGE plpgsql;
+    SELECT
+        *
+    FROM
+        f1 (42);
+    DROP FUNCTION f1 (int);
+    CREATE FUNCTION duplic (IN i anyelement, out j anyelement, out k anyarray
+ ) AS $$
+    BEGIN
+        j := i;
     k := ARRAY[j, j];
     RETURN;
-END $$
-LANGUAGE plpgsql;
-
-SELECT
-    *
-FROM
-    duplic (42);
-
-SELECT
-    *
-FROM
-    duplic ('foo'::text);
-
-DROP FUNCTION duplic (anyelement);
-
---
--- test PERFORM
---
-CREATE TABLE perform_test (
-    a INT,
-    b INT
-);
-
-CREATE FUNCTION perform_simple_func (int)
-    RETURNS boolean AS '
- BEGIN
- 	IF $1 < 20 THEN
- 		INSERT INTO perform_test VALUES ($1, $1 + 10);
- 		RETURN TRUE;
- 	ELSE
- 		RETURN FALSE;
- 	END IF;
- END;'
+    END $$
     LANGUAGE plpgsql;
-
-CREATE FUNCTION perform_test_func ()
-    RETURNS void AS '
- BEGIN
- 	IF FOUND then
- 		INSERT INTO perform_test VALUES (100, 100);
- 	END IF;
- 
- 	PERFORM perform_simple_func(5);
- 
- 	IF FOUND then
- 		INSERT INTO perform_test VALUES (100, 100);
- 	END IF;
- 
- 	PERFORM perform_simple_func(50);
- 
- 	IF FOUND then
- 		INSERT INTO perform_test VALUES (100, 100);
- 	END IF;
- 
- 	RETURN;
- END;'
-    LANGUAGE plpgsql;
-
-SELECT
-    perform_test_func ();
-
-SELECT
-    *
-FROM
-    perform_test;
-
-DROP TABLE perform_test;
-
---
--- Test proper snapshot handling in simple expressions
---
-CREATE temp TABLE users (
-    LOGIN text,
-    id serial
-);
-
-CREATE FUNCTION sp_id_user (a_login text)
-    RETURNS int AS $$
+    SELECT
+        *
+    FROM
+        duplic (42);
+    SELECT
+        *
+    FROM
+        duplic ('foo'::text);
+    DROP FUNCTION duplic (anyelement);
+    --
+    -- test PERFORM
+    --
+    CREATE TABLE perform_test (
+        a INT,
+        b INT
+    );
+    CREATE FUNCTION perform_simple_func (int )
+        RETURNS boolean AS $$
+        BEGIN
+            IF $1 < 20 THEN
+                INSERT INTO perform_test
+                VALUES ($1, $1 + 10);
+                RETURN TRUE;
+            ELSE
+                RETURN FALSE;
+            END IF;
+END;
+        $$
+        LANGUAGE plpgsql;
+        CREATE FUNCTION perform_test_func ( )
+            RETURNS void AS $$
+            BEGIN
+                IF FOUND THEN
+                    INSERT INTO perform_test
+                    VALUES (100, 100);
+                END IF;
+            PERFORM
+                perform_simple_func (5);
+            IF FOUND THEN
+                INSERT INTO perform_test
+                VALUES (100, 100);
+            END IF;
+            PERFORM
+                perform_simple_func (50);
+            IF FOUND THEN
+                INSERT INTO perform_test
+                VALUES (100, 100);
+            END IF;
+            RETURN;
+END;
+            $$
+            LANGUAGE plpgsql;
+            SELECT
+                perform_test_func ();
+            SELECT
+                *
+            FROM
+                perform_test;
+            DROP TABLE perform_test;
+            --
+            -- Test proper snapshot handling in simple expressions
+            --
+            CREATE temp TABLE users (
+                LOGIN text,
+                id serial
+            );
+            CREATE FUNCTION sp_id_user (a_login text )
+                RETURNS int AS $$
 DECLARE
     x int;
 BEGIN
@@ -5711,10 +5693,10 @@ END;
         AFTER INSERT ON transition_table_base REFERENCING NEW TABLE AS newtable
         FOR EACH STATEMENT
         EXECUTE PROCEDURE transition_table_base_ins_func ( );
-INSERT INTO transition_table_base
-    VALUES (1, 'One'), (2, 'Two');
-    INSERT INTO transition_table_base
-    VALUES (3, 'Three'), (4, 'Four');
+        INSERT INTO transition_table_base
+        VALUES (1, 'One'), (2, 'Two');
+        INSERT INTO transition_table_base
+        VALUES (3, 'Three'), (4, 'Four');
     CREATE OR REPLACE FUNCTION transition_table_base_upd_func ( )
         RETURNS TRIGGER
         LANGUAGE plpgsql

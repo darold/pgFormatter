@@ -421,14 +421,7 @@ CREATE TABLE truncate_a (
 
 ALTER SEQUENCE truncate_a_id1 OWNED BY truncate_a.id1;
 
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
+INSERT INTO truncate_a DEFAULT VALUES; INSERT INTO truncate_a DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -436,14 +429,7 @@ FROM
 
 TRUNCATE truncate_a;
 
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
+INSERT INTO truncate_a DEFAULT VALUES; INSERT INTO truncate_a DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -451,14 +437,7 @@ FROM
 
 TRUNCATE truncate_a RESTART IDENTITY;
 
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
+INSERT INTO truncate_a DEFAULT VALUES; INSERT INTO truncate_a DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -468,14 +447,7 @@ CREATE TABLE truncate_b (
     id int GENERATED ALWAYS AS IDENTITY (START WITH 44)
 );
 
-INSERT INTO truncate_b DEFAULT
-    VALUES
-;
-
-INSERT INTO truncate_b DEFAULT
-    VALUES
-;
-
+INSERT INTO truncate_b DEFAULT VALUES; INSERT INTO truncate_b DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -483,14 +455,7 @@ FROM
 
 TRUNCATE truncate_b;
 
-INSERT INTO truncate_b DEFAULT
-    VALUES
-;
-
-INSERT INTO truncate_b DEFAULT
-    VALUES
-;
-
+INSERT INTO truncate_b DEFAULT VALUES; INSERT INTO truncate_b DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -498,14 +463,7 @@ FROM
 
 TRUNCATE truncate_b RESTART IDENTITY;
 
-INSERT INTO truncate_b DEFAULT
-    VALUES
-;
-
-INSERT INTO truncate_b DEFAULT
-    VALUES
-;
-
+INSERT INTO truncate_b DEFAULT VALUES; INSERT INTO truncate_b DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -514,23 +472,14 @@ FROM
 -- check rollback of a RESTART IDENTITY operation
 BEGIN;
 TRUNCATE truncate_a RESTART IDENTITY;
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
+INSERT INTO truncate_a DEFAULT VALUES;
 SELECT
     *
 FROM
     truncate_a;
 ROLLBACK;
 
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
-INSERT INTO truncate_a DEFAULT
-    VALUES
-;
-
+INSERT INTO truncate_a DEFAULT VALUES; INSERT INTO truncate_a DEFAULT VALUES;
 SELECT
     *
 FROM

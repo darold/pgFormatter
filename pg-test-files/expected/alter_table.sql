@@ -1812,34 +1812,19 @@ CREATE TABLE def_test (
     c2 text DEFAULT 'initial_default'
 );
 
-INSERT INTO def_test DEFAULT
-    VALUES
-;
-
-ALTER TABLE def_test
+INSERT INTO def_test DEFAULT VALUES; ALTER TABLE def_test
     ALTER COLUMN c1 DROP DEFAULT;
 
-INSERT INTO def_test DEFAULT
-    VALUES
-;
-
-ALTER TABLE def_test
+INSERT INTO def_test DEFAULT VALUES; ALTER TABLE def_test
     ALTER COLUMN c2 DROP DEFAULT;
 
-INSERT INTO def_test DEFAULT
-    VALUES
-;
-
-ALTER TABLE def_test
+INSERT INTO def_test DEFAULT VALUES; ALTER TABLE def_test
     ALTER COLUMN c1 SET DEFAULT 10;
 
 ALTER TABLE def_test
     ALTER COLUMN c2 SET DEFAULT 'new_default';
 
-INSERT INTO def_test DEFAULT
-    VALUES
-;
-
+INSERT INTO def_test DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -1872,24 +1857,13 @@ CREATE RULE def_view_test_ins AS ON INSERT TO def_view_test
     SELECT
         new.*;
 
-INSERT INTO def_view_test DEFAULT
-    VALUES
-;
-
-ALTER TABLE def_view_test
+INSERT INTO def_view_test DEFAULT VALUES; ALTER TABLE def_view_test
     ALTER COLUMN c1 SET DEFAULT 45;
 
-INSERT INTO def_view_test DEFAULT
-    VALUES
-;
-
-ALTER TABLE def_view_test
+INSERT INTO def_view_test DEFAULT VALUES; ALTER TABLE def_view_test
     ALTER COLUMN c2 SET DEFAULT 'view_default';
 
-INSERT INTO def_view_test DEFAULT
-    VALUES
-;
-
+INSERT INTO def_view_test DEFAULT VALUES;
 SELECT
     *
 FROM

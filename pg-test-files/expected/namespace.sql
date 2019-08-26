@@ -26,18 +26,7 @@ WHERE
         WHERE
             nspname = 'test_ns_schema_1');
 
-INSERT INTO test_ns_schema_1.abc DEFAULT
-    VALUES
-;
-
-INSERT INTO test_ns_schema_1.abc DEFAULT
-    VALUES
-;
-
-INSERT INTO test_ns_schema_1.abc DEFAULT
-    VALUES
-;
-
+INSERT INTO test_ns_schema_1.abc DEFAULT VALUES; INSERT INTO test_ns_schema_1.abc DEFAULT VALUES; INSERT INTO test_ns_schema_1.abc DEFAULT VALUES;
 SELECT
     *
 FROM

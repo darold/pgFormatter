@@ -635,11 +635,7 @@ CREATE TABLE nulltest (
             'd'))
 );
 
-INSERT INTO nulltest DEFAULT
-    VALUES
-;
-
-INSERT INTO nulltest
+INSERT INTO nulltest DEFAULT VALUES; INSERT INTO nulltest
     VALUES ('a', 'b', 'c', 'd', 'c');
 
 -- Good
@@ -727,11 +723,7 @@ INSERT INTO defaulttest (col4)
 ALTER TABLE defaulttest
     ALTER COLUMN col5 DROP DEFAULT;
 
-INSERT INTO defaulttest DEFAULT
-    VALUES
-;
-
--- succeeds, inserts domain default
+INSERT INTO defaulttest DEFAULT VALUES; -- succeeds, inserts domain default
 -- We used to treat SET DEFAULT NULL as equivalent to DROP DEFAULT; wrong
 
 ALTER TABLE defaulttest
@@ -744,14 +736,7 @@ INSERT INTO defaulttest (col4)
 ALTER TABLE defaulttest
     ALTER COLUMN col5 DROP DEFAULT;
 
-INSERT INTO defaulttest DEFAULT
-    VALUES
-;
-
-INSERT INTO defaulttest DEFAULT
-    VALUES
-;
-
+INSERT INTO defaulttest DEFAULT VALUES; INSERT INTO defaulttest DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -767,11 +752,7 @@ CREATE TABLE domnotnull (
     col2 dnotnulltest
 );
 
-INSERT INTO domnotnull DEFAULT
-    VALUES
-;
-
-ALTER DOMAIN dnotnulltest SET NOT NULL;
+INSERT INTO domnotnull DEFAULT VALUES; ALTER DOMAIN dnotnulltest SET NOT NULL;
 
 -- fails
 UPDATE
@@ -809,10 +790,7 @@ CREATE TABLE domdeftest (
     col1 ddef1
 );
 
-INSERT INTO domdeftest DEFAULT
-    VALUES
-;
-
+INSERT INTO domdeftest DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -820,10 +798,7 @@ FROM
 
 ALTER DOMAIN ddef1 SET DEFAULT '42';
 
-INSERT INTO domdeftest DEFAULT
-    VALUES
-;
-
+INSERT INTO domdeftest DEFAULT VALUES;
 SELECT
     *
 FROM
@@ -831,10 +806,7 @@ FROM
 
 ALTER DOMAIN ddef1 DROP DEFAULT;
 
-INSERT INTO domdeftest DEFAULT
-    VALUES
-;
-
+INSERT INTO domdeftest DEFAULT VALUES;
 SELECT
     *
 FROM

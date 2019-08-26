@@ -401,12 +401,13 @@ CREATE TABLE main_table (
 CREATE FUNCTION trigger_func ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
-    AS '
- BEGIN
- 	RAISE NOTICE ''trigger_func(%) called: action = %, when = %, level = %'', TG_ARGV[0], TG_OP, TG_WHEN, TG_LEVEL;
- 	RETURN NULL;
- END;'
-;
+    AS $$
+BEGIN
+    RAISE NOTICE '' trigger_func (%) called: action = %,
+WHEN = %, level = % '', TG_ARGV[0], TG_OP, TG_WHEN, TG_LEVEL;
+    RETURN NULL;
+END;
+$$;
 
 CREATE TRIGGER before_ins_stmt_trig
     BEFORE INSERT ON main_table
@@ -422,6 +423,7 @@ CREATE TRIGGER after_ins_stmt_trig
 -- if neither 'FOR EACH ROW' nor 'FOR EACH STATEMENT' was specified,
 -- CREATE TRIGGER should default to 'FOR EACH STATEMENT'
 --
+
 CREATE TRIGGER after_upd_stmt_trig
     AFTER UPDATE ON main_table
     EXECUTE PROCEDURE trigger_func ('after_upd_stmt');
@@ -429,6 +431,7 @@ CREATE TRIGGER after_upd_stmt_trig
 -- Both insert and update statement level triggers (before and after) should
 -- fire.  Doesn't fire UPDATE before trigger, but only because one isn't
 -- defined.
+
 INSERT INTO main_table (a, b)
     VALUES (5, 10) ON CONFLICT (a)
     DO
@@ -441,10 +444,7 @@ CREATE TRIGGER after_upd_row_trig
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_func ('after_upd_row');
 
-INSERT INTO main_table DEFAULT
-    VALUES
-;
-
+INSERT INTO main_table DEFAULT VALUES;
 UPDATE
     main_table
 SET
@@ -475,6 +475,7 @@ ORDER BY
 --
 -- test triggers with WHEN clause
 --
+
 CREATE TRIGGER modified_a
     BEFORE UPDATE OF a ON main_table
     FOR EACH ROW
@@ -676,195 +677,220 @@ SET
 --
 -- Test case for bug with BEFORE trigger followed by AFTER trigger with WHEN
 --
+
 CREATE TABLE some_t (
     some_col boolean NOT NULL
 );
 
 CREATE FUNCTION dummy_update_func ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     RAISE NOTICE 'dummy_update_func(%) called: action = %, old = %, new = %', TG_ARGV[0], TG_OP, OLD, NEW;
     RETURN NEW;
 END;
-    $$
-    LANGUAGE plpgsql;
-    CREATE TRIGGER some_trig_before
-        BEFORE UPDATE ON some_t
-        FOR EACH ROW
-        EXECUTE PROCEDURE dummy_update_func ('before' );
-    CREATE TRIGGER some_trig_aftera
-        AFTER UPDATE ON some_t
-        FOR EACH ROW
-        WHEN (NOT OLD.some_col
-        AND NEW.some_col )
-        EXECUTE PROCEDURE dummy_update_func ('aftera' );
-    CREATE TRIGGER some_trig_afterb
-        AFTER UPDATE ON some_t
-        FOR EACH ROW
-        WHEN (NOT NEW.some_col )
-        EXECUTE PROCEDURE dummy_update_func ('afterb' );
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER some_trig_before
+    BEFORE UPDATE ON some_t
+    FOR EACH ROW
+    EXECUTE PROCEDURE dummy_update_func ('before');
+
+CREATE TRIGGER some_trig_aftera
+    AFTER UPDATE ON some_t
+    FOR EACH ROW
+    WHEN (NOT OLD.some_col
+    AND NEW.some_col)
+    EXECUTE PROCEDURE dummy_update_func ('aftera');
+
+CREATE TRIGGER some_trig_afterb
+    AFTER UPDATE ON some_t
+    FOR EACH ROW
+    WHEN (NOT NEW.some_col)
+    EXECUTE PROCEDURE dummy_update_func ('afterb');
+
 INSERT INTO some_t
     VALUES (TRUE);
-    UPDATE
-        some_t
-    SET
-        some_col = TRUE;
-    UPDATE
-        some_t
-    SET
-        some_col = FALSE;
-    UPDATE
-        some_t
-    SET
-        some_col = TRUE;
-    DROP TABLE some_t;
-    -- bogus cases
-    CREATE TRIGGER error_upd_and_col
-        BEFORE UPDATE
-        OR UPDATE OF a ON main_table
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('error_upd_and_col' );
-    CREATE TRIGGER error_upd_a_a
-        BEFORE UPDATE OF a,
-        a ON main_table
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('error_upd_a_a' );
-    CREATE TRIGGER error_ins_a
-        BEFORE INSERT OF a ON main_table
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('error_ins_a' );
-    CREATE TRIGGER error_ins_when
-        BEFORE INSERT
-        OR UPDATE ON main_table
-        FOR EACH ROW
-        WHEN (OLD.a <> NEW.a )
-        EXECUTE PROCEDURE trigger_func ('error_ins_old' );
-    CREATE TRIGGER error_del_when
-        BEFORE DELETE
-        OR UPDATE ON main_table
-        FOR EACH ROW
-        WHEN (OLD.a <> NEW.a )
-        EXECUTE PROCEDURE trigger_func ('error_del_new' );
-    CREATE TRIGGER error_del_when
-        BEFORE INSERT
-        OR UPDATE ON main_table
-        FOR EACH ROW
-        WHEN (NEW.tableoid <> 0 )
-        EXECUTE PROCEDURE trigger_func ('error_when_sys_column' );
-    CREATE TRIGGER error_stmt_when
-        BEFORE UPDATE OF a ON main_table
-        FOR EACH STATEMENT
-        WHEN (OLD.* IS DISTINCT FROM NEW.* )
-        EXECUTE PROCEDURE trigger_func ('error_stmt_when' );
-    -- check dependency restrictions
-    ALTER TABLE main_table
-        DROP COLUMN b;
-    -- this should succeed, but we'll roll it back to keep the triggers around
-    BEGIN;
-    DROP TRIGGER after_upd_a_b_row_trig ON main_table;
-    DROP TRIGGER after_upd_b_row_trig ON main_table;
-    DROP TRIGGER after_upd_b_stmt_trig ON main_table;
-    ALTER TABLE main_table
-        DROP COLUMN b;
-    ROLLBACK;
-    -- Test enable/disable triggers
-    CREATE TABLE trigtest (
-        i serial PRIMARY KEY
-    );
-    -- test that disabling RI triggers works
-    CREATE TABLE trigtest2 (
-        i int REFERENCES trigtest (i ) ON DELETE CASCADE
-    );
-    CREATE FUNCTION trigtest ( )
-        RETURNS TRIGGER AS $$
-        BEGIN
-            raise notice '% % % %', TG_RELNAME, TG_OP, TG_WHEN, TG_LEVEL;
-        RETURN new;
+
+UPDATE
+    some_t
+SET
+    some_col = TRUE;
+
+UPDATE
+    some_t
+SET
+    some_col = FALSE;
+
+UPDATE
+    some_t
+SET
+    some_col = TRUE;
+
+DROP TABLE some_t;
+
+-- bogus cases
+CREATE TRIGGER error_upd_and_col
+    BEFORE UPDATE
+    OR UPDATE OF a ON main_table
+    FOR EACH ROW
+    EXECUTE PROCEDURE trigger_func ('error_upd_and_col');
+
+CREATE TRIGGER error_upd_a_a
+    BEFORE UPDATE OF a,
+    a ON main_table
+    FOR EACH ROW
+    EXECUTE PROCEDURE trigger_func ('error_upd_a_a');
+
+CREATE TRIGGER error_ins_a
+    BEFORE INSERT OF a ON main_table
+    FOR EACH ROW
+    EXECUTE PROCEDURE trigger_func ('error_ins_a');
+
+CREATE TRIGGER error_ins_when
+    BEFORE INSERT
+    OR UPDATE ON main_table
+    FOR EACH ROW
+    WHEN (OLD.a <> NEW.a)
+    EXECUTE PROCEDURE trigger_func ('error_ins_old');
+
+CREATE TRIGGER error_del_when
+    BEFORE DELETE
+    OR UPDATE ON main_table
+    FOR EACH ROW
+    WHEN (OLD.a <> NEW.a)
+    EXECUTE PROCEDURE trigger_func ('error_del_new');
+
+CREATE TRIGGER error_del_when
+    BEFORE INSERT
+    OR UPDATE ON main_table
+    FOR EACH ROW
+    WHEN (NEW.tableoid <> 0)
+    EXECUTE PROCEDURE trigger_func ('error_when_sys_column');
+
+CREATE TRIGGER error_stmt_when
+    BEFORE UPDATE OF a ON main_table
+    FOR EACH STATEMENT
+    WHEN (OLD.* IS DISTINCT FROM NEW.*)
+    EXECUTE PROCEDURE trigger_func ('error_stmt_when');
+
+-- check dependency restrictions
+ALTER TABLE main_table
+    DROP COLUMN b;
+
+-- this should succeed, but we'll roll it back to keep the triggers around
+BEGIN;
+DROP TRIGGER after_upd_a_b_row_trig ON main_table;
+DROP TRIGGER after_upd_b_row_trig ON main_table;
+DROP TRIGGER after_upd_b_stmt_trig ON main_table;
+ALTER TABLE main_table
+    DROP COLUMN b;
+ROLLBACK;
+
+-- Test enable/disable triggers
+CREATE TABLE trigtest (
+    i serial PRIMARY KEY
+);
+
+-- test that disabling RI triggers works
+CREATE TABLE trigtest2 (
+    i int REFERENCES trigtest (i) ON DELETE CASCADE
+);
+
+CREATE FUNCTION trigtest ()
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    raise notice '% % % %', TG_RELNAME, TG_OP, TG_WHEN, TG_LEVEL;
+    RETURN new;
 END;
-        $$
-        LANGUAGE plpgsql;
-        CREATE TRIGGER trigtest_b_row_tg
-            BEFORE INSERT
-            OR UPDATE
-            OR DELETE ON trigtest FOR EACH ROW
-            EXECUTE PROCEDURE trigtest ( );
-        CREATE TRIGGER trigtest_a_row_tg
-            AFTER INSERT
-            OR UPDATE
-            OR DELETE ON trigtest FOR EACH ROW
-            EXECUTE PROCEDURE trigtest ( );
-        CREATE TRIGGER trigtest_b_stmt_tg
-            BEFORE INSERT
-            OR UPDATE
-            OR DELETE ON trigtest FOR EACH statement
-            EXECUTE PROCEDURE trigtest ( );
-        CREATE TRIGGER trigtest_a_stmt_tg
-            AFTER INSERT
-            OR UPDATE
-            OR DELETE ON trigtest FOR EACH statement
-            EXECUTE PROCEDURE trigtest ( );
-        INSERT INTO trigtest DEFAULT
-        VALUES
-;
-        ALTER TABLE trigtest disable TRIGGER trigtest_b_row_tg;
-        INSERT INTO trigtest DEFAULT
-        VALUES
-;
-        ALTER TABLE trigtest disable TRIGGER USER;
-        INSERT INTO trigtest DEFAULT
-        VALUES
-;
-        ALTER TABLE trigtest enable TRIGGER trigtest_a_stmt_tg;
-        INSERT INTO trigtest DEFAULT
-        VALUES
-;
-        SET session_replication_role = REPLICA;
-        INSERT INTO trigtest DEFAULT
-        VALUES
-;
-        -- does not trigger
-        ALTER TABLE trigtest enable always TRIGGER trigtest_a_stmt_tg;
-        INSERT INTO trigtest DEFAULT
-        VALUES
-;
-        -- now it does
-        RESET session_replication_role;
-        INSERT INTO trigtest2
-        VALUES (1);
-        INSERT INTO trigtest2
-        VALUES (2);
-        DELETE FROM trigtest
-        WHERE i = 2;
-        SELECT
-            *
-        FROM
-            trigtest2;
-        ALTER TABLE trigtest disable TRIGGER ALL;
-        DELETE FROM trigtest
-        WHERE i = 1;
-        SELECT
-            *
-        FROM
-            trigtest2;
-        -- ensure we still insert, even when all triggers are disabled
-        INSERT INTO trigtest DEFAULT
-        VALUES
-;
-        SELECT
-            *
-        FROM
-            trigtest;
-        DROP TABLE trigtest2;
-        DROP TABLE trigtest;
-        -- dump trigger data
-        CREATE TABLE trigger_test (
-            i int,
-            v varchar
-        );
-        CREATE OR REPLACE FUNCTION trigger_data ( )
-            RETURNS TRIGGER
-            LANGUAGE plpgsql
-            AS $$
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER trigtest_b_row_tg
+    BEFORE INSERT
+    OR UPDATE
+    OR DELETE ON trigtest FOR EACH ROW
+    EXECUTE PROCEDURE trigtest ();
+
+CREATE TRIGGER trigtest_a_row_tg
+    AFTER INSERT
+    OR UPDATE
+    OR DELETE ON trigtest FOR EACH ROW
+    EXECUTE PROCEDURE trigtest ();
+
+CREATE TRIGGER trigtest_b_stmt_tg
+    BEFORE INSERT
+    OR UPDATE
+    OR DELETE ON trigtest FOR EACH statement
+    EXECUTE PROCEDURE trigtest ();
+
+CREATE TRIGGER trigtest_a_stmt_tg
+    AFTER INSERT
+    OR UPDATE
+    OR DELETE ON trigtest FOR EACH statement
+    EXECUTE PROCEDURE trigtest ();
+
+INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest disable TRIGGER trigtest_b_row_tg;
+
+INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest disable TRIGGER USER;
+
+INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest enable TRIGGER trigtest_a_stmt_tg;
+
+INSERT INTO trigtest DEFAULT VALUES; SET session_replication_role = REPLICA;
+
+INSERT INTO trigtest DEFAULT VALUES; -- does not trigger
+ALTER TABLE trigtest enable always TRIGGER trigtest_a_stmt_tg;
+
+INSERT INTO trigtest DEFAULT VALUES; -- now it does
+RESET session_replication_role;
+
+INSERT INTO trigtest2
+    VALUES (1);
+
+INSERT INTO trigtest2
+    VALUES (2);
+
+DELETE FROM trigtest
+WHERE i = 2;
+
+SELECT
+    *
+FROM
+    trigtest2;
+
+ALTER TABLE trigtest disable TRIGGER ALL;
+
+DELETE FROM trigtest
+WHERE i = 1;
+
+SELECT
+    *
+FROM
+    trigtest2;
+
+-- ensure we still insert, even when all triggers are disabled
+INSERT INTO trigtest DEFAULT VALUES;
+SELECT
+    *
+FROM
+    trigtest;
+
+DROP TABLE trigtest2;
+
+DROP TABLE trigtest;
+
+-- dump trigger data
+CREATE TABLE trigger_test (
+    i int,
+    v varchar
+);
+
+CREATE OR REPLACE FUNCTION trigger_data ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
 DECLARE
     argstr text;
     relid text;
@@ -903,116 +929,145 @@ BEGIN
         RETURN NEW;
     END IF;
 END;
-    $$;
-    CREATE TRIGGER show_trigger_data_trig
-        BEFORE INSERT
-        OR UPDATE
-        OR DELETE ON trigger_test
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_data (23, 'skidoo' );
-    INSERT INTO trigger_test
+$$;
+
+CREATE TRIGGER show_trigger_data_trig
+    BEFORE INSERT
+    OR UPDATE
+    OR DELETE ON trigger_test
+    FOR EACH ROW
+    EXECUTE PROCEDURE trigger_data (23, 'skidoo');
+
+INSERT INTO trigger_test
     VALUES (1, 'insert');
-    UPDATE
-        trigger_test
-    SET
-        v = 'update'
-    WHERE
-        i = 1;
-    DELETE FROM trigger_test;
-    DROP TRIGGER show_trigger_data_trig ON trigger_test;
-    DROP FUNCTION trigger_data ();
-    DROP TABLE trigger_test;
-    --
-    -- Test use of row comparisons on OLD/NEW
-    --
-    CREATE TABLE trigger_test (
-        f1 int,
-        f2 text,
-        f3 text
-    );
-    -- this is the obvious (and wrong...) way to compare rows
-    CREATE FUNCTION mytrigger ( )
-        RETURNS TRIGGER
-        LANGUAGE plpgsql
-        AS $$
-        BEGIN
-            IF ROW (old.*) = ROW (new.*) THEN
-                raise notice 'row % not changed', new.f1;
-            ELSE
-                raise notice 'row % changed', new.f1;
-            END IF;
-        RETURN new;
-        END $$;
-    CREATE TRIGGER t
-        BEFORE UPDATE ON trigger_test
-        FOR EACH ROW
-        EXECUTE PROCEDURE mytrigger ( );
+
+UPDATE
+    trigger_test
+SET
+    v = 'update'
+WHERE
+    i = 1;
+
+DELETE FROM trigger_test;
+
+DROP TRIGGER show_trigger_data_trig ON trigger_test;
+
+DROP FUNCTION trigger_data ();
+
+DROP TABLE trigger_test;
+
+--
+-- Test use of row comparisons on OLD/NEW
+--
+
+CREATE TABLE trigger_test (
+    f1 int,
+    f2 text,
+    f3 text
+);
+
+-- this is the obvious (and wrong...) way to compare rows
+CREATE FUNCTION mytrigger ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF ROW (old.*) = ROW (new.*) THEN
+        raise notice 'row % not changed', new.f1;
+    ELSE
+        raise notice 'row % changed', new.f1;
+    END IF;
+    RETURN new;
+END
+$$;
+
+CREATE TRIGGER t
+    BEFORE UPDATE ON trigger_test
+    FOR EACH ROW
+    EXECUTE PROCEDURE mytrigger ();
+
 INSERT INTO trigger_test
     VALUES (1, 'foo', 'bar');
-    INSERT INTO trigger_test
+
+INSERT INTO trigger_test
     VALUES (2, 'baz', 'quux');
-    UPDATE
-        trigger_test
-    SET
-        f3 = 'bar';
-    UPDATE
-        trigger_test
-    SET
-        f3 = NULL;
-    -- this demonstrates that the above isn't really working as desired:
-    UPDATE
-        trigger_test
-    SET
-        f3 = NULL;
-    -- the right way when considering nulls is
-    CREATE OR REPLACE FUNCTION mytrigger ( )
-        RETURNS TRIGGER
-        LANGUAGE plpgsql
-        AS $$
-        BEGIN
-            IF ROW (old.*) IS DISTINCT FROM ROW (new.*) THEN
-                raise notice 'row % changed', new.f1;
-            ELSE
-                raise notice 'row % not changed', new.f1;
-            END IF;
-        RETURN new;
-        END $$;
-    UPDATE
-        trigger_test
-    SET
-        f3 = 'bar';
-    UPDATE
-        trigger_test
-    SET
-        f3 = NULL;
-    UPDATE
-        trigger_test
-    SET
-        f3 = NULL;
-    DROP TABLE trigger_test;
-    DROP FUNCTION mytrigger ();
-    -- Test snapshot management in serializable transactions involving triggers
-    -- per bug report in 6bc73d4c0910042358k3d1adff3qa36f8df75198ecea@mail.gmail.com
-    CREATE FUNCTION serializable_update_trig ( )
-        RETURNS TRIGGER
-        LANGUAGE plpgsql
-        AS $$
+
+UPDATE
+    trigger_test
+SET
+    f3 = 'bar';
+
+UPDATE
+    trigger_test
+SET
+    f3 = NULL;
+
+-- this demonstrates that the above isn't really working as desired:
+UPDATE
+    trigger_test
+SET
+    f3 = NULL;
+
+-- the right way when considering nulls is
+CREATE OR REPLACE FUNCTION mytrigger ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF ROW (old.*) IS DISTINCT FROM ROW (new.*) THEN
+        raise notice 'row % changed', new.f1;
+    ELSE
+        raise notice 'row % not changed', new.f1;
+    END IF;
+    RETURN new;
+END
+$$;
+
+UPDATE
+    trigger_test
+SET
+    f3 = 'bar';
+
+UPDATE
+    trigger_test
+SET
+    f3 = NULL;
+
+UPDATE
+    trigger_test
+SET
+    f3 = NULL;
+
+DROP TABLE trigger_test;
+
+DROP FUNCTION mytrigger ();
+
+-- Test snapshot management in serializable transactions involving triggers
+-- per bug report in 6bc73d4c0910042358k3d1adff3qa36f8df75198ecea@mail.gmail.com
+
+CREATE FUNCTION serializable_update_trig ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
 DECLARE
     rec record;
 BEGIN
     new.description = 'updated in trigger';
     RETURN new;
 END;
-    $$;
-    CREATE TABLE serializable_update_tab (
-        id int,
-        filler text,
-        description text
-    );
-    CREATE TRIGGER serializable_update_trig
-        BEFORE UPDATE ON serializable_update_tab
-        FOR EACH ROW
-        EXECUTE PROCEDURE serializable_update_trig ( );
+$$;
+
+CREATE TABLE serializable_update_tab (
+    id int,
+    filler text,
+    description text
+);
+
+CREATE TRIGGER serializable_update_trig
+    BEFORE UPDATE ON serializable_update_tab
+    FOR EACH ROW
+    EXECUTE PROCEDURE serializable_update_trig ();
+
 INSERT INTO serializable_update_tab
 SELECT
     a,
@@ -1020,70 +1075,84 @@ SELECT
     'new'
 FROM
     generate_series(1, 50) a;
-    BEGIN;
-    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-    UPDATE
-        serializable_update_tab
-    SET
-        description = 'no no',
-        id = 1
-    WHERE
-        id = 1;
-    COMMIT;
-    SELECT
-        description
-    FROM
-        serializable_update_tab
-    WHERE
-        id = 1;
-    DROP TABLE serializable_update_tab;
-    -- minimal update trigger
-    CREATE TABLE min_updates_test (
-        f1 text,
-        f2 int,
-        f3 int
-    );
+
+BEGIN;
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+UPDATE
+    serializable_update_tab
+SET
+    description = 'no no',
+    id = 1
+WHERE
+    id = 1;
+COMMIT;
+
+SELECT
+    description
+FROM
+    serializable_update_tab
+WHERE
+    id = 1;
+
+DROP TABLE serializable_update_tab;
+
+-- minimal update trigger
+CREATE TABLE min_updates_test (
+    f1 text,
+    f2 int,
+    f3 int
+);
+
 INSERT INTO min_updates_test
     VALUES ('a', 1, 2), ('b', '2', NULL);
-    CREATE TRIGGER z_min_update
-        BEFORE UPDATE ON min_updates_test
-        FOR EACH ROW
-        EXECUTE PROCEDURE suppress_redundant_updates_trigger ( );
-    \set QUIET false
-    UPDATE
-        min_updates_test
-    SET
-        f1 = f1;
-    UPDATE
-        min_updates_test
-    SET
-        f2 = f2 + 1;
-    UPDATE
-        min_updates_test
-    SET
-        f3 = 2
-    WHERE
-        f3 IS NULL;
-    \set QUIET true
-    SELECT
-        *
-    FROM
-        min_updates_test;
-    DROP TABLE min_updates_test;
-    --
-    -- Test triggers on views
-    --
-    CREATE VIEW main_view AS
-    SELECT
-        a,
-        b
-    FROM
-        main_table;
-    -- VIEW trigger function
-    CREATE OR REPLACE FUNCTION view_trigger ( )
-        RETURNS TRIGGER
-        LANGUAGE plpgsql
-        AS $$
+
+CREATE TRIGGER z_min_update
+    BEFORE UPDATE ON min_updates_test
+    FOR EACH ROW
+    EXECUTE PROCEDURE suppress_redundant_updates_trigger ();
+
+\set QUIET false
+UPDATE
+    min_updates_test
+SET
+    f1 = f1;
+
+UPDATE
+    min_updates_test
+SET
+    f2 = f2 + 1;
+
+UPDATE
+    min_updates_test
+SET
+    f3 = 2
+WHERE
+    f3 IS NULL;
+
+\set QUIET true
+SELECT
+    *
+FROM
+    min_updates_test;
+
+DROP TABLE min_updates_test;
+
+--
+-- Test triggers on views
+--
+
+CREATE VIEW main_view AS
+SELECT
+    a,
+    b
+FROM
+    main_table;
+
+-- VIEW trigger function
+CREATE OR REPLACE FUNCTION view_trigger ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
 DECLARE
     argstr text := '';
 BEGIN
@@ -1129,196 +1198,238 @@ BEGIN
     END IF;
     RETURN NULL;
 END;
-    $$;
-    -- Before row triggers aren't allowed on views
-    CREATE TRIGGER invalid_trig
-        BEFORE INSERT ON main_view
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('before_ins_row' );
-    CREATE TRIGGER invalid_trig
-        BEFORE UPDATE ON main_view
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('before_upd_row' );
-    CREATE TRIGGER invalid_trig
-        BEFORE DELETE ON main_view
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('before_del_row' );
-    -- After row triggers aren't allowed on views
-    CREATE TRIGGER invalid_trig
-        AFTER INSERT ON main_view
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('before_ins_row' );
-    CREATE TRIGGER invalid_trig
-        AFTER UPDATE ON main_view
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('before_upd_row' );
-    CREATE TRIGGER invalid_trig
-        AFTER DELETE ON main_view
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_func ('before_del_row' );
-    -- Truncate triggers aren't allowed on views
-    CREATE TRIGGER invalid_trig
-        BEFORE TRUNCATE ON main_view
-        EXECUTE PROCEDURE trigger_func ('before_tru_row' );
-    CREATE TRIGGER invalid_trig
-        AFTER TRUNCATE ON main_view
-        EXECUTE PROCEDURE trigger_func ('before_tru_row' );
-    -- INSTEAD OF triggers aren't allowed on tables
-    CREATE TRIGGER invalid_trig INSTEAD OF INSERT ON main_table
+$$;
+
+-- Before row triggers aren't allowed on views
+CREATE TRIGGER invalid_trig
+    BEFORE INSERT ON main_view
     FOR EACH ROW
-    EXECUTE PROCEDURE view_trigger ('instead_of_ins' );
-    CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_table
+    EXECUTE PROCEDURE trigger_func ('before_ins_row');
+
+CREATE TRIGGER invalid_trig
+    BEFORE UPDATE ON main_view
     FOR EACH ROW
-    EXECUTE PROCEDURE view_trigger ('instead_of_upd' );
-    CREATE TRIGGER invalid_trig INSTEAD OF DELETE ON main_table
+    EXECUTE PROCEDURE trigger_func ('before_upd_row');
+
+CREATE TRIGGER invalid_trig
+    BEFORE DELETE ON main_view
     FOR EACH ROW
-    EXECUTE PROCEDURE view_trigger ('instead_of_del' );
-    -- Don't support WHEN clauses with INSTEAD OF triggers
-    CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_view
+    EXECUTE PROCEDURE trigger_func ('before_del_row');
+
+-- After row triggers aren't allowed on views
+CREATE TRIGGER invalid_trig
+    AFTER INSERT ON main_view
     FOR EACH ROW
-    WHEN (OLD.a <> NEW.a )
-    EXECUTE PROCEDURE view_trigger ('instead_of_upd' );
-    -- Don't support column-level INSTEAD OF triggers
-    CREATE TRIGGER invalid_trig INSTEAD OF UPDATE OF a ON main_view
+    EXECUTE PROCEDURE trigger_func ('before_ins_row');
+
+CREATE TRIGGER invalid_trig
+    AFTER UPDATE ON main_view
     FOR EACH ROW
-    EXECUTE PROCEDURE view_trigger ('instead_of_upd' );
-    -- Don't support statement-level INSTEAD OF triggers
-    CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_view
-    EXECUTE PROCEDURE view_trigger ('instead_of_upd' );
-    -- Valid INSTEAD OF triggers
-    CREATE TRIGGER instead_of_insert_trig INSTEAD OF INSERT ON main_view
+    EXECUTE PROCEDURE trigger_func ('before_upd_row');
+
+CREATE TRIGGER invalid_trig
+    AFTER DELETE ON main_view
     FOR EACH ROW
-    EXECUTE PROCEDURE view_trigger ('instead_of_ins' );
-    CREATE TRIGGER instead_of_update_trig INSTEAD OF UPDATE ON main_view
-    FOR EACH ROW
-    EXECUTE PROCEDURE view_trigger ('instead_of_upd' );
-    CREATE TRIGGER instead_of_delete_trig INSTEAD OF DELETE ON main_view
-    FOR EACH ROW
-    EXECUTE PROCEDURE view_trigger ('instead_of_del' );
-    -- Valid BEFORE statement VIEW triggers
-    CREATE TRIGGER before_ins_stmt_trig
-        BEFORE INSERT ON main_view
-        FOR EACH STATEMENT
-        EXECUTE PROCEDURE view_trigger ('before_view_ins_stmt' );
-    CREATE TRIGGER before_upd_stmt_trig
-        BEFORE UPDATE ON main_view
-        FOR EACH STATEMENT
-        EXECUTE PROCEDURE view_trigger ('before_view_upd_stmt' );
-    CREATE TRIGGER before_del_stmt_trig
-        BEFORE DELETE ON main_view
-        FOR EACH STATEMENT
-        EXECUTE PROCEDURE view_trigger ('before_view_del_stmt' );
-    -- Valid AFTER statement VIEW triggers
-    CREATE TRIGGER after_ins_stmt_trig
-        AFTER INSERT ON main_view
-        FOR EACH STATEMENT
-        EXECUTE PROCEDURE view_trigger ('after_view_ins_stmt' );
-    CREATE TRIGGER after_upd_stmt_trig
-        AFTER UPDATE ON main_view
-        FOR EACH STATEMENT
-        EXECUTE PROCEDURE view_trigger ('after_view_upd_stmt' );
-    CREATE TRIGGER after_del_stmt_trig
-        AFTER DELETE ON main_view
-        FOR EACH STATEMENT
-        EXECUTE PROCEDURE view_trigger ('after_view_del_stmt' );
-    \set QUIET false
-    -- Insert into view using trigger
-    INSERT INTO main_view
+    EXECUTE PROCEDURE trigger_func ('before_del_row');
+
+-- Truncate triggers aren't allowed on views
+CREATE TRIGGER invalid_trig
+    BEFORE TRUNCATE ON main_view
+    EXECUTE PROCEDURE trigger_func ('before_tru_row');
+
+CREATE TRIGGER invalid_trig
+    AFTER TRUNCATE ON main_view
+    EXECUTE PROCEDURE trigger_func ('before_tru_row');
+
+-- INSTEAD OF triggers aren't allowed on tables
+CREATE TRIGGER invalid_trig INSTEAD OF INSERT ON main_table
+FOR EACH ROW
+EXECUTE PROCEDURE view_trigger ('instead_of_ins');
+
+CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_table
+FOR EACH ROW
+EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+
+CREATE TRIGGER invalid_trig INSTEAD OF DELETE ON main_table
+FOR EACH ROW
+EXECUTE PROCEDURE view_trigger ('instead_of_del');
+
+-- Don't support WHEN clauses with INSTEAD OF triggers
+CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_view
+FOR EACH ROW
+WHEN (OLD.a <> NEW.a)
+EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+
+-- Don't support column-level INSTEAD OF triggers
+CREATE TRIGGER invalid_trig INSTEAD OF UPDATE OF a ON main_view
+FOR EACH ROW
+EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+
+-- Don't support statement-level INSTEAD OF triggers
+CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_view
+EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+
+-- Valid INSTEAD OF triggers
+CREATE TRIGGER instead_of_insert_trig INSTEAD OF INSERT ON main_view
+FOR EACH ROW
+EXECUTE PROCEDURE view_trigger ('instead_of_ins');
+
+CREATE TRIGGER instead_of_update_trig INSTEAD OF UPDATE ON main_view
+FOR EACH ROW
+EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+
+CREATE TRIGGER instead_of_delete_trig INSTEAD OF DELETE ON main_view
+FOR EACH ROW
+EXECUTE PROCEDURE view_trigger ('instead_of_del');
+
+-- Valid BEFORE statement VIEW triggers
+CREATE TRIGGER before_ins_stmt_trig
+    BEFORE INSERT ON main_view
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE view_trigger ('before_view_ins_stmt');
+
+CREATE TRIGGER before_upd_stmt_trig
+    BEFORE UPDATE ON main_view
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE view_trigger ('before_view_upd_stmt');
+
+CREATE TRIGGER before_del_stmt_trig
+    BEFORE DELETE ON main_view
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE view_trigger ('before_view_del_stmt');
+
+-- Valid AFTER statement VIEW triggers
+CREATE TRIGGER after_ins_stmt_trig
+    AFTER INSERT ON main_view
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE view_trigger ('after_view_ins_stmt');
+
+CREATE TRIGGER after_upd_stmt_trig
+    AFTER UPDATE ON main_view
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE view_trigger ('after_view_upd_stmt');
+
+CREATE TRIGGER after_del_stmt_trig
+    AFTER DELETE ON main_view
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE view_trigger ('after_view_del_stmt');
+
+\set QUIET false
+-- Insert into view using trigger
+INSERT INTO main_view
     VALUES (20, 30);
-    INSERT INTO main_view
+
+INSERT INTO main_view
     VALUES (21, 31)
 RETURNING
     a, b;
-    -- Table trigger will prevent updates
-    UPDATE
-        main_view
-    SET
-        b = 31
-    WHERE
-        a = 20;
-    UPDATE
-        main_view
-    SET
-        b = 32
-    WHERE
-        a = 21
-        AND b = 31
-    RETURNING
-        a,
-        b;
-    -- Remove table trigger to allow updates
-    DROP TRIGGER before_upd_a_row_trig ON main_table;
-    UPDATE
-        main_view
-    SET
-        b = 31
-    WHERE
-        a = 20;
-    UPDATE
-        main_view
-    SET
-        b = 32
-    WHERE
-        a = 21
-        AND b = 31
-    RETURNING
-        a,
-        b;
-    -- Before and after stmt triggers should fire even when no rows are affected
-    UPDATE
-        main_view
-    SET
-        b = 0
-    WHERE
-        FALSE;
-    -- Delete from view using trigger
-    DELETE FROM main_view
-    WHERE a IN (20, 21);
-    DELETE FROM main_view
-    WHERE a = 31
-    RETURNING
-        a,
-        b;
-    \set QUIET true
-    -- Describe view should list triggers
-    \d main_view
-    -- Test dropping view triggers
-    DROP TRIGGER instead_of_insert_trig ON main_view;
-    DROP TRIGGER instead_of_delete_trig ON main_view;
-    \d+ main_view
-    DROP VIEW main_view;
-    --
-    -- Test triggers on a join view
-    --
-    CREATE TABLE country_table (
-        country_id serial PRIMARY KEY,
-        country_name text UNIQUE NOT NULL,
-        continent text NOT NULL
-    );
+
+-- Table trigger will prevent updates
+UPDATE
+    main_view
+SET
+    b = 31
+WHERE
+    a = 20;
+
+UPDATE
+    main_view
+SET
+    b = 32
+WHERE
+    a = 21
+    AND b = 31
+RETURNING
+    a,
+    b;
+
+-- Remove table trigger to allow updates
+DROP TRIGGER before_upd_a_row_trig ON main_table;
+
+UPDATE
+    main_view
+SET
+    b = 31
+WHERE
+    a = 20;
+
+UPDATE
+    main_view
+SET
+    b = 32
+WHERE
+    a = 21
+    AND b = 31
+RETURNING
+    a,
+    b;
+
+-- Before and after stmt triggers should fire even when no rows are affected
+UPDATE
+    main_view
+SET
+    b = 0
+WHERE
+    FALSE;
+
+-- Delete from view using trigger
+DELETE FROM main_view
+WHERE a IN (20, 21);
+
+DELETE FROM main_view
+WHERE a = 31
+RETURNING
+    a,
+    b;
+
+\set QUIET true
+-- Describe view should list triggers
+\d main_view
+-- Test dropping view triggers
+DROP TRIGGER instead_of_insert_trig ON main_view;
+
+DROP TRIGGER instead_of_delete_trig ON main_view;
+
+\d+ main_view
+DROP VIEW main_view;
+
+--
+-- Test triggers on a join view
+--
+
+CREATE TABLE country_table (
+    country_id serial PRIMARY KEY,
+    country_name text UNIQUE NOT NULL,
+    continent text NOT NULL
+);
+
 INSERT INTO country_table (country_name, continent)
     VALUES ('Japan', 'Asia'), ('UK', 'Europe'), ('USA', 'North America')
 RETURNING
     *;
-    CREATE TABLE city_table (
-        city_id serial PRIMARY KEY,
-        city_name text NOT NULL,
-        population bigint,
-        country_id int REFERENCES country_table
-    );
-    CREATE VIEW city_view AS
-    SELECT
-        city_id,
-        city_name,
-        population,
-        country_name,
-        continent
-    FROM
-        city_table ci
+
+CREATE TABLE city_table (
+    city_id serial PRIMARY KEY,
+    city_name text NOT NULL,
+    population bigint,
+    country_id int REFERENCES country_table
+);
+
+CREATE VIEW city_view AS
+SELECT
+    city_id,
+    city_name,
+    population,
+    country_name,
+    continent
+FROM
+    city_table ci
     LEFT JOIN country_table co ON co.country_id = ci.country_id;
-    CREATE FUNCTION city_insert ( )
-        RETURNS TRIGGER
-        LANGUAGE plpgsql
-        AS $$
+
+CREATE FUNCTION city_insert ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
 DECLARE
     ctry_id int;
 BEGIN
@@ -1367,7 +1478,6 @@ BEGIN
     END IF;
     RETURN OLD;
 END;
-
 $$;
 
 CREATE TRIGGER city_delete_trig INSTEAD OF DELETE ON city_view
@@ -1550,7 +1660,8 @@ FROM
 CREATE FUNCTION no_op_trig_fn ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
-    AS 'begin RETURN NULL; end';
+    AS 'begin RETURN NULL; end'
+;
 
 CREATE TRIGGER no_op_trig INSTEAD OF INSERT
     OR UPDATE
@@ -1690,7 +1801,6 @@ BEGIN
     raise notice '%: depth = %', tg_name, pg_trigger_depth();
     RETURN new;
 END;
-
 $$;
 
 CREATE TRIGGER depth_a_tr
@@ -1768,6 +1878,7 @@ DROP FUNCTION depth_c_tf ();
 -- Test updates to rows during firing of BEFORE ROW triggers.
 -- As of 9.2, such cases should be rejected (see bug #6123).
 --
+
 CREATE temp TABLE parent (
     aid int NOT NULL PRIMARY KEY,
     val1 text,
@@ -1796,7 +1907,6 @@ BEGIN
     END IF;
     RETURN new;
 END;
-
 $$;
 
 CREATE TRIGGER parent_upd_trig
@@ -1812,7 +1922,6 @@ BEGIN
     WHERE aid = old.aid;
     RETURN old;
 END;
-
 $$;
 
 CREATE TRIGGER parent_del_trig
@@ -1832,7 +1941,6 @@ BEGIN
         aid = new.aid;
     RETURN new;
 END;
-
 $$;
 
 CREATE TRIGGER child_ins_trig
@@ -1852,7 +1960,6 @@ BEGIN
         aid = old.aid;
     RETURN old;
 END;
-
 $$;
 
 CREATE TRIGGER child_del_trig
@@ -1909,6 +2016,7 @@ FROM
 
 -- replace the trigger function with one that restarts the deletion after
 -- having modified a child
+
 CREATE OR REPLACE FUNCTION parent_del_func ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -1924,7 +2032,6 @@ BEGIN
     END IF;
     RETURN old;
 END;
-
 $$;
 
 DELETE FROM parent
@@ -1952,6 +2059,7 @@ DROP FUNCTION child_del_func ();
 
 -- similar case, but with a self-referencing FK so that parent and child
 -- rows can be affected by a single operation
+
 CREATE temp TABLE self_ref_trigger (
     id int PRIMARY KEY,
     parent int REFERENCES self_ref_trigger,
@@ -1974,7 +2082,6 @@ BEGIN
     END IF;
     RETURN new;
 END;
-
 $$;
 
 CREATE TRIGGER self_ref_trigger_ins_trig
@@ -1996,7 +2103,6 @@ BEGIN
     END IF;
     RETURN old;
 END;
-
 $$;
 
 CREATE TRIGGER self_ref_trigger_del_trig
@@ -2046,6 +2152,7 @@ DROP FUNCTION self_ref_trigger_del_func ();
 --
 -- Check that statement triggers work correctly even with all children excluded
 --
+
 CREATE TABLE stmt_trig_on_empty_upd (
     a int
 );
@@ -2056,12 +2163,12 @@ INHERITS (
 );
 
 CREATE FUNCTION update_stmt_notice ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     raise notice 'updating %', TG_TABLE_NAME;
     RETURN NULL;
 END;
-
 $$
 LANGUAGE plpgsql;
 
@@ -2100,18 +2207,21 @@ DROP FUNCTION update_stmt_notice ();
 --
 -- Check that index creation (or DDL in general) is prohibited in a trigger
 --
+
 CREATE TABLE trigger_ddl_table (
     col1 integer,
     col2 integer
 );
 
 CREATE FUNCTION trigger_ddl_func ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     ALTER TABLE trigger_ddl_table
         ADD PRIMARY KEY (col1);
     RETURN new;
-END $$
+END
+$$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_ddl_func
@@ -2123,11 +2233,13 @@ INSERT INTO trigger_ddl_table
 
 -- fail
 CREATE OR REPLACE FUNCTION trigger_ddl_func ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     CREATE INDEX ON trigger_ddl_table (col2);
     RETURN new;
-END $$
+END
+$$
 LANGUAGE plpgsql;
 
 INSERT INTO trigger_ddl_table
@@ -2142,6 +2254,7 @@ DROP FUNCTION trigger_ddl_func ();
 -- Verify behavior of before and after triggers with INSERT...ON CONFLICT
 -- DO UPDATE
 --
+
 CREATE TABLE upsert (
     KEY int4 PRIMARY KEY,
     color text
@@ -2165,7 +2278,6 @@ BEGIN
     END IF;
     RETURN new;
 END;
-
 $$;
 
 CREATE TRIGGER upsert_before_trig
@@ -2186,7 +2298,6 @@ BEGIN
     END IF;
     RETURN NULL;
 END;
-
 $$;
 
 CREATE TRIGGER upsert_after_trig
@@ -2265,6 +2376,7 @@ DROP FUNCTION upsert_after_func ();
 -- Verify that triggers with transition tables are not allowed on
 -- views
 --
+
 CREATE TABLE my_table (
     i int
 );
@@ -2276,10 +2388,10 @@ FROM
     my_table;
 
 CREATE FUNCTION my_trigger_function ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
 END;
-
 $$
 LANGUAGE plpgsql;
 
@@ -2296,6 +2408,7 @@ DROP TABLE my_table;
 --
 -- Verify cases that are unsupported with partitioned tables
 --
+
 CREATE TABLE parted_trig (
     a int
 )
@@ -2307,7 +2420,6 @@ CREATE FUNCTION trigger_nothing ()
     AS $$
 BEGIN
 END;
-
 $$;
 
 CREATE TRIGGER failed
@@ -2328,6 +2440,7 @@ DROP TABLE parted_trig;
 --
 -- Verify trigger creation for partitioned tables, and drop behavior
 --
+
 CREATE TABLE trigpart (
     a int,
     b int
@@ -2406,6 +2519,7 @@ DROP FUNCTION trigger_nothing ();
 --
 -- Verify that triggers are fired for partitioned tables
 --
+
 CREATE TABLE parted_stmt_trig (
     a int
 )
@@ -2429,7 +2543,8 @@ CREATE TABLE parted2_stmt_trig2 PARTITION OF parted2_stmt_trig
 FOR VALUES IN (2);
 
 CREATE OR REPLACE FUNCTION trigger_notice ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     raise notice 'trigger % on % % % for %', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL;
     IF TG_LEVEL = 'ROW' THEN
@@ -2437,7 +2552,6 @@ BEGIN
     END IF;
     RETURN NULL;
 END;
-
 $$
 LANGUAGE plpgsql;
 
@@ -2614,19 +2728,21 @@ DROP TABLE parted_trig;
 
 -- test irregular partitions (i.e., different column definitions),
 -- including that the WHEN clause works
+
 CREATE FUNCTION bark (text)
     RETURNS bool
     LANGUAGE plpgsql
-    IMMUTABLE AS $$
+    IMMUTABLE
+    AS $$
 BEGIN
     raise notice '% <- woof!', $1;
     RETURN TRUE;
 END;
-
 $$;
 
 CREATE OR REPLACE FUNCTION trigger_notice_ab ()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     raise notice 'trigger % on % % % for %: (a,b)=(%,%)', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL, NEW.a, NEW.b;
     IF TG_LEVEL = 'ROW' THEN
@@ -2634,7 +2750,6 @@ BEGIN
     END IF;
     RETURN NULL;
 END;
-
 $$
 LANGUAGE plpgsql;
 
@@ -2691,6 +2806,7 @@ CREATE TRIGGER parted_trig_odd
 
 -- we should hear barking for every insert, but parted_trig_odd only emits
 -- noise for odd values of a. parted_trig does it for all inserts.
+
 INSERT INTO parted_irreg
     VALUES (1, 'aardvark'), (2, 'aanimals');
 
@@ -2704,6 +2820,7 @@ DROP TABLE parted_irreg_ancestor;
 
 --
 -- Constraint triggers and partitioned tables
+
 CREATE TABLE parted_constr_ancestor (
     a int,
     b text
@@ -2738,6 +2855,7 @@ WHEN (
 -- The immediate constraint is fired immediately; the WHEN clause of the
 -- deferred constraint is also called immediately.  The deferred constraint
 -- is fired at commit time.
+
 BEGIN;
 INSERT INTO parted_constr
     VALUES (1, 'aardvark');
@@ -2749,6 +2867,7 @@ COMMIT;
 
 -- The WHEN clause is immediate, and both constraint triggers are fired at
 -- commit time.
+
 BEGIN;
 SET constraints parted_trig DEFERRED;
 INSERT INTO parted_constr
@@ -2949,6 +3068,7 @@ DROP FUNCTION trigger_notice_ab ();
 
 -- Make sure we don't end up with unnecessary copies of triggers, when
 -- cloning them.
+
 CREATE TABLE trg_clone (
     a int
 )
@@ -2990,84 +3110,96 @@ DROP TABLE trg_clone;
 -- format that shows the attribute order, so that we can distinguish
 -- tuple formats (though not dropped attributes).
 --
+
 CREATE OR REPLACE FUNCTION dump_insert ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS $$
-    BEGIN
-        raise notice 'trigger = %, new table = %', TG_NAME, (
-            SELECT
-                string_agg(new_table::text, ', ' ORDER BY a)
-            FROM
-                new_table);
-    RETURN NULL;
-    END;
-        $$;
-        CREATE OR REPLACE FUNCTION dump_update ( )
-            RETURNS TRIGGER
-            LANGUAGE plpgsql
-            AS $$
-            BEGIN
-                raise notice 'trigger = %, old table = %, new table = %', TG_NAME, (
-                    SELECT
-                        string_agg(old_table::text, ', ' ORDER BY a)
-                    FROM
-                        old_table),
-                (
-                    SELECT
-                        string_agg(new_table::text, ', ' ORDER BY a)
-                    FROM
-                        new_table);
-            RETURN NULL;
-            END;
-        $$;
-        CREATE OR REPLACE FUNCTION dump_delete ( )
-            RETURNS TRIGGER
-            LANGUAGE plpgsql
-            AS $$
-            BEGIN
-                raise notice 'trigger = %, old table = %', TG_NAME, (
-                    SELECT
-                        string_agg(old_table::text, ', ' ORDER BY a)
-                    FROM
-                        old_table);
-            RETURN NULL;
-            END;
-        $$;
-        --
-        -- Verify behavior of statement triggers on partition hierarchy with
-        -- transition tables.  Tuples should appear to each trigger in the
-        -- format of the relation the trigger is attached to.
-        --
-        -- set up a partition hierarchy with some different TupleDescriptors
-        CREATE TABLE parent (
-            a text,
-            b int
-        )
-PARTITION BY LIST (a );
-        -- a child matching parent
-        CREATE TABLE child1 PARTITION OF parent
-    FOR VALUES IN ('AAA' );
-        -- a child with a dropped column
-        CREATE TABLE child2 (
-            x int,
-            a text,
-            b int
-        );
-        ALTER TABLE child2
-            DROP COLUMN x;
-        ALTER TABLE parent ATTACH PARTITION child2
-    FOR VALUES IN ('BBB');
-        -- a child with a different column order
-        CREATE TABLE child3 (
-            b int,
-            a text
-        );
-        ALTER TABLE parent ATTACH PARTITION child3
-    FOR VALUES IN ('CCC');
-        CREATE TRIGGER parent_insert_trig
-            AFTER INSERT ON parent referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
+BEGIN
+    raise notice 'trigger = %, new table = %', TG_NAME, (
+        SELECT
+            string_agg(new_table::text, ', ' ORDER BY a)
+        FROM
+            new_table);
+RETURN NULL;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION dump_update ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    raise notice 'trigger = %, old table = %, new table = %', TG_NAME, (
+        SELECT
+            string_agg(old_table::text, ', ' ORDER BY a)
+        FROM
+            old_table),
+    (
+        SELECT
+            string_agg(new_table::text, ', ' ORDER BY a)
+        FROM
+            new_table);
+RETURN NULL;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION dump_delete ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    raise notice 'trigger = %, old table = %', TG_NAME, (
+        SELECT
+            string_agg(old_table::text, ', ' ORDER BY a)
+        FROM
+            old_table);
+RETURN NULL;
+END;
+$$;
+
+--
+-- Verify behavior of statement triggers on partition hierarchy with
+-- transition tables.  Tuples should appear to each trigger in the
+-- format of the relation the trigger is attached to.
+--
+-- set up a partition hierarchy with some different TupleDescriptors
+
+CREATE TABLE parent (
+    a text,
+    b int
+)
+PARTITION BY LIST (a);
+
+-- a child matching parent
+CREATE TABLE child1 PARTITION OF parent
+FOR VALUES IN ('AAA');
+
+-- a child with a dropped column
+CREATE TABLE child2 (
+    x int,
+    a text,
+    b int
+);
+
+ALTER TABLE child2
+    DROP COLUMN x;
+
+ALTER TABLE parent ATTACH PARTITION child2
+FOR VALUES IN ('BBB');
+
+-- a child with a different column order
+CREATE TABLE child3 (
+    b int,
+    a text
+);
+
+ALTER TABLE parent ATTACH PARTITION child3
+FOR VALUES IN ('CCC');
+
+CREATE TRIGGER parent_insert_trig
+    AFTER INSERT ON parent referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ( );
         CREATE TRIGGER parent_update_trig
             AFTER UPDATE ON parent referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
             EXECUTE PROCEDURE dump_update ( );
@@ -3162,34 +3294,42 @@ PARTITION BY LIST (a );
             RETURNS TRIGGER
             LANGUAGE plpgsql
             AS $$
-            BEGIN
-                new.b = new.b + 1000;
-            RETURN new;
-            END;
-        $$;
-        CREATE TRIGGER intercept_insert_child3
-            BEFORE INSERT ON child3 FOR EACH ROW
-            EXECUTE PROCEDURE intercept_insert ( );
-        -- insert, parent trigger sees post-modification parent-format tuple
-        INSERT INTO parent
-        VALUES ('AAA', 42), ('BBB', 42), ('CCC', 66);
-        DROP TABLE child1, child2, child3, parent;
-        DROP FUNCTION intercept_insert ();
-        --
-        -- Verify prohibition of row triggers with transition triggers on
-        -- partitions
-        --
-        CREATE TABLE parent (
-            a text,
-            b int
-        )
-PARTITION BY LIST (a );
-        CREATE TABLE child PARTITION OF parent
-    FOR VALUES IN ('AAA' );
-        -- adding row trigger with transition table fails
-        CREATE TRIGGER child_row_trig
-            AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
-            EXECUTE PROCEDURE dump_insert ( );
+BEGIN
+    new.b = new.b + 1000;
+RETURN new;
+END;
+$$;
+
+CREATE TRIGGER intercept_insert_child3
+    BEFORE INSERT ON child3 FOR EACH ROW
+    EXECUTE PROCEDURE intercept_insert ();
+
+-- insert, parent trigger sees post-modification parent-format tuple
+INSERT INTO parent
+    VALUES ('AAA', 42), ('BBB', 42), ('CCC', 66);
+
+DROP TABLE child1, child2, child3, parent;
+
+DROP FUNCTION intercept_insert ();
+
+--
+-- Verify prohibition of row triggers with transition triggers on
+-- partitions
+--
+
+CREATE TABLE parent (
+    a text,
+    b int
+)
+PARTITION BY LIST (a);
+
+CREATE TABLE child PARTITION OF parent
+FOR VALUES IN ('AAA');
+
+-- adding row trigger with transition table fails
+CREATE TRIGGER child_row_trig
+    AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
+    EXECUTE PROCEDURE dump_insert ( );
         -- detaching it first works
         ALTER TABLE parent DETACH PARTITION child;
         CREATE TRIGGER child_row_trig
