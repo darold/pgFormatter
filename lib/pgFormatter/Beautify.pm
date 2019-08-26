@@ -206,7 +206,9 @@ sub query {
     my @temp_content = split(/(CREATE(?:\s+OR\s+REPLACE)?\s+(?:FUNCTION|PROCEDURE)\s+)/i, $self->{ 'query' });
     if ($#temp_content > 0) {
         for (my $j = 0; $j <= $#temp_content; $j++) {
-            next if ($temp_content[$j] =~ /^CREATE/i);
+            next if ($temp_content[$j] =~ /^CREATE/i or $temp_content[$j] eq '');
+	    # Rewrite single quote code delimiter into $$
+	    $temp_content[$j] =~ s/(\s+AS\s+)'(\s+.*?;\s*)'/$1\$\$$2\$\$/is;
 	    # Remove any call too CREATE/DROP LANGUAGE to not break search of function code separator
 	    $temp_content[$j] =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
 	    # Fix case where code separator with $ is associated to begin/end keywords
@@ -1336,13 +1338,13 @@ sub beautify {
         elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) { # statement separator or executing psql meta command (prefix 'g' includes all its variants)
 
             $self->_add_token($token);
-
             if ($self->{ '_is_in_rule' }) {
 		$self->_back($token, $last);
 	    }
 	    elsif ($self->{ '_is_in_create' } && $self->{ '_is_in_block' } > -1)
 	    {
-	        $self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+		#$self->{ '_level' } = pop( @{ $self->{ '_level_stack' } } ) || 0;
+	        pop( @{ $self->{ '_level_stack' } } );
 	    }
 
             # Initialize most of statement related variables
@@ -3351,6 +3353,15 @@ sub wrap_lines
     return;
 }
 
+sub _dump_var
+{
+	my $self = shift;
+	foreach my $v (sort keys %{$self})
+	{
+		next if ($v !~ /^_/);
+		print STDERR "$v => $self->{$v}\n";
+	}
+}
 
 =head1 AUTHOR
 
