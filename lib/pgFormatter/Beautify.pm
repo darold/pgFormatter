@@ -1412,11 +1412,10 @@ sub beautify {
 	    }
             $self->{ '_current_sql_stmt' } = '';
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
-            $self->_new_line($token,$last);
+            $self->_new_line($token,$last) if (uc($last) ne 'VALUES');
             # Add an additional newline after ; when we are not in a function
             if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' }
-			    and !$self->{ '_is_in_declare' })
-	    #and !$self->{ '_is_in_declare' } and !$self->{ '_fct_code_delimiter' })
+			    and !$self->{ '_is_in_declare' } and uc($last) ne 'VALUES')
 	    {
 		$self->{ '_new_line' } = 0;
                 $self->_new_line($token,$last);
@@ -1544,7 +1543,8 @@ sub beautify {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
                     $self->_back($token, $last);
-		    $self->_new_line($token,$last) if (!$self->{ '_is_in_rule' });
+		    #$self->_new_line($token,$last) if (!$self->{ '_is_in_rule' });
+		    $self->_new_line($token,$last) if (!$self->{ '_is_in_rule' } and (uc($last) ne 'DEFAULT' or $self->_next_token() ne ';'));
                 }
             }
 	    else
@@ -1590,7 +1590,7 @@ sub beautify {
             }
             elsif ( !$self->{ '_is_in_over' } and !$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or $self->{ '_current_sql_stmt' } eq 'UPDATE') )
 	    {
-                if (defined $self->_next_token and $self->_next_token ne '('
+                if (defined $self->_next_token and $self->_next_token !~ /\(|;/
 				and ($self->_next_token !~ /^(UPDATE|KEY|NO)$/i || uc($token) eq 'WHERE'))
 		{
                     $self->_new_line($token,$last) if (!$self->{ 'wrap_after' });
