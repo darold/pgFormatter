@@ -44,7 +44,7 @@ COMMENT ON VIEW toyemp IS NULL;
 
 -- These views are left around mainly to exercise special cases in pg_dump.
 CREATE TABLE view_base_table (
-    KEY int PRIMARY KEY,
+    key int PRIMARY KEY,
     data varchar(20)
 );
 

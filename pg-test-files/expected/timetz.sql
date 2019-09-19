@@ -4,7 +4,7 @@
 
 CREATE TABLE TIMETZ_TBL (
     f1 time(2
-) WITH time zone
+) with time zone
 );
 
 INSERT INTO TIMETZ_TBL

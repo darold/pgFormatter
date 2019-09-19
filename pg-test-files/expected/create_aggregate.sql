@@ -267,8 +267,7 @@ CREATE OR REPLACE AGGREGATE myavg (numeric) (
 
 -- can't change to a different kind:
 CREATE OR REPLACE AGGREGATE myavg (
-ORDER BY
-    numeric) (
+ORDER by numeric) (
     STYPE = numeric,
     SFUNC = numeric_add
 );

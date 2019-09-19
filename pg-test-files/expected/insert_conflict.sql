@@ -3,7 +3,7 @@
 --
 
 CREATE TABLE insertconflicttest (
-    KEY int4,
+    key int4,
     fruit text
 );
 
@@ -721,7 +721,7 @@ DROP TABLE insertconflicttest;
 --
 
 CREATE TABLE syscolconflicttest (
-    KEY int4,
+    key int4,
     data text
 );
 
@@ -939,7 +939,7 @@ DROP TABLE cities;
 
 -- Make sure a table named excluded is handled properly
 CREATE TABLE excluded (
-    KEY int PRIMARY KEY,
+    key int PRIMARY KEY,
     data text
 );
 
@@ -991,7 +991,7 @@ DROP TABLE excluded;
 
 -- check that references to columns after dropped columns are handled correctly
 CREATE TABLE dropcol (
-    KEY int PRIMARY KEY,
+    key int PRIMARY KEY,
     drop1 int,
     keep1 text,
     drop2 numeric,

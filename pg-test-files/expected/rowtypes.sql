@@ -9,8 +9,8 @@ CREATE TYPE complex AS (
 );
 
 CREATE temp TABLE fullname (
-    FIRST text,
-    LAST text
+    first text,
+    last text
 );
 
 -- Nested composite

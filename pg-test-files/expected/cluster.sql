@@ -417,7 +417,7 @@ FROM
 -- results with a single backend...
 
 CREATE TABLE clustertest (
-    KEY int PRIMARY KEY
+    key int PRIMARY KEY
 );
 
 INSERT INTO clustertest

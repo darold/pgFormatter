@@ -563,6 +563,14 @@ sub beautify {
 	if (lc($token) eq 'concat' && defined $self->_next_token() && $self->_next_token ne '(') {
 		$token = '||';
 	}
+	# Case where a keyword is used as a column name.
+        if ( $self->{ '_is_in_create' } > 1 and $self->_is_keyword( $token )
+			and defined $self->_next_token and $self->_is_type($self->_next_token))
+	{
+		$self->_add_token($token, $last);
+		$last = $token;
+		next;
+	}
 
         ####
         # Find if the current keyword is a known function name
@@ -2118,6 +2126,7 @@ sub _add_token {
             $self->{ 'content' } .= $sp if ($last_token eq '(' && ($self->{ '_is_in_type' } or ($self->{ '_is_in_operator' } and !$self->_is_type($token))));
         } elsif ($token eq ')' and $self->{ '_is_in_block' } >= 0 && $self->{ '_is_in_create' }) {
                 $self->{ 'content' } .= $sp;
+	} else {
         }
         if ($self->_is_comment($token)) {
             my @lines = split(/\n/, $token);
@@ -2137,7 +2146,8 @@ sub _add_token {
     my $next_token = $self->_next_token || '';
 
     # lowercase/uppercase keywords taking care of function with same name
-    if ($self->_is_keyword( $token, $next_token, $last_token ) && (!$self->_is_function( $token ) || $next_token ne '(')) {
+    if ($self->_is_keyword( $token, $next_token, $last_token ) and (!$self->_is_type($self->_next_token) || $self->{ '_is_in_create' } < 2 || $self->{ '_is_in_create_function' }) # || $token =~ /^(BY|AS|VARIADIC)$/i)
+		    and (!$self->_is_function( $token ) || $next_token ne '(')) {
         $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
         $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );
         $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_keywords' } == 3 );
@@ -2305,6 +2315,7 @@ Check if a token is a known SQL type
 sub _is_type {
     my ( $self, $token ) = @_;
 
+    $token =~ s/\s*\(.*//; # remove any parameter to the type
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'types' } };
 }
 
@@ -2742,9 +2753,9 @@ sub set_dicts {
         );
 
     my @pg_types = qw(
-        BIGINT BIGSERIAL BIT BOOLEAN BOX BYTEA CHARACTER CIDR CIRCLE DATE DOUBLE INET INT INTEGER INTERVAL JSON
+        BIGINT BIGSERIAL BIT BOOLEAN BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INT INTEGER INTERVAL JSON
         JSONB LINE LSEG MACADDR MACADDR8 MONEY NUMERIC PATH PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
-       	SERIAL TEXT TIME TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 VARYING
+       	SERIAL TEXT TIME TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 VARYING VARCHAR
 	);
 
     my @sql_keywords = map { uc } qw(

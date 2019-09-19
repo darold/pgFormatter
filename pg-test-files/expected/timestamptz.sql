@@ -4,7 +4,7 @@
 
 CREATE TABLE TIMESTAMPTZ_TBL (
     d1 timestamp(2
-) WITH time zone
+) with time zone
 );
 
 -- Test shorthand input values

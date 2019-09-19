@@ -515,7 +515,7 @@ SELECT
     OVERLAPS(time '01:30', interval '1 day') AS "False";
 
 CREATE TABLE TEMP_TIMESTAMP (
-    f1 timestamp WITH time zone
+    f1 timestamp with time zone
 );
 
 -- get some candidate input values

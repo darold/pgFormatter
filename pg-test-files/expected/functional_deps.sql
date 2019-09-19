@@ -210,7 +210,7 @@ GROUP BY
 CREATE TEMP TABLE node (
     nid SERIAL,
     vid integer NOT NULL DEFAULT '0',
-    TYPE varchar(32) NOT NULL DEFAULT '',
+    type varchar(32) NOT NULL DEFAULT '',
     title varchar(128) NOT NULL DEFAULT '',
     uid integer NOT NULL DEFAULT '0',
     status integer NOT NULL DEFAULT '1',

@@ -23,7 +23,7 @@
 
 CREATE TABLE Room (
     roomno char(8),
-    COMMENT text
+    comment text
 );
 
 CREATE UNIQUE INDEX Room_rno ON Room
@@ -41,7 +41,7 @@ USING btree (slotname bpchar_ops);
 
 CREATE TABLE PField (
     name text,
-    COMMENT text
+    comment text
 );
 
 CREATE UNIQUE INDEX PField_name ON PField
@@ -60,7 +60,7 @@ USING btree (slotname bpchar_ops);
 CREATE TABLE PLine (
     slotname char(20),
     phonenumber char(20),
-    COMMENT text,
+    comment text,
     backlink char(20)
 );
 
@@ -69,7 +69,7 @@ USING btree (slotname bpchar_ops);
 
 CREATE TABLE Hub (
     name char(14),
-    COMMENT text,
+    comment text,
     nslots integer
 );
 
@@ -91,7 +91,7 @@ USING btree (hubname bpchar_ops);
 
 CREATE TABLE SYSTEM (
     name text,
-    COMMENT text
+    comment text
 );
 
 CREATE UNIQUE INDEX System_name ON SYSTEM
@@ -109,7 +109,7 @@ USING btree (slotname bpchar_ops);
 
 CREATE TABLE PHone (
     slotname char(20),
-    COMMENT text,
+    comment text,
     slotlink char(20)
 );
 

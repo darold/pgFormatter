@@ -75,7 +75,7 @@ CREATE TABLE tenk2 (
 CREATE TABLE person (
     name text,
     age int4,
-    LOCATION point
+    location point
 );
 
 CREATE TABLE emp (
@@ -100,7 +100,7 @@ INHERITS (
 
 CREATE TABLE city (
     name name,
-    LOCATION box,
+    location box,
     budget city_budget
 );
 

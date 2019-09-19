@@ -1059,7 +1059,7 @@ FROM (
 --
 
 CREATE temp TABLE upsert (
-    KEY int4 PRIMARY KEY,
+    key int4 PRIMARY KEY,
     val text
 );
 
