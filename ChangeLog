@@ -1,3 +1,104 @@
+September 20 2019 - v4.1
+
+This is a maintenance release to fix issues reported by users since
+the last three month. As usual there is also some improvements and
+new features.
+
+
+  * Add -T, --tabs option to make pg_format use tabs instead of space
+    characters.  When this option is used spaces number is set to 1
+    whatever is the value set to -s, --spaces.
+
+  * Allow output to override source file.
+
+  * Add option -g, --no-grouping and CGI corresponding checkbox. By
+    default pgFormatter groups all statements when they are in a
+    transaction:
+    
+        BEGIN;
+        INSERT INTO foo VALUES (1, 'text 1');
+        INSERT INTO foo VALUES (2, 'text 2');
+        ...
+        COMMIT;
+    
+    By disabling grouping of statement pgFormatter will always add an extra
+    newline characters between statements just like outside a transaction:
+    
+        BEGIN;
+
+        INSERT INTO foo VALUES (1, 'text 1');
+
+        INSERT INTO foo VALUES (2, 'text 2');
+        ...
+
+        COMMIT;
+    
+    This might add readability to not DML transactions.
+
+  - Add more SQL keyword: REFRESH, MATERIALIZED, EVENT and function
+    xmltable
+  - Prevent uppercase of keywords when they are used as column names
+    in a CREATE TABLE statement.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Keep COMMENT ON formatting unchanged when using dollar quoting.
+    Thanks to Jeremy Palmer for the report.
+  - Allow to disable grouping of statements in transaction. Thanks to
+    Francisco Puga for the feature request.
+  - Fix unwanted formatting when know keywords are used in a CREATE
+    TABLE statement. Thanks to Jeremy Palmer for the report.
+  - Add -T, --tabs option to make pg_format use tabs instead of space
+    characters.  Thanks to jen-Ya for the feature request.
+  - Update regression tests.
+  - Prevent new line between DEFAULT and VALUES in insert statements.
+  - Fix bad formatting with single quote code separator. The separator
+    is replaced with $$ when the code is multi-line, otherwise the
+    code is kept untouched.
+  - Allow regression test on specific test file passed as parameter.
+  - Fix format when "with time out" is used. Thanks to jjangga0214
+    for the report.
+  - Fix backslashes at end of string constant that produce wrong
+    results. Thanks to jen-ya for the report.
+  - Fix regression tests with REFRESH / MATERIALIZED.
+  - Add REFRESH and MATERIALIZED to the list of SQL keywords. Thanks
+    to jen-Ya for the report.
+  - Fix tabs indentions used outside indent and add regression test
+    for -n and -T options.
+  - Fixes to documentation. Thanks to zach valenta for the patch.
+  - Fix not remove comment starting with -- when the -n option is
+    used. Thanks to Brady Holt for the report.
+  - Fix error about STDIN reopened as STDOUT introduced in commit
+    af63e9e. Thanks to Daniel McAuley for the report.
+  - Fix newline wrongly forced after function parameters in CTE.
+  - Allow output to override source file. Thanks to Daniel McAuley
+    for the report.
+  - Fix formatting when a token start with CALL. Thanks to Ralph R.
+    for the report.
+  - Fix newline in geometry type. Thanks to Sven Over for the report.
+  - Fix incomplete previous patch.
+  - Fix missing newline in column list after CTE. Thanks to Giorgi
+    Modebadze for the report.
+  - Fix OVERLAPS formatting.
+  - CGI.pm: correct github link text in footer. Thanks to Stephan
+    Renatus for the patch
+  - Fix build of pg function hash.
+  - Fix wrong formatting in CREATE TABLE statement AS WITH clause.
+    Thanks to ImreSamu for the report.
+  - Fix broken indent when AS has parameters.
+  - Suppress newline in COMMENT ON FUNCTION formatting.
+  - Fix several indentation issues related to CREATE TABLE with
+    PARTITION and ALTER statements.
+  - Fix an other case of bad indentation of EXECUTE in triggers and
+    undefined value on indentation level.
+  - Fix an other case of newline introduced in REVOKE statement.
+  - Fix newline before FROM in REVOKE statement
+  - Add EVENT keyword and add formatting of CREATE EVENT TRIGGER
+    statement.
+  - Fix indentation for an insert statement after a create table
+    statement in the code of a function. Thanks to LaetitiaJV for
+    the report.
+
 June 2 2019 - v4.0
 
 This major release fixes a huge list of formatting issues which makes
