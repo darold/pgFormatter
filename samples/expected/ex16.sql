@@ -52,3 +52,11 @@ CREATE TABLE table_0 (
     ref_3 integer REFERENCES table_3 ON DELETE SET NULL
 );
 
+COMMENT ON TABLE foo.bar IS $comment$
+This is a nicely formatted comment line that spans
+over multiple lines that should remain untouched
+
+$comment$;
+
+COMMENT ON TABLE foo2 IS 'Hello world';
+

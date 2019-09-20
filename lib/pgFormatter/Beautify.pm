@@ -264,6 +264,9 @@ sub query {
     # Replace operator with placeholder
     $self->_quote_operator( \$self->{ 'query' } );
 
+    # Replace comment with not quote delimiter with placeholder
+    $self->_quote_comment_stmt( \$self->{ 'query' } );
+
     return $self->{ 'query' };
 }
 
@@ -289,6 +292,9 @@ sub content
 
     # Replace placeholders with their original operator
     $self->_restore_operator( \$self->{ 'content' } );
+
+    # Replace placeholders with their original string
+    $self->_restore_comment_stmt( \$self->{ 'content' } );
 
     # Replace placeholders by their original values
     if ($#{ $self->{ 'placeholder_values' } } >= 0)
@@ -3243,6 +3249,41 @@ sub _restore_operator
 	}
 	if (exists $self->{NEGATOR}) {
 		$$str =~ s/NEGATOR(\d+)/$self->{NEGATOR}{$1}/igs;
+	}
+}
+
+=head2 _quote_comment_stmt
+
+Internal function used to replace constant in a COMMENT statement
+to be tokenized as a single word.
+The original values are restored with function _restore_comment_stmt().
+
+=cut
+
+sub _quote_comment_stmt
+{
+    my ($self, $str) = @_;
+
+    my $idx = 0;
+    while ($$str =~ s/(COMMENT\s+ON\s+(?:.*?)\s+IS)\s+(\$[^;]+?\$)\s*;/$1 PGF_CMTSTR$idx;/is) {
+        $self->{comment_str}{$idx} = $2;
+	$idx++;
+    }
+}
+
+=head2 _restore_comment_stmt
+
+Internal function used to restore comment string that was removed
+by the _quote_comment_stmt() method.
+
+=cut
+
+sub _restore_comment_stmt
+{
+        my ($self, $str) = @_;
+
+	if (exists $self->{comment_str}) {
+		$$str =~ s/PGF_CMTSTR(\d+)/$self->{comment_str}{$1}/igs;
 	}
 }
 
