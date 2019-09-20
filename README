@@ -36,6 +36,8 @@ DESCRIPTION
                                 unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                                 2=>uppercase, 3=>capitalize.
         -F | --format STR     : output format: text or html. Default: text.
+        -g | --nogrouping     : add a newline between statements in transaction
+                                regroupement. Default is to group statements.
         -h | --help           : show this message and exit.
         -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                                 the given size. Default: no truncate.
@@ -140,6 +142,30 @@ SPECIAL FORMATTING
       * new line in PUBLICATION and POLICY DDL
 
     Expect this list grow following alternative thoughts.
+
+  Option -g, --no-grouping
+    By default pgFormatter groups all statements when they are in a
+    transaction:
+
+        BEGIN;
+        INSERT INTO foo VALUES (1, 'text 1');
+        INSERT INTO foo VALUES (2, 'text 2');
+        ...
+        COMMIT;
+
+    By disabling grouping of statement pgFormatter will always add an extra
+    newline characters between statements just like outside a transaction:
+
+        BEGIN;
+
+        INSERT INTO foo VALUES (1, 'text 1');
+
+        INSERT INTO foo VALUES (2, 'text 2');
+        ...
+
+        COMMIT;
+
+    This might add readability to not DML transactions.
 
 HINTS
   Formatting from VI

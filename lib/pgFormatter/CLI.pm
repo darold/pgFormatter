@@ -98,6 +98,7 @@ sub beautify {
     $args{ 'wrap_limit' }   = $self->{ 'cfg' }->{ 'wrap-limit' };
     $args{ 'wrap_after' }   = $self->{ 'cfg' }->{ 'wrap-after' };
     $args{ 'space' }        = $self->{ 'cfg' }->{ 'space' };
+    $args{ 'no_grouping' }  = $self->{ 'cfg' }->{ 'nogrouping' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -195,6 +196,8 @@ Options:
                             unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
     -F | --format STR     : output format: text or html. Default: text.
+    -g | --nogrouping     : add a newline between statements in transaction
+                            regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
@@ -268,6 +271,7 @@ sub get_command_line_args {
         'debug|d!',
 	'format|F=s',
         'function-case|f=i',
+        'nogrouping|g!',
         'help|h!',
         'maxlength|m=i',
         'nocomment|n!',

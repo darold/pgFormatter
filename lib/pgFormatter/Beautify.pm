@@ -99,6 +99,8 @@ Takes options as hash. Following options are recognized:
 
 =item * no_comments - if set to true comments will be removed from query
 
+=item * no_grouping - if set to true statements will not be grouped in a transaction, an extra newline character will be added between statements like outside a transaction.
+
 =item * placeholder - use the specified regex to find code that must not be changed in the query.
 
 =item * query - query to beautify
@@ -148,7 +150,7 @@ sub new {
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -1021,7 +1023,7 @@ sub beautify {
 		$self->_over($token,$last);
                 $self->{ '_is_in_block' }++;
             }
-	    $self->{ '_is_in_work' } = 1 if (defined $self->_next_token && $self->_next_token =~ /^(WORK|TRANSACTION|ISOLATION|;)$/i);
+	    $self->{ '_is_in_work' } = 1 if (!$self->{ 'no_grouping' } and defined $self->_next_token && $self->_next_token =~ /^(WORK|TRANSACTION|ISOLATION|;)$/i);
             $last = $token;
             next;
         }
@@ -2647,6 +2649,8 @@ Currently defined defaults:
 
 =item no_comments => 0
 
+=item no_grouping => 0
+
 =item placeholder => ''
 
 =item separator => ''
@@ -2681,6 +2685,7 @@ sub set_defaults {
     $self->{ 'uc_keywords' }  = 0;
     $self->{ 'uc_functions' } = 0;
     $self->{ 'no_comments' }  = 0;
+    $self->{ 'no_grouping' }  = 0;
     $self->{ 'placeholder' }  = '';
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
     $self->{ 'types' }        = $self->{ 'dict' }->{ 'pg_types' };

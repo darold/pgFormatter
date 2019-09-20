@@ -101,6 +101,7 @@ sub set_config {
     $self->{ 'help' }         = '';
     $self->{ 'version' }      = '';
     $self->{ 'nocomment' }    = 0;
+    $self->{ 'nogrouping' }   = 0;
     $self->{ 'colorize' }     = 1;
     $self->{ 'uc_keyword' }   = 2;
     $self->{ 'uc_function' }  = 0;
@@ -157,7 +158,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment show_example anonymize separator comma comma_break format_type wrap_after original_content) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -200,6 +201,7 @@ sub sanitize_params {
     $self->{ 'uc_keyword' }   = 2 if $self->{ 'uc_keyword' } && ( $self->{ 'uc_keyword' } !~ /^(0|1|2|3)$/ );
     $self->{ 'uc_function' }  = 0 if $self->{ 'uc_function' } && ( $self->{ 'uc_function' } !~ /^(0|1|2|3)$/ );
     $self->{ 'nocomment' }    = 0 if $self->{ 'nocomment' } !~ /^(0|1)$/;
+    $self->{ 'nogrouping' }   = 0 if $self->{ 'nogrouping' } !~ /^(0|1)$/;
     $self->{ 'show_example' } = 0 if $self->{ 'show_example' } !~ /^(0|1)$/;
     $self->{ 'separator' }    = '' if ($self->{ 'separator' } eq "'" or length($self->{ 'separator' }) > 6);
     $self->{ 'comma' }        = 'end' if ($self->{ 'comma' } ne 'start');
@@ -248,6 +250,7 @@ sub beautify_query {
     $args{ 'comma_break' }  = $self->{ 'comma_break' };
     $args{ 'format_type' }  = 1 if ($self->{ 'format_type' });
     $args{ 'wrap_after' }   = $self->{ 'wrap_after' };
+    $args{ 'no_grouping' }  = 1 if $self->{ 'nogrouping' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
@@ -286,6 +289,7 @@ sub print_body {
     my $chk_comma       = $self->{ 'comma' } eq 'start' ? 'checked="checked" ' : '';
     my $chk_comma_break = $self->{ 'comma_break' } ? 'checked="checked" ' : '';
     my $chk_format_type  = $self->{ 'format_type' } ? 'checked="checked" ' : '';
+    my $chk_nogrouping   = $self->{ 'nogrouping' } ? 'checked="checked" ' : '';
 
     my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
     $kw_toggle{ $self->{ 'uc_keyword' } } = ' selected="selected"';
@@ -318,6 +322,9 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_format_type" name="format_type" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_format_type/>
       <label for="id_format_type">Alternate formatting</label>
+      <br />
+      <input type="checkbox" id="id_no_grouping" name="nogrouping" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_nogrouping/>
+      <label for="id_no_grouping">No transaction grouping</label>
       </div>
     </fieldset>
       <br />
