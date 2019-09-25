@@ -1,5 +1,7 @@
 my @files = `find samples/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
+my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to 'pg_format' to test installed binary in /usr/bin
+my $exit = 0;
 
 foreach my $f (@files)
 {
@@ -22,6 +24,7 @@ foreach my $f (@files)
 		} else {
 			print "\ttest failed!!!\n";
 			print @diff;
+			$exit = 1;
 		}
 	}
 	unlink("/tmp/output.sql");
@@ -48,9 +51,10 @@ foreach my $f (@files)
 		} else {
 			print "\ttest failed!!!\n";
 			print @diff;
+			$exit = 1;
 		}
 	}
 	unlink("/tmp/output.sql");
 }
 
-
+exit $exit;
