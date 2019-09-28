@@ -2323,6 +2323,7 @@ Check if a token is a known SQL type
 sub _is_type {
     my ( $self, $token ) = @_;
 
+    return if (!defined $token);
     $token =~ s/\s*\(.*//; # remove any parameter to the type
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'types' } };
 }
