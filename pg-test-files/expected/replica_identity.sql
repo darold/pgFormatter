@@ -3,7 +3,8 @@ CREATE TABLE test_replica_identity (
     keya text NOT NULL,
     keyb text NOT NULL,
     nonkey text,
-    CONSTRAINT test_replica_identity_unique_defer UNIQUE (keya, keyb) DEFERRABLE, CONSTRAINT test_replica_identity_unique_nondefer UNIQUE (keya, keyb)
+    CONSTRAINT test_replica_identity_unique_defer UNIQUE (keya, keyb) DEFERRABLE,
+    CONSTRAINT test_replica_identity_unique_nondefer UNIQUE (keya, keyb)
 );
 
 CREATE TABLE test_replica_identity_othertable (

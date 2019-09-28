@@ -834,7 +834,7 @@ sub beautify {
             $self->{ '_is_in_index' } = 1;
         } elsif (! $self->{ '_is_in_create' } and uc($token) eq 'SET') {
             $self->{ '_is_in_index' } = 1 if ($self->{ '_current_sql_stmt' } ne 'UPDATE');
-        } elsif ($self->{ '_is_in_create' } and (uc($token) eq 'UNIQUE' or (uc($token) eq 'PRIMARY' and uc($self->_next_token) eq 'KEY'))) {
+        } elsif ($self->{ '_is_in_create' } and (uc($token) eq 'UNIQUE' or ($token =~ /^PRIMARY|FOREIGN$/i and uc($self->_next_token) eq 'KEY'))) {
 		$self->{ '_is_in_constraint' } = 1;
 	}
 
@@ -1203,6 +1203,8 @@ sub beautify {
 	    if ($self->{ '_is_in_constraint' } and defined $self->_next_token
 			    and ($self->_next_token eq ',' or $self->_next_token eq ')')) {
 		$self->{ '_is_in_constraint' } = 0;
+            } elsif ($self->{ '_is_in_constraint' }) {
+		$self->{ '_is_in_constraint' }--;
 	    }
             if ($self->{ '_is_in_with' } == 1 || $self->{ '_is_in_explain' }) {
                 $self->_back($token, $last);

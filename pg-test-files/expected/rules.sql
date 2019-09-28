@@ -1978,12 +1978,8 @@ CREATE TABLE rule_and_refint_t3 (
     id3c integer,
     data text,
     PRIMARY KEY (id3a, id3b, id3c),
-    FOREIGN KEY (id3a,
-        id3b) REFERENCES rule_and_refint_t1 (id1a,
-        id1b),
-    FOREIGN KEY (id3a,
-        id3c) REFERENCES rule_and_refint_t2 (id2a,
-        id2c)
+    FOREIGN KEY (id3a, id3b) REFERENCES rule_and_refint_t1 (id1a, id1b),
+    FOREIGN KEY (id3a, id3c) REFERENCES rule_and_refint_t2 (id2a, id2c)
 );
 
 INSERT INTO rule_and_refint_t1

@@ -98,8 +98,7 @@ CREATE TABLE FKTABLE (
     ftest1 int,
     ftest2 int,
     ftest3 int,
-    CONSTRAINT constrname FOREIGN KEY (ftest1,
-        ftest2) REFERENCES PKTABLE MATCH FULL ON DELETE SET NULL ON UPDATE SET NULL
+    CONSTRAINT constrname FOREIGN KEY (ftest1, ftest2) REFERENCES PKTABLE MATCH FULL ON DELETE SET NULL ON UPDATE SET NULL
 );
 
 -- Test comments
@@ -251,8 +250,7 @@ CREATE TABLE FKTABLE (
     ftest1 int DEFAULT - 1,
     ftest2 int DEFAULT - 2,
     ftest3 int,
-    CONSTRAINT constrname2 FOREIGN KEY (ftest1,
-        ftest2) REFERENCES PKTABLE MATCH FULL ON DELETE SET DEFAULT ON UPDATE SET DEFAULT
+    CONSTRAINT constrname2 FOREIGN KEY (ftest1, ftest2) REFERENCES PKTABLE MATCH FULL ON DELETE SET DEFAULT ON UPDATE SET DEFAULT
 );
 
 -- Insert a value in PKTABLE for default
@@ -499,9 +497,7 @@ CREATE TABLE FKTABLE (
     ftest2 int,
     ftest3 int,
     ftest4 int,
-    CONSTRAINT constrname3 FOREIGN KEY (ftest1,
-        ftest2,
-        ftest3) REFERENCES PKTABLE
+    CONSTRAINT constrname3 FOREIGN KEY (ftest1, ftest2, ftest3) REFERENCES PKTABLE
 );
 
 -- Insert Primary Key values
@@ -598,11 +594,7 @@ CREATE TABLE FKTABLE (
     ftest2 int,
     ftest3 int,
     ftest4 int,
-    CONSTRAINT constrname3 FOREIGN KEY (ftest1,
-        ftest2,
-        ftest3) REFERENCES PKTABLE (ptest1,
-        ptest2,
-        ptest3)
+    CONSTRAINT constrname3 FOREIGN KEY (ftest1, ftest2, ftest3) REFERENCES PKTABLE (ptest1, ptest2, ptest3)
 );
 
 INSERT INTO PKTABLE
@@ -648,9 +640,7 @@ CREATE TABLE FKTABLE (
     ftest2 int,
     ftest3 int,
     ftest4 int,
-    CONSTRAINT constrname3 FOREIGN KEY (ftest1,
-        ftest2,
-        ftest3) REFERENCES PKTABLE ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT constrname3 FOREIGN KEY (ftest1, ftest2, ftest3) REFERENCES PKTABLE ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Insert Primary Key values
@@ -769,9 +759,7 @@ CREATE TABLE FKTABLE (
     ftest2 int,
     ftest3 int,
     ftest4 int,
-    CONSTRAINT constrname3 FOREIGN KEY (ftest1,
-        ftest2,
-        ftest3) REFERENCES PKTABLE ON DELETE SET DEFAULT ON UPDATE SET NULL
+    CONSTRAINT constrname3 FOREIGN KEY (ftest1, ftest2, ftest3) REFERENCES PKTABLE ON DELETE SET DEFAULT ON UPDATE SET NULL
 );
 
 -- Insert Primary Key values
@@ -894,9 +882,7 @@ CREATE TABLE FKTABLE (
     ftest2 int DEFAULT - 1,
     ftest3 int DEFAULT - 2,
     ftest4 int,
-    CONSTRAINT constrname3 FOREIGN KEY (ftest1,
-        ftest2,
-        ftest3) REFERENCES PKTABLE ON DELETE SET NULL ON UPDATE SET DEFAULT
+    CONSTRAINT constrname3 FOREIGN KEY (ftest1, ftest2, ftest3) REFERENCES PKTABLE ON DELETE SET NULL ON UPDATE SET DEFAULT
 );
 
 -- Insert Primary Key values
@@ -1178,52 +1164,42 @@ CREATE TABLE PKTABLE (
 CREATE TABLE FKTABLE (
     ftest1 cidr,
     ftest2 timestamp,
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable
 );
 
 -- Again, so should this...
 CREATE TABLE FKTABLE (
     ftest1 cidr,
     ftest2 timestamp,
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable (ptest1,
-        ptest2)
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable (ptest1, ptest2)
 );
 
 -- This fails because we mixed up the column ordering
 CREATE TABLE FKTABLE (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest2,
-        ftest1) REFERENCES pktable
+    FOREIGN KEY (ftest2, ftest1) REFERENCES pktable
 );
 
 -- As does this...
 CREATE TABLE FKTABLE (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest2,
-        ftest1) REFERENCES pktable (ptest1,
-        ptest2)
+    FOREIGN KEY (ftest2, ftest1) REFERENCES pktable (ptest1, ptest2)
 );
 
 -- And again..
 CREATE TABLE FKTABLE (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable (ptest2,
-        ptest1)
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable (ptest2, ptest1)
 );
 
 -- This works...
 CREATE TABLE FKTABLE (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest2,
-        ftest1) REFERENCES pktable (ptest2,
-        ptest1)
+    FOREIGN KEY (ftest2, ftest1) REFERENCES pktable (ptest2, ptest1)
 );
 
 DROP TABLE FKTABLE;
@@ -1232,9 +1208,7 @@ DROP TABLE FKTABLE;
 CREATE TABLE FKTABLE (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable (ptest1,
-        ptest2)
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable (ptest1, ptest2)
 );
 
 DROP TABLE FKTABLE;
@@ -1250,9 +1224,7 @@ CREATE TABLE PKTABLE (
     ptest3 int,
     ptest4 inet,
     PRIMARY KEY (ptest1, ptest2),
-    FOREIGN KEY (ptest3,
-        ptest4) REFERENCES pktable (ptest1,
-        ptest2)
+    FOREIGN KEY (ptest3, ptest4) REFERENCES pktable (ptest1, ptest2)
 );
 
 DROP TABLE PKTABLE;
@@ -1264,8 +1236,7 @@ CREATE TABLE PKTABLE (
     ptest3 int,
     ptest4 inet,
     PRIMARY KEY (ptest1, ptest2),
-    FOREIGN KEY (ptest3,
-        ptest4) REFERENCES pktable
+    FOREIGN KEY (ptest3, ptest4) REFERENCES pktable
 );
 
 DROP TABLE PKTABLE;
@@ -1277,9 +1248,7 @@ CREATE TABLE PKTABLE (
     ptest3 int,
     ptest4 inet,
     PRIMARY KEY (ptest1, ptest2),
-    FOREIGN KEY (ptest3,
-        ptest4) REFERENCES pktable (ptest2,
-        ptest1)
+    FOREIGN KEY (ptest3, ptest4) REFERENCES pktable (ptest2, ptest1)
 );
 
 -- Nor should this... (same reason, we have 4,3 referencing 1,2 which mismatches types
@@ -1289,9 +1258,7 @@ CREATE TABLE PKTABLE (
     ptest3 int,
     ptest4 inet,
     PRIMARY KEY (ptest1, ptest2),
-    FOREIGN KEY (ptest4,
-        ptest3) REFERENCES pktable (ptest1,
-        ptest2)
+    FOREIGN KEY (ptest4, ptest3) REFERENCES pktable (ptest1, ptest2)
 );
 
 -- Not this one either... Same as the last one except we didn't defined the columns being referenced.
@@ -1301,8 +1268,7 @@ CREATE TABLE PKTABLE (
     ptest3 int,
     ptest4 inet,
     PRIMARY KEY (ptest1, ptest2),
-    FOREIGN KEY (ptest4,
-        ptest3) REFERENCES pktable
+    FOREIGN KEY (ptest4, ptest3) REFERENCES pktable
 );
 
 --
@@ -1376,9 +1342,7 @@ DELETE FROM pktable;
 CREATE TABLE fktable (
     ftest1 int,
     ftest2 int,
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable (base1,
-        ptest1)
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable (base1, ptest1)
 );
 
 -- now some ins, upd, del
@@ -1440,9 +1404,7 @@ CREATE TABLE pktable (
     ptest1 int,
     ptest2 int,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (base2,
-        ptest2) REFERENCES pktable (base1,
-        ptest1))
+    FOREIGN KEY (base2, ptest2) REFERENCES pktable (base1, ptest1))
 INHERITS (
     pktable_base
 );
@@ -1502,40 +1464,32 @@ INHERITS (
 CREATE TABLE fktable (
     ftest1 cidr,
     ftest2 int[],
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable
 );
 
 CREATE TABLE fktable (
     ftest1 cidr,
     ftest2 int[],
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable (base1,
-        ptest1)
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable (base1, ptest1)
 );
 
 -- let's mix up which columns reference which
 CREATE TABLE fktable (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest2,
-        ftest1) REFERENCES pktable
+    FOREIGN KEY (ftest2, ftest1) REFERENCES pktable
 );
 
 CREATE TABLE fktable (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest2,
-        ftest1) REFERENCES pktable (base1,
-        ptest1)
+    FOREIGN KEY (ftest2, ftest1) REFERENCES pktable (base1, ptest1)
 );
 
 CREATE TABLE fktable (
     ftest1 int,
     ftest2 inet,
-    FOREIGN KEY (ftest1,
-        ftest2) REFERENCES pktable (ptest1,
-        base1)
+    FOREIGN KEY (ftest1, ftest2) REFERENCES pktable (ptest1, base1)
 );
 
 DROP TABLE pktable;
@@ -1552,9 +1506,7 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet[],
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (base2,
-        ptest2) REFERENCES pktable (base1,
-        ptest1))
+    FOREIGN KEY (base2, ptest2) REFERENCES pktable (base1, ptest1))
 INHERITS (
     pktable_base
 );
@@ -1563,9 +1515,7 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (base2,
-        ptest2) REFERENCES pktable (ptest1,
-        base1))
+    FOREIGN KEY (base2, ptest2) REFERENCES pktable (ptest1, base1))
 INHERITS (
     pktable_base
 );
@@ -1574,9 +1524,7 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (ptest2,
-        base2) REFERENCES pktable (base1,
-        ptest1))
+    FOREIGN KEY (ptest2, base2) REFERENCES pktable (base1, ptest1))
 INHERITS (
     pktable_base
 );
@@ -1585,9 +1533,7 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (ptest2,
-        base2) REFERENCES pktable (base1,
-        ptest1))
+    FOREIGN KEY (ptest2, base2) REFERENCES pktable (base1, ptest1))
 INHERITS (
     pktable_base
 );
@@ -2175,8 +2121,7 @@ CREATE TABLE pktable2 (
 CREATE TABLE fktable2 (
     d int,
     e int,
-    FOREIGN KEY (d,
-        e) REFERENCES pktable2
+    FOREIGN KEY (d, e) REFERENCES pktable2
 );
 
 INSERT INTO pktable2
@@ -2210,10 +2155,8 @@ CREATE TABLE fktable2 (
     b int,
     very_very_long_column_name_to_exceed_63_characters int,
     FOREIGN KEY (very_very_long_column_name_to_exceed_63_characters) REFERENCES pktable1,
-    FOREIGN KEY (a,
-        very_very_long_column_name_to_exceed_63_characters) REFERENCES pktable2,
-    FOREIGN KEY (a,
-        very_very_long_column_name_to_exceed_63_characters) REFERENCES pktable2
+    FOREIGN KEY (a, very_very_long_column_name_to_exceed_63_characters) REFERENCES pktable2,
+    FOREIGN KEY (a, very_very_long_column_name_to_exceed_63_characters) REFERENCES pktable2
 );
 
 SELECT
@@ -2294,9 +2237,7 @@ CREATE TABLE pktable2 (
 CREATE TABLE fktable2 (
     x float8,
     y float8,
-    FOREIGN KEY (x,
-        y) REFERENCES pktable2 (a,
-        b) ON UPDATE CASCADE
+    FOREIGN KEY (x, y) REFERENCES pktable2 (a, b) ON UPDATE CASCADE
 );
 
 INSERT INTO pktable2
@@ -2803,8 +2744,7 @@ CREATE TABLE fk_partitioned_fk_2 (
     b int,
     c text,
     a int,
-    FOREIGN KEY (a,
-        b) REFERENCES fk_notpartitioned_pk ON UPDATE CASCADE ON DELETE CASCADE
+    FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 ALTER TABLE fk_partitioned_fk_2
@@ -2820,9 +2760,7 @@ DROP TABLE fk_partitioned_fk_2;
 CREATE TABLE fk_partitioned_fk_4 (
     a int,
     b int,
-    FOREIGN KEY (a,
-        b) REFERENCES fk_notpartitioned_pk (a,
-        b) ON UPDATE CASCADE ON DELETE CASCADE
+    FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk (a, b) ON UPDATE CASCADE ON DELETE CASCADE
 )
 PARTITION BY RANGE (b, a);
 
@@ -2832,9 +2770,7 @@ FOR VALUES FROM (1, 1) TO (100, 100);
 CREATE TABLE fk_partitioned_fk_4_2 (
     a int,
     b int,
-    FOREIGN KEY (a,
-        b) REFERENCES fk_notpartitioned_pk (a,
-        b) ON UPDATE SET NULL
+    FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk (a, b) ON UPDATE SET NULL
 );
 
 ALTER TABLE fk_partitioned_fk_4 ATTACH PARTITION fk_partitioned_fk_4_2
@@ -2856,20 +2792,15 @@ FOR VALUES IN (3500, 3502);
 CREATE TABLE fk_partitioned_fk_5 (
     a int,
     b int,
-    FOREIGN KEY (a,
-        b) REFERENCES fk_notpartitioned_pk (a,
-        b) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE,
-    FOREIGN KEY (a,
-        b) REFERENCES fk_notpartitioned_pk (a,
-        b) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+    FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk (a, b) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE,
+    FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk (a, b) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 )
 PARTITION BY RANGE (a);
 
 CREATE TABLE fk_partitioned_fk_5_1 (
     a int,
     b int,
-    FOREIGN KEY (a,
-        b) REFERENCES fk_notpartitioned_pk
+    FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk
 );
 
 ALTER TABLE fk_partitioned_fk ATTACH PARTITION fk_partitioned_fk_5
@@ -3078,7 +3009,8 @@ WHERE a = 1;
 CREATE SCHEMA fkpart2 CREATE TABLE pkey (
     a int PRIMARY KEY)
 CREATE TABLE fk_part (
-    a int, CONSTRAINT fkey FOREIGN KEY (a) REFERENCES fkpart2.pkey
+    a int,
+    CONSTRAINT fkey FOREIGN KEY (a) REFERENCES fkpart2.pkey
 )
 PARTITION BY LIST (a) CREATE TABLE fk_part_1 PARTITION OF fkpart2.fk_part
 FOR VALUES IN (1)
