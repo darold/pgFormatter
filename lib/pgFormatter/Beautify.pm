@@ -8,6 +8,7 @@ use Encode qw( decode );
 use Text::Wrap;
 
 our $DEBUG = 0;
+our $DEBUG_SP = 0;
 
 # PostgreSQL functions that use a FROM clause
 our @have_from_clause = qw( extract overlay substring trim );
@@ -143,7 +144,8 @@ For defaults, please check function L<set_defaults>.
 
 =cut
 
-sub new {
+sub new
+{
     my $class   = shift;
     my %options = @_;
 
@@ -197,7 +199,8 @@ Accessor to query string. Both reads:
 
 =cut
 
-sub query {
+sub query
+{
     my $self      = shift;
     my $new_value = shift;
 
@@ -408,7 +411,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub tokenize_sql {
+sub tokenize_sql
+{
     my $self  = shift;
     my $query = $self->query();
 
@@ -2143,29 +2147,62 @@ sub _add_token
 
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot)
     {
-        if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ ) {
-            $self->{ 'content' } .= $sp if ($token ne ')'
+        if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ )
+	{
+	    if ($token ne ')'
                                             && defined($last_token)
                                             && $last_token ne '::' 
                                             && $last_token ne '[' 
 					    && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
-                );
-            $self->{ 'content' } .= $sp if (!defined($last_token) && $token);
-        } elsif ( defined $last_token && $last_token eq '(' && $token ne ')' && $token !~ /^::/ && !$self->{'wrap_after'} && $self->{ '_is_in_with' } == 1) {
+                )
+            {
+                print STDERR "DEBUG_SPC: 1) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+                $self->{ 'content' } .= $sp
+	    }
+            if (!defined($last_token) && $token)
+	    {
+                print STDERR "DEBUG_SPC: 2) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+	        $self->{ 'content' } .= $sp;
+	    }
+        }
+	elsif ( defined $last_token && $last_token eq '(' && $token ne ')'
+		&& $token !~ /^::/ && !$self->{'wrap_after'} && $self->{ '_is_in_with' } == 1)
+	{
+                print STDERR "DEBUG_SPC: 3) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
 		$self->{ 'content' } .= $sp;
-        } elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token)) {
-             $self->{ 'content' } .= $sp if ($last_token ne '::' and !$self->{ '_is_in_partition' }
+        }
+	elsif ( $self->{ '_is_in_create' } == 2 && defined($last_token))
+	{
+             if ($last_token ne '::' and !$self->{ '_is_in_partition' }
 		     				and !$self->{ '_is_in_policy' }
 					        and !$self->{ '_is_in_trigger' }
 						and !$self->{ '_is_in_aggregate' }
-						and ($last_token ne '(' || !$self->{ '_is_in_index' }));
-        } elsif (defined $last_token and (!$self->{ '_is_in_operator' } or !$self->{ '_is_in_alter' })) {
-            $self->{ 'content' } .= $sp if ($last_token eq '(' && ($self->{ '_is_in_type' } or ($self->{ '_is_in_operator' } and !$self->_is_type($token))));
-        } elsif ($token eq ')' and $self->{ '_is_in_block' } >= 0 && $self->{ '_is_in_create' }) {
-                $self->{ 'content' } .= $sp;
-	} else {
+						and ($last_token ne '(' || !$self->{ '_is_in_index' }))
+		{
+                    print STDERR "DEBUG_SPC: 4) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+                    $self->{ 'content' } .= $sp;
+		}
         }
-        if ($self->_is_comment($token)) {
+	elsif (defined $last_token and (!$self->{ '_is_in_operator' } or !$self->{ '_is_in_alter' }))
+	{
+	    if ($last_token eq '(' && ($self->{ '_is_in_type' } or ($self->{ '_is_in_operator' } and !$self->_is_type($token))))
+	    {
+                print STDERR "DEBUG_SPC: 5) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+                $self->{ 'content' } .= $sp;
+	    }
+        }
+	elsif ($token eq ')' and $self->{ '_is_in_block' } >= 0 && $self->{ '_is_in_create' })
+	{
+            print STDERR "DEBUG_SPC: 6) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+            $self->{ 'content' } .= $sp;
+	}
+	else
+	{
+            print STDERR "DEBUG_SPC: 7) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+        }
+
+        if ($self->_is_comment($token))
+	{
             my @lines = split(/\n/, $token);
             for (my $i = 1; $i <= $#lines; $i++) {
                 if ($lines[$i] =~ /^\s*\*/) {
@@ -2175,7 +2212,9 @@ sub _add_token
                 }
             }
             $token = join("\n", @lines);
-        } else {
+        }
+	else
+	{
             $token =~ s/\n/\n$sp/gs;
         }
     }
@@ -2183,8 +2222,12 @@ sub _add_token
     my $next_token = $self->_next_token || '';
 
     # lowercase/uppercase keywords taking care of function with same name
-    if ($self->_is_keyword( $token, $next_token, $last_token ) and (!$self->_is_type($self->_next_token) || $self->{ '_is_in_create' } < 2 || $self->{ '_is_in_create_function' }) # || $token =~ /^(BY|AS|VARIADIC)$/i)
-		    and (!$self->_is_function( $token ) || $next_token ne '(')) {
+    if ($self->_is_keyword( $token, $next_token, $last_token ) and
+	    (!$self->_is_type($self->_next_token) || $self->{ '_is_in_create' } < 2 ||
+		    $self->{ '_is_in_create_function' })
+        and (!$self->_is_function( $token ) || $next_token ne '(')
+    )
+    {
         $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
         $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );
         $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_keywords' } == 3 );
@@ -2224,7 +2267,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _over {
+sub _over
+{
     my ( $self, $token, $last ) = @_;
 
     if ($DEBUG) {
@@ -2243,7 +2287,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _back {
+sub _back
+{
     my ( $self, $token, $last ) = @_;
 
     if ($DEBUG) {
@@ -2262,7 +2307,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _indent {
+sub _indent
+{
     my ( $self ) = @_;
 
     if ( $self->{ '_new_line' } )
@@ -2284,7 +2330,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _new_line {
+sub _new_line
+{
     my ( $self, $token, $last ) = @_;
 
     if ($DEBUG and defined $token) {
@@ -2304,7 +2351,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _next_token {
+sub _next_token
+{
     my ( $self ) = @_;
 
     return @{ $self->{ '_tokens' } } ? $self->{ '_tokens' }->[ 0 ] : undef;
@@ -2318,7 +2366,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _token {
+sub _token
+{
     my ( $self ) = @_;
 
     return shift @{ $self->{ '_tokens' } };
@@ -2332,7 +2381,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _is_keyword {
+sub _is_keyword
+{
     my ( $self, $token, $next_token, $last_token ) = @_;
 
     # Fix some false positive
@@ -2349,7 +2399,8 @@ Check if a token is a known SQL type
 
 =cut
 
-sub _is_type {
+sub _is_type
+{
     my ( $self, $token ) = @_;
 
     return if (!defined $token);
@@ -2358,7 +2409,8 @@ sub _is_type {
 }
 
 
-sub _is_sql_keyword {
+sub _is_sql_keyword
+{
     my ( $self, $token ) = @_;
 
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'sql_keywords' } };
@@ -2372,7 +2424,8 @@ Check if a token is a SQL or C style comment
 =cut
 
 
-sub _is_comment {
+sub _is_comment
+{
     my ( $self, $token ) = @_;
 
     return 1 if ( $token =~ m#^((?:--)[\ \t\S]*|/\*[\ \t\r\n\S]*?\*/)$#s );
@@ -2388,7 +2441,8 @@ Code lifted from SQL::Beautify and rewritten to check one long regexp instead of
 
 =cut
 
-sub _is_function {
+sub _is_function
+{
     my ( $self, $token ) = @_;
 
     if ( $token =~ $self->{ 'functions_re' } ) {
@@ -2406,7 +2460,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub add_keywords {
+sub add_keywords
+{
     my $self = shift;
 
     for my $keyword ( @_ ) {
@@ -2420,7 +2475,8 @@ Create compiled regexp from prefix, suffix and and a list of values to match.
 
 =cut
 
-sub _re_from_list {
+sub _re_from_list
+{
     my $prefix = shift;
     my $suffix = shift;
     my (@joined_list, $ret_re);
@@ -2440,7 +2496,8 @@ Refresh compiled regexp for functions.
 
 =cut
 
-sub _refresh_functions_re {
+sub _refresh_functions_re
+{
     my $self = shift;
     $self->{ 'functions_re' } = _re_from_list( '\b[\.]*', '$', @{ $self->{ 'functions' } });
 }
@@ -2453,7 +2510,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub add_functions {
+sub add_functions
+{
     my $self = shift;
 
     for my $function ( @_ ) {
@@ -2471,7 +2529,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub add_rule {
+sub add_rule
+{
     my ( $self, $format, $token ) = @_;
 
     my $rules = $self->{ 'rules' }  ||= {};
@@ -2488,7 +2547,8 @@ Code lifted from SQL::Beautify
 
 =cut
 
-sub _get_rule {
+sub _get_rule
+{
     my ( $self, $token ) = @_;
 
     values %{ $self->{ 'rules' } };    # Reset iterator.
@@ -2747,7 +2807,8 @@ Default is text output. Returns 0 in case or wrong format and use default.
 
 =cut
 
-sub format {
+sub format
+{
     my $self  = shift;
     my $format  = shift;
 
@@ -2767,7 +2828,8 @@ so it will be easier to read the rest of the code.
 
 =cut
 
-sub set_dicts {
+sub set_dicts
+{
     my $self = shift;
 
     # First load it all as "my" variables, to make it simpler to modify/map/grep/add
