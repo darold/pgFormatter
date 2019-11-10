@@ -15,7 +15,8 @@ CREATE TABLE ctla (
 );
 
 CREATE TABLE ctlb (
-    bb TEXT)
+    bb TEXT
+)
 INHERITS (
     ctla
 );
@@ -26,7 +27,8 @@ CREATE TABLE foo (
 
 CREATE TABLE inhe (
     ee text,
-    LIKE inhx)
+    LIKE inhx
+)
 INHERITS (
     ctlb
 );
@@ -350,7 +352,8 @@ CREATE TABLE ctlt12_comments (
 
 \d+ ctlt12_comments
 CREATE TABLE ctlt1_inh (
-    LIKE ctlt1 INCLUDING CONSTRAINTS INCLUDING COMMENTS)
+    LIKE ctlt1 INCLUDING CONSTRAINTS INCLUDING COMMENTS
+)
 INHERITS (
     ctlt1
 );
@@ -374,7 +377,8 @@ INHERITS (
 
 \d+ ctlt13_inh
 CREATE TABLE ctlt13_like (
-    LIKE ctlt3 INCLUDING CONSTRAINTS INCLUDING COMMENTS INCLUDING STORAGE)
+    LIKE ctlt3 INCLUDING CONSTRAINTS INCLUDING COMMENTS INCLUDING STORAGE
+)
 INHERITS (
     ctlt1
 );
@@ -434,7 +438,8 @@ INHERITS (
 );
 
 CREATE TABLE inh_error2 (
-    LIKE ctlt4 INCLUDING STORAGE)
+    LIKE ctlt4 INCLUDING STORAGE
+)
 INHERITS (
     ctlt1
 );

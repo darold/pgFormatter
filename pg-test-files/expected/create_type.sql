@@ -93,26 +93,32 @@ CREATE TYPE text_w_default (
     DEFAULT = 'zippo'
 );
 
-CREATE TABLE default_test (f1 text_w_default, f2 int42);
+CREATE TABLE default_test (
+    f1 text_w_default,
+    f2 int42
+);
 
 INSERT INTO default_test DEFAULT VALUES;
-
-SELECT * FROM default_test;
+SELECT
+    *
+FROM
+    default_test;
 
 -- invalid: non-lowercase quoted identifiers
 CREATE TYPE case_int42 (
-	"Internallength" = 4,
-	"Input" = int42_in,
-	"Output" = int42_out,
-	"Alignment" = int4,
-	"Default" = 42,
-	"Passedbyvalue"
+    "Internallength" = 4,
+    "Input" = int42_in,
+    "Output" = int42_out,
+    "Alignment" = int4,
+    "Default" = 42,
+    "Passedbyvalue"
 );
 
 -- Test stand-alone composite type
-
-CREATE TYPE default_test_row AS (f1 text_w_default,
-f2 int42);
+CREATE TYPE default_test_row AS (
+    f1 text_w_default,
+    f2 int42
+);
 
 CREATE FUNCTION get_default_test ()
     RETURNS SETOF default_test_row
@@ -192,15 +198,12 @@ DROP TYPE base_type CASCADE;
 -- (we have borrowed numeric's typmod functions)
 
 CREATE TEMP TABLE mytab (
-    foo widget (42,
-        13,
-        7)
+    foo widget (42, 13, 7)
 );
 
 -- should fail
 CREATE TEMP TABLE mytab (
-    foo widget (42,
-        13)
+    foo widget (42, 13)
 );
 
 SELECT

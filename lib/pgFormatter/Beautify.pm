@@ -229,8 +229,15 @@ sub query
             if ($temp_content[$j] =~ /\s+LANGUAGE\s+[']*([^'\s;]+)[']*/i) {
                 $language = lc($1);
             }
+            if ($language =~ /^internal$/i) {
+		    if ($temp_content[$j] =~ s/AS ('[^\']+')/AS CODEPARTB${i}CODEPARTB/i) {
+                            push(@{ $self->{ 'placeholder_values' } }, $1);
+			    $i++;
+		    }
+	    }
             # if the function language is not SQL or PLPGSQL
-            if ($language !~ /^(?:plpg)?sql$/) {
+	    elsif ($language !~ /^(?:plpg)?sql$/)
+	    {
                 # Try to find the code separator
 	        my $tmp_str = $temp_content[$j];
                 while ($tmp_str =~ s/\s+AS\s+([^\s]+)\s+//is) {
@@ -305,7 +312,7 @@ sub content
     if ($#{ $self->{ 'placeholder_values' } } >= 0)
     {
         $self->{ 'content' } =~ s/PLACEHOLDER(\d+)PLACEHOLDER/$self->{ 'placeholder_values' }[$1]/igs;
-        $self->{ 'content' } =~ s/CODEPART(\d+)CODEPART/$self->{ 'placeholder_values' }[$1]/igs;
+        $self->{ 'content' } =~ s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
     }
 
     # Replace any %BSLH% by \'
@@ -494,7 +501,7 @@ sub _pop_level
     if ($DEBUG)
     {
         my ($package, $filename, $line) = caller;
-        print STDERR "DEBUG_ADD: line: $line => last=", ($last_token||''), ", token=$token\n";
+        print STDERR "DEBUG_POP: line: $line => last=", ($last_token||''), ", token=$token\n";
     }
 
     return pop( @{ $self->{ '_level_stack' } } ) || 0;
@@ -508,7 +515,7 @@ sub _reset_level
     if ($DEBUG)
     {
         my ($package, $filename, $line) = caller;
-        print STDERR "DEBUG_ADD: line: $line => last=", ($last_token||''), ", token=$token\n";
+        print STDERR "DEBUG_RESET: line: $line => last=", ($last_token||''), ", token=$token\n";
     }
 
     @{ $self->{ '_level_stack' } } = ();
@@ -523,7 +530,7 @@ sub _set_last
     if ($DEBUG)
     {
         my ($package, $filename, $line) = caller;
-        print STDERR "DEBUG_ADD: line: $line => last=", ($last_token||''), ", token=$token\n";
+        print STDERR "DEBUG_LAST: line: $line => last=", ($last_token||''), ", token=$token\n";
     }
 
     return $token;
@@ -665,7 +672,7 @@ sub beautify
                 $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
                 if (!$self->{ '_parenthesis_function_level' }) {
 	            $self->{ '_level' } = pop(@{ $self->{ '_level_parenthesis_function' } }) || 0;
-		    $self->_over($token,$last) if (!$self->{ '_is_in_operator' } && !$self->{ '_is_in_alter' });
+		    $self->_over($token,$last) if (!$self->{ '_is_in_create' } && !$self->{ '_is_in_operator' } && !$self->{ '_is_in_alter' });
 	        }
             }
 	    $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
@@ -961,7 +968,7 @@ sub beautify
 	    {
                 $self->_new_line($token,$last);
                 $self->_add_token( $token );
-                $self->_reset_level($token, $last);
+		$self->_reset_level($token, $last) if ($self->_next_token !~ /CODEPARTB/);
                 $self->{ '_is_in_create' } = 0;
 	    } else {
                 $self->_add_token( $token );
@@ -1155,7 +1162,7 @@ sub beautify
             $last = $self->_set_last($token, $last);
 	    next;
         }
-        elsif ($token =~ /^TRIGGER$/i and defined $last and uc($last) eq 'CREATE')
+        elsif ($token =~ /^TRIGGER$/i and defined $last and $last =~ /CREATE|CONSTRAINT/i)
 	{
             $self->{ '_is_in_trigger' } = 1;
             $self->_add_token( $token );
@@ -1209,7 +1216,7 @@ sub beautify
                 }
 		if (!$self->{ '_is_in_if' } and !$self->{ '_is_in_alter' } and (!$self->{ '_is_in_function' } or $last ne '('))
 		{
-		    $self->_over($token,$last) if ($self->{ '_is_in_operator' } <= 2);
+		    $self->_over($token,$last) if ($self->{ '_is_in_operator' } <= 2 && $self->{ '_is_in_create' } <= 2);
 		    if (!$self->{ '_is_in_function' } and !$self->_is_type($self->_next_token)) {
 		        if ($self->{ '_is_in_operator' } == 1) {
 			    $self->_new_line($token,$last);
@@ -1251,9 +1258,10 @@ sub beautify
 		$self->{ '_is_in_explain' } = 0;
                 next;
             }
-	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
-		    && $self->{ '_is_in_create' } == 2
-	    ) {
+	    if ( ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
+		    && $self->{ '_is_in_create' } == 2) || uc($self->_next_token) eq 'INHERITS'
+	    )
+	    {
                 $self->_back($token, $last) if ($self->{ '_is_in_block' } < 0);
                 $self->_new_line($token,$last) if (defined $last && $last ne '(');
 	    }
@@ -1288,7 +1296,8 @@ sub beautify
 	        );
 		$self->_new_line($token,$last) if ($add_nl);
                 $self->_back($token, $last) if (!$self->{ '_is_in_grouping' }
-			&& !$self->{ '_is_in_trigger' } && !$self->{ 'no_break' }
+						&& !$self->{ '_is_in_trigger' } && !$self->{ 'no_break' }
+						&& ($self->{ '_is_in_create' } <= 2)
 		);
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
                 $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
@@ -1362,6 +1371,7 @@ sub beautify
 			       && !$self->{ '_is_in_grouping' }
 			       && !$self->{ '_is_in_partition' }
 			       && ($self->{ '_is_in_constraint' } <= 1)
+			       && ($self->{ '_is_in_create' } <= 2)
 			       && $self->{ '_is_in_operator' } != 1
 			       && !$self->{ '_has_order_by' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
@@ -1946,7 +1956,10 @@ sub beautify
             }
             $self->{ '_is_in_join' } = 0;
             if ( !$self->{ '_is_in_if' } and !$self->{ '_is_in_index' }
-			    and (!$last or $last !~ /^(?:CREATE)$/i) )
+			    and (!$last or $last !~ /^(?:CREATE)$/i)
+			    and ($self->{ '_is_in_create' } <= 2)
+                            and !$self->{ '_is_in_trigger' }
+	    )
 	    {
                 $self->_new_line($token,$last);
                 if (!$self->{'_and_level'} and (!$self->{ '_level' } || $self->{ '_is_in_alter' })) {

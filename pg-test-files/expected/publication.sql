@@ -95,7 +95,8 @@ CREATE TABLE testpub_tbl3 (
 );
 
 CREATE TABLE testpub_tbl3a (
-    b text)
+    b text
+)
 INHERITS (
     testpub_tbl3
 );

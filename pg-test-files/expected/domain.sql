@@ -631,8 +631,7 @@ CREATE TABLE nulltest (
 ,
     col3 dnull NOT NULL,
     col4 dnull,
-    col5 dcheck CHECK (col5 IN ('c',
-            'd'))
+    col5 dcheck CHECK (col5 IN ('c', 'd'))
 );
 
 INSERT INTO nulltest DEFAULT VALUES; INSERT INTO nulltest

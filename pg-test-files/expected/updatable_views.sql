@@ -2069,7 +2069,8 @@ CREATE TABLE base_tbl_parent (
 );
 
 CREATE TABLE base_tbl_child (
-    CHECK (a > 0))
+    CHECK (a > 0)
+)
 INHERITS (
     base_tbl_parent
 );
@@ -2631,8 +2632,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER base_tbl_trig
-    BEFORE INSERT
-    OR UPDATE ON base_tbl
+    BEFORE INSERT OR UPDATE ON base_tbl
     FOR EACH ROW
     EXECUTE PROCEDURE base_tbl_trig_fn ();
 
@@ -2702,11 +2702,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER rw_view1_trig INSTEAD OF INSERT
-    OR UPDATE
-    OR DELETE ON rw_view1
-    FOR EACH ROW
-    EXECUTE PROCEDURE rw_view1_trig_fn ();
+CREATE TRIGGER rw_view1_trig INSTEAD OF INSERT OR UPDATE OR DELETE ON rw_view1
+FOR EACH ROW
+EXECUTE PROCEDURE rw_view1_trig_fn ();
 
 CREATE VIEW rw_view2 AS
 SELECT
@@ -3145,7 +3143,8 @@ FROM
 ANALYZE t1;
 
 CREATE TABLE t11 (
-    d text)
+    d text
+)
 INHERITS (
     t1
 );
@@ -3164,7 +3163,8 @@ FROM
 ANALYZE t11;
 
 CREATE TABLE t12 (
-    e int[])
+    e int[]
+)
 INHERITS (
     t1
 );

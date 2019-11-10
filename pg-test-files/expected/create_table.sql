@@ -80,19 +80,22 @@ CREATE TABLE person (
 
 CREATE TABLE emp (
     salary int4,
-    manager name)
+    manager name
+)
 INHERITS (
     person
 );
 
 CREATE TABLE student (
-    gpa float8)
+    gpa float8
+)
 INHERITS (
     person
 );
 
 CREATE TABLE stud_emp (
-    percent int4)
+    percent int4
+)
 INHERITS (
     emp,
     student
@@ -128,7 +131,8 @@ INHERITS (
 );
 
 CREATE TABLE shighway (
-    surface text)
+    surface text
+)
 INHERITS (
     road
 );
@@ -156,32 +160,37 @@ CREATE TABLE a_star (
 );
 
 CREATE TABLE b_star (
-    b text)
+    b text
+)
 INHERITS (
     a_star
 );
 
 CREATE TABLE c_star (
-    c name)
+    c name
+)
 INHERITS (
     a_star
 );
 
 CREATE TABLE d_star (
-    d float8)
+    d float8
+)
 INHERITS (
     b_star,
     c_star
 );
 
 CREATE TABLE e_star (
-    e int2)
+    e int2
+)
 INHERITS (
     c_star
 );
 
 CREATE TABLE f_star (
-    f polygon)
+    f polygon
+)
 INHERITS (
     e_star
 );
@@ -477,8 +486,8 @@ CREATE TABLE default_expr_agg (
 -- invalid use of subquery
 CREATE TABLE default_expr_agg (
     a int DEFAULT (
-        SELECT
-            1)
+    SELECT
+        1)
 );
 
 -- invalid use of set-returning function
@@ -492,7 +501,8 @@ CREATE TABLE default_expr_agg (
 -- cannot combine INHERITS and PARTITION BY (although grammar allows)
 
 CREATE TABLE partitioned (
-    a int)
+    a int
+)
 INHERITS (
     some_table
 )

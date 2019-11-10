@@ -2159,19 +2159,22 @@ CREATE TABLE id (
 
 -- currently, must respecify PKEY for each inherited subtable
 CREATE TABLE test_1 (
-    id integer PRIMARY KEY)
+    id integer PRIMARY KEY
+)
 INHERITS (
     id
 );
 
 CREATE TABLE test_2 (
-    id integer PRIMARY KEY)
+    id integer PRIMARY KEY
+)
 INHERITS (
     id
 );
 
 CREATE TABLE test_3 (
-    id integer PRIMARY KEY)
+    id integer PRIMARY KEY
+)
 INHERITS (
     id
 );
@@ -2254,15 +2257,15 @@ CREATE temp TABLE t1 (
 );
 
 CREATE temp TABLE t1_1 (
-    CHECK (a >= 0
-        AND a < 10))
+    CHECK (a >= 0 AND a < 10)
+)
 INHERITS (
     t1
 );
 
 CREATE temp TABLE t1_2 (
-    CHECK (a >= 10
-        AND a < 20))
+    CHECK (a >= 10 AND a < 20)
+)
 INHERITS (
     t1
 );

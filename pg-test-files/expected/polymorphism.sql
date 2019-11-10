@@ -1154,8 +1154,8 @@ SELECT
 
 -- an example with some ordinary arguments too
 CREATE FUNCTION concat(text, VARIADIC anyarray)
-        RETURNS text
-        AS $$
+    RETURNS text
+    AS $$
     SELECT
         array_to_string($2, $1);
 

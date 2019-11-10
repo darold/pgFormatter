@@ -571,8 +571,7 @@ SERVER no_server;
 -- ERROR
 CREATE FOREIGN TABLE ft1 (
     c1 integer OPTIONS ("param 1" 'val1') PRIMARY KEY,
-    c2 text OPTIONS (param2 'val2',
-        param3 'val3'),
+    c2 text OPTIONS (param2 'val2', param3 'val3'),
     c3 date)
 SERVER s0 OPTIONS (
     DELIMITER ',',
@@ -587,8 +586,7 @@ CREATE TABLE ref_table (
 
 CREATE FOREIGN TABLE ft1 (
     c1 integer OPTIONS ("param 1" 'val1') REFERENCES ref_table (id),
-    c2 text OPTIONS (param2 'val2',
-        param3 'val3'),
+    c2 text OPTIONS (param2 'val2', param3 'val3'),
     c3 date)
 SERVER s0 OPTIONS (
     DELIMITER ',',
@@ -601,8 +599,7 @@ DROP TABLE ref_table;
 
 CREATE FOREIGN TABLE ft1 (
     c1 integer OPTIONS ("param 1" 'val1') NOT NULL,
-    c2 text OPTIONS (param2 'val2',
-        param3 'val3'),
+    c2 text OPTIONS (param2 'val2', param3 'val3'),
     c3 date,
     UNIQUE (c3))
 SERVER s0 OPTIONS (
@@ -614,11 +611,9 @@ SERVER s0 OPTIONS (
 -- ERROR
 CREATE FOREIGN TABLE ft1 (
     c1 integer OPTIONS ("param 1" 'val1') NOT NULL,
-    c2 text OPTIONS (param2 'val2',
-        param3 'val3') CHECK (c2 <> ''),
+    c2 text OPTIONS (param2 'val2', param3 'val3') CHECK (c2 <> ''),
     c3 date,
-    CHECK (c3 BETWEEN '1994-01-01'::date
-        AND '1994-01-31'::date))
+    CHECK (c3 BETWEEN '1994-01-01'::date AND '1994-01-31'::date))
 SERVER s0 OPTIONS (
     DELIMITER ',',
     quote '"',
@@ -1288,44 +1283,35 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trigtest_before_stmt
-    BEFORE INSERT
-    OR UPDATE
-    OR DELETE ON foreign_schema.foreign_table_1
+    BEFORE INSERT OR UPDATE OR DELETE ON foreign_schema.foreign_table_1
     FOR EACH STATEMENT
     EXECUTE PROCEDURE dummy_trigger ();
 
 CREATE TRIGGER trigtest_after_stmt
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON foreign_schema.foreign_table_1
+    AFTER INSERT OR UPDATE OR DELETE ON foreign_schema.foreign_table_1
     FOR EACH STATEMENT
     EXECUTE PROCEDURE dummy_trigger ();
 
 CREATE TRIGGER trigtest_after_stmt_tt
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE -- ERROR
+    AFTER INSERT OR UPDATE OR DELETE -- ERROR
     ON foreign_schema.foreign_table_1 REFERENCING NEW TABLE AS new_table
     FOR EACH STATEMENT
     EXECUTE PROCEDURE dummy_trigger ();
 
 CREATE TRIGGER trigtest_before_row
-    BEFORE INSERT
-    OR UPDATE
-    OR DELETE ON foreign_schema.foreign_table_1
+    BEFORE INSERT OR UPDATE OR DELETE ON foreign_schema.foreign_table_1
     FOR EACH ROW
     EXECUTE PROCEDURE dummy_trigger ();
 
 CREATE TRIGGER trigtest_after_row
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON foreign_schema.foreign_table_1
+    AFTER INSERT OR UPDATE OR DELETE ON foreign_schema.foreign_table_1
     FOR EACH ROW
     EXECUTE PROCEDURE dummy_trigger ();
 
-CREATE CONSTRAINT TRIGGER trigtest_constraint AFTER INSERT
-    OR UPDATE
-    OR DELETE ON foreign_schema.foreign_table_1 FOR EACH ROW EXECUTE PROCEDURE dummy_trigger ();
+CREATE CONSTRAINT TRIGGER trigtest_constraint
+    AFTER INSERT OR UPDATE OR DELETE ON foreign_schema.foreign_table_1
+    FOR EACH ROW
+    EXECUTE PROCEDURE dummy_trigger ();
 
 ALTER FOREIGN TABLE foreign_schema.foreign_table_1 DISABLE TRIGGER trigtest_before_stmt;
 
@@ -1385,7 +1371,8 @@ INHERITS (
 CREATE FOREIGN TABLE ft3 (
     c1 integer NOT NULL,
     c2 text,
-    c3 date)
+    c3 date
+)
 INHERITS (
     ft2)
 SERVER s0;
@@ -1492,228 +1479,309 @@ WHERE
 ORDER BY
     1,
     2;
-        -- child does not inherit NO INHERIT constraints
-        \d+ fd_pt1
-        \d+ ft2
-        DROP FOREIGN TABLE ft2;
-        -- ERROR
-        DROP FOREIGN TABLE ft2 CASCADE;
-        CREATE FOREIGN TABLE ft2 (
-            c1 integer NOT NULL,
-            c2 text,
-            c3 date )
-        SERVER s0 OPTIONS (
-            DELIMITER ',',
-            quote '"',
-            "be quoted" 'value'
-        );
-        -- child must have parent's INHERIT constraints
-        ALTER FOREIGN TABLE ft2 INHERIT fd_pt1;
-        -- ERROR
-        ALTER FOREIGN TABLE ft2
-            ADD CONSTRAINT fd_pt1chk2 CHECK (c2 <> '');
-        ALTER FOREIGN TABLE ft2 INHERIT fd_pt1;
-        -- child does not inherit NO INHERIT constraints
-        \d+ fd_pt1
-        \d+ ft2
-        -- drop constraints recursively
-        ALTER TABLE fd_pt1
-            DROP CONSTRAINT fd_pt1chk1 CASCADE;
-        ALTER TABLE fd_pt1
-            DROP CONSTRAINT fd_pt1chk2 CASCADE;
-        -- NOT VALID case
-        INSERT INTO fd_pt1
-        VALUES (1, 'fd_pt1'::text, '1994-01-01'::date);
-        ALTER TABLE fd_pt1
-            ADD CONSTRAINT fd_pt1chk3 CHECK (c2 <> '') NOT VALID;
-        \d+ fd_pt1
-        \d+ ft2
-        -- VALIDATE CONSTRAINT need do nothing on foreign tables
-        ALTER TABLE fd_pt1 VALIDATE CONSTRAINT fd_pt1chk3;
-        \d+ fd_pt1
-        \d+ ft2
-        -- changes name of an attribute recursively
-        ALTER TABLE fd_pt1 RENAME COLUMN c1 TO f1;
-        ALTER TABLE fd_pt1 RENAME COLUMN c2 TO f2;
-        ALTER TABLE fd_pt1 RENAME COLUMN c3 TO f3;
-        -- changes name of a constraint recursively
-        ALTER TABLE fd_pt1 RENAME CONSTRAINT fd_pt1chk3 TO f2_check;
-        \d+ fd_pt1
-        \d+ ft2
-        -- TRUNCATE doesn't work on foreign tables, either directly or recursively
-        TRUNCATE ft2;
-        -- ERROR
-        TRUNCATE fd_pt1;
-        -- ERROR
-        DROP TABLE fd_pt1 CASCADE;
-        -- IMPORT FOREIGN SCHEMA
-        IMPORT FOREIGN SCHEMA s1
-    FROM
-        SERVER s9 INTO public;
-        -- ERROR
-        IMPORT FOREIGN SCHEMA s1
-    LIMIT TO (t1)
+
+-- child does not inherit NO INHERIT constraints
+\d+ fd_pt1
+\d+ ft2
+DROP FOREIGN TABLE ft2;
+
+-- ERROR
+DROP FOREIGN TABLE ft2 CASCADE;
+
+CREATE FOREIGN TABLE ft2 (
+    c1 integer NOT NULL,
+    c2 text,
+    c3 date)
+SERVER s0 OPTIONS (
+    DELIMITER ',',
+    quote '"',
+    "be quoted" 'value'
+);
+
+-- child must have parent's INHERIT constraints
+ALTER FOREIGN TABLE ft2 INHERIT fd_pt1;
+
+-- ERROR
+ALTER FOREIGN TABLE ft2
+    ADD CONSTRAINT fd_pt1chk2 CHECK (c2 <> '');
+
+ALTER FOREIGN TABLE ft2 INHERIT fd_pt1;
+
+-- child does not inherit NO INHERIT constraints
+\d+ fd_pt1
+\d+ ft2
+-- drop constraints recursively
+ALTER TABLE fd_pt1
+    DROP CONSTRAINT fd_pt1chk1 CASCADE;
+
+ALTER TABLE fd_pt1
+    DROP CONSTRAINT fd_pt1chk2 CASCADE;
+
+-- NOT VALID case
+INSERT INTO fd_pt1
+    VALUES (1, 'fd_pt1'::text, '1994-01-01'::date);
+
+ALTER TABLE fd_pt1
+    ADD CONSTRAINT fd_pt1chk3 CHECK (c2 <> '') NOT VALID;
+
+\d+ fd_pt1
+\d+ ft2
+-- VALIDATE CONSTRAINT need do nothing on foreign tables
+ALTER TABLE fd_pt1 VALIDATE CONSTRAINT fd_pt1chk3;
+
+\d+ fd_pt1
+\d+ ft2
+-- changes name of an attribute recursively
+ALTER TABLE fd_pt1 RENAME COLUMN c1 TO f1;
+
+ALTER TABLE fd_pt1 RENAME COLUMN c2 TO f2;
+
+ALTER TABLE fd_pt1 RENAME COLUMN c3 TO f3;
+
+-- changes name of a constraint recursively
+ALTER TABLE fd_pt1 RENAME CONSTRAINT fd_pt1chk3 TO f2_check;
+
+\d+ fd_pt1
+\d+ ft2
+-- TRUNCATE doesn't work on foreign tables, either directly or recursively
+TRUNCATE ft2;
+
+-- ERROR
+TRUNCATE fd_pt1;
+
+-- ERROR
+DROP TABLE fd_pt1 CASCADE;
+
+-- IMPORT FOREIGN SCHEMA
+IMPORT FOREIGN SCHEMA s1
 FROM
     SERVER s9 INTO public;
-        --ERROR
-        IMPORT FOREIGN SCHEMA s1
-    EXCEPT (t1)
+
+-- ERROR
+IMPORT FOREIGN SCHEMA s1
+LIMIT TO (t1)
 FROM
     SERVER s9 INTO public;
-        -- ERROR
-        IMPORT FOREIGN SCHEMA s1
-    EXCEPT (t1,
-        t2)
+
+--ERROR
+IMPORT FOREIGN SCHEMA s1
+EXCEPT (t1)
+FROM
+    SERVER s9 INTO public;
+
+-- ERROR
+IMPORT FOREIGN SCHEMA s1
+EXCEPT (t1,
+    t2)
 FROM
     SERVER s9 INTO public OPTIONS (option1 'value1',
         option2 'value2');
-        -- ERROR
-        -- DROP FOREIGN TABLE
-        DROP FOREIGN TABLE no_table;
-        -- ERROR
-        DROP FOREIGN TABLE IF EXISTS no_table;
-        DROP FOREIGN TABLE foreign_schema.foreign_table_1;
-        -- REASSIGN OWNED/DROP OWNED of foreign objects
-        REASSIGN OWNED BY regress_test_role TO regress_test_role2;
-        DROP OWNED BY regress_test_role2;
-        DROP OWNED BY regress_test_role2 CASCADE;
-        -- Foreign partition DDL stuff
-        CREATE TABLE fd_pt2 (
-            c1 integer NOT NULL,
-            c2 text,
-            c3 date
-        )
-PARTITION BY LIST (c1 );
-        CREATE FOREIGN TABLE fd_pt2_1 PARTITION OF fd_pt2
-    FOR VALUES IN (1 ) SERVER s0 OPTIONS (DELIMITER ',', quote '"', "be quoted" 'value' );
-        \d+ fd_pt2
-        \d+ fd_pt2_1
-        -- partition cannot have additional columns
-        DROP FOREIGN TABLE fd_pt2_1;
-        CREATE FOREIGN TABLE fd_pt2_1 (
-            c1 integer NOT NULL,
-            c2 text,
-            c3 date,
-            c4 char )
-        SERVER s0 OPTIONS (
-            DELIMITER ',',
-            quote '"',
-            "be quoted" 'value'
-        );
-        \d+ fd_pt2_1
-        ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
-    FOR VALUES IN (1);
-        -- ERROR
-        DROP FOREIGN TABLE fd_pt2_1;
-        \d+ fd_pt2
-        CREATE FOREIGN TABLE fd_pt2_1 (
-            c1 integer NOT NULL,
-            c2 text,
-            c3 date )
-        SERVER s0 OPTIONS (
-            DELIMITER ',',
-            quote '"',
-            "be quoted" 'value'
-        );
-        \d+ fd_pt2_1
-        -- no attach partition validation occurs for foreign tables
-        ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
-    FOR VALUES IN (1);
-        \d+ fd_pt2
-        \d+ fd_pt2_1
-        -- cannot add column to a partition
-        ALTER TABLE fd_pt2_1
-            ADD c4 char;
-        -- ok to have a partition's own constraints though
-        ALTER TABLE fd_pt2_1
-            ALTER c3 SET NOT NULL;
-        ALTER TABLE fd_pt2_1
-            ADD CONSTRAINT p21chk CHECK (c2 <> '');
-        \d+ fd_pt2
-        \d+ fd_pt2_1
-        -- cannot drop inherited NOT NULL constraint from a partition
-        ALTER TABLE fd_pt2_1
-            ALTER c1 DROP NOT NULL;
-        -- partition must have parent's constraints
-        ALTER TABLE fd_pt2 DETACH PARTITION fd_pt2_1;
-        ALTER TABLE fd_pt2
-            ALTER c2 SET NOT NULL;
-        \d+ fd_pt2
-        \d+ fd_pt2_1
-        ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
-    FOR VALUES IN (1);
-        -- ERROR
-        ALTER FOREIGN TABLE fd_pt2_1
-            ALTER c2 SET NOT NULL;
-        ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
-    FOR VALUES IN (1);
-        ALTER TABLE fd_pt2 DETACH PARTITION fd_pt2_1;
-        ALTER TABLE fd_pt2
-            ADD CONSTRAINT fd_pt2chk1 CHECK (c1 > 0);
-        \d+ fd_pt2
-        \d+ fd_pt2_1
-        ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
-    FOR VALUES IN (1);
-        -- ERROR
-        ALTER FOREIGN TABLE fd_pt2_1
-            ADD CONSTRAINT fd_pt2chk1 CHECK (c1 > 0);
-        ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
-    FOR VALUES IN (1);
-        -- TRUNCATE doesn't work on foreign tables, either directly or recursively
-        TRUNCATE fd_pt2_1;
-        -- ERROR
-        TRUNCATE fd_pt2;
-        -- ERROR
-        DROP FOREIGN TABLE fd_pt2_1;
-        DROP TABLE fd_pt2;
-        -- foreign table cannot be part of partition tree made of temporary
-        -- relations.
-        CREATE TEMP TABLE temp_parted (
-            a int
-        )
-PARTITION BY LIST (a );
-        CREATE FOREIGN TABLE foreign_part PARTITION OF temp_parted DEFAULT SERVER s0;
-        -- ERROR
-        CREATE FOREIGN TABLE foreign_part (
-            a int )
-        SERVER s0;
-        ALTER TABLE temp_parted ATTACH PARTITION foreign_part DEFAULT;
-        -- ERROR
-        DROP FOREIGN TABLE foreign_part;
-        DROP TABLE temp_parted;
-        -- Cleanup
-        DROP SCHEMA foreign_schema CASCADE;
-        DROP ROLE regress_test_role;
-        -- ERROR
-        DROP SERVER t1 CASCADE;
-        DROP USER MAPPING FOR regress_test_role SERVER s6;
-        DROP FOREIGN DATA WRAPPER foo CASCADE;
-        DROP SERVER s8 CASCADE;
-        DROP ROLE regress_test_indirect;
-        DROP ROLE regress_test_role;
-        DROP ROLE regress_unprivileged_role;
-        -- ERROR
-        REVOKE ALL ON FOREIGN DATA WRAPPER postgresql FROM regress_unprivileged_role;
-        DROP ROLE regress_unprivileged_role;
-        DROP ROLE regress_test_role2;
-        DROP FOREIGN DATA WRAPPER postgresql CASCADE;
-        DROP FOREIGN DATA WRAPPER dummy CASCADE;
-        \c
-        DROP ROLE regress_foreign_data_user;
-        -- At this point we should have no wrappers, no servers, and no mappings.
-        SELECT
-            fdwname,
-            fdwhandler,
-            fdwvalidator,
-            fdwoptions
-        FROM
-            pg_foreign_data_wrapper;
-        SELECT
-            srvname,
-            srvoptions
-        FROM
-            pg_foreign_server;
-        SELECT
-            *
-        FROM
-            pg_user_mapping;
+
+-- ERROR
+-- DROP FOREIGN TABLE
+
+DROP FOREIGN TABLE no_table;
+
+-- ERROR
+DROP FOREIGN TABLE IF EXISTS no_table;
+
+DROP FOREIGN TABLE foreign_schema.foreign_table_1;
+
+-- REASSIGN OWNED/DROP OWNED of foreign objects
+REASSIGN OWNED BY regress_test_role TO regress_test_role2;
+
+DROP OWNED BY regress_test_role2;
+
+DROP OWNED BY regress_test_role2 CASCADE;
+
+-- Foreign partition DDL stuff
+CREATE TABLE fd_pt2 (
+    c1 integer NOT NULL,
+    c2 text,
+    c3 date
+)
+PARTITION BY LIST (c1);
+
+CREATE FOREIGN TABLE fd_pt2_1 PARTITION OF fd_pt2
+FOR VALUES IN (1) SERVER s0 OPTIONS (DELIMITER ',', quote '"', "be quoted" 'value');
+
+\d+ fd_pt2
+\d+ fd_pt2_1
+-- partition cannot have additional columns
+DROP FOREIGN TABLE fd_pt2_1;
+
+CREATE FOREIGN TABLE fd_pt2_1 (
+    c1 integer NOT NULL,
+    c2 text,
+    c3 date,
+    c4 char)
+SERVER s0 OPTIONS (
+    DELIMITER ',',
+    quote '"',
+    "be quoted" 'value'
+);
+
+\d+ fd_pt2_1
+ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
+FOR VALUES IN (1);
+
+-- ERROR
+DROP FOREIGN TABLE fd_pt2_1;
+
+\d+ fd_pt2
+CREATE FOREIGN TABLE fd_pt2_1 (
+    c1 integer NOT NULL,
+    c2 text,
+    c3 date)
+SERVER s0 OPTIONS (
+    DELIMITER ',',
+    quote '"',
+    "be quoted" 'value'
+);
+
+\d+ fd_pt2_1
+-- no attach partition validation occurs for foreign tables
+ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
+FOR VALUES IN (1);
+
+\d+ fd_pt2
+\d+ fd_pt2_1
+-- cannot add column to a partition
+ALTER TABLE fd_pt2_1
+    ADD c4 char;
+
+-- ok to have a partition's own constraints though
+ALTER TABLE fd_pt2_1
+    ALTER c3 SET NOT NULL;
+
+ALTER TABLE fd_pt2_1
+    ADD CONSTRAINT p21chk CHECK (c2 <> '');
+
+\d+ fd_pt2
+\d+ fd_pt2_1
+-- cannot drop inherited NOT NULL constraint from a partition
+ALTER TABLE fd_pt2_1
+    ALTER c1 DROP NOT NULL;
+
+-- partition must have parent's constraints
+ALTER TABLE fd_pt2 DETACH PARTITION fd_pt2_1;
+
+ALTER TABLE fd_pt2
+    ALTER c2 SET NOT NULL;
+
+\d+ fd_pt2
+\d+ fd_pt2_1
+ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
+FOR VALUES IN (1);
+
+-- ERROR
+ALTER FOREIGN TABLE fd_pt2_1
+    ALTER c2 SET NOT NULL;
+
+ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
+FOR VALUES IN (1);
+
+ALTER TABLE fd_pt2 DETACH PARTITION fd_pt2_1;
+
+ALTER TABLE fd_pt2
+    ADD CONSTRAINT fd_pt2chk1 CHECK (c1 > 0);
+
+\d+ fd_pt2
+\d+ fd_pt2_1
+ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
+FOR VALUES IN (1);
+
+-- ERROR
+ALTER FOREIGN TABLE fd_pt2_1
+    ADD CONSTRAINT fd_pt2chk1 CHECK (c1 > 0);
+
+ALTER TABLE fd_pt2 ATTACH PARTITION fd_pt2_1
+FOR VALUES IN (1);
+
+-- TRUNCATE doesn't work on foreign tables, either directly or recursively
+TRUNCATE fd_pt2_1;
+
+-- ERROR
+TRUNCATE fd_pt2;
+
+-- ERROR
+DROP FOREIGN TABLE fd_pt2_1;
+
+DROP TABLE fd_pt2;
+
+-- foreign table cannot be part of partition tree made of temporary
+-- relations.
+
+CREATE TEMP TABLE temp_parted (
+    a int
+)
+PARTITION BY LIST (a);
+
+CREATE FOREIGN TABLE foreign_part PARTITION OF temp_parted DEFAULT SERVER s0;
+
+-- ERROR
+CREATE FOREIGN TABLE foreign_part (
+    a int)
+SERVER s0;
+
+ALTER TABLE temp_parted ATTACH PARTITION foreign_part DEFAULT;
+
+-- ERROR
+DROP FOREIGN TABLE foreign_part;
+
+DROP TABLE temp_parted;
+
+-- Cleanup
+DROP SCHEMA foreign_schema CASCADE;
+
+DROP ROLE regress_test_role;
+
+-- ERROR
+DROP SERVER t1 CASCADE;
+
+DROP USER MAPPING FOR regress_test_role SERVER s6;
+
+DROP FOREIGN DATA WRAPPER foo CASCADE;
+
+DROP SERVER s8 CASCADE;
+
+DROP ROLE regress_test_indirect;
+
+DROP ROLE regress_test_role;
+
+DROP ROLE regress_unprivileged_role;
+
+-- ERROR
+REVOKE ALL ON FOREIGN DATA WRAPPER postgresql FROM regress_unprivileged_role;
+
+DROP ROLE regress_unprivileged_role;
+
+DROP ROLE regress_test_role2;
+
+DROP FOREIGN DATA WRAPPER postgresql CASCADE;
+
+DROP FOREIGN DATA WRAPPER dummy CASCADE;
+
+\c
+DROP ROLE regress_foreign_data_user;
+
+-- At this point we should have no wrappers, no servers, and no mappings.
+SELECT
+    fdwname,
+    fdwhandler,
+    fdwvalidator,
+    fdwoptions
+FROM
+    pg_foreign_data_wrapper;
+
+SELECT
+    srvname,
+    srvoptions
+FROM
+    pg_foreign_server;
+
+SELECT
+    *
+FROM
+    pg_user_mapping;
+

@@ -131,7 +131,8 @@ FROM
 
 -- Check inheritance cases
 CREATE TEMP TABLE foochild (
-    fc int)
+    fc int
+)
 INHERITS (
     foo
 );

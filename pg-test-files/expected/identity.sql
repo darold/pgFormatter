@@ -431,7 +431,8 @@ FROM
 
 -- identity property is not inherited
 CREATE TABLE itest7a (
-    b text)
+    b text
+)
 INHERITS (
     itest7
 );
@@ -442,7 +443,8 @@ CREATE TABLE itest7b (
 );
 
 CREATE TABLE itest7c (
-    a int GENERATED ALWAYS AS IDENTITY)
+    a int GENERATED ALWAYS AS IDENTITY
+)
 INHERITS (
     itest7b
 );

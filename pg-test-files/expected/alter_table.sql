@@ -457,7 +457,8 @@ CREATE TABLE constraint_rename_test (
 \d constraint_rename_test
 CREATE TABLE constraint_rename_test2 (
     a int CONSTRAINT con1 CHECK (a > 0),
-    d int)
+    d int
+)
 INHERITS (
     constraint_rename_test
 );
@@ -782,8 +783,8 @@ WHERE
     AND '2011-08-31';
 
 CREATE TABLE nv_child_2009 (
-    CHECK (d BETWEEN '2009-01-01'::date
-        AND '2009-12-31'::date))
+    CHECK (d BETWEEN '2009-01-01'::date AND '2009-12-31'::date)
+)
 INHERITS (
     nv_parent
 );
@@ -1145,7 +1146,8 @@ CREATE TABLE atacc2 (
 );
 
 CREATE TABLE atacc3 (
-    test3 int)
+    test3 int
+)
 INHERITS (
     atacc1,
     atacc2
@@ -1184,7 +1186,8 @@ CREATE TABLE atacc2 (
 );
 
 CREATE TABLE atacc3 (
-    test3 int)
+    test3 int
+)
 INHERITS (
     atacc1,
     atacc2
@@ -1263,7 +1266,8 @@ CREATE TABLE atacc1 (
 );
 
 CREATE TABLE atacc2 (
-    test2 int)
+    test2 int
+)
 INHERITS (
     atacc1
 );
@@ -1751,7 +1755,8 @@ CREATE TABLE parent (
 );
 
 CREATE TABLE child (
-    b varchar(255))
+    b varchar(255)
+)
 INHERITS (
     parent
 );
@@ -2276,7 +2281,8 @@ ALTER TABLE parent
     DROP a;
 
 CREATE TABLE child (
-    d varchar(255))
+    d varchar(255)
+)
 INHERITS (
     parent
 );
@@ -2319,21 +2325,24 @@ CREATE TABLE parent (
 );
 
 CREATE TABLE child (
-    a float4)
+    a float4
+)
 INHERITS (
     parent
 );
 
 -- fail
 CREATE TABLE child (
-    b decimal(10, 7))
+    b decimal(10, 7)
+)
 INHERITS (
     parent
 );
 
 -- fail
 CREATE TABLE child (
-    c text COLLATE "POSIX")
+    c text COLLATE "POSIX"
+)
 INHERITS (
     parent
 );
@@ -2341,7 +2350,8 @@ INHERITS (
 -- fail
 CREATE TABLE child (
     a double precision,
-    b decimal(10, 4))
+    b decimal(10, 4)
+)
 INHERITS (
     parent
 );
@@ -2388,13 +2398,15 @@ CREATE TABLE dropColumn (
 );
 
 CREATE TABLE dropColumnChild (
-    c int)
+    c int
+)
 INHERITS (
     dropColumn
 );
 
 CREATE TABLE dropColumnAnother (
-    d int)
+    d int
+)
 INHERITS (
     dropColumnChild
 );
@@ -2421,13 +2433,15 @@ CREATE TABLE renameColumn (
 );
 
 CREATE TABLE renameColumnChild (
-    b int)
+    b int
+)
 INHERITS (
     renameColumn
 );
 
 CREATE TABLE renameColumnAnother (
-    c int)
+    c int
+)
 INHERITS (
     renameColumnChild
 );
@@ -2464,7 +2478,8 @@ CREATE TABLE p1 (
 );
 
 CREATE TABLE c1 (
-    f1 int NOT NULL)
+    f1 int NOT NULL
+)
 INHERITS (
     p1
 );
@@ -2547,7 +2562,8 @@ CREATE TABLE p1 (
 );
 
 CREATE TABLE c1 (
-    f1 int NOT NULL)
+    f1 int NOT NULL
+)
 INHERITS (
     p1
 );
@@ -2577,7 +2593,8 @@ CREATE TABLE p2 (
 );
 
 CREATE TABLE c1 (
-    age int)
+    age int
+)
 INHERITS (
     p1,
     p2
@@ -2661,7 +2678,8 @@ DROP TABLE p1, p2 CASCADE;
 CREATE TABLE depth0 ();
 
 CREATE TABLE depth1 (
-    c text)
+    c text
+)
 INHERITS (
     depth0
 );
@@ -2695,7 +2713,8 @@ CREATE TABLE p1 (
 
 CREATE TABLE c1 (
     f2 text,
-    f3 int)
+    f3 int
+)
 INHERITS (
     p1
 );
@@ -3273,7 +3292,8 @@ CREATE TABLE test_type_diff (
 );
 
 CREATE TABLE test_type_diff_c (
-    extra smallint)
+    extra smallint
+)
 INHERITS (
     test_type_diff
 );
@@ -3607,8 +3627,7 @@ ROLLBACK;
 
 BEGIN;
 CREATE TRIGGER ttdummy
-    BEFORE DELETE
-    OR UPDATE ON alterlock FOR EACH ROW
+    BEFORE DELETE OR UPDATE ON alterlock FOR EACH ROW
     EXECUTE PROCEDURE ttdummy (1, 1);
 SELECT
     *
@@ -5099,8 +5118,7 @@ PARTITION BY RANGE (a, b);
 -- check that violating rows are correctly reported
 CREATE TABLE part1 (
     a int NOT NULL CHECK (a = 1),
-    b int NOT NULL CHECK (b >= 1
-        AND b <= 10)
+    b int NOT NULL CHECK (b >= 1 AND b <= 10)
 );
 
 INSERT INTO part1
@@ -5121,8 +5139,7 @@ FOR VALUES FROM (1, 1) TO (1, 10);
 
 CREATE TABLE part2 (
     a int NOT NULL CHECK (a = 1),
-    b int NOT NULL CHECK (b >= 10
-        AND b < 18)
+    b int NOT NULL CHECK (b >= 10 AND b < 18)
 );
 
 ALTER TABLE range_parted ATTACH PARTITION part2
@@ -5201,8 +5218,7 @@ FOR VALUES IN (5);
 CREATE TABLE part_6 (
     c int,
     LIKE list_parted2,
-    CONSTRAINT check_a CHECK (a IS NOT NULL
-        AND a = 6)
+    CONSTRAINT check_a CHECK (a IS NOT NULL AND a = 6)
 );
 
 ALTER TABLE part_6
@@ -5217,8 +5233,7 @@ FOR VALUES IN (6);
 
 CREATE TABLE part_7 (
     LIKE list_parted2,
-    CONSTRAINT check_a CHECK (a IS NOT NULL
-        AND a = 7)
+    CONSTRAINT check_a CHECK (a IS NOT NULL AND a = 7)
 )
 PARTITION BY LIST (b);
 
@@ -5227,10 +5242,8 @@ CREATE TABLE part_7_a_null (
     d int,
     e int,
     LIKE list_parted2, -- 'a' will have attnum = 4
-    CONSTRAINT check_b CHECK (b IS NULL
-        OR b = 'a'),
-    CONSTRAINT check_a CHECK (a IS NOT NULL
-        AND a = 7)
+    CONSTRAINT check_b CHECK (b IS NULL OR b = 'a'),
+    CONSTRAINT check_a CHECK (a IS NOT NULL AND a = 7)
 );
 
 ALTER TABLE part_7_a_null
@@ -5320,8 +5333,7 @@ PARTITION BY LIST (a);
 
 CREATE TABLE quuux_default PARTITION OF quuux DEFAULT PARTITION BY LIST (b);
 
-CREATE TABLE quuux_default1 PARTITION OF quuux_default (CONSTRAINT check_1 CHECK (a IS NOT NULL
-    AND a = 1))
+CREATE TABLE quuux_default1 PARTITION OF quuux_default (CONSTRAINT check_1 CHECK (a IS NOT NULL AND a = 1))
 FOR VALUES IN ('b');
 
 CREATE TABLE quuux1 (

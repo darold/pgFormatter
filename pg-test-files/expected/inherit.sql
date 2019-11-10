@@ -7,19 +7,22 @@ CREATE TABLE a (
 );
 
 CREATE TABLE b (
-    bb TEXT)
+    bb TEXT
+)
 INHERITS (
     a
 );
 
 CREATE TABLE c (
-    cc TEXT)
+    cc TEXT
+)
 INHERITS (
     a
 );
 
 CREATE TABLE d (
-    dd TEXT)
+    dd TEXT
+)
 INHERITS (
     b,
     c,
@@ -511,7 +514,8 @@ WHERE
 -- Confirm PRIMARY KEY adds NOT NULL constraint to child table
 CREATE TEMP TABLE z (
     b TEXT,
-    PRIMARY KEY (aa, b))
+    PRIMARY KEY (aa, b)
+)
 INHERITS (
     a
 );
@@ -588,7 +592,8 @@ CREATE temp TABLE foo (
 );
 
 CREATE temp TABLE foo2 (
-    f3 int)
+    f3 int
+)
 INHERITS (
     foo
 );
@@ -599,7 +604,8 @@ CREATE temp TABLE bar (
 );
 
 CREATE temp TABLE bar2 (
-    f3 int)
+    f3 int
+)
 INHERITS (
     bar
 );
@@ -876,7 +882,8 @@ INHERITS (
 
 -- not ok
 CREATE TABLE otherchild (
-    tomorrow date DEFAULT now())
+    tomorrow date DEFAULT now()
+)
 INHERITS (
     firstparent,
     thirdparent
@@ -936,7 +943,8 @@ INHERITS (
 \d c1
 -- Test that child does not override inheritable constraints of the parent
 CREATE TABLE c2 (
-    CONSTRAINT p2chk CHECK (ff1 > 10) NO inherit)
+    CONSTRAINT p2chk CHECK (ff1 > 10) NO inherit
+)
 INHERITS (
     p1
 );
@@ -958,7 +966,8 @@ INHERITS (
 
 CREATE TABLE more_derived (
     LIKE derived,
-    b int)
+    b int
+)
 INHERITS (
     derived
 );
@@ -1013,7 +1022,8 @@ CREATE FUNCTION p2text (p2)
     LANGUAGE sql;
 
 CREATE TABLE c1 (
-    f3 int)
+    f3 int
+)
 INHERITS (
     p1,
     p2
@@ -1043,7 +1053,8 @@ ALTER TABLE ac
     ADD CONSTRAINT ac_check CHECK (aa IS NOT NULL);
 
 CREATE TABLE bc (
-    bb TEXT)
+    bb TEXT
+)
 INHERITS (
     ac
 );
@@ -1211,7 +1222,8 @@ CREATE TABLE ac (
 
 CREATE TABLE bc (
     a int CONSTRAINT check_a CHECK (a <> 0),
-    b int CONSTRAINT check_b CHECK (b <> 0))
+    b int CONSTRAINT check_b CHECK (b <> 0)
+)
 INHERITS (
     ac
 );
@@ -1245,7 +1257,8 @@ CREATE TABLE bc (
 );
 
 CREATE TABLE cc (
-    c int CONSTRAINT check_c CHECK (c <> 0))
+    c int CONSTRAINT check_c CHECK (c <> 0)
+)
 INHERITS (
     ac,
     bc
@@ -1300,7 +1313,8 @@ CREATE TABLE p2 (
 );
 
 CREATE TABLE c1 (
-    f3 int)
+    f3 int
+)
 INHERITS (
     p1,
     p2
@@ -1330,7 +1344,8 @@ INSERT INTO c1
 
 -- fail
 CREATE TABLE c2 (
-    f3 int)
+    f3 int
+)
 INHERITS (
     p1,
     p2
@@ -1338,7 +1353,8 @@ INHERITS (
 
 \d c2
 CREATE TABLE c3 (
-    f4 int)
+    f4 int
+)
 INHERITS (
     c1,
     c2
@@ -1355,7 +1371,8 @@ CREATE TABLE pp1 (
 
 CREATE TABLE cc1 (
     f2 text,
-    f3 int)
+    f3 int
+)
 INHERITS (
     pp1
 );
@@ -1365,7 +1382,8 @@ ALTER TABLE pp1
 
 \d cc1
 CREATE TABLE cc2 (
-    f4 float)
+    f4 float
+)
 INHERITS (
     pp1,
     cc1
@@ -1390,7 +1408,8 @@ CREATE TABLE inhs1 (
 );
 
 CREATE TABLE inhts (
-    d int)
+    d int
+)
 INHERITS (
     inht1,
     inhs1
@@ -1411,19 +1430,22 @@ DROP TABLE inhts;
 
 -- Test for renaming in diamond inheritance
 CREATE TABLE inht2 (
-    x int)
+    x int
+)
 INHERITS (
     inht1
 );
 
 CREATE TABLE inht3 (
-    y int)
+    y int
+)
 INHERITS (
     inht1
 );
 
 CREATE TABLE inht4 (
-    z int)
+    z int
+)
 INHERITS (
     inht2,
     inht3
@@ -1433,7 +1455,8 @@ ALTER TABLE inht1 RENAME aa TO aaa;
 
 \d+ inht4
 CREATE TABLE inhts (
-    d int)
+    d int
+)
 INHERITS (
     inht2,
     inhs1
@@ -1803,19 +1826,22 @@ CREATE TABLE matest0 (
 );
 
 CREATE TABLE matest1 (
-    id integer PRIMARY KEY)
+    id integer PRIMARY KEY
+)
 INHERITS (
     matest0
 );
 
 CREATE TABLE matest2 (
-    id integer PRIMARY KEY)
+    id integer PRIMARY KEY
+)
 INHERITS (
     matest0
 );
 
 CREATE TABLE matest3 (
-    id integer PRIMARY KEY)
+    id integer PRIMARY KEY
+)
 INHERITS (
     matest0
 );
@@ -2161,8 +2187,8 @@ CREATE TABLE cnullparent (
 );
 
 CREATE TABLE cnullchild (
-    CHECK (f1 = 1
-        OR f1 = NULL))
+    CHECK (f1 = 1 OR f1 = NULL)
+)
 INHERITS (
     cnullparent
 );

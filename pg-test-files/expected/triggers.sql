@@ -52,13 +52,11 @@ CREATE UNIQUE INDEX pkeys_i ON pkeys (pkey1, pkey2);
 --
 
 CREATE TRIGGER check_fkeys_pkey_exist
-    BEFORE INSERT
-    OR UPDATE ON fkeys FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON fkeys FOR EACH ROW
     EXECUTE FUNCTION check_primary_key ('fkey1', 'fkey2', 'pkeys', 'pkey1', 'pkey2');
 
 CREATE TRIGGER check_fkeys_pkey2_exist
-    BEFORE INSERT
-    OR UPDATE ON fkeys FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON fkeys FOR EACH ROW
     EXECUTE FUNCTION check_primary_key ('fkey3', 'fkeys2', 'pkey23');
 
 --
@@ -67,8 +65,7 @@ CREATE TRIGGER check_fkeys_pkey2_exist
 --
 
 CREATE TRIGGER check_fkeys2_pkey_exist
-    BEFORE INSERT
-    OR UPDATE ON fkeys2 FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON fkeys2 FOR EACH ROW
     EXECUTE PROCEDURE check_primary_key ('fkey21', 'fkey22', 'pkeys', 'pkey1', 'pkey2');
 
 -- Test comments
@@ -85,8 +82,7 @@ COMMENT ON TRIGGER check_fkeys2_pkey_exist ON fkeys2 IS NULL;
 --
 
 CREATE TRIGGER check_pkeys_fkey_cascade
-    BEFORE DELETE
-    OR UPDATE ON pkeys FOR EACH ROW
+    BEFORE DELETE OR UPDATE ON pkeys FOR EACH ROW
     EXECUTE PROCEDURE check_foreign_key (2, 'cascade', 'pkey1', 'pkey2', 'fkeys', 'fkey1', 'fkey2', 'fkeys2', 'fkey21', 'fkey22');
 
 --
@@ -96,8 +92,7 @@ CREATE TRIGGER check_pkeys_fkey_cascade
 --
 
 CREATE TRIGGER check_fkeys2_fkey_restrict
-    BEFORE DELETE
-    OR UPDATE ON fkeys2 FOR EACH ROW
+    BEFORE DELETE OR UPDATE ON fkeys2 FOR EACH ROW
     EXECUTE PROCEDURE check_foreign_key (1, 'restrict', 'pkey23', 'fkeys', 'fkey3');
 
 INSERT INTO fkeys2
@@ -194,9 +189,7 @@ CREATE TABLE trigtest (
 );
 
 CREATE TRIGGER trigger_return_old
-    BEFORE INSERT
-    OR DELETE
-    OR UPDATE ON trigtest FOR EACH ROW
+    BEFORE INSERT OR DELETE OR UPDATE ON trigtest FOR EACH ROW
     EXECUTE PROCEDURE trigger_return_old ();
 
 INSERT INTO trigtest
@@ -238,13 +231,11 @@ CREATE TABLE tttest (
 );
 
 CREATE TRIGGER ttdummy
-    BEFORE DELETE
-    OR UPDATE ON tttest FOR EACH ROW
+    BEFORE DELETE OR UPDATE ON tttest FOR EACH ROW
     EXECUTE PROCEDURE ttdummy (price_on, price_off);
 
 CREATE TRIGGER ttserial
-    BEFORE INSERT
-    OR UPDATE ON tttest FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON tttest FOR EACH ROW
     EXECUTE PROCEDURE autoinc (price_on, ttdummy_seq);
 
 INSERT INTO tttest
@@ -616,8 +607,7 @@ INSERT INTO table_with_oids
 
 CREATE TRIGGER oid_unchanged_trig
     AFTER UPDATE ON table_with_oids FOR EACH ROW
-    WHEN (new.tableoid = old.tableoid
-    AND new.tableoid <> 0)
+    WHEN (new.tableoid = old.tableoid AND new.tableoid <> 0)
     EXECUTE PROCEDURE trigger_func ('after_upd_oid_unchanged');
 
 UPDATE
@@ -700,8 +690,7 @@ CREATE TRIGGER some_trig_before
 CREATE TRIGGER some_trig_aftera
     AFTER UPDATE ON some_t
     FOR EACH ROW
-    WHEN (NOT OLD.some_col
-    AND NEW.some_col)
+    WHEN (NOT OLD.some_col AND NEW.some_col)
     EXECUTE PROCEDURE dummy_update_func ('aftera');
 
 CREATE TRIGGER some_trig_afterb
@@ -732,8 +721,7 @@ DROP TABLE some_t;
 
 -- bogus cases
 CREATE TRIGGER error_upd_and_col
-    BEFORE UPDATE
-    OR UPDATE OF a ON main_table
+    BEFORE UPDATE OR UPDATE OF a ON main_table
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_func ('error_upd_and_col');
 
@@ -749,22 +737,19 @@ CREATE TRIGGER error_ins_a
     EXECUTE PROCEDURE trigger_func ('error_ins_a');
 
 CREATE TRIGGER error_ins_when
-    BEFORE INSERT
-    OR UPDATE ON main_table
+    BEFORE INSERT OR UPDATE ON main_table
     FOR EACH ROW
     WHEN (OLD.a <> NEW.a)
     EXECUTE PROCEDURE trigger_func ('error_ins_old');
 
 CREATE TRIGGER error_del_when
-    BEFORE DELETE
-    OR UPDATE ON main_table
+    BEFORE DELETE OR UPDATE ON main_table
     FOR EACH ROW
     WHEN (OLD.a <> NEW.a)
     EXECUTE PROCEDURE trigger_func ('error_del_new');
 
 CREATE TRIGGER error_del_when
-    BEFORE INSERT
-    OR UPDATE ON main_table
+    BEFORE INSERT OR UPDATE ON main_table
     FOR EACH ROW
     WHEN (NEW.tableoid <> 0)
     EXECUTE PROCEDURE trigger_func ('error_when_sys_column');
@@ -809,27 +794,19 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trigtest_b_row_tg
-    BEFORE INSERT
-    OR UPDATE
-    OR DELETE ON trigtest FOR EACH ROW
+    BEFORE INSERT OR UPDATE OR DELETE ON trigtest FOR EACH ROW
     EXECUTE PROCEDURE trigtest ();
 
 CREATE TRIGGER trigtest_a_row_tg
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON trigtest FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON trigtest FOR EACH ROW
     EXECUTE PROCEDURE trigtest ();
 
 CREATE TRIGGER trigtest_b_stmt_tg
-    BEFORE INSERT
-    OR UPDATE
-    OR DELETE ON trigtest FOR EACH statement
+    BEFORE INSERT OR UPDATE OR DELETE ON trigtest FOR EACH statement
     EXECUTE PROCEDURE trigtest ();
 
 CREATE TRIGGER trigtest_a_stmt_tg
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON trigtest FOR EACH statement
+    AFTER INSERT OR UPDATE OR DELETE ON trigtest FOR EACH statement
     EXECUTE PROCEDURE trigtest ();
 
 INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest disable TRIGGER trigtest_b_row_tg;
@@ -932,9 +909,7 @@ END;
 $$;
 
 CREATE TRIGGER show_trigger_data_trig
-    BEFORE INSERT
-    OR UPDATE
-    OR DELETE ON trigger_test
+    BEFORE INSERT OR UPDATE OR DELETE ON trigger_test
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_data (23, 'skidoo');
 
@@ -1663,11 +1638,9 @@ CREATE FUNCTION no_op_trig_fn ()
     AS 'begin RETURN NULL; end'
 ;
 
-CREATE TRIGGER no_op_trig INSTEAD OF INSERT
-    OR UPDATE
-    OR DELETE ON european_city_view
-    FOR EACH ROW
-    EXECUTE PROCEDURE no_op_trig_fn ();
+CREATE TRIGGER no_op_trig INSTEAD OF INSERT OR UPDATE OR DELETE ON european_city_view
+FOR EACH ROW
+EXECUTE PROCEDURE no_op_trig_fn ();
 
 \set QUIET false
 INSERT INTO european_city_view
@@ -2281,8 +2254,7 @@ END;
 $$;
 
 CREATE TRIGGER upsert_before_trig
-    BEFORE INSERT
-    OR UPDATE ON upsert FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON upsert FOR EACH ROW
     EXECUTE PROCEDURE upsert_before_func ();
 
 CREATE FUNCTION upsert_after_func ()
@@ -2301,8 +2273,7 @@ END;
 $$;
 
 CREATE TRIGGER upsert_after_trig
-    AFTER INSERT
-    OR UPDATE ON upsert FOR EACH ROW
+    AFTER INSERT OR UPDATE ON upsert FOR EACH ROW
     EXECUTE PROCEDURE upsert_after_func ();
 
 INSERT INTO upsert
@@ -2423,9 +2394,7 @@ END;
 $$;
 
 CREATE TRIGGER failed
-    BEFORE INSERT
-    OR UPDATE
-    OR DELETE ON parted_trig FOR EACH ROW
+    BEFORE INSERT OR UPDATE OR DELETE ON parted_trig FOR EACH ROW
     EXECUTE PROCEDURE trigger_nothing ();
 
 CREATE TRIGGER failed INSTEAD OF UPDATE ON parted_trig FOR EACH ROW
@@ -2800,8 +2769,7 @@ CREATE TRIGGER parted_trig
 
 CREATE TRIGGER parted_trig_odd
     AFTER INSERT ON parted_irreg FOR EACH ROW
-    WHEN (bark (new.b)
-    AND new.a % 2 = 1)
+    WHEN (bark (new.b) AND new.a % 2 = 1)
     EXECUTE PROCEDURE trigger_notice_ab ();
 
 -- we should hear barking for every insert, but parted_trig_odd only emits
@@ -2844,12 +2812,13 @@ CREATE TABLE parted1_constr (
 ALTER TABLE parted_constr ATTACH PARTITION parted1_constr
 FOR VALUES FROM ('aaaa') TO ('bbbb');
 
-CREATE CONSTRAINT TRIGGER parted_trig AFTER INSERT ON parted_constr_ancestor DEFERRABLE FOR EACH ROW EXECUTE PROCEDURE trigger_notice_ab ();
+CREATE CONSTRAINT TRIGGER parted_trig
+    AFTER INSERT ON parted_constr_ancestor DEFERRABLE FOR EACH ROW
+    EXECUTE PROCEDURE trigger_notice_ab ();
 
-CREATE CONSTRAINT TRIGGER parted_trig_two AFTER INSERT ON parted_constr DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
-WHEN (
-        bark (new.b)
-        AND new.a % 2 = 1)
+CREATE CONSTRAINT TRIGGER parted_trig_two
+    AFTER INSERT ON parted_constr DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+    WHEN (bark (new.b) AND new.a % 2 = 1)
     EXECUTE PROCEDURE trigger_notice_ab ();
 
 -- The immediate constraint is fired immediately; the WHEN clause of the
@@ -2904,9 +2873,8 @@ FOR VALUES FROM (1000) TO (2000);
 
 CREATE TRIGGER parted_trigger
     AFTER UPDATE ON parted_trigger FOR EACH ROW
-    WHEN (new.a % 2 = 1
-    AND length(old.b) >= 2)
-        EXECUTE PROCEDURE trigger_notice_ab ();
+    WHEN (new.a % 2 = 1 AND length(old.b) >= 2)
+    EXECUTE PROCEDURE trigger_notice_ab ();
 
 CREATE TABLE parted_trigger_3 (
     b text,
@@ -2966,13 +2934,17 @@ ALTER TABLE parted_trigger_2
 ALTER TABLE parted_trigger ATTACH PARTITION parted_trigger_2
 FOR VALUES FROM (1000) TO (2000);
 
-CREATE CONSTRAINT TRIGGER parted_trigger AFTER UPDATE ON parted_trigger
+CREATE CONSTRAINT TRIGGER parted_trigger
+    AFTER UPDATE ON parted_trigger
 FROM
-    parted_referenced FOR EACH ROW EXECUTE PROCEDURE trigger_notice_ab ();
+    parted_referenced FOR EACH ROW
+    EXECUTE PROCEDURE trigger_notice_ab ();
 
-CREATE CONSTRAINT TRIGGER parted_trigger AFTER UPDATE ON unparted_trigger
+CREATE CONSTRAINT TRIGGER parted_trigger
+    AFTER UPDATE ON unparted_trigger
 FROM
-    parted_referenced FOR EACH ROW EXECUTE PROCEDURE trigger_notice_ab ();
+    parted_referenced FOR EACH ROW
+    EXECUTE PROCEDURE trigger_notice_ab ();
 
 CREATE TABLE parted_trigger_3 (
     b text,
@@ -3121,7 +3093,7 @@ BEGIN
             string_agg(new_table::text, ', ' ORDER BY a)
         FROM
             new_table);
-RETURN NULL;
+    RETURN NULL;
 END;
 $$;
 
@@ -3140,7 +3112,7 @@ BEGIN
             string_agg(new_table::text, ', ' ORDER BY a)
         FROM
             new_table);
-RETURN NULL;
+    RETURN NULL;
 END;
 $$;
 
@@ -3154,7 +3126,7 @@ BEGIN
             string_agg(old_table::text, ', ' ORDER BY a)
         FROM
             old_table);
-RETURN NULL;
+    RETURN NULL;
 END;
 $$;
 
@@ -3199,104 +3171,140 @@ FOR VALUES IN ('CCC');
 
 CREATE TRIGGER parent_insert_trig
     AFTER INSERT ON parent referencing new TABLE AS new_table FOR EACH statement
-    EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER parent_update_trig
-            AFTER UPDATE ON parent referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER parent_delete_trig
-            AFTER DELETE ON parent referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        CREATE TRIGGER child1_insert_trig
-            AFTER INSERT ON child1 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER child1_update_trig
-            AFTER UPDATE ON child1 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER child1_delete_trig
-            AFTER DELETE ON child1 referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        CREATE TRIGGER child2_insert_trig
-            AFTER INSERT ON child2 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER child2_update_trig
-            AFTER UPDATE ON child2 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER child2_delete_trig
-            AFTER DELETE ON child2 referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        CREATE TRIGGER child3_insert_trig
-            AFTER INSERT ON child3 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER child3_update_trig
-            AFTER UPDATE ON child3 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER child3_delete_trig
-            AFTER DELETE ON child3 referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        SELECT
-            trigger_name,
-            event_manipulation,
-            event_object_schema,
-            event_object_table,
-            action_order,
-            action_condition,
-            action_orientation,
-            action_timing,
-            action_reference_old_table,
-            action_reference_new_table
-        FROM
-            information_schema.triggers
-        WHERE
-            event_object_table IN ('parent', 'child1', 'child2', 'child3')
-        ORDER BY
-            trigger_name COLLATE "C",
-            2;
-        -- insert directly into children sees respective child-format tuples
-        INSERT INTO child1
-        VALUES ('AAA', 42);
-        INSERT INTO child2
-        VALUES ('BBB', 42);
-        INSERT INTO child3
-        VALUES (42, 'CCC');
-        -- update via parent sees parent-format tuples
-        UPDATE
-            parent
-        SET
-            b = b + 1;
-        -- delete via parent sees parent-format tuples
-        DELETE FROM parent;
-        -- insert into parent sees parent-format tuples
-        INSERT INTO parent
-        VALUES ('AAA', 42);
-        INSERT INTO parent
-        VALUES ('BBB', 42);
-        INSERT INTO parent
-        VALUES ('CCC', 42);
-        -- delete from children sees respective child-format tuples
-        DELETE FROM child1;
-        DELETE FROM child2;
-        DELETE FROM child3;
-        -- DML affecting parent sees tuples collected from children even if
-        -- there is no transition table trigger on the children
-        DROP TRIGGER child1_insert_trig ON child1;
-        DROP TRIGGER child1_update_trig ON child1;
-        DROP TRIGGER child1_delete_trig ON child1;
-        DROP TRIGGER child2_insert_trig ON child2;
-        DROP TRIGGER child2_update_trig ON child2;
-        DROP TRIGGER child2_delete_trig ON child2;
-        DROP TRIGGER child3_insert_trig ON child3;
-        DROP TRIGGER child3_update_trig ON child3;
-        DROP TRIGGER child3_delete_trig ON child3;
-        DELETE FROM parent;
-        -- insert into parent with a before trigger on a child tuple before
-        -- insertion, and we capture the newly modified row in parent format
-        CREATE OR REPLACE FUNCTION intercept_insert ( )
-            RETURNS TRIGGER
-            LANGUAGE plpgsql
-            AS $$
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER parent_update_trig
+    AFTER UPDATE ON parent referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER parent_delete_trig
+    AFTER DELETE ON parent referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+CREATE TRIGGER child1_insert_trig
+    AFTER INSERT ON child1 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER child1_update_trig
+    AFTER UPDATE ON child1 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER child1_delete_trig
+    AFTER DELETE ON child1 referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+CREATE TRIGGER child2_insert_trig
+    AFTER INSERT ON child2 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER child2_update_trig
+    AFTER UPDATE ON child2 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER child2_delete_trig
+    AFTER DELETE ON child2 referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+CREATE TRIGGER child3_insert_trig
+    AFTER INSERT ON child3 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER child3_update_trig
+    AFTER UPDATE ON child3 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER child3_delete_trig
+    AFTER DELETE ON child3 referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+SELECT
+    trigger_name,
+    event_manipulation,
+    event_object_schema,
+    event_object_table,
+    action_order,
+    action_condition,
+    action_orientation,
+    action_timing,
+    action_reference_old_table,
+    action_reference_new_table
+FROM
+    information_schema.triggers
+WHERE
+    event_object_table IN ('parent', 'child1', 'child2', 'child3')
+ORDER BY
+    trigger_name COLLATE "C",
+    2;
+
+-- insert directly into children sees respective child-format tuples
+INSERT INTO child1
+    VALUES ('AAA', 42);
+
+INSERT INTO child2
+    VALUES ('BBB', 42);
+
+INSERT INTO child3
+    VALUES (42, 'CCC');
+
+-- update via parent sees parent-format tuples
+UPDATE
+    parent
+SET
+    b = b + 1;
+
+-- delete via parent sees parent-format tuples
+DELETE FROM parent;
+
+-- insert into parent sees parent-format tuples
+INSERT INTO parent
+    VALUES ('AAA', 42);
+
+INSERT INTO parent
+    VALUES ('BBB', 42);
+
+INSERT INTO parent
+    VALUES ('CCC', 42);
+
+-- delete from children sees respective child-format tuples
+DELETE FROM child1;
+
+DELETE FROM child2;
+
+DELETE FROM child3;
+
+-- DML affecting parent sees tuples collected from children even if
+-- there is no transition table trigger on the children
+
+DROP TRIGGER child1_insert_trig ON child1;
+
+DROP TRIGGER child1_update_trig ON child1;
+
+DROP TRIGGER child1_delete_trig ON child1;
+
+DROP TRIGGER child2_insert_trig ON child2;
+
+DROP TRIGGER child2_update_trig ON child2;
+
+DROP TRIGGER child2_delete_trig ON child2;
+
+DROP TRIGGER child3_insert_trig ON child3;
+
+DROP TRIGGER child3_update_trig ON child3;
+
+DROP TRIGGER child3_delete_trig ON child3;
+
+DELETE FROM parent;
+
+-- insert into parent with a before trigger on a child tuple before
+-- insertion, and we capture the newly modified row in parent format
+
+CREATE OR REPLACE FUNCTION intercept_insert ()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
 BEGIN
     new.b = new.b + 1000;
-RETURN new;
+    RETURN new;
 END;
 $$;
 
@@ -3329,360 +3337,481 @@ FOR VALUES IN ('AAA');
 -- adding row trigger with transition table fails
 CREATE TRIGGER child_row_trig
     AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
-    EXECUTE PROCEDURE dump_insert ( );
-        -- detaching it first works
-        ALTER TABLE parent DETACH PARTITION child;
-        CREATE TRIGGER child_row_trig
-            AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
-            EXECUTE PROCEDURE dump_insert ( );
-        -- but now we're not allowed to reattach it
-        ALTER TABLE parent ATTACH PARTITION child
-    FOR VALUES IN ('AAA');
-        -- drop the trigger, and now we're allowed to attach it again
-        DROP TRIGGER child_row_trig ON child;
-        ALTER TABLE parent ATTACH PARTITION child
-    FOR VALUES IN ('AAA');
-        DROP TABLE child, parent;
-        --
-        -- Verify behavior of statement triggers on (non-partition)
-        -- inheritance hierarchy with transition tables; similar to the
-        -- partition case, except there is no rerouting on insertion and child
-        -- tables can have extra columns
-        --
-        -- set up inheritance hierarchy with different TupleDescriptors
-        CREATE TABLE parent (
-            a text,
-            b int
-        );
-        -- a child matching parent
-        CREATE TABLE child1 ( )
-        INHERITS (
-            parent
-        );
-        -- a child with a different column order
-        CREATE TABLE child2 (
-            b int,
-            a text
-        );
-        ALTER TABLE child2 inherit parent;
-        -- a child with an extra column
-        CREATE TABLE child3 (
-            c text )
-        INHERITS (
-            parent
-        );
-        CREATE TRIGGER parent_insert_trig
-            AFTER INSERT ON parent referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER parent_update_trig
-            AFTER UPDATE ON parent referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER parent_delete_trig
-            AFTER DELETE ON parent referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        CREATE TRIGGER child1_insert_trig
-            AFTER INSERT ON child1 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER child1_update_trig
-            AFTER UPDATE ON child1 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER child1_delete_trig
-            AFTER DELETE ON child1 referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        CREATE TRIGGER child2_insert_trig
-            AFTER INSERT ON child2 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER child2_update_trig
-            AFTER UPDATE ON child2 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER child2_delete_trig
-            AFTER DELETE ON child2 referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        CREATE TRIGGER child3_insert_trig
-            AFTER INSERT ON child3 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER child3_update_trig
-            AFTER UPDATE ON child3 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER child3_delete_trig
-            AFTER DELETE ON child3 referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        -- insert directly into children sees respective child-format tuples
-        INSERT INTO child1
-        VALUES ('AAA', 42);
-        INSERT INTO child2
-        VALUES (42, 'BBB');
-        INSERT INTO child3
-        VALUES ('CCC', 42, 'foo');
-        -- update via parent sees parent-format tuples
-        UPDATE
-            parent
-        SET
-            b = b + 1;
-        -- delete via parent sees parent-format tuples
-        DELETE FROM parent;
-        -- reinsert values into children for next test...
-        INSERT INTO child1
-        VALUES ('AAA', 42);
-        INSERT INTO child2
-        VALUES (42, 'BBB');
-        INSERT INTO child3
-        VALUES ('CCC', 42, 'foo');
-        -- delete from children sees respective child-format tuples
-        DELETE FROM child1;
-        DELETE FROM child2;
-        DELETE FROM child3;
-        -- same behavior for copy if there is an index (interesting because rows are
-        -- captured by a different code path in copy.c if there are indexes)
-        CREATE INDEX ON parent (b);
-        -- DML affecting parent sees tuples collected from children even if
-        -- there is no transition table trigger on the children
-        DROP TRIGGER child1_insert_trig ON child1;
-        DROP TRIGGER child1_update_trig ON child1;
-        DROP TRIGGER child1_delete_trig ON child1;
-        DROP TRIGGER child2_insert_trig ON child2;
-        DROP TRIGGER child2_update_trig ON child2;
-        DROP TRIGGER child2_delete_trig ON child2;
-        DROP TRIGGER child3_insert_trig ON child3;
-        DROP TRIGGER child3_update_trig ON child3;
-        DROP TRIGGER child3_delete_trig ON child3;
-        DELETE FROM parent;
-        DROP TABLE child1, child2, child3, parent;
-        --
-        -- Verify prohibition of row triggers with transition triggers on
-        -- inheritance children
-        --
-        CREATE TABLE parent (
-            a text,
-            b int
-        );
-        CREATE TABLE child ( )
-        INHERITS (
-            parent
-        );
-        -- adding row trigger with transition table fails
-        CREATE TRIGGER child_row_trig
-            AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
-            EXECUTE PROCEDURE dump_insert ( );
-        -- disinheriting it first works
-        ALTER TABLE child NO inherit parent;
-        CREATE TRIGGER child_row_trig
-            AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
-            EXECUTE PROCEDURE dump_insert ( );
-        -- but now we're not allowed to make it inherit anymore
-        ALTER TABLE child inherit parent;
-        -- drop the trigger, and now we're allowed to make it inherit again
-        DROP TRIGGER child_row_trig ON child;
-        ALTER TABLE child inherit parent;
-        DROP TABLE child, parent;
-        --
-        -- Verify behavior of queries with wCTEs, where multiple transition
-        -- tuplestores can be active at the same time because there are
-        -- multiple DML statements that might fire triggers with transition
-        -- tables
-        --
-        CREATE TABLE table1 (
-            a int
-        );
-        CREATE TABLE table2 (
-            a text
-        );
-        CREATE TRIGGER table1_trig
-            AFTER INSERT ON table1 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER table2_trig
-            AFTER INSERT ON table2 referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        WITH wcte AS (
+    EXECUTE PROCEDURE dump_insert ();
+
+-- detaching it first works
+ALTER TABLE parent DETACH PARTITION child;
+
+CREATE TRIGGER child_row_trig
+    AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
+    EXECUTE PROCEDURE dump_insert ();
+
+-- but now we're not allowed to reattach it
+ALTER TABLE parent ATTACH PARTITION child
+FOR VALUES IN ('AAA');
+
+-- drop the trigger, and now we're allowed to attach it again
+DROP TRIGGER child_row_trig ON child;
+
+ALTER TABLE parent ATTACH PARTITION child
+FOR VALUES IN ('AAA');
+
+DROP TABLE child, parent;
+
+--
+-- Verify behavior of statement triggers on (non-partition)
+-- inheritance hierarchy with transition tables; similar to the
+-- partition case, except there is no rerouting on insertion and child
+-- tables can have extra columns
+--
+-- set up inheritance hierarchy with different TupleDescriptors
+
+CREATE TABLE parent (
+    a text,
+    b int
+);
+
+-- a child matching parent
+CREATE TABLE child1 ()
+INHERITS (
+    parent
+);
+
+-- a child with a different column order
+CREATE TABLE child2 (
+    b int,
+    a text
+);
+
+ALTER TABLE child2 inherit parent;
+
+-- a child with an extra column
+CREATE TABLE child3 (
+    c text
+)
+INHERITS (
+    parent
+);
+
+CREATE TRIGGER parent_insert_trig
+    AFTER INSERT ON parent referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER parent_update_trig
+    AFTER UPDATE ON parent referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER parent_delete_trig
+    AFTER DELETE ON parent referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+CREATE TRIGGER child1_insert_trig
+    AFTER INSERT ON child1 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER child1_update_trig
+    AFTER UPDATE ON child1 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER child1_delete_trig
+    AFTER DELETE ON child1 referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+CREATE TRIGGER child2_insert_trig
+    AFTER INSERT ON child2 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER child2_update_trig
+    AFTER UPDATE ON child2 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER child2_delete_trig
+    AFTER DELETE ON child2 referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+CREATE TRIGGER child3_insert_trig
+    AFTER INSERT ON child3 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER child3_update_trig
+    AFTER UPDATE ON child3 referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER child3_delete_trig
+    AFTER DELETE ON child3 referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+-- insert directly into children sees respective child-format tuples
+INSERT INTO child1
+    VALUES ('AAA', 42);
+
+INSERT INTO child2
+    VALUES (42, 'BBB');
+
+INSERT INTO child3
+    VALUES ('CCC', 42, 'foo');
+
+-- update via parent sees parent-format tuples
+UPDATE
+    parent
+SET
+    b = b + 1;
+
+-- delete via parent sees parent-format tuples
+DELETE FROM parent;
+
+-- reinsert values into children for next test...
+INSERT INTO child1
+    VALUES ('AAA', 42);
+
+INSERT INTO child2
+    VALUES (42, 'BBB');
+
+INSERT INTO child3
+    VALUES ('CCC', 42, 'foo');
+
+-- delete from children sees respective child-format tuples
+DELETE FROM child1;
+
+DELETE FROM child2;
+
+DELETE FROM child3;
+
+-- same behavior for copy if there is an index (interesting because rows are
+-- captured by a different code path in copy.c if there are indexes)
+
+CREATE INDEX ON parent (b);
+
+-- DML affecting parent sees tuples collected from children even if
+-- there is no transition table trigger on the children
+
+DROP TRIGGER child1_insert_trig ON child1;
+
+DROP TRIGGER child1_update_trig ON child1;
+
+DROP TRIGGER child1_delete_trig ON child1;
+
+DROP TRIGGER child2_insert_trig ON child2;
+
+DROP TRIGGER child2_update_trig ON child2;
+
+DROP TRIGGER child2_delete_trig ON child2;
+
+DROP TRIGGER child3_insert_trig ON child3;
+
+DROP TRIGGER child3_update_trig ON child3;
+
+DROP TRIGGER child3_delete_trig ON child3;
+
+DELETE FROM parent;
+
+DROP TABLE child1, child2, child3, parent;
+
+--
+-- Verify prohibition of row triggers with transition triggers on
+-- inheritance children
+--
+
+CREATE TABLE parent (
+    a text,
+    b int
+);
+
+CREATE TABLE child ()
+INHERITS (
+    parent
+);
+
+-- adding row trigger with transition table fails
+CREATE TRIGGER child_row_trig
+    AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
+    EXECUTE PROCEDURE dump_insert ();
+
+-- disinheriting it first works
+ALTER TABLE child NO inherit parent;
+
+CREATE TRIGGER child_row_trig
+    AFTER INSERT ON child referencing new TABLE AS new_table FOR EACH ROW
+    EXECUTE PROCEDURE dump_insert ();
+
+-- but now we're not allowed to make it inherit anymore
+ALTER TABLE child inherit parent;
+
+-- drop the trigger, and now we're allowed to make it inherit again
+DROP TRIGGER child_row_trig ON child;
+
+ALTER TABLE child inherit parent;
+
+DROP TABLE child, parent;
+
+--
+-- Verify behavior of queries with wCTEs, where multiple transition
+-- tuplestores can be active at the same time because there are
+-- multiple DML statements that might fire triggers with transition
+-- tables
+--
+
+CREATE TABLE table1 (
+    a int
+);
+
+CREATE TABLE table2 (
+    a text
+);
+
+CREATE TRIGGER table1_trig
+    AFTER INSERT ON table1 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER table2_trig
+    AFTER INSERT ON table2 referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+WITH wcte AS (
 INSERT INTO table1
-            VALUES (42))
-    INSERT INTO table2
+    VALUES (42))
+INSERT INTO table2
     VALUES ('hello world');
-            WITH wcte AS (
+
+WITH wcte AS (
 INSERT INTO table1
-                VALUES (43))
-        INSERT INTO table1
-        VALUES (44);
-                SELECT
-                    *
-                FROM
-                    table1;
-                SELECT
-                    *
-                FROM
-                    table2;
-                DROP TABLE table1;
-                DROP TABLE table2;
-                --
-                -- Verify behavior of INSERT ... ON CONFLICT DO UPDATE ... with
-                -- transition tables.
-                --
-                CREATE TABLE my_table (
-                    a int PRIMARY KEY,
-                    b text
-                );
-            CREATE TRIGGER my_table_insert_trig
-                AFTER INSERT ON my_table referencing new TABLE AS new_table FOR EACH statement
-                EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER my_table_update_trig
-            AFTER UPDATE ON my_table referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        -- inserts only
-        INSERT INTO my_table
-        VALUES (1, 'AAA'), (2, 'BBB') ON CONFLICT (a)
-        DO
-        UPDATE
-        SET
-            b = my_table.b || ':' || excluded.b;
-        -- mixture of inserts and updates
-        INSERT INTO my_table
-        VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-        DO
-        UPDATE
-        SET
-            b = my_table.b || ':' || excluded.b;
-        -- updates only
-        INSERT INTO my_table
-        VALUES (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-        DO
-        UPDATE
-        SET
-            b = my_table.b || ':' || excluded.b;
-        --
-        -- now using a partitioned table
-        --
-        CREATE TABLE iocdu_tt_parted (
-            a int PRIMARY KEY,
-            b text
-        )
-PARTITION BY LIST (a );
-        CREATE TABLE iocdu_tt_parted1 PARTITION OF iocdu_tt_parted
-    FOR VALUES IN (1 );
-        CREATE TABLE iocdu_tt_parted2 PARTITION OF iocdu_tt_parted
-    FOR VALUES IN (2 );
-        CREATE TABLE iocdu_tt_parted3 PARTITION OF iocdu_tt_parted
-    FOR VALUES IN (3 );
-        CREATE TABLE iocdu_tt_parted4 PARTITION OF iocdu_tt_parted
-    FOR VALUES IN (4 );
-        CREATE TRIGGER iocdu_tt_parted_insert_trig
-            AFTER INSERT ON iocdu_tt_parted referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER iocdu_tt_parted_update_trig
-            AFTER UPDATE ON iocdu_tt_parted referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        -- inserts only
-        INSERT INTO iocdu_tt_parted
-        VALUES (1, 'AAA'), (2, 'BBB') ON CONFLICT (a)
-        DO
-        UPDATE
-        SET
-            b = iocdu_tt_parted.b || ':' || excluded.b;
-        -- mixture of inserts and updates
-        INSERT INTO iocdu_tt_parted
-        VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-        DO
-        UPDATE
-        SET
-            b = iocdu_tt_parted.b || ':' || excluded.b;
-        -- updates only
-        INSERT INTO iocdu_tt_parted
-        VALUES (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-        DO
-        UPDATE
-        SET
-            b = iocdu_tt_parted.b || ':' || excluded.b;
-        DROP TABLE iocdu_tt_parted;
-        --
-        -- Verify that you can't create a trigger with transition tables for
-        -- more than one event.
-        --
-        CREATE TRIGGER my_table_multievent_trig
-            AFTER INSERT
-            OR UPDATE ON my_table referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        --
-        -- Verify that you can't create a trigger with transition tables with
-        -- a column list.
-        --
-        CREATE TRIGGER my_table_col_update_trig
-            AFTER UPDATE OF b ON my_table referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        DROP TABLE my_table;
-        --
-        -- Test firing of triggers with transition tables by foreign key cascades
-        --
-        CREATE TABLE refd_table (
-            a int PRIMARY KEY,
-            b text
-        );
-        CREATE TABLE trig_table (
-            a int,
-            b text,
-            FOREIGN KEY (a ) REFERENCES refd_table ON UPDATE CASCADE ON DELETE CASCADE
-        );
-        CREATE TRIGGER trig_table_before_trig
-            BEFORE INSERT
-            OR UPDATE
-            OR DELETE ON trig_table FOR EACH statement
-            EXECUTE PROCEDURE trigger_func ('trig_table' );
-        CREATE TRIGGER trig_table_insert_trig
-            AFTER INSERT ON trig_table referencing new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_insert ( );
-        CREATE TRIGGER trig_table_update_trig
-            AFTER UPDATE ON trig_table referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
-            EXECUTE PROCEDURE dump_update ( );
-        CREATE TRIGGER trig_table_delete_trig
-            AFTER DELETE ON trig_table referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        INSERT INTO refd_table
-        VALUES (1, 'one'), (2, 'two'), (3, 'three');
-        INSERT INTO trig_table
-        VALUES (1, 'one a'), (1, 'one b'), (2, 'two a'), (2, 'two b'), (3, 'three a'), (3, 'three b');
-        UPDATE
-            refd_table
-        SET
-            a = 11
-        WHERE
-            b = 'one';
-        SELECT
-            *
-        FROM
-            trig_table;
-        DELETE FROM refd_table
-        WHERE length(b) = 3;
-        SELECT
-            *
-        FROM
-            trig_table;
-        DROP TABLE refd_table, trig_table;
-        --
-        -- self-referential FKs are even more fun
-        --
-        CREATE TABLE self_ref (
-            a int PRIMARY KEY,
-            b int REFERENCES self_ref (a ) ON DELETE CASCADE
-        );
-        CREATE TRIGGER self_ref_before_trig
-            BEFORE DELETE ON self_ref FOR EACH statement
-            EXECUTE PROCEDURE trigger_func ('self_ref' );
-        CREATE TRIGGER self_ref_r_trig
-            AFTER DELETE ON self_ref referencing old TABLE AS old_table FOR EACH ROW
-            EXECUTE PROCEDURE dump_delete ( );
-        CREATE TRIGGER self_ref_s_trig
-            AFTER DELETE ON self_ref referencing old TABLE AS old_table FOR EACH statement
-            EXECUTE PROCEDURE dump_delete ( );
-        INSERT INTO self_ref
-        VALUES (1, NULL), (2, 1), (3, 2);
-        DELETE FROM self_ref
-        WHERE a = 1;
-        -- without AR trigger, cascaded deletes all end up in one transition table
-        DROP TRIGGER self_ref_r_trig ON self_ref;
-        INSERT INTO self_ref
-        VALUES (1, NULL), (2, 1), (3, 2), (4, 3);
-        DELETE FROM self_ref
-        WHERE a = 1;
-        DROP TABLE self_ref;
-        -- cleanup
-        DROP FUNCTION dump_insert ();
-        DROP FUNCTION dump_update ();
-        DROP FUNCTION dump_delete ();
+    VALUES (43))
+INSERT INTO table1
+    VALUES (44);
+
+SELECT
+    *
+FROM
+    table1;
+
+SELECT
+    *
+FROM
+    table2;
+
+DROP TABLE table1;
+
+DROP TABLE table2;
+
+--
+-- Verify behavior of INSERT ... ON CONFLICT DO UPDATE ... with
+-- transition tables.
+--
+
+CREATE TABLE my_table (
+    a int PRIMARY KEY,
+    b text
+);
+
+CREATE TRIGGER my_table_insert_trig
+    AFTER INSERT ON my_table referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER my_table_update_trig
+    AFTER UPDATE ON my_table referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+-- inserts only
+INSERT INTO my_table
+    VALUES (1, 'AAA'), (2, 'BBB') ON CONFLICT (a)
+    DO
+    UPDATE
+    SET
+        b = my_table.b || ':' || excluded.b;
+
+-- mixture of inserts and updates
+INSERT INTO my_table
+    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
+    DO
+    UPDATE
+    SET
+        b = my_table.b || ':' || excluded.b;
+
+-- updates only
+INSERT INTO my_table
+    VALUES (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
+    DO
+    UPDATE
+    SET
+        b = my_table.b || ':' || excluded.b;
+
+--
+-- now using a partitioned table
+--
+
+CREATE TABLE iocdu_tt_parted (
+    a int PRIMARY KEY,
+    b text
+)
+PARTITION BY LIST (a);
+
+CREATE TABLE iocdu_tt_parted1 PARTITION OF iocdu_tt_parted
+FOR VALUES IN (1);
+
+CREATE TABLE iocdu_tt_parted2 PARTITION OF iocdu_tt_parted
+FOR VALUES IN (2);
+
+CREATE TABLE iocdu_tt_parted3 PARTITION OF iocdu_tt_parted
+FOR VALUES IN (3);
+
+CREATE TABLE iocdu_tt_parted4 PARTITION OF iocdu_tt_parted
+FOR VALUES IN (4);
+
+CREATE TRIGGER iocdu_tt_parted_insert_trig
+    AFTER INSERT ON iocdu_tt_parted referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER iocdu_tt_parted_update_trig
+    AFTER UPDATE ON iocdu_tt_parted referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+-- inserts only
+INSERT INTO iocdu_tt_parted
+    VALUES (1, 'AAA'), (2, 'BBB') ON CONFLICT (a)
+    DO
+    UPDATE
+    SET
+        b = iocdu_tt_parted.b || ':' || excluded.b;
+
+-- mixture of inserts and updates
+INSERT INTO iocdu_tt_parted
+    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
+    DO
+    UPDATE
+    SET
+        b = iocdu_tt_parted.b || ':' || excluded.b;
+
+-- updates only
+INSERT INTO iocdu_tt_parted
+    VALUES (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
+    DO
+    UPDATE
+    SET
+        b = iocdu_tt_parted.b || ':' || excluded.b;
+
+DROP TABLE iocdu_tt_parted;
+
+--
+-- Verify that you can't create a trigger with transition tables for
+-- more than one event.
+--
+
+CREATE TRIGGER my_table_multievent_trig
+    AFTER INSERT OR UPDATE ON my_table referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+--
+-- Verify that you can't create a trigger with transition tables with
+-- a column list.
+--
+
+CREATE TRIGGER my_table_col_update_trig
+    AFTER UPDATE OF b ON my_table referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+DROP TABLE my_table;
+
+--
+-- Test firing of triggers with transition tables by foreign key cascades
+--
+
+CREATE TABLE refd_table (
+    a int PRIMARY KEY,
+    b text
+);
+
+CREATE TABLE trig_table (
+    a int,
+    b text,
+    FOREIGN KEY (a) REFERENCES refd_table ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TRIGGER trig_table_before_trig
+    BEFORE INSERT OR UPDATE OR DELETE ON trig_table FOR EACH statement
+    EXECUTE PROCEDURE trigger_func ('trig_table');
+
+CREATE TRIGGER trig_table_insert_trig
+    AFTER INSERT ON trig_table referencing new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_insert ();
+
+CREATE TRIGGER trig_table_update_trig
+    AFTER UPDATE ON trig_table referencing old TABLE AS old_table new TABLE AS new_table FOR EACH statement
+    EXECUTE PROCEDURE dump_update ();
+
+CREATE TRIGGER trig_table_delete_trig
+    AFTER DELETE ON trig_table referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+INSERT INTO refd_table
+    VALUES (1, 'one'), (2, 'two'), (3, 'three');
+
+INSERT INTO trig_table
+    VALUES (1, 'one a'), (1, 'one b'), (2, 'two a'), (2, 'two b'), (3, 'three a'), (3, 'three b');
+
+UPDATE
+    refd_table
+SET
+    a = 11
+WHERE
+    b = 'one';
+
+SELECT
+    *
+FROM
+    trig_table;
+
+DELETE FROM refd_table
+WHERE length(b) = 3;
+
+SELECT
+    *
+FROM
+    trig_table;
+
+DROP TABLE refd_table, trig_table;
+
+--
+-- self-referential FKs are even more fun
+--
+
+CREATE TABLE self_ref (
+    a int PRIMARY KEY,
+    b int REFERENCES self_ref (a) ON DELETE CASCADE
+);
+
+CREATE TRIGGER self_ref_before_trig
+    BEFORE DELETE ON self_ref FOR EACH statement
+    EXECUTE PROCEDURE trigger_func ('self_ref');
+
+CREATE TRIGGER self_ref_r_trig
+    AFTER DELETE ON self_ref referencing old TABLE AS old_table FOR EACH ROW
+    EXECUTE PROCEDURE dump_delete ();
+
+CREATE TRIGGER self_ref_s_trig
+    AFTER DELETE ON self_ref referencing old TABLE AS old_table FOR EACH statement
+    EXECUTE PROCEDURE dump_delete ();
+
+INSERT INTO self_ref
+    VALUES (1, NULL), (2, 1), (3, 2);
+
+DELETE FROM self_ref
+WHERE a = 1;
+
+-- without AR trigger, cascaded deletes all end up in one transition table
+DROP TRIGGER self_ref_r_trig ON self_ref;
+
+INSERT INTO self_ref
+    VALUES (1, NULL), (2, 1), (3, 2), (4, 3);
+
+DELETE FROM self_ref
+WHERE a = 1;
+
+DROP TABLE self_ref;
+
+-- cleanup
+DROP FUNCTION dump_insert ();
+
+DROP FUNCTION dump_update ();
+
+DROP FUNCTION dump_delete ();
+

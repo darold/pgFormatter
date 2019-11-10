@@ -825,7 +825,8 @@ CREATE TABLE cities (
 );
 
 CREATE TABLE capitals (
-    state char(2))
+    state char(2)
+)
 INHERITS (
     cities
 );

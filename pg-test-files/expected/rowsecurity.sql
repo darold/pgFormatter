@@ -529,7 +529,8 @@ ALTER TABLE t1
 GRANT ALL ON t1 TO public;
 
 CREATE TABLE t2 (
-    c float)
+    c float
+)
 INHERITS (
     t1
 );

@@ -1185,7 +1185,8 @@ CREATE TABLE atestp2 (
 );
 
 CREATE TABLE atestc (
-    fz int)
+    fz int
+)
 INHERITS (
     atestp1,
     atestp2

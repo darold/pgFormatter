@@ -118,7 +118,7 @@ LANGUAGE SQL
 FROM
     SQL WITH FUNCTION prsd_lextype( internal
 ),
-    TO SQL WITH FUNCTION int4recv( internal));
+TO SQL WITH FUNCTION int4recv( internal));
 
 CREATE PUBLICATION addr_pub FOR TABLE addr_nsp.gentable;
 

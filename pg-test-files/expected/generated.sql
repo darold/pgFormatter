@@ -933,22 +933,19 @@ END
 $$;
 
 CREATE TRIGGER gtest1
-    BEFORE DELETE
-    OR UPDATE ON gtest26
+    BEFORE DELETE OR UPDATE ON gtest26
     FOR EACH ROW
     WHEN (OLD.b < 0) -- ok
     EXECUTE PROCEDURE gtest_trigger_func ();
 
 CREATE TRIGGER gtest2a
-    BEFORE INSERT
-    OR UPDATE ON gtest26
+    BEFORE INSERT OR UPDATE ON gtest26
     FOR EACH ROW
     WHEN (NEW.b < 0) -- error
     EXECUTE PROCEDURE gtest_trigger_func ();
 
 CREATE TRIGGER gtest2b
-    BEFORE INSERT
-    OR UPDATE ON gtest26
+    BEFORE INSERT OR UPDATE ON gtest26
     FOR EACH ROW
     WHEN (NEW.* IS NOT NULL) -- error
     EXECUTE PROCEDURE gtest_trigger_func ();
@@ -960,15 +957,13 @@ CREATE TRIGGER gtest2
     EXECUTE PROCEDURE gtest_trigger_func ();
 
 CREATE TRIGGER gtest3
-    AFTER DELETE
-    OR UPDATE ON gtest26
+    AFTER DELETE OR UPDATE ON gtest26
     FOR EACH ROW
     WHEN (OLD.b < 0) -- ok
     EXECUTE PROCEDURE gtest_trigger_func ();
 
 CREATE TRIGGER gtest4
-    AFTER INSERT
-    OR UPDATE ON gtest26
+    AFTER INSERT OR UPDATE ON gtest26
     FOR EACH ROW
     WHEN (NEW.b < 0) -- ok
     EXECUTE PROCEDURE gtest_trigger_func ();

@@ -1282,7 +1282,8 @@ CREATE TABLE pktable_base (
 CREATE TABLE pktable (
     ptest1 int,
     PRIMARY KEY (base1),
-    UNIQUE (base1, ptest1))
+    UNIQUE (base1, ptest1)
+)
 INHERITS (
     pktable_base
 );
@@ -1404,7 +1405,8 @@ CREATE TABLE pktable (
     ptest1 int,
     ptest2 int,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (base2, ptest2) REFERENCES pktable (base1, ptest1))
+    FOREIGN KEY (base2, ptest2) REFERENCES pktable (base1, ptest1)
+)
 INHERITS (
     pktable_base
 );
@@ -1455,7 +1457,8 @@ CREATE TABLE pktable_base (
 
 CREATE TABLE pktable (
     ptest1 inet,
-    PRIMARY KEY (base1, ptest1))
+    PRIMARY KEY (base1, ptest1)
+)
 INHERITS (
     pktable_base
 );
@@ -1506,7 +1509,8 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet[],
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (base2, ptest2) REFERENCES pktable (base1, ptest1))
+    FOREIGN KEY (base2, ptest2) REFERENCES pktable (base1, ptest1)
+)
 INHERITS (
     pktable_base
 );
@@ -1515,7 +1519,8 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (base2, ptest2) REFERENCES pktable (ptest1, base1))
+    FOREIGN KEY (base2, ptest2) REFERENCES pktable (ptest1, base1)
+)
 INHERITS (
     pktable_base
 );
@@ -1524,7 +1529,8 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (ptest2, base2) REFERENCES pktable (base1, ptest1))
+    FOREIGN KEY (ptest2, base2) REFERENCES pktable (base1, ptest1)
+)
 INHERITS (
     pktable_base
 );
@@ -1533,7 +1539,8 @@ CREATE TABLE pktable (
     ptest1 inet,
     ptest2 inet,
     PRIMARY KEY (base1, ptest1),
-    FOREIGN KEY (ptest2, base2) REFERENCES pktable (base1, ptest1))
+    FOREIGN KEY (ptest2, base2) REFERENCES pktable (base1, ptest1)
+)
 INHERITS (
     pktable_base
 );

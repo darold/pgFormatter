@@ -752,20 +752,17 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trig_c1_100
-    BEFORE UPDATE
-    OR INSERT ON part_c_1_100
+    BEFORE UPDATE OR INSERT ON part_c_1_100
     FOR EACH ROW
     EXECUTE PROCEDURE func_parted_mod_b ();
 
 CREATE TRIGGER trig_d1_15
-    BEFORE UPDATE
-    OR INSERT ON part_d_1_15
+    BEFORE UPDATE OR INSERT ON part_d_1_15
     FOR EACH ROW
     EXECUTE PROCEDURE func_parted_mod_b ();
 
 CREATE TRIGGER trig_d15_20
-    BEFORE UPDATE
-    OR INSERT ON part_d_15_20
+    BEFORE UPDATE OR INSERT ON part_d_15_20
     FOR EACH ROW
     EXECUTE PROCEDURE func_parted_mod_b ();
 

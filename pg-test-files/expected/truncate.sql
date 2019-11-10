@@ -200,7 +200,8 @@ INSERT INTO trunc_f
     VALUES (2);
 
 CREATE TABLE trunc_fa (
-    col2a text)
+    col2a text
+)
 INHERITS (
     trunc_f
 );
@@ -209,7 +210,8 @@ INSERT INTO trunc_fa
     VALUES (3, 'three');
 
 CREATE TABLE trunc_fb (
-    col2b int)
+    col2b int
+)
 INHERITS (
     trunc_f
 );
@@ -218,7 +220,8 @@ INSERT INTO trunc_fb
     VALUES (4, 444);
 
 CREATE TABLE trunc_faa (
-    col3 text)
+    col3 text
+)
 INHERITS (
     trunc_fa
 );

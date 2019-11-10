@@ -191,8 +191,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_wslot_biu
-    BEFORE INSERT
-    OR UPDATE ON WSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON WSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_wslot_biu ();
 
 -- ************************************************************
@@ -269,8 +268,7 @@ $proc$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pslot_biu
-    BEFORE INSERT
-    OR UPDATE ON PSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON PSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_pslot_biu ();
 
 -- ************************************************************
@@ -334,8 +332,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_iface_biu
-    BEFORE INSERT
-    OR UPDATE ON IFace FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON IFace FOR EACH ROW
     EXECUTE PROCEDURE tg_iface_biu ();
 
 -- ************************************************************
@@ -381,9 +378,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hub_a
-    AFTER INSERT
-    OR UPDATE
-    OR DELETE ON Hub FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON Hub FOR EACH ROW
     EXECUTE PROCEDURE tg_hub_a ();
 
 -- ************************************************************
@@ -472,8 +467,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hslot_biu
-    BEFORE INSERT
-    OR UPDATE ON HSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON HSlot FOR EACH ROW
     EXECUTE PROCEDURE tg_hslot_biu ();
 
 -- ************************************************************
@@ -554,24 +548,19 @@ BEGIN
     $$
     LANGUAGE plpgsql;
     CREATE TRIGGER tg_chkslotlink
-        BEFORE INSERT
-        OR UPDATE ON PSlot FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON PSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_chkslotlink ( );
     CREATE TRIGGER tg_chkslotlink
-        BEFORE INSERT
-        OR UPDATE ON WSlot FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON WSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_chkslotlink ( );
     CREATE TRIGGER tg_chkslotlink
-        BEFORE INSERT
-        OR UPDATE ON IFace FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON IFace FOR EACH ROW
         EXECUTE PROCEDURE tg_chkslotlink ( );
     CREATE TRIGGER tg_chkslotlink
-        BEFORE INSERT
-        OR UPDATE ON HSlot FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON HSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_chkslotlink ( );
     CREATE TRIGGER tg_chkslotlink
-        BEFORE INSERT
-        OR UPDATE ON PHone FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON PHone FOR EACH ROW
         EXECUTE PROCEDURE tg_chkslotlink ( );
     -- ************************************************************
     -- * BEFORE INSERT or UPDATE on all slots with backlink
@@ -588,16 +577,13 @@ BEGIN
     $$
     LANGUAGE plpgsql;
     CREATE TRIGGER tg_chkbacklink
-        BEFORE INSERT
-        OR UPDATE ON PSlot FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON PSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_chkbacklink ( );
     CREATE TRIGGER tg_chkbacklink
-        BEFORE INSERT
-        OR UPDATE ON WSlot FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON WSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_chkbacklink ( );
     CREATE TRIGGER tg_chkbacklink
-        BEFORE INSERT
-        OR UPDATE ON PLine FOR EACH ROW
+        BEFORE INSERT OR UPDATE ON PLine FOR EACH ROW
         EXECUTE PROCEDURE tg_chkbacklink ( );
     -- ************************************************************
     -- * BEFORE UPDATE on PSlot
@@ -778,19 +764,13 @@ END;
     $$
     LANGUAGE plpgsql;
     CREATE TRIGGER tg_backlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON PSlot FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON PSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_backlink_a ('PS' );
     CREATE TRIGGER tg_backlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON WSlot FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON WSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_backlink_a ('WS' );
     CREATE TRIGGER tg_backlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON PLine FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON PLine FOR EACH ROW
         EXECUTE PROCEDURE tg_backlink_a ('PL' );
     -- ************************************************************
     -- * Support function to set the opponents backlink field
@@ -972,29 +952,19 @@ END;
     $$
     LANGUAGE plpgsql;
     CREATE TRIGGER tg_slotlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON PSlot FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON PSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_slotlink_a ('PS' );
     CREATE TRIGGER tg_slotlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON WSlot FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON WSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_slotlink_a ('WS' );
     CREATE TRIGGER tg_slotlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON IFace FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON IFace FOR EACH ROW
         EXECUTE PROCEDURE tg_slotlink_a ('IF' );
     CREATE TRIGGER tg_slotlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON HSlot FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON HSlot FOR EACH ROW
         EXECUTE PROCEDURE tg_slotlink_a ('HS' );
     CREATE TRIGGER tg_slotlink_a
-        AFTER INSERT
-        OR UPDATE
-        OR DELETE ON PHone FOR EACH ROW
+        AFTER INSERT OR UPDATE OR DELETE ON PHone FOR EACH ROW
         EXECUTE PROCEDURE tg_slotlink_a ('PH' );
     -- ************************************************************
     -- * Support function to set the opponents slotlink field
@@ -5941,8 +5911,7 @@ END;
 $$;
 -- should fail, TRUNCATE is not compatible with transition tables
 CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
-    AFTER TRUNCATE
-    OR UPDATE ON alter_table_under_transition_tables REFERENCING OLD TABLE AS d NEW TABLE AS i
+    AFTER TRUNCATE OR UPDATE ON alter_table_under_transition_tables REFERENCING OLD TABLE AS d NEW TABLE AS i
     FOR EACH STATEMENT
     EXECUTE PROCEDURE alter_table_under_transition_tables_upd_func ();
 -- should work

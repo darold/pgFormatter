@@ -220,7 +220,8 @@ ROLLBACK;
 
 -- Verify that we can lock a table with inheritance children.
 CREATE TABLE lock_tbl2 (
-    b BIGINT)
+    b BIGINT
+)
 INHERITS (
     lock_tbl1
 );

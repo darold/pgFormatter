@@ -3398,7 +3398,8 @@ CREATE TABLE inh_lp (
 CREATE TABLE inh_lp1 (
     a int,
     value int,
-    CHECK (a = 1))
+    CHECK (a = 1)
+)
 INHERITS (
     inh_lp
 );
@@ -3406,7 +3407,8 @@ INHERITS (
 CREATE TABLE inh_lp2 (
     a int,
     value int,
-    CHECK (a = 2))
+    CHECK (a = 2)
+)
 INHERITS (
     inh_lp
 );

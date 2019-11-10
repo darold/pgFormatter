@@ -15,14 +15,12 @@ CREATE TYPE int8alias1;
 CREATE FUNCTION int8alias1in (cstring)
     RETURNS int8alias1 STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8in'
-;
+    AS 'int8in';
 
 CREATE FUNCTION int8alias1out (int8alias1)
     RETURNS cstring STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8out'
-;
+    AS 'int8out';
 
 CREATE TYPE int8alias1 (
     input = int8alias1in,
@@ -35,14 +33,12 @@ CREATE TYPE int8alias2;
 CREATE FUNCTION int8alias2in (cstring)
     RETURNS int8alias2 STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8in'
-;
+    AS 'int8in';
 
 CREATE FUNCTION int8alias2out (int8alias2)
     RETURNS cstring STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8out'
-;
+    AS 'int8out';
 
 CREATE TYPE int8alias2 (
     input = int8alias2in,
@@ -54,14 +50,14 @@ CREATE cast( int8 AS int8alias1) without FUNCTION;
 
 CREATE cast( int8 AS int8alias2) without FUNCTION;
 
-CREATE cast( int8alias1 AS int8) without function;
-create cast (int8alias2 as int8) without FUNCTION;
+CREATE cast( int8alias1 AS int8) without FUNCTION;
+
+CREATE cast( int8alias2 AS int8) without FUNCTION;
 
 CREATE FUNCTION int8alias1eq (int8alias1, int8alias1)
     RETURNS bool STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8eq'
-;
+    AS 'int8eq';
 
 CREATE OPERATOR = (
     PROCEDURE = int8alias1eq,
@@ -80,8 +76,7 @@ ALTER OPERATOR family integer_ops
 CREATE FUNCTION int8alias2eq (int8alias2, int8alias2)
     RETURNS bool STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8eq'
-;
+    AS 'int8eq';
 
 CREATE OPERATOR = (
     PROCEDURE = int8alias2eq,
@@ -100,8 +95,7 @@ ALTER OPERATOR family integer_ops
 CREATE FUNCTION int8alias1eq (int8, int8alias1)
     RETURNS bool STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8eq'
-;
+    AS 'int8eq';
 
 CREATE OPERATOR = (
     PROCEDURE = int8alias1eq,
@@ -119,8 +113,7 @@ ALTER OPERATOR family integer_ops
 CREATE FUNCTION int8alias1eq (int8alias1, int8alias2)
     RETURNS bool STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8eq'
-;
+    AS 'int8eq';
 
 CREATE OPERATOR = (
     PROCEDURE = int8alias1eq,
@@ -138,8 +131,7 @@ ALTER OPERATOR family integer_ops
 CREATE FUNCTION int8alias1lt (int8alias1, int8alias1)
     RETURNS bool STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'int8lt'
-;
+    AS 'int8lt';
 
 CREATE OPERATOR < (
     PROCEDURE = int8alias1lt,
@@ -154,8 +146,7 @@ ALTER OPERATOR family integer_ops
 CREATE FUNCTION int8alias1cmp (int8, int8alias1)
     RETURNS int STRICT IMMUTABLE
     LANGUAGE internal
-    AS 'btint8cmp'
-;
+    AS 'btint8cmp';
 
 ALTER OPERATOR family integer_ops
     USING btree
@@ -174,10 +165,24 @@ CREATE TABLE ec1 (
 );
 
 CREATE TABLE ec2 (
-    int8) without function;
-create cast (int8alias2 as int8)1 int8alias1,
-    that for cases where there's a missing operator, we don't care so
--- much whether the plan is ideal as thatplain (COSTS OFF
+    xf int8 PRIMARY KEY,
+    x1 int8alias1,
+    x2 int8alias2
+);
+
+-- for the moment we only want to look at nestloop plans
+SET enable_hashjoin = OFF;
+
+SET enable_mergejoin = OFF;
+
+--
+-- Note that for cases where there's a missing operator, we don't care so
+-- much whether the plan is ideal as that we don't fail or generate an
+-- outright incorrect plan.
+--
+
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
@@ -185,45 +190,21 @@ FROM
     ec0
 WHERE
     ff = f1
-    AND f1 = '42' ::int8;
+    AND f1 = '42'::int8;
 
-ethat as a mergejoin
-set enable_mergejoin = on;
-set enable_nestloop = off;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec0
+WHERE
+    ff = f1
+    AND f1 = '42'::int8alias1;
 
-explain (costs off)
-  select * from ec1,
-    (select ff + 1 as x from
-       (select ff + 2 as ff from ec1
-        union all
-        select ff + 3 as ff from ec1) ss0
-     union all
-     select ff + 4 as x from ec1) as ss1,
-    (select ff + 1 as x from
-       (select ff + 2 as ff from ec1
-        union all
-        select ff + 3 as ff from ec1) ss0
-     union all
-     select ff + 4 as x from ec1) as ss2
-  where ss1.x = ec1.f1 and ss1.x = ss2.x and ec1.ff = 42::int8;
-
--- check partially indexed scan
-set enable_nestloop = on;
-set enable_mergejoin = off;
-
-drop index ec1_expr3;
-
-explain (costs off)
-  select * from ec1,
-    (select ff + 1 as x from
-       (select ff + 2 as ff from ec1
-        union all
-        select ff + 3 as ff from ec1) ss0
-     union all
-     select ff + 4 as x from ec1) as ss1
-  where ss1.x = ec1.f1 and ec1.ff = 42::int8;
-
--- let's try thatplain (COSTS OFF
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
@@ -233,7 +214,19 @@ WHERE
     ff = f1
     AND f1 = '42'::int8alias1;
 
-exf int8 primary key, xplain (COSTS OFF
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec1
+WHERE
+    ff = f1
+    AND f1 = '42'::int8alias2;
+
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
@@ -241,18 +234,11 @@ FROM
     ec1,
     ec2
 WHERE
-    ff = x2 int8alias2);
+    ff = x1
+    AND ff = '42'::int8;
 
--- for the moment we only want to look at nestloop plans
-set enable_hashjoin = off;
-set enable_mergejoin = off;
-
---
--- Note CODEPART1CODEPART we don't fail or generate an
--- outright incorrect plan.
---
-
-explain (COSTS OFF
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
@@ -260,9 +246,11 @@ FROM
     ec1,
     ec2
 WHERE
-    ff = xplain (costs off)
-  select * from ec0 where ff = f1 and f1 = '42'::int8alias1;
-explain (COSTS OFF
+    ff = x1
+    AND ff = '42'::int8alias1;
+
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
@@ -270,15 +258,11 @@ FROM
     ec1,
     ec2
 WHERE
-    ff = xplain (costs off)
-  select * from ec1 where ff = f1 and f1 = '42'::int8alias2;
+    ff = x1
+    AND '42'::int8 = x1;
 
-ex1;
-
-ex1 and ff = '42'::int8;
-ex1
-    AND x1 and ff = '42'::int8alias1;
-explain (COSTS OFF
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
@@ -286,146 +270,257 @@ FROM
     ec1,
     ec2
 WHERE
-    ff = x1 and '42'::int8 = x1 = '42'::int8alias2;
+    ff = x1
+    AND x1 = '42'::int8alias1;
 
-CREATE UNIQUE indexplain (costs off)
-  select * from ec1, ec2 where ff = xpr1 ON ec1 ((ff + 1));
-
-CREATE UNIQUE index1 = '42'::int8alias1;
-expr2 ON ec1 ((ff + 2 + 1));
-
-CREATE UNIQUE index1 and xpr3 ON ec1 ((ff + 3 + 1));
-
-CREATE UNIQUE index ec1_expr4 ON ec1 ((ff + 4));
-
-ex ec1_ex
-FROM (
-    SELECT
-        ff + 2 AS ff
-    FROM
-        ec1
-    UNION ALL
-    SELECT
-        ff + 3 AS ff
-    FROM
-        ec1) ss0
-UNION ALL
+EXPLAIN (
+    COSTS OFF
+)
 SELECT
-    ff + 4 AS x ec1_ex = ec1.f1
+    *
+FROM
+    ec1,
+    ec2
+WHERE
+    ff = x1
+    AND x1 = '42'::int8alias2;
+
+CREATE UNIQUE INDEX ec1_expr1 ON ec1 ((ff + 1));
+
+CREATE UNIQUE INDEX ec1_expr2 ON ec1 ((ff + 2 + 1));
+
+CREATE UNIQUE INDEX ec1_expr3 ON ec1 ((ff + 3 + 1));
+
+CREATE UNIQUE INDEX ec1_expr4 ON ec1 ((ff + 4));
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss1
+WHERE
+    ss1.x = ec1.f1
     AND ec1.ff = 42::int8;
 
-ex ec1_ex
-FROM (
-    SELECT
-        ff + 2 AS ff
-    FROM
-        ec1
-    UNION ALL
-    SELECT
-        ff + 3 AS ff
-    FROM
-        ec1) ss0
-UNION ALL
+EXPLAIN (
+    COSTS OFF
+)
 SELECT
-    ff + 4 AS xplain (costs off)
-  select * from ec1,
-    (select ff + 1 as x = ec1.f1
+    *
+FROM
+    ec1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss1
+WHERE
+    ss1.x = ec1.f1
     AND ec1.ff = 42::int8
     AND ec1.ff = ec1.f1;
 
-ex from ec1) as ss1
-  where ss1.x
-FROM (
-    SELECT
-        ff + 2 AS ff
-    FROM
-        ec1
-    UNION ALL
-    SELECT
-        ff + 3 AS ff
-    FROM
-        ec1) ss0
-UNION ALL
+EXPLAIN (
+    COSTS OFF
+)
 SELECT
-    ff + 4 AS xplain (costs off)
-  select * from ec1,
-    (select ff + 1 as x
-FROM (
-    SELECT
-        ff + 2 AS ff
-    FROM
-        ec1
-    UNION ALL
-    SELECT
-        ff + 3 AS ff
-    FROM
-        ec1) ss0
-UNION ALL
-SELECT
-    ff + 4 AS x from ec1) as ss1
-  where ss1.x = ec1.f1
-    AND ss1.xplain (costs off)
-  select * from ec1,
-    (select ff + 1 as x
+    *
+FROM
+    ec1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss2
+WHERE
+    ss1.x = ec1.f1
+    AND ss1.x = ss2.x
     AND ec1.ff = 42::int8;
-
--- let's try that as a mergejoin
-set enable_mergejoin = on;
-set enable_nestloop = off;
-
-explain (costs off)
-  select * from ec1,
-    (select ff + 1 as x from
-       (select ff + 2 as ff from ec1
-        union all
-        select ff + 3 as ff from ec1) ss0
-     union all
-     select ff + 4 as x from ec1) as ss1,
-    (select ff + 1 as x from
-       (select ff + 2 as ff from ec1
-        union all
-        select ff + 3 as ff from ec1) ss0
-     union all
-     select ff + 4 as x from ec1) as ss2
-  where ss1.x = ec1.f1 and ss1.x = ss2.x and ec1.ff = 42::int8;
-
--- check partially indexed scan
-set enable_nestloop = on;
-set enable_mergejoin = off;
-
-drop index ec1_expr3;
-
-explain (costs off)
-  select * from ec1,
-    (select ff + 1 as x from
-       (select ff + 2 as ff from ec1
-        union all
-        select ff + 3 as ff from ec1) ss0
-     union all
-     select ff + 4 as x from ec1) as ss1
-  where ss1.x = ec1.f1 and ec1.ff = 42::int8;
 
 -- let's try that as a mergejoin
 SET enable_mergejoin = ON;
 
 SET enable_nestloop = OFF;
 
-ex from ec1) as ss1,
-    (select ff + 1 as x
-FROM (
-    SELECT
-        ff + 2 AS ff
-    FROM
-        ec1
-    UNION ALL
-    SELECT
-        ff + 3 AS ff
-    FROM
-        ec1) ss0
-UNION ALL
+EXPLAIN (
+    COSTS OFF
+)
 SELECT
-    ff + 4 AS x from ec1) as ss2
-  where ss1.x = ec1.f1
+    *
+FROM
+    ec1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss2
+WHERE
+    ss1.x = ec1.f1
+    AND ss1.x = ss2.x
+    AND ec1.ff = 42::int8;
+
+-- check partially indexed scan
+SET enable_nestloop = ON;
+
+SET enable_mergejoin = OFF;
+
+DROP INDEX ec1_expr3;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss1
+WHERE
+    ss1.x = ec1.f1
+    AND ec1.ff = 42::int8;
+
+-- let's try that as a mergejoin
+SET enable_mergejoin = ON;
+
+SET enable_nestloop = OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec1,
+    (
+        SELECT
+            ff + 1 AS x
+        FROM (
+            SELECT
+                ff + 2 AS ff
+            FROM
+                ec1
+            UNION ALL
+            SELECT
+                ff + 3 AS ff
+            FROM
+                ec1) ss0
+        UNION ALL
+        SELECT
+            ff + 4 AS x
+        FROM
+            ec1) AS ss1
+WHERE
+    ss1.x = ec1.f1
     AND ec1.ff = 42::int8;
 
 -- check effects of row-level security
@@ -444,7 +539,26 @@ GRANT SELECT ON ec0 TO regress_user_ectest;
 GRANT SELECT ON ec1 TO regress_user_ectest;
 
 -- without any RLS, we'll treat {a.ff, b.ff, 43} as an EquivalenceClass
-ex = ss2.xplain (COSTS OFF
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec0 a,
+    ec1 b
+WHERE
+    a.ff = b.ff
+    AND a.ff = 43::bigint::int8alias1;
+
+SET session AUTHORIZATION regress_user_ectest;
+
+-- with RLS active, the non-leakproof a.ff = 43 clause is not treated
+-- as a suitable source for an EquivalenceClass; currently, this is true
+-- even though the RLS clause has nothing to do directly with the EC
+
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
@@ -464,9 +578,20 @@ REVOKE SELECT ON ec1 FROM regress_user_ectest;
 DROP USER regress_user_ectest;
 
 -- check that X=X is converted to X IS NOT NULL when appropriate
-explain (costs off)
-  select * from ec1,
-    (select ff + 1 as xplain (COSTS OFF
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    unique1 = unique1
+    AND unique2 = unique2;
+
+-- this could be converted, but isn't at present
+EXPLAIN (
+    COSTS OFF
 )
 SELECT
     *
