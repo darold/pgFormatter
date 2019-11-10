@@ -2688,8 +2688,7 @@ FROM
     mcrparted
 ORDER BY
     a DESC,
-    abs(b)
-    DESC,
+    abs(b) DESC,
     c DESC;
 
 -- check that Append plan is used containing a MergeAppend for sub-partitions

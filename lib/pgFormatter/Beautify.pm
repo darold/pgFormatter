@@ -1327,7 +1327,7 @@ sub beautify
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line($token,$last)
                     if (defined $self->_next_token
-                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER|WITHIN$/i
+                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER|WITHIN|DESC|ASC$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/

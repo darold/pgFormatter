@@ -126,8 +126,7 @@ FROM
     few
 ORDER BY
     id,
-    generate_series(1, 3)
-    DESC;
+    generate_series(1, 3) DESC;
 
 -- it's weird to have ORDER BYs that increase the number of results
 SELECT
@@ -136,8 +135,7 @@ FROM
     few
 ORDER BY
     id,
-    generate_series(1, 3)
-    DESC;
+    generate_series(1, 3) DESC;
 
 -- SRFs are computed after aggregation
 SET enable_hashagg TO 0;
