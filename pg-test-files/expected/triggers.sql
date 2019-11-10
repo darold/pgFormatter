@@ -2616,8 +2616,7 @@ WITH ins (
     a
 ) AS (
 INSERT INTO parted2_stmt_trig
-    VALUES (1),
-    (2)
+    VALUES (1), (2)
 RETURNING
     a)
 INSERT INTO parted_stmt_trig

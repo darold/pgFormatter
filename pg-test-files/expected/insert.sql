@@ -774,16 +774,15 @@ WITH ins (
     b,
     c
 ) AS (
-INSERT INTO mlparted (b,
-        a)
-SELECT
-    s.a,
-    1
-FROM
-    generate_series(2, 39) s (a)
-RETURNING
-    tableoid::regclass,
-    *
+INSERT INTO mlparted (b, a)
+    SELECT
+        s.a,
+        1
+    FROM
+        generate_series(2, 39) s (a)
+    RETURNING
+        tableoid::regclass,
+        *
 )
 SELECT
     a,
@@ -1215,8 +1214,7 @@ SET ROLE regress_coldesc_role;
 
 WITH result AS (
 INSERT INTO brtrigpartcon
-    VALUES (1,
-        'hi there')
+    VALUES (1, 'hi there')
 RETURNING
     1)
 INSERT INTO inserttest3 (f3)

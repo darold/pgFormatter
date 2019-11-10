@@ -2917,8 +2917,7 @@ FROM
 --ok
 WITH cte1 AS (
 INSERT INTO t1
-    VALUES (21,
-        'Fail')
+    VALUES (21, 'Fail')
 RETURNING
     *)
 SELECT
@@ -2929,8 +2928,7 @@ FROM
 --fail
 WITH cte1 AS (
 INSERT INTO t1
-    VALUES (20,
-        'Success')
+    VALUES (20, 'Success')
 RETURNING
     *)
 SELECT

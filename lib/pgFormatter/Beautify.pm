@@ -1321,7 +1321,7 @@ sub beautify
 
             # When closing CTE statement go back again
             if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i && !$self->{ '_is_in_policy' }) {
-                $self->_back($token, $last);
+                $self->_back($token, $last) if ($self->{ '_current_sql_stmt' } ne 'INSERT');
             }
             if ($self->{ '_is_in_create' } <= 1) {
                 my $next_tok = quotemeta($self->_next_token);
@@ -1398,7 +1398,7 @@ sub beautify
 	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
 	    $add_newline = 0 if ($self->{ '_is_in_function' });
 
-	    $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'end');
+	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and $self->{ '_current_sql_stmt' } ne 'INSERT');
         }
 
         elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) { # statement separator or executing psql meta command (prefix 'g' includes all its variants)

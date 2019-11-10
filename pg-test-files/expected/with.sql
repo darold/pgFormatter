@@ -1887,16 +1887,7 @@ FROM
 
 WITH t AS (
 INSERT INTO y
-    VALUES (11),
-    (12),
-    (13),
-    (14),
-    (15),
-    (16),
-    (17),
-    (18),
-    (19),
-    (20)
+    VALUES (11), (12), (13), (14), (15), (16), (17), (18), (19), (20)
 RETURNING
     *)
 SELECT
@@ -2173,8 +2164,7 @@ INSERT INTO withz
 -- Test EXCLUDED.* reference within CTE
 WITH aa AS (
 INSERT INTO withz
-    VALUES (1,
-        5) ON CONFLICT (k)
+    VALUES (1, 5) ON CONFLICT (k)
     DO
     UPDATE
     SET
@@ -2310,8 +2300,7 @@ WITH simpletup AS (
 ),
 upsert_cte AS (
 INSERT INTO withz
-    VALUES (2,
-        'Blue') ON CONFLICT (k)
+    VALUES (2, 'Blue') ON CONFLICT (k)
     DO
     UPDATE
     SET
@@ -2444,9 +2433,7 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-    VALUES (21),
-    (22),
-    (23)
+    VALUES (21), (22), (23)
 RETURNING
     *)
 SELECT
@@ -2468,9 +2455,7 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-    VALUES (31),
-    (32),
-    (33)
+    VALUES (31), (32), (33)
 RETURNING
     *)
 SELECT
@@ -2503,9 +2488,7 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-    VALUES (41),
-    (42),
-    (43)
+    VALUES (41), (42), (43)
 RETURNING
     *)
 SELECT
@@ -2566,8 +2549,7 @@ FROM
 
 WITH wcte AS (
 INSERT INTO child1
-    VALUES (42,
-        'new')
+    VALUES (42, 'new')
 RETURNING
     id AS newid)
 UPDATE
@@ -2597,8 +2579,7 @@ FROM
 
 WITH wcte AS (
 INSERT INTO child2
-    VALUES (42,
-        'new2')
+    VALUES (42, 'new2')
 RETURNING
     id AS newid)
 DELETE FROM parent USING wcte
@@ -2615,8 +2596,7 @@ EXPLAIN (
     COSTS OFF
 ) WITH wcte AS (
 INSERT INTO int8_tbl
-    VALUES (42,
-        47)
+    VALUES (42, 47)
 RETURNING
     q2)
 DELETE FROM a USING wcte

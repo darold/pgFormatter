@@ -1820,10 +1820,10 @@ UPDATE
     TO vview
         DO INSTEAD
         (INSERT INTO cchild (pid, descrip)
-        SELECT
-            old.pid,
-            new.descrip WHERE
-            old.descrip ISNULL;
+            SELECT
+                old.pid,
+                new.descrip WHERE
+                old.descrip ISNULL;
 
 UPDATE
     cchild
