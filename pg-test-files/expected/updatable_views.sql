@@ -983,9 +983,10 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER rw_view1_ins_trig INSTEAD OF INSERT ON rw_view1
-FOR EACH ROW
-EXECUTE PROCEDURE rw_view1_trig_fn ();
+CREATE TRIGGER rw_view1_ins_trig
+    INSTEAD OF INSERT ON rw_view1
+    FOR EACH ROW
+    EXECUTE PROCEDURE rw_view1_trig_fn ();
 
 SELECT
     table_name,
@@ -1023,9 +1024,10 @@ ORDER BY
     table_name,
     ordinal_position;
 
-CREATE TRIGGER rw_view1_upd_trig INSTEAD OF UPDATE ON rw_view1
-FOR EACH ROW
-EXECUTE PROCEDURE rw_view1_trig_fn ();
+CREATE TRIGGER rw_view1_upd_trig
+    INSTEAD OF UPDATE ON rw_view1
+    FOR EACH ROW
+    EXECUTE PROCEDURE rw_view1_trig_fn ();
 
 SELECT
     table_name,
@@ -1063,9 +1065,10 @@ ORDER BY
     table_name,
     ordinal_position;
 
-CREATE TRIGGER rw_view1_del_trig INSTEAD OF DELETE ON rw_view1
-FOR EACH ROW
-EXECUTE PROCEDURE rw_view1_trig_fn ();
+CREATE TRIGGER rw_view1_del_trig
+    INSTEAD OF DELETE ON rw_view1
+    FOR EACH ROW
+    EXECUTE PROCEDURE rw_view1_trig_fn ();
 
 SELECT
     table_name,
@@ -2702,9 +2705,10 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER rw_view1_trig INSTEAD OF INSERT OR UPDATE OR DELETE ON rw_view1
-FOR EACH ROW
-EXECUTE PROCEDURE rw_view1_trig_fn ();
+CREATE TRIGGER rw_view1_trig
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON rw_view1
+    FOR EACH ROW
+    EXECUTE PROCEDURE rw_view1_trig_fn ();
 
 CREATE VIEW rw_view2 AS
 SELECT
@@ -4239,8 +4243,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER base_tab_def_view_instrig INSTEAD OF INSERT ON base_tab_def_view FOR EACH ROW
-EXECUTE FUNCTION base_tab_def_view_instrig_func ();
+CREATE TRIGGER base_tab_def_view_instrig
+    INSTEAD OF INSERT ON base_tab_def_view FOR EACH ROW
+    EXECUTE FUNCTION base_tab_def_view_instrig_func ();
 
 TRUNCATE base_tab_def;
 

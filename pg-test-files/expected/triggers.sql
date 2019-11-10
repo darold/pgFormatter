@@ -1217,45 +1217,54 @@ CREATE TRIGGER invalid_trig
     EXECUTE PROCEDURE trigger_func ('before_tru_row');
 
 -- INSTEAD OF triggers aren't allowed on tables
-CREATE TRIGGER invalid_trig INSTEAD OF INSERT ON main_table
-FOR EACH ROW
-EXECUTE PROCEDURE view_trigger ('instead_of_ins');
+CREATE TRIGGER invalid_trig
+    INSTEAD OF INSERT ON main_table
+    FOR EACH ROW
+    EXECUTE PROCEDURE view_trigger ('instead_of_ins');
 
-CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_table
-FOR EACH ROW
-EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+CREATE TRIGGER invalid_trig
+    INSTEAD OF UPDATE ON main_table
+    FOR EACH ROW
+    EXECUTE PROCEDURE view_trigger ('instead_of_upd');
 
-CREATE TRIGGER invalid_trig INSTEAD OF DELETE ON main_table
-FOR EACH ROW
-EXECUTE PROCEDURE view_trigger ('instead_of_del');
+CREATE TRIGGER invalid_trig
+    INSTEAD OF DELETE ON main_table
+    FOR EACH ROW
+    EXECUTE PROCEDURE view_trigger ('instead_of_del');
 
 -- Don't support WHEN clauses with INSTEAD OF triggers
-CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_view
-FOR EACH ROW
-WHEN (OLD.a <> NEW.a)
-EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+CREATE TRIGGER invalid_trig
+    INSTEAD OF UPDATE ON main_view
+    FOR EACH ROW
+    WHEN (OLD.a <> NEW.a)
+    EXECUTE PROCEDURE view_trigger ('instead_of_upd');
 
 -- Don't support column-level INSTEAD OF triggers
-CREATE TRIGGER invalid_trig INSTEAD OF UPDATE OF a ON main_view
-FOR EACH ROW
-EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+CREATE TRIGGER invalid_trig
+    INSTEAD OF UPDATE OF a ON main_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE view_trigger ('instead_of_upd');
 
 -- Don't support statement-level INSTEAD OF triggers
-CREATE TRIGGER invalid_trig INSTEAD OF UPDATE ON main_view
-EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+CREATE TRIGGER invalid_trig
+    INSTEAD OF UPDATE ON main_view
+    EXECUTE PROCEDURE view_trigger ('instead_of_upd');
 
 -- Valid INSTEAD OF triggers
-CREATE TRIGGER instead_of_insert_trig INSTEAD OF INSERT ON main_view
-FOR EACH ROW
-EXECUTE PROCEDURE view_trigger ('instead_of_ins');
+CREATE TRIGGER instead_of_insert_trig
+    INSTEAD OF INSERT ON main_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE view_trigger ('instead_of_ins');
 
-CREATE TRIGGER instead_of_update_trig INSTEAD OF UPDATE ON main_view
-FOR EACH ROW
-EXECUTE PROCEDURE view_trigger ('instead_of_upd');
+CREATE TRIGGER instead_of_update_trig
+    INSTEAD OF UPDATE ON main_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE view_trigger ('instead_of_upd');
 
-CREATE TRIGGER instead_of_delete_trig INSTEAD OF DELETE ON main_view
-FOR EACH ROW
-EXECUTE PROCEDURE view_trigger ('instead_of_del');
+CREATE TRIGGER instead_of_delete_trig
+    INSTEAD OF DELETE ON main_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE view_trigger ('instead_of_del');
 
 -- Valid BEFORE statement VIEW triggers
 CREATE TRIGGER before_ins_stmt_trig
@@ -1437,9 +1446,10 @@ END;
 
 $$;
 
-CREATE TRIGGER city_insert_trig INSTEAD OF INSERT ON city_view
-FOR EACH ROW
-EXECUTE PROCEDURE city_insert ();
+CREATE TRIGGER city_insert_trig
+    INSTEAD OF INSERT ON city_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE city_insert ();
 
 CREATE FUNCTION city_delete ()
     RETURNS TRIGGER
@@ -1455,9 +1465,10 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER city_delete_trig INSTEAD OF DELETE ON city_view
-FOR EACH ROW
-EXECUTE PROCEDURE city_delete ();
+CREATE TRIGGER city_delete_trig
+    INSTEAD OF DELETE ON city_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE city_delete ();
 
 CREATE FUNCTION city_update ()
     RETURNS TRIGGER
@@ -1504,9 +1515,10 @@ END;
 
 $$;
 
-CREATE TRIGGER city_update_trig INSTEAD OF UPDATE ON city_view
-FOR EACH ROW
-EXECUTE PROCEDURE city_update ();
+CREATE TRIGGER city_update_trig
+    INSTEAD OF UPDATE ON city_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE city_update ();
 
 \set QUIET false
 -- INSERT .. RETURNING
@@ -1638,9 +1650,10 @@ CREATE FUNCTION no_op_trig_fn ()
     AS 'begin RETURN NULL; end'
 ;
 
-CREATE TRIGGER no_op_trig INSTEAD OF INSERT OR UPDATE OR DELETE ON european_city_view
-FOR EACH ROW
-EXECUTE PROCEDURE no_op_trig_fn ();
+CREATE TRIGGER no_op_trig
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON european_city_view
+    FOR EACH ROW
+    EXECUTE PROCEDURE no_op_trig_fn ();
 
 \set QUIET false
 INSERT INTO european_city_view
@@ -2397,8 +2410,9 @@ CREATE TRIGGER failed
     BEFORE INSERT OR UPDATE OR DELETE ON parted_trig FOR EACH ROW
     EXECUTE PROCEDURE trigger_nothing ();
 
-CREATE TRIGGER failed INSTEAD OF UPDATE ON parted_trig FOR EACH ROW
-EXECUTE PROCEDURE trigger_nothing ();
+CREATE TRIGGER failed
+    INSTEAD OF UPDATE ON parted_trig FOR EACH ROW
+    EXECUTE PROCEDURE trigger_nothing ();
 
 CREATE TRIGGER failed
     AFTER UPDATE ON parted_trig referencing old TABLE AS old_table FOR EACH ROW

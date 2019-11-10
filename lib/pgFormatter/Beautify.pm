@@ -1169,7 +1169,7 @@ sub beautify
             $last = $self->_set_last($token, $last);
 	    next;
         }
-        elsif ($token =~ /^(BEFORE|AFTER)$/i and $self->{ '_is_in_trigger' })
+        elsif ($token =~ /^(BEFORE|AFTER|INSTEAD)$/i and $self->{ '_is_in_trigger' })
 	{
             $self->_new_line($token,$last);
             $self->_over($token,$last);
