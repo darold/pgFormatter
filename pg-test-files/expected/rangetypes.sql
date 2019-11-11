@@ -1468,8 +1468,9 @@ FROM
 
 CREATE FUNCTION table_succeed (i anyelement, r anyrange)
     RETURNS TABLE (
-        i anyelement, r anyrange
-)
+        i anyelement,
+        r anyrange
+    )
     AS $$
     SELECT
         $1,
@@ -1506,8 +1507,9 @@ LANGUAGE sql;
 --should fail
 CREATE FUNCTION table_fail (i anyelement)
     RETURNS TABLE (
-        i anyelement, r anyrange
-)
+        i anyelement,
+        r anyrange
+    )
     AS $$
     SELECT
         $1,

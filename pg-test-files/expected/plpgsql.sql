@@ -3411,7 +3411,7 @@ SET plpgsql.extra_warnings TO 'shadowed_variables';
 CREATE OR REPLACE FUNCTION shadowtest (in1 int)
     RETURNS TABLE (
         out1 int
-) AS $$
+    ) AS $$
 DECLARE
     in1 int;
     out1 int;
@@ -3430,7 +3430,7 @@ SELECT
 CREATE OR REPLACE FUNCTION shadowtest (in1 int)
     RETURNS TABLE (
         out1 int
-) AS $$
+    ) AS $$
 DECLARE
     in1 int;
     out1 int;
@@ -4630,7 +4630,9 @@ END;
                     $1,
                     $1 + i
                 FROM
-                    generate_series(1, 5) g (i);
+                    generate_series( 1, 5 ) g (
+            i
+        );
 END;
             $$
             LANGUAGE plpgsql

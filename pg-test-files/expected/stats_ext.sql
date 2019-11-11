@@ -6,7 +6,8 @@
 
 CREATE FUNCTION check_estimated_rows (text)
     RETURNS TABLE (
-        estimated int, actual int)
+        estimated int,
+        actual int)
     LANGUAGE plpgsql
     AS $$
 DECLARE

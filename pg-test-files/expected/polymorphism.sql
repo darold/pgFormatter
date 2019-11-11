@@ -1552,8 +1552,11 @@ DROP FUNCTION dfunc (text);
 
 CREATE FUNCTION dfunc (a int, b int, c int = 0, d int = 0)
     RETURNS TABLE (
-        a int, b int, c int, d int
-)
+        a int,
+        b int,
+        c int,
+        d int
+    )
     AS $$
     SELECT
         $1,
@@ -1657,8 +1660,10 @@ DROP FUNCTION dfunc (int, int, int, int);
 -- test with different parameter types
 CREATE FUNCTION dfunc (a varchar, b numeric, c date = CURRENT_DATE)
     RETURNS TABLE (
-        a varchar, b numeric, c date
-)
+        a varchar,
+        b numeric,
+        c date
+    )
     AS $$
     SELECT
         $1,
@@ -1842,7 +1847,7 @@ DROP FUNCTION testpolym (int);
 CREATE FUNCTION testpolym (a int)
     RETURNS TABLE (
         a int
-)
+    )
     AS $$
     SELECT
         $1;

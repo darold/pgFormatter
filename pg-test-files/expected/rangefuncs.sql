@@ -1470,7 +1470,7 @@ AS 'select $1, array[$1,$1]'
 CREATE OR REPLACE FUNCTION rngfunc ()
     RETURNS TABLE (
         a int
-)
+    )
     AS $$
     SELECT
         a
@@ -1488,8 +1488,9 @@ DROP FUNCTION rngfunc ();
 
 CREATE OR REPLACE FUNCTION rngfunc (int)
     RETURNS TABLE (
-        a int, b int
-)
+        a int,
+        b int
+    )
     AS $$
     SELECT
         a,
@@ -1511,7 +1512,7 @@ DROP FUNCTION rngfunc (int);
 CREATE OR REPLACE FUNCTION rngfunc ()
     RETURNS TABLE (
         a varchar(5)
-)
+    )
     AS $$
     SELECT
         'hello'::varchar(5)
@@ -2037,7 +2038,7 @@ FROM
 CREATE FUNCTION extractq2_2 (t int8_tbl)
     RETURNS TABLE (
         ret1 int8
-)
+    )
     AS $$
     SELECT
         extractq2 (t) offset 0
@@ -2065,7 +2066,7 @@ FROM
 CREATE FUNCTION extractq2_2_opt (t int8_tbl)
     RETURNS TABLE (
         ret1 int8
-)
+    )
     AS $$
     SELECT
         extractq2 (t)

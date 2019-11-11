@@ -1,7 +1,10 @@
 CREATE OR REPLACE FUNCTION chkrolattr ()
     RETURNS TABLE (
-        "role" name, rolekeyword text, canlogin bool, replication bool
-)
+        "role" name,
+        rolekeyword text,
+        canlogin bool,
+        replication bool
+    )
     AS $$
     SELECT
         r.rolname,
@@ -25,8 +28,11 @@ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION chksetconfig ()
     RETURNS TABLE (
-        db name, "role" name, rolkeyword text, setconfig text[]
-)
+        db name,
+        "role" name,
+        rolkeyword text,
+        setconfig text[]
+    )
     AS $$
     SELECT
         COALESCE(d.datname, 'ALL'),
@@ -54,8 +60,10 @@ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION chkumapping ()
     RETURNS TABLE (
-        umname name, umserver name, umoptions text[]
-)
+        umname name,
+        umserver name,
+        umoptions text[]
+    )
     AS $$
     SELECT
         r.rolname,

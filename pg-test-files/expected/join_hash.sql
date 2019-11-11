@@ -36,7 +36,8 @@ END;
 $$;
 CREATE OR REPLACE FUNCTION hash_join_batches (query text)
     RETURNS TABLE (
-        original int, final int)
+        original int,
+        final int)
     LANGUAGE plpgsql
     AS $$
 DECLARE

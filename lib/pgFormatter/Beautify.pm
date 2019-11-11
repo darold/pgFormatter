@@ -614,6 +614,7 @@ sub beautify
     $self->{ '_is_in_value' } = 0;
     $self->{ '_parenthesis_level_value' } = 0;
     $self->{ '_parenthesis_with_level' } = 0;
+    $self->{ '_is_in_returns_table' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -754,6 +755,14 @@ sub beautify
 
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS' && !$self->{ '_is_in_with'}) {
                 $self->_new_line($token,$last);
+	    	if ($self->{ '_is_in_returns_table' } and !$self->{ '_parenthesis_level' })
+		{
+	            $self->{ '_is_in_returns_table' } = 0;
+                    $self->_back($token, $last);
+                    $self->_add_token( $token, $last );
+		    $last = $self->_set_last($token, $last);
+                    next;
+		}
 	    }
             if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' })
 		    && !$self->{ '_parenthesis_level' } && !$self->{ '_parenthesis_with_level' }
@@ -905,6 +914,9 @@ sub beautify
         # Desactivate index like formatting when RETURN(S) keyword is found
         elsif ($token =~ /^(RETURN|RETURNS)$/i) {
             $self->{ '_is_in_index' } = 0;
+	    if (uc($token) eq 'RETURNS' and uc ($self->_next_token()) eq 'TABLE') {
+		    $self->{ '_is_in_returns_table' } = 1;
+	    }
         } elsif ($token =~ /^AS$/i) {
             if ( !$self->{ '_is_in_index' } and $self->{ '_is_in_from' } and $last eq ')' and uc($token) eq 'AS' and $self->_next_token() eq '(') {
                 $self->{ '_is_in_index' } = 1;
@@ -1393,6 +1405,7 @@ sub beautify
             if ($self->{ '_is_in_alter' } && $self->{ '_is_in_operator' } >= 2) {
 		$add_newline = 1 if (defined $self->_next_token and $self->_next_token =~ /^OPERATOR|FUNCTION$/i);
 	    }
+	    $add_newline = 1 if ($self->{ '_is_in_returns_table' });
             $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
 	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
@@ -1456,6 +1469,7 @@ sub beautify
             $self->{ '_is_in_value' } = 0;
             $self->{ '_parenthesis_level_value' } = 0;
 	    $self->{ '_parenthesis_with_level' } = 0;
+            $self->{ '_is_in_returns_table' } = 0;
 
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -2863,7 +2877,7 @@ sub set_dicts
         NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OFF OF OIDS ON ONLY OPEN OPERATOR OR ORDER
         OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE RANGE
         REASSIGN RECURSIVE REFERENCES REINDEX REMAINDER RENAME REPEATABLE REPLACE REPLICA RESET RESTART RESTRICT RETURN RETURNING
-        RETURNS RETURNS REVOKE RIGHT RIGHTARG ROLE ROLLBACK ROLLUP ROWS ROW RULE SAVEPOINT SCHEMA SCROLL SECURITY SELECT SEQUENCE
+        RETURNS REVOKE RIGHT RIGHTARG ROLE ROLLBACK ROLLUP ROWS ROW RULE SAVEPOINT SCHEMA SCROLL SECURITY SELECT SEQUENCE
         SEQUENCE SERIALIZABLE SERVER SESSION_USER SET SETOF SETS SHOW SIMILAR SKIP SNAPSHOT SOME STABLE START STRICT
         SYMMETRIC SYSTEM TABLE TABLESAMPLE TABLESPACE TEMPLATE TEMPORARY THEN TO TRAILING TRANSACTION TRIGGER TRUE
         TRUNCATE TYPE UNBOUNDED UNCOMMITTED UNION UNIQUE UNLISTEN UNLOCK UNLOGGED UPDATE USER USING VACUUM VALUES
