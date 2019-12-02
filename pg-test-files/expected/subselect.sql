@@ -711,8 +711,7 @@ SELECT
 FROM
     shipped_view;
 
-CREATE RULE shipped_view_update AS ON
-UPDATE
+CREATE RULE shipped_view_update AS ON UPDATE
     TO shipped_view
         DO INSTEAD
         UPDATE
@@ -1064,17 +1063,15 @@ CREATE temp TABLE upsert (
 );
 
 INSERT INTO upsert
-    VALUES (1, 'val') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'val')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         val = 'not seen';
 
 INSERT INTO upsert
-    VALUES (1, 'val') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'val')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         val = 'seen with subselect ' || (
             SELECT
                 f1
@@ -1096,10 +1093,9 @@ WITH aa AS (
         int4_tbl
     LIMIT 1)
     INSERT INTO upsert
-    VALUES (1, 'x'), (999, 'y') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'x'), (999, 'y')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         val = (
             SELECT
                 u
@@ -1700,8 +1696,7 @@ EXPLAIN (
         SELECT
             f1
         FROM
-            subselect_tbl
-) ss
+            subselect_tbl) ss
 )
 SELECT
     *
@@ -1804,11 +1799,9 @@ EXPLAIN (
     FROM (
         SELECT
             f1,
-            now(
-) AS n
+            now() AS n
         FROM
-            subselect_tbl
-) ss
+            subselect_tbl) ss
 )
 SELECT
     *
@@ -1822,9 +1815,8 @@ WHERE
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-) WITH RECURSIVE x (
-    a
-) AS ((
+) WITH RECURSIVE x (a)
+AS ((
         VALUES ('a'),
             ('b'))
     UNION ALL ( WITH z AS NOT MATERIALIZED (
@@ -1833,17 +1825,13 @@ EXPLAIN (
             FROM
                 x
 )
-            SELECT
-                z.a || z1.a AS a
-            FROM
-                z
-            CROSS JOIN z AS z1
-        WHERE
-            length(
-                z.a || z1.a
-) < 5
-)
-)
+        SELECT
+            z.a || z1.a AS a
+        FROM
+            z
+        CROSS JOIN z AS z1
+    WHERE
+        length(z.a || z1.a) < 5))
 SELECT
     *
 FROM
@@ -1869,8 +1857,7 @@ WITH RECURSIVE x (
             length(
                 z.a || z1.a
 ) < 5
-)
-)
+))
 SELECT
     *
 FROM
@@ -1879,9 +1866,8 @@ FROM
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-) WITH RECURSIVE x (
-    a
-) AS ((
+) WITH RECURSIVE x (a)
+AS ((
         VALUES ('a'),
             ('b'))
     UNION ALL ( WITH z AS NOT MATERIALIZED (
@@ -1890,16 +1876,12 @@ EXPLAIN (
             FROM
                 x
 )
-            SELECT
-                z.a || z.a AS a
-            FROM
-                z
-            WHERE
-                length(
-                    z.a || z.a
-) < 5
-)
-)
+        SELECT
+            z.a || z.a AS a
+        FROM
+            z
+        WHERE
+            length(z.a || z.a) < 5))
 SELECT
     *
 FROM
@@ -1924,8 +1906,7 @@ WITH RECURSIVE x (
                 length(
                     z.a || z.a
 ) < 5
-)
-)
+))
 SELECT
     *
 FROM

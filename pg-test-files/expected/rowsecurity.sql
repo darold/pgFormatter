@@ -1535,8 +1535,7 @@ SET SESSION AUTHORIZATION regress_rls_bob;
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     t1
 SET
     b = b || b
@@ -1552,8 +1551,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     ONLY t1
 SET
     b = b || '_updt'
@@ -1602,8 +1600,7 @@ RETURNING
 -- updates with from clause
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     t2
 SET
     b = t2.b
@@ -1629,8 +1626,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     t1
 SET
     b = t1.b
@@ -1656,8 +1652,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     t2
 SET
     b = t2.b
@@ -1684,8 +1679,7 @@ WHERE
 -- updates with from clause self join
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     t2 t2_1
 SET
     b = t2_2.b
@@ -1721,8 +1715,7 @@ RETURNING
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     t1 t1_1
 SET
     b = t1_2.b
@@ -1866,8 +1859,7 @@ INSERT INTO bv1
 -- ok
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     bv1
 SET
     b = 'yyy'
@@ -1938,12 +1930,11 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_carol', 'my first novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle,
-    dauthor = EXCLUDED.dauthor;
+                cname = 'novel'), 1, 'regress_rls_carol', 'my first novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle,
+        dauthor = EXCLUDED.dauthor;
 
 -- Violates USING qual for UPDATE policy p3.
 --
@@ -1963,10 +1954,8 @@ INSERT INTO document
                 cname = 'novel'), 1, 'regress_rls_bob', 'Some novel, replaces sci-fi')
 -- takes UPDATE path
 ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle;
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle;
 
 -- Fine (we UPDATE, since INSERT WCOs and UPDATE security barrier quals + WCOs
 -- not violated):
@@ -1976,13 +1965,12 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_bob', 'my first novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle
-RETURNING
-    *;
+                cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle
+    RETURNING
+        *;
 
 -- Fine (we INSERT, so "cid = 33" ("technology") isn't evaluated):
 INSERT INTO document
@@ -1990,14 +1978,13 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle,
-    cid = 33
-RETURNING
-    *;
+                cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle,
+        cid = 33
+    RETURNING
+        *;
 
 -- Fine (same query, but we UPDATE, so "cid = 33", ("technology") is not the
 -- case in respect of *existing* tuple):
@@ -2007,14 +1994,13 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle,
-    cid = 33
-RETURNING
-    *;
+                cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle,
+        cid = 33
+    RETURNING
+        *;
 
 -- Same query a third time, but now fails due to existing tuple finally not
 -- passing quals:
@@ -2024,14 +2010,13 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle,
-    cid = 33
-RETURNING
-    *;
+                cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle,
+        cid = 33
+    RETURNING
+        *;
 
 -- Don't fail just because INSERT doesn't satisfy WITH CHECK option that
 -- originated as a barrier/USING() qual from the UPDATE.  Note that the UPDATE
@@ -2042,13 +2027,12 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle
-RETURNING
-    *;
+                cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle
+    RETURNING
+        *;
 
 -- But this time, the same statement fails, because the UPDATE path is taken,
 -- and updating the row just inserted falls afoul of security barrier qual
@@ -2060,13 +2044,12 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle
-RETURNING
-    *;
+                cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle
+    RETURNING
+        *;
 
 -- Test default USING qual enforced as WCO
 SET SESSION AUTHORIZATION regress_rls_alice;
@@ -2102,13 +2085,12 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle
-RETURNING
-    *;
+                cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle
+    RETURNING
+        *;
 
 -- UPDATE path is taken here.  Existing tuple passes, since its cid
 -- corresponds to "novel", but default USING qual is enforced against
@@ -2120,14 +2102,13 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'technology'), 1, 'regress_rls_bob', 'my first novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    cid = EXCLUDED.cid,
-    dtitle = EXCLUDED.dtitle
-RETURNING
-    *;
+                cname = 'technology'), 1, 'regress_rls_bob', 'my first novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        cid = EXCLUDED.cid,
+        dtitle = EXCLUDED.dtitle
+    RETURNING
+        *;
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
@@ -2152,12 +2133,11 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_carol', 'my first novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle,
-    cid = 33;
+                cname = 'novel'), 1, 'regress_rls_carol', 'my first novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle,
+        cid = 33;
 
 -- Fails, since ALL policy USING qual is enforced (existing, target tuple is in
 -- violation, since it has the "manga" cid):
@@ -2167,11 +2147,10 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_bob', 'my first novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dtitle = EXCLUDED.dtitle;
+                cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dtitle = EXCLUDED.dtitle;
 
 -- Fails, since ALL WCO are enforced:
 INSERT INTO document
@@ -2179,11 +2158,10 @@ INSERT INTO document
             SELECT
                 cid FROM category
             WHERE
-                cname = 'novel'), 1, 'regress_rls_bob', 'my first novel') ON CONFLICT (did)
-DO
-UPDATE
-SET
-    dauthor = 'regress_rls_carol';
+                cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
+ON CONFLICT (did)
+    DO UPDATE SET
+        dauthor = 'regress_rls_carol';
 
 --
 -- ROLE/GROUP
@@ -2243,7 +2221,8 @@ EXPLAIN (
     COSTS OFF
 ) EXECUTE plancache_test;
 
-PREPARE plancache_test2 AS WITH q AS MATERIALIZED (
+PREPARE plancache_test2 AS
+WITH q AS MATERIALIZED (
     SELECT
         *
     FROM
@@ -2251,8 +2230,7 @@ PREPARE plancache_test2 AS WITH q AS MATERIALIZED (
     WHERE
         f_leak (
             b
-)
-)
+))
 SELECT
     *
 FROM
@@ -2263,7 +2241,8 @@ EXPLAIN (
     COSTS OFF
 ) EXECUTE plancache_test2;
 
-PREPARE plancache_test3 AS WITH q AS MATERIALIZED (
+PREPARE plancache_test3 AS
+WITH q AS MATERIALIZED (
     SELECT
         *
     FROM
@@ -2863,8 +2842,7 @@ WITH cte1 AS MATERIALIZED (
     WHERE
         f_leak (
             b
-)
-)
+))
 SELECT
     *
 FROM
@@ -2878,10 +2856,7 @@ EXPLAIN (
     FROM
         t1
     WHERE
-        f_leak (
-            b
-)
-)
+        f_leak (b))
 SELECT
     *
 FROM
@@ -3531,8 +3506,7 @@ FROM
 -- Plan should be a subquery TID scan
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     current_check
 SET
     payload = payload
@@ -4176,10 +4150,9 @@ RETURNING
 
 -- UPDATE path of INSERT ... ON CONFLICT DO UPDATE should also error out
 INSERT INTO r1
-    VALUES (10) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (10)
+ON CONFLICT (a)
+    DO UPDATE SET
         a = 30
     RETURNING
         *;
@@ -4188,17 +4161,16 @@ INSERT INTO r1
 -- SELECT permissions)
 
 INSERT INTO r1
-    VALUES (10) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (10)
+ON CONFLICT (a)
+    DO UPDATE SET
         a = 30;
 
 INSERT INTO r1
-    VALUES (10) ON CONFLICT ON CONSTRAINT r1_pkey DO
-    UPDATE
-        SET
-            a = 30;
+    VALUES (10)
+ON CONFLICT ON CONSTRAINT r1_pkey
+    DO UPDATE SET
+        a = 30;
 
 DROP TABLE r1;
 

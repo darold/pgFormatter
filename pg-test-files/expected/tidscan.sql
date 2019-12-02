@@ -227,8 +227,7 @@ EXPLAIN (
     COSTS OFF,
     SUMMARY OFF,
     TIMING OFF
-)
-UPDATE
+) UPDATE
     tidscan
 SET
     id = - id
@@ -243,8 +242,7 @@ EXPLAIN (
     COSTS OFF,
     SUMMARY OFF,
     TIMING OFF
-)
-UPDATE
+) UPDATE
     tidscan
 SET
     id = - id
@@ -266,8 +264,7 @@ EXPLAIN (
     COSTS OFF,
     SUMMARY OFF,
     TIMING OFF
-)
-UPDATE
+) UPDATE
     tidscan
 SET
     id = - id

@@ -885,28 +885,25 @@ SET
 -- Ok.
 
 INSERT INTO atest5 (two)
-    VALUES (6) ON CONFLICT (two)
-    DO
-    UPDATE
-    SET
+    VALUES (6)
+ON CONFLICT (two)
+    DO UPDATE SET
         three = 10;
 
 -- Error. No SELECT on column three.
 INSERT INTO atest5 (two)
-    VALUES (6) ON CONFLICT (two)
-    DO
-    UPDATE
-    SET
+    VALUES (6)
+ON CONFLICT (two)
+    DO UPDATE SET
         three = 10
     RETURNING
         atest5.three;
 
 -- Ok.  May SELECT on column "one":
 INSERT INTO atest5 (two)
-    VALUES (6) ON CONFLICT (two)
-    DO
-    UPDATE
-    SET
+    VALUES (6)
+ON CONFLICT (two)
+    DO UPDATE SET
         three = 10
     RETURNING
         atest5.one;
@@ -915,33 +912,29 @@ INSERT INTO atest5 (two)
 -- Ok. we may select one
 
 INSERT INTO atest5 (two)
-    VALUES (6) ON CONFLICT (two)
-    DO
-    UPDATE
-    SET
+    VALUES (6)
+ON CONFLICT (two)
+    DO UPDATE SET
         three = EXCLUDED.one;
 
 -- Error. No select rights on three
 INSERT INTO atest5 (two)
-    VALUES (6) ON CONFLICT (two)
-    DO
-    UPDATE
-    SET
+    VALUES (6)
+ON CONFLICT (two)
+    DO UPDATE SET
         three = EXCLUDED.three;
 
 INSERT INTO atest5 (two)
-    VALUES (6) ON CONFLICT (two)
-    DO
-    UPDATE
-    SET
+    VALUES (6)
+ON CONFLICT (two)
+    DO UPDATE SET
         one = 8;
 
 -- fails (due to UPDATE)
 INSERT INTO atest5 (three)
-    VALUES (4) ON CONFLICT (two)
-    DO
-    UPDATE
-    SET
+    VALUES (4)
+ON CONFLICT (two)
+    DO UPDATE SET
         three = 10;
 
 -- fails (due to INSERT)
@@ -958,18 +951,17 @@ GRANT INSERT (four) ON atest5 TO regress_priv_user4;
 SET SESSION AUTHORIZATION regress_priv_user4;
 
 INSERT INTO atest5 (four)
-    VALUES (4) ON CONFLICT (four)
-    DO
-    UPDATE
-    SET
+    VALUES (4)
+ON CONFLICT (four)
+    DO UPDATE SET
         three = 3;
 
 -- fails (due to SELECT)
 INSERT INTO atest5 (four)
-    VALUES (4) ON CONFLICT ON CONSTRAINT atest5_four_key DO
-    UPDATE
-        SET
-            three = 3;
+    VALUES (4)
+ON CONFLICT ON CONSTRAINT atest5_four_key
+    DO UPDATE SET
+        three = 3;
 
 -- fails (due to SELECT)
 INSERT INTO atest5 (four)
@@ -983,18 +975,17 @@ GRANT SELECT (four) ON atest5 TO regress_priv_user4;
 SET SESSION AUTHORIZATION regress_priv_user4;
 
 INSERT INTO atest5 (four)
-    VALUES (4) ON CONFLICT (four)
-    DO
-    UPDATE
-    SET
+    VALUES (4)
+ON CONFLICT (four)
+    DO UPDATE SET
         three = 3;
 
 -- ok
 INSERT INTO atest5 (four)
-    VALUES (4) ON CONFLICT ON CONSTRAINT atest5_four_key DO
-    UPDATE
-        SET
-            three = 3;
+    VALUES (4)
+ON CONFLICT ON CONSTRAINT atest5_four_key
+    DO UPDATE SET
+        three = 3;
 
 -- ok
 SET SESSION AUTHORIZATION regress_priv_user1;

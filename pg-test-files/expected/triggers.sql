@@ -394,8 +394,7 @@ CREATE FUNCTION trigger_func ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    RAISE NOTICE '' trigger_func (%) called: action = %,
-WHEN = %, level = % '', TG_ARGV[0], TG_OP, TG_WHEN, TG_LEVEL;
+    RAISE NOTICE 'trigger_func(%) called: action = %, when = %, level = %', TG_ARGV[0], TG_OP, TG_WHEN, TG_LEVEL;
     RETURN NULL;
 END;
 $$;
@@ -424,10 +423,9 @@ CREATE TRIGGER after_upd_stmt_trig
 -- defined.
 
 INSERT INTO main_table (a, b)
-    VALUES (5, 10) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (5, 10)
+ON CONFLICT (a)
+    DO UPDATE SET
         b = EXCLUDED.b;
 
 CREATE TRIGGER after_upd_row_trig
@@ -435,8 +433,7 @@ CREATE TRIGGER after_upd_row_trig
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_func ('after_upd_row');
 
-INSERT INTO main_table DEFAULT VALUES;
-UPDATE
+INSERT INTO main_table DEFAULT VALUES; UPDATE
     main_table
 SET
     a = a + 1
@@ -1674,8 +1671,7 @@ CREATE RULE european_city_insert_rule AS ON INSERT TO european_city_view
 RETURNING
     *;
 
-CREATE RULE european_city_update_rule AS ON
-UPDATE
+CREATE RULE european_city_update_rule AS ON UPDATE
     TO european_city_view
         DO INSTEAD
         UPDATE
@@ -2290,59 +2286,51 @@ CREATE TRIGGER upsert_after_trig
     EXECUTE PROCEDURE upsert_after_func ();
 
 INSERT INTO upsert
-    VALUES (1, 'black') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'black')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
-    VALUES (2, 'red') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (2, 'red')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
-    VALUES (3, 'orange') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (3, 'orange')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
-    VALUES (4, 'green') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (4, 'green')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
-    VALUES (5, 'purple') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (5, 'purple')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
-    VALUES (6, 'white') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (6, 'white')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
-    VALUES (7, 'pink') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (7, 'pink')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
-    VALUES (8, 'yellow') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (8, 'yellow')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 SELECT
@@ -3626,26 +3614,23 @@ CREATE TRIGGER my_table_update_trig
 
 -- inserts only
 INSERT INTO my_table
-    VALUES (1, 'AAA'), (2, 'BBB') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'AAA'), (2, 'BBB')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = my_table.b || ':' || excluded.b;
 
 -- mixture of inserts and updates
 INSERT INTO my_table
-    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = my_table.b || ':' || excluded.b;
 
 -- updates only
 INSERT INTO my_table
-    VALUES (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (3, 'CCC'), (4, 'DDD')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = my_table.b || ':' || excluded.b;
 
 --
@@ -3680,26 +3665,23 @@ CREATE TRIGGER iocdu_tt_parted_update_trig
 
 -- inserts only
 INSERT INTO iocdu_tt_parted
-    VALUES (1, 'AAA'), (2, 'BBB') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'AAA'), (2, 'BBB')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = iocdu_tt_parted.b || ':' || excluded.b;
 
 -- mixture of inserts and updates
 INSERT INTO iocdu_tt_parted
-    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = iocdu_tt_parted.b || ':' || excluded.b;
 
 -- updates only
 INSERT INTO iocdu_tt_parted
-    VALUES (3, 'CCC'), (4, 'DDD') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (3, 'CCC'), (4, 'DDD')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = iocdu_tt_parted.b || ':' || excluded.b;
 
 DROP TABLE iocdu_tt_parted;

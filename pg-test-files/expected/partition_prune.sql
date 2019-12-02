@@ -2378,8 +2378,7 @@ EXPLAIN (
     COSTS OFF,
     summary OFF,
     timing OFF
-)
-UPDATE
+) UPDATE
     ab_a1
 SET
     b = 3
@@ -2402,8 +2401,7 @@ EXPLAIN (
     COSTS OFF,
     summary OFF,
     timing OFF
-)
-UPDATE
+) UPDATE
     ab_a1
 SET
     b = 3
@@ -3101,8 +3099,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     pp_arrpart
 SET
     a = a
@@ -3316,8 +3313,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     pp_lp
 SET
     value = 10
@@ -3346,8 +3342,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     pp_lp
 SET
     value = 10
@@ -3374,8 +3369,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     pp_lp
 SET
     value = 10
@@ -3428,8 +3422,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     inh_lp
 SET
     value = 10
@@ -3446,8 +3439,7 @@ WHERE a = 1;
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     inh_lp1
 SET
     value = 10
@@ -3693,8 +3685,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     listp1
 SET
     a = 1
@@ -3716,8 +3707,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     listp1
 SET
     a = 1

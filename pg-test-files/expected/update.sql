@@ -275,8 +275,7 @@ FROM
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     update_test t
 SET
     (a,
@@ -323,12 +322,10 @@ WITH aaa AS (
         1 AS a,
         'Foo' AS b)
 INSERT INTO upsert_test
-    VALUES (1, 'Bar') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
-        (b,
-            a) = (
+    VALUES (1, 'Bar')
+ON CONFLICT (a)
+    DO UPDATE SET
+        (b, a) = (
             SELECT
                 b,
                 a
@@ -339,12 +336,10 @@ INSERT INTO upsert_test
 
 -- correlated sub-select:
 INSERT INTO upsert_test
-    VALUES (1, 'Baz') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
-        (b,
-            a) = (
+    VALUES (1, 'Baz')
+ON CONFLICT (a)
+    DO UPDATE SET
+        (b, a) = (
             SELECT
                 b || ', Correlated',
                 a
@@ -357,12 +352,10 @@ INSERT INTO upsert_test
 
 -- correlated sub-select (EXCLUDED.* alias):
 INSERT INTO upsert_test
-    VALUES (1, 'Bat') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
-        (b,
-            a) = (
+    VALUES (1, 'Bat')
+ON CONFLICT (a)
+    DO UPDATE SET
+        (b, a) = (
             SELECT
                 b || ', Excluded',
                 a
@@ -498,8 +491,7 @@ FOR VALUES FROM (1) TO (100);
 -- The order of subplans should be in bound order
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     range_parted
 SET
     c = c - 50

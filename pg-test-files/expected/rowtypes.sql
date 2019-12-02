@@ -1266,35 +1266,14 @@ FROM (
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-) WITH r (
-    a,
-    b
-) AS MATERIALIZED (
-    VALUES (
-            1, ROW (
-                1, 2
-)
-), (
-            1, ROW (
-                NULL, NULL
-)
-),
-        (
-            1, NULL
-),
-        (
-            NULL, ROW (
-                1, 2
-)
-), (
-            NULL, ROW (
-                NULL, NULL
-)
-),
-        (
-            NULL, NULL
-)
-)
+) WITH r (a,
+    b) AS MATERIALIZED (
+    VALUES (1, ROW (1, 2)),
+        (1, ROW (NULL, NULL)),
+        (1, NULL),
+        (NULL, ROW (1, 2)),
+        (NULL, ROW (NULL, NULL)),
+        (NULL, NULL))
 SELECT
     r,
     r IS NULL AS ISNULL,
@@ -1310,7 +1289,8 @@ WITH r (
             1, ROW (
                 1, 2
 )
-), (
+),
+        (
             1, ROW (
                 NULL, NULL
 )
@@ -1322,15 +1302,15 @@ WITH r (
             NULL, ROW (
                 1, 2
 )
-), (
+),
+        (
             NULL, ROW (
                 NULL, NULL
 )
 ),
         (
             NULL, NULL
-)
-)
+))
 SELECT
     r,
     r IS NULL AS ISNULL,

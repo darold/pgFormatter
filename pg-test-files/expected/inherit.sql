@@ -542,8 +542,7 @@ INSERT INTO some_tab_child
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     some_tab
 SET
     a = a + 1
@@ -560,8 +559,7 @@ WHERE
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     some_tab
 SET
     a = a + 1
@@ -785,8 +783,7 @@ ORDER BY
     2;
 
 -- modifies partition key, but no rows will actually be updated
-EXPLAIN
-UPDATE
+EXPLAIN UPDATE
     parted_tab
 SET
     a = 2

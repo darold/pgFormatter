@@ -76,7 +76,8 @@ FROM
     base_tbl;
 
 -- Set ops not supported
-CREATE VIEW ro_view7 AS WITH t AS (
+CREATE VIEW ro_view7 AS
+WITH t AS (
     SELECT
         a,
         b
@@ -324,16 +325,8 @@ INSERT INTO rw_view15 (a)
 
 -- should be OK
 INSERT INTO rw_view15 (a)
-    VALUES (3) ON CONFLICT DO NOTHING;
-
--- succeeds
-SELECT
-    *
-FROM
-    rw_view15;
-
-INSERT INTO rw_view15 (a)
-    VALUES (3) ON CONFLICT (a)
+    VALUES (3)
+ON CONFLICT
     DO NOTHING;
 
 -- succeeds
@@ -343,10 +336,20 @@ FROM
     rw_view15;
 
 INSERT INTO rw_view15 (a)
-    VALUES (3) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (3)
+ON CONFLICT (a)
+    DO NOTHING;
+
+-- succeeds
+SELECT
+    *
+FROM
+    rw_view15;
+
+INSERT INTO rw_view15 (a)
+    VALUES (3)
+ON CONFLICT (a)
+    DO UPDATE SET
         a = excluded.a;
 
 -- succeeds
@@ -356,10 +359,9 @@ FROM
     rw_view15;
 
 INSERT INTO rw_view15 (a)
-    VALUES (3) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (3)
+ON CONFLICT (a)
+    DO UPDATE SET
         upper = 'blarg';
 
 -- fails
@@ -545,8 +547,7 @@ FROM
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view1
 SET
     a = 6
@@ -647,8 +648,7 @@ FROM
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view2
 SET
     aaa = 5
@@ -764,8 +764,7 @@ ORDER BY
     table_name,
     ordinal_position;
 
-CREATE RULE rw_view1_upd_rule AS ON
-UPDATE
+CREATE RULE rw_view1_upd_rule AS ON UPDATE
     TO rw_view1
         DO INSTEAD
         UPDATE
@@ -877,8 +876,7 @@ FROM
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view2
 SET
     a = 3
@@ -1137,8 +1135,7 @@ FROM
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view2
 SET
     a = 3
@@ -1199,8 +1196,7 @@ FROM
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view1 v
 SET
     bb = 'Updated row 2'
@@ -1820,8 +1816,7 @@ FROM
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view1
 SET
     b = b + 1
@@ -2208,8 +2203,7 @@ INSERT INTO other_tbl_child
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view1
 SET
     a = a + 1000
@@ -2610,8 +2604,7 @@ EXPLAIN (
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view1
 SET
     a = a + 5;
@@ -2768,8 +2761,7 @@ CREATE RULE rw_view1_ins_rule AS ON INSERT TO rw_view1
     DO INSTEAD
     INSERT INTO base_tbl VALUES (NEW.a, 10);
 
-CREATE RULE rw_view1_upd_rule AS ON
-UPDATE
+CREATE RULE rw_view1_upd_rule AS ON UPDATE
     TO rw_view1
         DO INSTEAD
         UPDATE
@@ -2961,8 +2953,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view1
 SET
     person = person
@@ -3042,8 +3033,7 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-)
-UPDATE
+) UPDATE
     rw_view2
 SET
     person = person
@@ -3249,8 +3239,7 @@ WHERE
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     v1
 SET
     a = 100
@@ -3289,8 +3278,7 @@ WHERE
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     v1
 SET
     a = a + 1
@@ -3816,10 +3804,9 @@ FROM
     uv_iocu_tab;
 
 INSERT INTO uv_iocu_view (a, b)
-    VALUES ('xyxyxy', 1) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES ('xyxyxy', 1)
+ON CONFLICT (a)
+    DO UPDATE SET
         b = uv_iocu_view.b;
 
 SELECT
@@ -3828,10 +3815,9 @@ FROM
     uv_iocu_tab;
 
 INSERT INTO uv_iocu_view (a, b)
-    VALUES ('xyxyxy', 1) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES ('xyxyxy', 1)
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 SELECT
@@ -3843,10 +3829,9 @@ FROM
 -- relation in the ON CONFLICT portion of the query
 
 INSERT INTO uv_iocu_view (a, b)
-    VALUES ('xyxyxy', 3) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES ('xyxyxy', 3)
+ON CONFLICT (a)
+    DO UPDATE SET
         b = cast(excluded.two AS float);
 
 SELECT
@@ -3857,19 +3842,17 @@ FROM
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO uv_iocu_view (a, b)
-    VALUES ('xyxyxy', 3) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES ('xyxyxy', 3)
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b
     WHERE
         excluded.c > 0;
 
 INSERT INTO uv_iocu_view (a, b)
-    VALUES ('xyxyxy', 3) ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES ('xyxyxy', 3)
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b
     WHERE
         excluded.c > 0;
@@ -3903,10 +3886,9 @@ INSERT INTO uv_iocu_view (aa, bb)
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO uv_iocu_view (aa, bb)
-    VALUES (1, 'y') ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'y')
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = 'Rejected: ' || excluded.*
     WHERE
         excluded.aa > 0
@@ -3914,10 +3896,9 @@ EXPLAIN (
         AND excluded.cc IS NOT NULL;
 
 INSERT INTO uv_iocu_view (aa, bb)
-    VALUES (1, 'y') ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'y')
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = 'Rejected: ' || excluded.*
     WHERE
         excluded.aa > 0
@@ -3936,10 +3917,9 @@ INSERT INTO uv_iocu_view (aa, bb)
     VALUES (1, 'x');
 
 INSERT INTO uv_iocu_view (aa)
-    VALUES (1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = 'Rejected: ' || excluded.*;
 
 SELECT
@@ -3951,10 +3931,9 @@ ALTER TABLE uv_iocu_tab
     ALTER COLUMN b SET DEFAULT 'table default';
 
 INSERT INTO uv_iocu_view (aa)
-    VALUES (1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = 'Rejected: ' || excluded.*;
 
 SELECT
@@ -3966,10 +3945,9 @@ ALTER VIEW uv_iocu_view
     ALTER COLUMN bb SET DEFAULT 'view default';
 
 INSERT INTO uv_iocu_view (aa)
-    VALUES (1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = 'Rejected: ' || excluded.*;
 
 SELECT
@@ -3979,10 +3957,9 @@ FROM
 
 -- Should fail to update non-updatable columns
 INSERT INTO uv_iocu_view (aa)
-    VALUES (1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         cc = 'XXX';
 
 DROP VIEW uv_iocu_view;
@@ -4022,42 +3999,37 @@ GRANT UPDATE (bb) ON rw_view1 TO regress_view_user2;
 SET session AUTHORIZATION regress_view_user2;
 
 INSERT INTO rw_view1
-    VALUES ('yyy', 2.0, 1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES ('yyy', 2.0, 1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = excluded.cc;
 
 -- Not allowed
 INSERT INTO rw_view1
-    VALUES ('yyy', 2.0, 1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES ('yyy', 2.0, 1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = rw_view1.cc;
 
 -- Not allowed
 INSERT INTO rw_view1
-    VALUES ('yyy', 2.0, 1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES ('yyy', 2.0, 1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = excluded.bb;
 
 -- OK
 INSERT INTO rw_view1
-    VALUES ('zzz', 2.0, 1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES ('zzz', 2.0, 1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = rw_view1.bb || 'xxx';
 
 -- OK
 INSERT INTO rw_view1
-    VALUES ('zzz', 2.0, 1) ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES ('zzz', 2.0, 1)
+ON CONFLICT (aa)
+    DO UPDATE SET
         cc = 3.0;
 
 -- Not allowed
@@ -4087,10 +4059,9 @@ FROM
     base_tbl;
 
 INSERT INTO rw_view2 (aa, bb)
-    VALUES (1, 'xxx') ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'xxx')
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = excluded.bb;
 
 -- Not allowed
@@ -4102,10 +4073,9 @@ FROM
     base_tbl;
 
 INSERT INTO rw_view3 (aa, bb)
-    VALUES (1, 'xxx') ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'xxx')
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = excluded.bb;
 
 -- OK
@@ -4127,10 +4097,9 @@ FROM
     rw_view1;
 
 INSERT INTO rw_view4 (aa, bb)
-    VALUES (1, 'yyy') ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'yyy')
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = excluded.bb;
 
 -- Not allowed
@@ -4142,10 +4111,9 @@ FROM
     rw_view1;
 
 INSERT INTO rw_view5 (aa, bb)
-    VALUES (1, 'yyy') ON CONFLICT (aa)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'yyy')
+ON CONFLICT (aa)
+    DO UPDATE SET
         bb = excluded.bb;
 
 -- OK
@@ -4244,7 +4212,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER base_tab_def_view_instrig
-    INSTEAD OF INSERT ON base_tab_def_view FOR EACH ROW
+    INSTEAD OF insert ON base_tab_def_view FOR EACH ROW
     EXECUTE FUNCTION base_tab_def_view_instrig_func ();
 
 TRUNCATE base_tab_def;

@@ -363,8 +363,7 @@ SELECT
 FROM
     joinview;
 
-CREATE RULE joinview_u AS ON
-UPDATE
+CREATE RULE joinview_u AS ON UPDATE
     TO joinview
         DO INSTEAD
         UPDATE

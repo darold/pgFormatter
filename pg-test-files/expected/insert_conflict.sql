@@ -24,41 +24,45 @@ CREATE UNIQUE INDEX both_index_expr_key ON insertconflicttest (KEY, lower(fruit)
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (KEY)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (KEY)
+    DO NOTHING;
 
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (fruit)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (fruit)
+    DO NOTHING;
 
 -- succeeds
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (KEY, fruit)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (KEY, fruit)
+    DO NOTHING;
 
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (fruit, KEY, fruit, KEY)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (fruit, KEY, fruit, KEY)
+    DO NOTHING;
 
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (lower(fruit), KEY, lower(fruit), KEY)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (lower(fruit), KEY, lower(fruit), KEY)
+    DO NOTHING;
 
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (KEY, fruit)
-    DO
-    UPDATE
-    SET
+    VALUES (0, 'Crowberry')
+ON CONFLICT (KEY, fruit)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         EXISTS (
@@ -76,8 +80,9 @@ EXPLAIN (
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (KEY, fruit text_pattern_ops)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (KEY, fruit text_pattern_ops)
+    DO NOTHING;
 
 -- Okay, arbitrates using both index where text_pattern_ops opclass does and
 -- does not appear.
@@ -85,8 +90,9 @@ EXPLAIN (
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (KEY, fruit COLLATE "C")
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (KEY, fruit COLLATE "C")
+    DO NOTHING;
 
 -- Okay, but only accepts the single index where both opclass and collation are
 -- specified
@@ -94,8 +100,9 @@ EXPLAIN (
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (fruit COLLATE "C" text_pattern_ops, KEY)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (fruit COLLATE "C" text_pattern_ops, KEY)
+    DO NOTHING;
 
 -- Okay, but only accepts the single index where both opclass and collation are
 -- specified (plus expression variant)
@@ -103,9 +110,10 @@ EXPLAIN (
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (lower(fruit)
-        COLLATE "C", KEY, KEY)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (lower(fruit)
+    COLLATE "C", KEY, KEY)
+    DO NOTHING;
 
 -- Attribute appears twice, while not all attributes/expressions on attributes
 -- appearing within index definition match in terms of both opclass and
@@ -125,15 +133,17 @@ EXPLAIN (
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (fruit, KEY, fruit text_pattern_ops, KEY)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (fruit, KEY, fruit text_pattern_ops, KEY)
+    DO NOTHING;
 
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (lower(fruit)
-        COLLATE "C" text_pattern_ops, KEY, KEY)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (lower(fruit)
+    COLLATE "C" text_pattern_ops, KEY, KEY)
+    DO NOTHING;
 
 DROP INDEX op_index_key;
 
@@ -153,17 +163,19 @@ CREATE UNIQUE INDEX cross_match ON insertconflicttest (lower(fruit) COLLATE "C",
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (lower(fruit) text_pattern_ops, upper(fruit)
-        COLLATE "C")
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (lower(fruit) text_pattern_ops, upper(fruit)
+    COLLATE "C")
+    DO NOTHING;
 
 -- works:
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (lower(fruit)
-        COLLATE "C", upper(fruit) text_pattern_ops)
-    DO nothing;
+    VALUES (0, 'Crowberry')
+ON CONFLICT (lower(fruit)
+    COLLATE "C", upper(fruit) text_pattern_ops)
+    DO NOTHING;
 
 DROP INDEX cross_match;
 
@@ -180,20 +192,18 @@ CREATE UNIQUE INDEX key_index ON insertconflicttest (KEY);
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Bilberry') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (0, 'Bilberry')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- Should display qual actually attributable to internal sequential scan:
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Bilberry') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (0, 'Bilberry')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         insertconflicttest.fruit != 'Cawesh';
@@ -202,10 +212,9 @@ EXPLAIN (
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Crowberry') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (0, 'Crowberry')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         excluded.fruit != 'Elderberry';
@@ -215,10 +224,9 @@ EXPLAIN (
     COSTS OFF,
     format json
 ) INSERT INTO insertconflicttest
-    VALUES (0, 'Bilberry') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (0, 'Bilberry')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         insertconflicttest.fruit != 'Lime'
@@ -227,115 +235,100 @@ EXPLAIN (
 
 -- Fails (no unique index inference specification, required for do update variant):
 INSERT INTO insertconflicttest
-    VALUES (1, 'Apple') ON CONFLICT DO
-    UPDATE
-    SET
+    VALUES (1, 'Apple')
+ON CONFLICT
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- inference succeeds:
 INSERT INTO insertconflicttest
-    VALUES (1, 'Apple') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'Apple')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (2, 'Orange') ON CONFLICT (KEY, KEY, KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (2, 'Orange')
+ON CONFLICT (KEY, KEY, KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- Succeed, since multi-assignment does not involve subquery:
 INSERT INTO insertconflicttest
-    VALUES (1, 'Apple'), (2, 'Orange') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
-        (fruit,
-            KEY) = (excluded.fruit,
-            excluded.key);
+    VALUES (1, 'Apple'), (2, 'Orange')
+ON CONFLICT (KEY)
+    DO UPDATE SET
+        (fruit, KEY) = (excluded.fruit, excluded.key);
 
 -- Give good diagnostic message when EXCLUDED.* spuriously referenced from
 -- RETURNING:
 
 INSERT INTO insertconflicttest
-    VALUES (1, 'Apple') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'Apple')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     RETURNING
         excluded.fruit;
 
 -- Only suggest <table>.* column when inference element misspelled:
 INSERT INTO insertconflicttest
-    VALUES (1, 'Apple') ON CONFLICT (keyy)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'Apple')
+ON CONFLICT (keyy)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- Have useful HINT for EXCLUDED.* RTE within UPDATE:
 INSERT INTO insertconflicttest
-    VALUES (1, 'Apple') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'Apple')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruitt;
 
 -- inference fails:
 INSERT INTO insertconflicttest
-    VALUES (3, 'Kiwi') ON CONFLICT (KEY, fruit)
-    DO
-    UPDATE
-    SET
+    VALUES (3, 'Kiwi')
+ON CONFLICT (KEY, fruit)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (4, 'Mango') ON CONFLICT (fruit, KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (4, 'Mango')
+ON CONFLICT (fruit, KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (5, 'Lemon') ON CONFLICT (fruit)
-    DO
-    UPDATE
-    SET
+    VALUES (5, 'Lemon')
+ON CONFLICT (fruit)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (6, 'Passionfruit') ON CONFLICT (lower(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (6, 'Passionfruit')
+ON CONFLICT (lower(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- Check the target relation can be aliased
 INSERT INTO insertconflicttest AS ict
-    VALUES (6, 'Passionfruit') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (6, 'Passionfruit')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- ok, no reference to target table
 INSERT INTO insertconflicttest AS ict
-    VALUES (6, 'Passionfruit') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (6, 'Passionfruit')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = ict.fruit;
 
 -- ok, alias
 INSERT INTO insertconflicttest AS ict
-    VALUES (6, 'Passionfruit') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (6, 'Passionfruit')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = insertconflicttest.fruit;
 
 -- error, references aliased away name
@@ -349,46 +342,40 @@ CREATE UNIQUE INDEX comp_key_index ON insertconflicttest (KEY, fruit);
 
 -- inference succeeds:
 INSERT INTO insertconflicttest
-    VALUES (7, 'Raspberry') ON CONFLICT (KEY, fruit)
-    DO
-    UPDATE
-    SET
+    VALUES (7, 'Raspberry')
+ON CONFLICT (KEY, fruit)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (8, 'Lime') ON CONFLICT (fruit, KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (8, 'Lime')
+ON CONFLICT (fruit, KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- inference fails:
 INSERT INTO insertconflicttest
-    VALUES (9, 'Banana') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (9, 'Banana')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (10, 'Blueberry') ON CONFLICT (KEY, KEY, KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (10, 'Blueberry')
+ON CONFLICT (KEY, KEY, KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (11, 'Cherry') ON CONFLICT (KEY, lower(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (11, 'Cherry')
+ON CONFLICT (KEY, lower(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (12, 'Date') ON CONFLICT (lower(fruit), KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (12, 'Date')
+ON CONFLICT (lower(fruit), KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 DROP INDEX comp_key_index;
@@ -407,45 +394,39 @@ WHERE
 
 -- inference fails:
 INSERT INTO insertconflicttest
-    VALUES (13, 'Grape') ON CONFLICT (KEY, fruit)
-    DO
-    UPDATE
-    SET
+    VALUES (13, 'Grape')
+ON CONFLICT (KEY, fruit)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (14, 'Raisin') ON CONFLICT (fruit, KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (14, 'Raisin')
+ON CONFLICT (fruit, KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (15, 'Cranberry') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (15, 'Cranberry')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (16, 'Melon') ON CONFLICT (KEY, KEY, KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (16, 'Melon')
+ON CONFLICT (KEY, KEY, KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (17, 'Mulberry') ON CONFLICT (KEY, lower(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (17, 'Mulberry')
+ON CONFLICT (KEY, lower(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (18, 'Pineapple') ON CONFLICT (lower(fruit), KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (18, 'Pineapple')
+ON CONFLICT (lower(fruit), KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 DROP INDEX part_comp_key_index;
@@ -460,32 +441,28 @@ CREATE UNIQUE INDEX expr_key_index ON insertconflicttest (lower(fruit));
 
 -- inference succeeds:
 INSERT INTO insertconflicttest
-    VALUES (20, 'Quince') ON CONFLICT (lower(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (20, 'Quince')
+ON CONFLICT (lower(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (21, 'Pomegranate') ON CONFLICT (lower(fruit), lower(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (21, 'Pomegranate')
+ON CONFLICT (lower(fruit), lower(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- inference fails:
 INSERT INTO insertconflicttest
-    VALUES (22, 'Apricot') ON CONFLICT (upper(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (22, 'Apricot')
+ON CONFLICT (upper(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (23, 'Blackberry') ON CONFLICT (fruit)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Blackberry')
+ON CONFLICT (fruit)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 DROP INDEX expr_key_index;
@@ -500,49 +477,43 @@ CREATE UNIQUE INDEX tricky_expr_comp_key_index ON insertconflicttest (KEY, lower
 
 -- inference succeeds:
 INSERT INTO insertconflicttest
-    VALUES (24, 'Plum') ON CONFLICT (KEY, lower(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (24, 'Plum')
+ON CONFLICT (KEY, lower(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (25, 'Peach') ON CONFLICT (lower(fruit), KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (25, 'Peach')
+ON CONFLICT (lower(fruit), KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- Should not infer "tricky_expr_comp_key_index" index:
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
-    VALUES (26, 'Fig') ON CONFLICT (lower(fruit), KEY, lower(fruit), KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (26, 'Fig')
+ON CONFLICT (lower(fruit), KEY, lower(fruit), KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- inference fails:
 INSERT INTO insertconflicttest
-    VALUES (27, 'Prune') ON CONFLICT (KEY, upper(fruit))
-    DO
-    UPDATE
-    SET
+    VALUES (27, 'Prune')
+ON CONFLICT (KEY, upper(fruit))
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (28, 'Redcurrant') ON CONFLICT (fruit, KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (28, 'Redcurrant')
+ON CONFLICT (fruit, KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (29, 'Nectarine') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (29, 'Nectarine')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 DROP INDEX expr_comp_key_index;
@@ -559,30 +530,27 @@ CREATE UNIQUE INDEX fruit_index ON insertconflicttest (fruit);
 
 -- succeeds, since UPDATE happens to update "fruit" to existing value:
 INSERT INTO insertconflicttest
-    VALUES (26, 'Fig') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (26, 'Fig')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- fails, since UPDATE is to row with key value 26, and we're updating "fruit"
 -- to a value that happens to exist in another row ('peach'):
 
 INSERT INTO insertconflicttest
-    VALUES (26, 'Peach') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (26, 'Peach')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 -- succeeds, since "key" isn't repeated/referenced in UPDATE, and "fruit"
 -- arbitrates that statement updates existing "Fig" row:
 
 INSERT INTO insertconflicttest
-    VALUES (25, 'Fig') ON CONFLICT (fruit)
-    DO
-    UPDATE
-    SET
+    VALUES (25, 'Fig')
+ON CONFLICT (fruit)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 DROP INDEX key_index;
@@ -599,40 +567,43 @@ WHERE
 
 -- Succeeds
 INSERT INTO insertconflicttest
-    VALUES (23, 'Blackberry') ON CONFLICT (KEY)
-WHERE
-    fruit LIKE '%berry' DO
-    UPDATE
-    SET
-        fruit = excluded.fruit;
-
-INSERT INTO insertconflicttest
-    VALUES (23, 'Blackberry') ON CONFLICT (KEY)
+    VALUES (23, 'Blackberry')
+ON CONFLICT (KEY)
 WHERE
     fruit LIKE '%berry'
-        AND fruit = 'inconsequential' DO nothing;
+        DO UPDATE SET
+            fruit = excluded.fruit;
+
+INSERT INTO insertconflicttest
+    VALUES (23, 'Blackberry')
+ON CONFLICT (KEY)
+WHERE
+    fruit LIKE '%berry'
+        AND fruit = 'inconsequential'
+            DO NOTHING;
 
 -- fails
 INSERT INTO insertconflicttest
-    VALUES (23, 'Blackberry') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Blackberry')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit;
 
 INSERT INTO insertconflicttest
-    VALUES (23, 'Blackberry') ON CONFLICT (KEY)
+    VALUES (23, 'Blackberry')
+ON CONFLICT (KEY)
 WHERE
     fruit LIKE '%berry'
-        OR fruit = 'consequential' DO nothing;
+        OR fruit = 'consequential'
+            DO NOTHING;
 
 INSERT INTO insertconflicttest
-    VALUES (23, 'Blackberry') ON CONFLICT (fruit)
+    VALUES (23, 'Blackberry')
+ON CONFLICT (fruit)
 WHERE
-    fruit LIKE '%berry' DO
-    UPDATE
-    SET
-        fruit = excluded.fruit;
+    fruit LIKE '%berry'
+        DO UPDATE SET
+            fruit = excluded.fruit;
 
 DROP INDEX partial_key_index;
 
@@ -644,10 +615,9 @@ CREATE UNIQUE INDEX plain ON insertconflicttest (KEY);
 
 -- Succeeds, updates existing row:
 INSERT INTO insertconflicttest AS i
-    VALUES (23, 'Jackfruit') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Jackfruit')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         i.* != excluded.*
@@ -656,10 +626,9 @@ INSERT INTO insertconflicttest AS i
 
 -- No update this time, though:
 INSERT INTO insertconflicttest AS i
-    VALUES (23, 'Jackfruit') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Jackfruit')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         i.* != excluded.*
@@ -668,10 +637,9 @@ INSERT INTO insertconflicttest AS i
 
 -- Predicate changed to require match rather than non-match, so updates once more:
 INSERT INTO insertconflicttest AS i
-    VALUES (23, 'Jackfruit') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Jackfruit')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         i.* = excluded.*
@@ -680,10 +648,9 @@ INSERT INTO insertconflicttest AS i
 
 -- Assign:
 INSERT INTO insertconflicttest AS i
-    VALUES (23, 'Avocado') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Avocado')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.*::text
     RETURNING
         *;
@@ -692,10 +659,9 @@ INSERT INTO insertconflicttest AS i
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest AS i
-    VALUES (23, 'Avocado') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Avocado')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.fruit
     WHERE
         excluded.* IS NULL;
@@ -703,10 +669,9 @@ EXPLAIN (
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest AS i
-    VALUES (23, 'Avocado') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (23, 'Avocado')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         fruit = excluded.*::text;
 
 DROP INDEX plain;
@@ -729,10 +694,9 @@ INSERT INTO syscolconflicttest
     VALUES (1);
 
 INSERT INTO syscolconflicttest
-    VALUES (1) ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1)
+ON CONFLICT (KEY)
+    DO UPDATE SET
         data = excluded.ctid::text;
 
 DROP TABLE syscolconflicttest;
@@ -754,18 +718,23 @@ WHERE
     coalesce(a, 1) > 0;
 
 INSERT INTO insertconflict
-    VALUES (1, 2) ON CONFLICT (coalesce(a, 0))
-    DO nothing;
+    VALUES (1, 2)
+ON CONFLICT (coalesce(a, 0))
+    DO NOTHING;
 
 INSERT INTO insertconflict
-    VALUES (1, 2) ON CONFLICT (b)
+    VALUES (1, 2)
+ON CONFLICT (b)
 WHERE
-    coalesce(a, 1) > 0 DO nothing;
+    coalesce(a, 1) > 0
+        DO NOTHING;
 
 INSERT INTO insertconflict
-    VALUES (1, 2) ON CONFLICT (b)
+    VALUES (1, 2)
+ON CONFLICT (b)
 WHERE
-    coalesce(a, 1) > 1 DO nothing;
+    coalesce(a, 1) > 1
+        DO NOTHING;
 
 DROP TABLE insertconflict;
 
@@ -785,10 +754,9 @@ FROM
     insertconflict WITH cascaded CHECK option;
 
 INSERT INTO insertconflictv
-    VALUES (1, 'foo') ON CONFLICT (f1)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'foo')
+ON CONFLICT (f1)
+    DO UPDATE SET
         f2 = excluded.f2;
 
 SELECT
@@ -797,10 +765,9 @@ FROM
     insertconflict;
 
 INSERT INTO insertconflictv
-    VALUES (1, 'bar') ON CONFLICT (f1)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'bar')
+ON CONFLICT (f1)
+    DO UPDATE SET
         f2 = excluded.f2;
 
 SELECT
@@ -863,19 +830,21 @@ FROM
 
 -- Succeeds:
 INSERT INTO cities
-    VALUES ('Las Vegas', 2.583E + 5, 2174) ON CONFLICT DO nothing;
+    VALUES ('Las Vegas', 2.583E + 5, 2174)
+ON CONFLICT
+    DO NOTHING;
 
 INSERT INTO capitals
-    VALUES ('Sacramento', 4664.E + 5, 30, 'CA') ON CONFLICT (name)
-    DO
-    UPDATE
-    SET
+    VALUES ('Sacramento', 4664.E + 5, 30, 'CA')
+ON CONFLICT (name)
+    DO UPDATE SET
         population = excluded.population;
 
 -- Wrong "Sacramento", so do nothing:
 INSERT INTO capitals
-    VALUES ('Sacramento', 50, 2267, 'NE') ON CONFLICT (name)
-    DO nothing;
+    VALUES ('Sacramento', 50, 2267, 'NE')
+ON CONFLICT (name)
+    DO NOTHING;
 
 SELECT
     *
@@ -883,12 +852,10 @@ FROM
     capitals;
 
 INSERT INTO cities
-    VALUES ('Las Vegas', 5.83E + 5, 2001) ON CONFLICT (name)
-    DO
-    UPDATE
-    SET
-        population = excluded.population,
-        altitude = excluded.altitude;
+    VALUES ('Las Vegas', 5.83E + 5, 2001)
+ON CONFLICT (name)
+    DO UPDATE SET
+        population = excluded.population, altitude = excluded.altitude;
 
 SELECT
     tableoid::regclass,
@@ -897,10 +864,9 @@ FROM
     cities;
 
 INSERT INTO capitals
-    VALUES ('Las Vegas', 5.83E + 5, 2222, 'NV') ON CONFLICT (name)
-    DO
-    UPDATE
-    SET
+    VALUES ('Las Vegas', 5.83E + 5, 2222, 'NV')
+ON CONFLICT (name)
+    DO UPDATE SET
         population = excluded.population;
 
 -- Capitals will contain new capital, Las Vegas:
@@ -920,12 +886,10 @@ FROM
 
 -- This only affects "cities" version of "Las Vegas":
 INSERT INTO cities
-    VALUES ('Las Vegas', 5.86E + 5, 2223) ON CONFLICT (name)
-    DO
-    UPDATE
-    SET
-        population = excluded.population,
-        altitude = excluded.altitude;
+    VALUES ('Las Vegas', 5.86E + 5, 2223)
+ON CONFLICT (name)
+    DO UPDATE SET
+        population = excluded.population, altitude = excluded.altitude;
 
 SELECT
     tableoid::regclass,
@@ -949,40 +913,36 @@ INSERT INTO excluded
 
 -- error, ambiguous
 INSERT INTO excluded
-    VALUES (1, '2') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, '2')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         data = excluded.data
     RETURNING
         *;
 
 -- ok, aliased
 INSERT INTO excluded AS target
-    VALUES (1, '2') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, '2')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         data = excluded.data
     RETURNING
         *;
 
 -- ok, aliased
 INSERT INTO excluded AS target
-    VALUES (1, '2') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, '2')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         data = target.data
     RETURNING
         *;
 
 -- make sure excluded isn't a problem in returning clause
 INSERT INTO excluded
-    VALUES (1, '2') ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
+    VALUES (1, '2')
+ON CONFLICT (KEY)
+    DO UPDATE SET
         data = 3
     RETURNING
         excluded.*;
@@ -1004,14 +964,10 @@ INSERT INTO dropcol (KEY, drop1, keep1, drop2, keep2)
 
 -- set using excluded
 INSERT INTO dropcol (KEY, drop1, keep1, drop2, keep2)
-    VALUES (1, 2, '2', '2', 2) ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
-        drop1 = excluded.drop1,
-        keep1 = excluded.keep1,
-        drop2 = excluded.drop2,
-        keep2 = excluded.keep2
+    VALUES (1, 2, '2', '2', 2)
+ON CONFLICT (KEY)
+    DO UPDATE SET
+        drop1 = excluded.drop1, keep1 = excluded.keep1, drop2 = excluded.drop2, keep2 = excluded.keep2
     WHERE
         excluded.drop1 IS NOT NULL
         AND excluded.keep1 IS NOT NULL
@@ -1028,14 +984,10 @@ INSERT INTO dropcol (KEY, drop1, keep1, drop2, keep2)
 
 -- set using existing table
 INSERT INTO dropcol (KEY, drop1, keep1, drop2, keep2)
-    VALUES (1, 3, '3', '3', 3) ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
-        drop1 = dropcol.drop1,
-        keep1 = dropcol.keep1,
-        drop2 = dropcol.drop2,
-        keep2 = dropcol.keep2
+    VALUES (1, 3, '3', '3', 3)
+ON CONFLICT (KEY)
+    DO UPDATE SET
+        drop1 = dropcol.drop1, keep1 = dropcol.keep1, drop2 = dropcol.drop2, keep2 = dropcol.keep2
     RETURNING
         *;
 
@@ -1047,12 +999,10 @@ ALTER TABLE dropcol
 
 -- set using excluded
 INSERT INTO dropcol (KEY, keep1, keep2)
-    VALUES (1, '4', 4) ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
-        keep1 = excluded.keep1,
-        keep2 = excluded.keep2
+    VALUES (1, '4', 4)
+ON CONFLICT (KEY)
+    DO UPDATE SET
+        keep1 = excluded.keep1, keep2 = excluded.keep2
     WHERE
         excluded.keep1 IS NOT NULL
         AND excluded.keep2 IS NOT NULL
@@ -1065,12 +1015,10 @@ INSERT INTO dropcol (KEY, keep1, keep2)
 
 -- set using existing table
 INSERT INTO dropcol (KEY, keep1, keep2)
-    VALUES (1, '5', 5) ON CONFLICT (KEY)
-    DO
-    UPDATE
-    SET
-        keep1 = dropcol.keep1,
-        keep2 = dropcol.keep2
+    VALUES (1, '5', 5)
+ON CONFLICT (KEY)
+    DO UPDATE SET
+        keep1 = dropcol.keep1, keep2 = dropcol.keep2
     RETURNING
         *;
 
@@ -1097,11 +1045,15 @@ INSERT INTO twoconstraints
 
 -- fail on f2
 INSERT INTO twoconstraints
-    VALUES (2, '((0,0),(1,2))') ON CONFLICT ON CONSTRAINT twoconstraints_f1_key DO nothing;
+    VALUES (2, '((0,0),(1,2))')
+ON CONFLICT ON CONSTRAINT twoconstraints_f1_key
+    DO NOTHING;
 
 -- fail on f2
 INSERT INTO twoconstraints
-    VALUES (2, '((0,0),(1,2))') ON CONFLICT ON CONSTRAINT twoconstraints_f2_excl DO nothing;
+    VALUES (2, '((0,0),(1,2))')
+ON CONFLICT ON CONSTRAINT twoconstraints_f2_excl
+    DO NOTHING;
 
 -- do nothing
 SELECT
@@ -1119,43 +1071,46 @@ CREATE TABLE selfconflict (
 
 BEGIN TRANSACTION ISOLATION level read COMMITTED;
 INSERT INTO selfconflict
-    VALUES (1, 1), (1, 2) ON CONFLICT DO nothing;
+    VALUES (1, 1), (1, 2)
+ON CONFLICT
+    DO NOTHING;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level REPEATABLE read;
 INSERT INTO selfconflict
-    VALUES (2, 1), (2, 2) ON CONFLICT DO nothing;
+    VALUES (2, 1), (2, 2)
+ON CONFLICT
+    DO NOTHING;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level SERIALIZABLE;
 INSERT INTO selfconflict
-    VALUES (3, 1), (3, 2) ON CONFLICT DO nothing;
+    VALUES (3, 1), (3, 2)
+ON CONFLICT
+    DO NOTHING;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level read COMMITTED;
 INSERT INTO selfconflict
-    VALUES (4, 1), (4, 2) ON CONFLICT (f1)
-    DO
-    UPDATE
-    SET
+    VALUES (4, 1), (4, 2)
+ON CONFLICT (f1)
+    DO UPDATE SET
         f2 = 0;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level REPEATABLE read;
 INSERT INTO selfconflict
-    VALUES (5, 1), (5, 2) ON CONFLICT (f1)
-    DO
-    UPDATE
-    SET
+    VALUES (5, 1), (5, 2)
+ON CONFLICT (f1)
+    DO UPDATE SET
         f2 = 0;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level SERIALIZABLE;
 INSERT INTO selfconflict
-    VALUES (6, 1), (6, 2) ON CONFLICT (f1)
-    DO
-    UPDATE
-    SET
+    VALUES (6, 1), (6, 2)
+ON CONFLICT (f1)
+    DO UPDATE SET
         f2 = 0;
 COMMIT;
 
@@ -1178,46 +1133,46 @@ FOR VALUES IN (1, 2);
 
 -- no indexes required here
 INSERT INTO parted_conflict_test
-    VALUES (1, 'a') ON CONFLICT DO nothing;
+    VALUES (1, 'a')
+ON CONFLICT
+    DO NOTHING;
 
 -- index on a required, which does exist in parent
 INSERT INTO parted_conflict_test
-    VALUES (1, 'a') ON CONFLICT (a)
-    DO nothing;
+    VALUES (1, 'a')
+ON CONFLICT (a)
+    DO NOTHING;
 
 INSERT INTO parted_conflict_test
-    VALUES (1, 'a') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'a')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 -- targeting partition directly will work
 INSERT INTO parted_conflict_test_1
-    VALUES (1, 'a') ON CONFLICT (a)
-    DO nothing;
+    VALUES (1, 'a')
+ON CONFLICT (a)
+    DO NOTHING;
 
 INSERT INTO parted_conflict_test_1
-    VALUES (1, 'b') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'b')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 -- index on b required, which doesn't exist in parent
 INSERT INTO parted_conflict_test
-    VALUES (2, 'b') ON CONFLICT (b)
-    DO
-    UPDATE
-    SET
+    VALUES (2, 'b')
+ON CONFLICT (b)
+    DO UPDATE SET
         a = excluded.a;
 
 -- targeting partition directly will work
 INSERT INTO parted_conflict_test_1
-    VALUES (2, 'b') ON CONFLICT (b)
-    DO
-    UPDATE
-    SET
+    VALUES (2, 'b')
+ON CONFLICT (b)
+    DO UPDATE SET
         a = excluded.a;
 
 -- should see (2, 'b')
@@ -1242,17 +1197,15 @@ FOR VALUES IN (3);
 TRUNCATE parted_conflict_test;
 
 INSERT INTO parted_conflict_test
-    VALUES (3, 'a') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (3, 'a')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 INSERT INTO parted_conflict_test
-    VALUES (3, 'b') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (3, 'b')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 -- should see (3, 'b')
@@ -1274,17 +1227,15 @@ FOR VALUES IN (4);
 TRUNCATE parted_conflict_test;
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (4, 'a') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (4, 'a')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (4, 'b') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (4, 'b')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b
     WHERE
         parted_conflict_test.b = 'a';
@@ -1308,17 +1259,15 @@ FOR VALUES IN (5);
 TRUNCATE parted_conflict_test;
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (5, 'a') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (5, 'a')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (5, 'b') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (5, 'b')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b
     WHERE
         parted_conflict_test.b = 'a';
@@ -1335,19 +1284,17 @@ ORDER BY
 TRUNCATE parted_conflict_test;
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (1, 'a'), (2, 'a'), (4, 'a') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'a'), (2, 'a'), (4, 'a')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b
     WHERE
         excluded.b = 'b';
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (1, 'b'), (2, 'c'), (4, 'b') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'b'), (2, 'c'), (4, 'b')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b
     WHERE
         excluded.b = 'b';
@@ -1382,10 +1329,9 @@ INSERT INTO parted_conflict
     VALUES (40, 'forty');
 
 INSERT INTO parted_conflict_1
-    VALUES (40, 'cuarenta') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (40, 'cuarenta')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 DROP TABLE parted_conflict;
@@ -1416,10 +1362,9 @@ INSERT INTO parted_conflict
     VALUES (40, 'forty');
 
 INSERT INTO parted_conflict_1
-    VALUES (40, 'cuarenta') ON CONFLICT (a)
-    DO
-    UPDATE
-    SET
+    VALUES (40, 'cuarenta')
+ON CONFLICT (a)
+    DO UPDATE SET
         b = excluded.b;
 
 DROP TABLE parted_conflict;
@@ -1453,18 +1398,13 @@ INSERT INTO parted_conflict
     VALUES (50, 'cincuenta', 1);
 
 INSERT INTO parted_conflict
-    VALUES (50, 'cincuenta', 2) ON CONFLICT (a, b)
-    DO
-    UPDATE
-    SET
-        (a,
-            b,
-            c) = ROW (excluded.*)
+    VALUES (50, 'cincuenta', 2)
+ON CONFLICT (a, b)
+    DO UPDATE SET
+        (a, b, c) = ROW (excluded.*)
     WHERE
         parted_conflict = (50, text 'cincuenta', 1)
-        AND excluded = (50,
-            text 'cincuenta',
-            2);
+        AND excluded = (50, text 'cincuenta', 2);
 
 -- should see (50, 'cincuenta', 2)
 SELECT
@@ -1504,10 +1444,9 @@ INSERT INTO parted_conflict
     VALUES (0, 'cero', 1);
 
 INSERT INTO parted_conflict
-    VALUES (0, 'cero', 1) ON CONFLICT (a, b)
-    DO
-    UPDATE
-    SET
+    VALUES (0, 'cero', 1)
+ON CONFLICT (a, b)
+    DO UPDATE SET
         c = parted_conflict.c + 1;
 
 DROP TABLE parted_conflict;

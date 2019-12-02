@@ -8,7 +8,7 @@ BEGIN
     SELECT
         *
     FROM
-        nothing;
+        NOTHING;
 END;
 $$
 LANGUAGE 'plpgsql';

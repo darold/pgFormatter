@@ -278,8 +278,7 @@ FROM
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     dcomptable
 SET
     d1.r = (d1).r - 1,
@@ -459,8 +458,7 @@ FROM
 EXPLAIN (
     VERBOSE,
     COSTS OFF
-)
-UPDATE
+) UPDATE
     dcomptable
 SET
     d1[1].r = d1[1].r - 1,

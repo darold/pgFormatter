@@ -437,7 +437,8 @@ WHERE
             q1 qsub);
 
 -- via a VIEW
-CREATE TEMPORARY VIEW vsubdepartment AS WITH RECURSIVE subdepartment AS (
+CREATE TEMPORARY VIEW vsubdepartment AS
+WITH RECURSIVE subdepartment AS (
     -- non recursive term
     SELECT
         *
@@ -475,7 +476,8 @@ SELECT
     pg_get_viewdef('vsubdepartment'::regclass, TRUE);
 
 -- Another reverse-listing example
-CREATE VIEW sums_1_100 AS WITH RECURSIVE t (
+CREATE VIEW sums_1_100 AS
+WITH RECURSIVE t (
     n
 ) AS (
     VALUES (1)
@@ -1512,8 +1514,7 @@ CREATE TEMPORARY TABLE x (
     n integer
 );
 
-CREATE RULE r2 AS ON
-UPDATE
+CREATE RULE r2 AS ON UPDATE
     TO x
         DO INSTEAD
         WITH t AS (
@@ -2144,10 +2145,9 @@ INSERT INTO withz
         i,
         'insert'
     FROM
-        generate_series(0, 16) i ON CONFLICT (k)
-        DO
-        UPDATE
-        SET
+        generate_series(0, 16) i
+    ON CONFLICT (k)
+        DO UPDATE SET
             v = withz.v || ', now update'
         RETURNING
             *
@@ -2164,20 +2164,18 @@ INSERT INTO withz
 -- Test EXCLUDED.* reference within CTE
 WITH aa AS (
 INSERT INTO withz
-    VALUES (1, 5) ON CONFLICT (k)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 5)
+ON CONFLICT (k)
+    DO UPDATE SET
         v = EXCLUDED.v
     WHERE
         withz.k != EXCLUDED.k
     RETURNING
+        *)
+    SELECT
         *
-)
-SELECT
-    *
-FROM
-    aa;
+    FROM
+        aa;
 
 -- New query/snapshot demonstrates side-effects of previous query.
 SELECT
@@ -2197,10 +2195,9 @@ WITH aa AS (
         1 a,
         2 b)
 INSERT INTO withz
-    VALUES (1, 'insert') ON CONFLICT (k)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'insert')
+ON CONFLICT (k)
+    DO UPDATE SET
         v = (
             SELECT
                 b || ' update'
@@ -2215,10 +2212,9 @@ WITH aa AS (
         1 a,
         2 b)
 INSERT INTO withz
-    VALUES (1, 'insert') ON CONFLICT (k)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'insert')
+ON CONFLICT (k)
+    DO UPDATE SET
         v = ' update'
     WHERE
         withz.k = (
@@ -2232,10 +2228,9 @@ WITH aa AS (
         1 a,
         2 b)
 INSERT INTO withz
-    VALUES (1, 'insert') ON CONFLICT (k)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'insert')
+ON CONFLICT (k)
+    DO UPDATE SET
         v = (
             SELECT
                 b || ' update'
@@ -2254,10 +2249,9 @@ WITH aa AS (
         'a' a,
         'b' b)
 INSERT INTO withz
-    VALUES (1, 'insert') ON CONFLICT (k)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 'insert')
+ON CONFLICT (k)
+    DO UPDATE SET
         v = (
             SELECT
                 b || ' update'
@@ -2276,18 +2270,17 @@ INSERT INTO withz
             SELECT
                 b || ' insert' FROM aa
             WHERE
-                a = 1)) ON CONFLICT (k)
-DO
-UPDATE
-SET
-    v = (
-        SELECT
-            b || ' update'
-        FROM
-            aa
-        WHERE
-            a = 1
-        LIMIT 1);
+                a = 1))
+ON CONFLICT (k)
+    DO UPDATE SET
+        v = (
+            SELECT
+                b || ' update'
+            FROM
+                aa
+            WHERE
+                a = 1
+            LIMIT 1);
 
 -- Update a row more than once, in different parts of a wCTE. That is
 -- an allowed, presumably very rare, edge case, but since it was
@@ -2300,12 +2293,10 @@ WITH simpletup AS (
 ),
 upsert_cte AS (
 INSERT INTO withz
-    VALUES (2, 'Blue') ON CONFLICT (k)
-    DO
-    UPDATE
-    SET
-        (k,
-            v) = (
+    VALUES (2, 'Blue')
+ON CONFLICT (k)
+    DO UPDATE SET
+        (k, v) = (
             SELECT
                 k,
                 v
@@ -2317,12 +2308,10 @@ INSERT INTO withz
             k,
             v)
 INSERT INTO withz
-    VALUES (2, 'Red') ON CONFLICT (k)
-    DO
-    UPDATE
-    SET
-        (k,
-            v) = (
+    VALUES (2, 'Red')
+ON CONFLICT (k)
+    DO UPDATE SET
+        (k, v) = (
             SELECT
                 k,
                 v

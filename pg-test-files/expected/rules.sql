@@ -32,8 +32,7 @@ CREATE RULE rtest_v1_ins AS ON INSERT TO rtest_v1
     DO INSTEAD
     INSERT INTO rtest_t1 VALUES (new.a, new.b);
 
-CREATE RULE rtest_v1_upd AS ON
-UPDATE
+CREATE RULE rtest_v1_upd AS ON UPDATE
     TO rtest_v1
         DO INSTEAD
         UPDATE
@@ -83,10 +82,8 @@ CREATE TABLE rtest_admin (
     sysname text
 );
 
-CREATE RULE rtest_sys_upd AS ON
-UPDATE
-    TO rtest_system DO also (
-        UPDATE
+CREATE RULE rtest_sys_upd AS ON UPDATE
+    TO rtest_system DO also ( UPDATE
             rtest_interface SET
             sysname = new.sysname WHERE
             sysname = old.sysname;
@@ -106,10 +103,8 @@ WHERE sysname = old.sysname;
 
 );
 
-CREATE RULE rtest_pers_upd AS ON
-UPDATE
-    TO rtest_person DO also
-    UPDATE
+CREATE RULE rtest_pers_upd AS ON UPDATE
+    TO rtest_person DO also UPDATE
         rtest_admin SET
         pname = new.pname WHERE
         pname = old.pname;
@@ -141,8 +136,7 @@ CREATE TABLE rtest_empmass (
 
 CREATE RULE rtest_emp_ins AS ON INSERT TO rtest_emp DO INSERT INTO rtest_emplog VALUES (new.ename, CURRENT_USER, 'hired', new.salary, '0.00');
 
-CREATE RULE rtest_emp_upd AS ON
-UPDATE
+CREATE RULE rtest_emp_upd AS ON UPDATE
     TO rtest_emp WHERE
     new.salary != old.salary DO INSERT INTO rtest_emplog VALUES (new.ename, CURRENT_USER, 'honored', new.salary, old.salary);
 
@@ -263,13 +257,13 @@ CREATE RULE rtest_nothn_r1 AS ON INSERT TO rtest_nothn1 WHERE
     new.a >= 10
     AND new.a < 20
         DO INSTEAD
-        nothing;
+        NOTHING;
 
 CREATE RULE rtest_nothn_r2 AS ON INSERT TO rtest_nothn1 WHERE
     new.a >= 30
     AND new.a < 40
         DO INSTEAD
-        nothing;
+        NOTHING;
 
 CREATE RULE rtest_nothn_r3 AS ON INSERT TO rtest_nothn2 WHERE
     new.a >= 100
@@ -278,7 +272,7 @@ CREATE RULE rtest_nothn_r3 AS ON INSERT TO rtest_nothn2 WHERE
 
 CREATE RULE rtest_nothn_r4 AS ON INSERT TO rtest_nothn2
     DO INSTEAD
-    nothing;
+    NOTHING;
 
 --
 -- Tests on a view that is select * of a table
@@ -1554,8 +1548,7 @@ CREATE TABLE shoelace_log (
 -- but that is non-portable for the regression test
 -- - thomas 1999-02-21
 
-CREATE RULE log_shoelace AS ON
-UPDATE
+CREATE RULE log_shoelace AS ON UPDATE
     TO shoelace_data WHERE
     NEW.sl_avail != OLD.sl_avail DO INSERT INTO shoelace_log VALUES (NEW.sl_name, NEW.sl_avail, 'Al Bundy', 'epoch');
 
@@ -1575,8 +1568,7 @@ CREATE RULE shoelace_ins AS ON INSERT TO shoelace
     DO INSTEAD
     INSERT INTO shoelace_data VALUES (NEW.sl_name, NEW.sl_avail, NEW.sl_color, NEW.sl_len, NEW.sl_unit);
 
-CREATE RULE shoelace_upd AS ON
-UPDATE
+CREATE RULE shoelace_upd AS ON UPDATE
     TO shoelace
         DO INSTEAD
         UPDATE
@@ -1676,7 +1668,9 @@ INSERT INTO shoelace
 
 -- Unsupported (even though a similar updatable view construct is)
 INSERT INTO shoelace
-    VALUES ('sl10', 1000, 'magenta', 40.0, 'inch', 0.0) ON CONFLICT DO nothing;
+    VALUES ('sl10', 1000, 'magenta', 40.0, 'inch', 0.0)
+ON CONFLICT
+    DO NOTHING;
 
 SELECT
     *
@@ -1733,7 +1727,7 @@ CREATE TABLE rules_foo2 (
 CREATE RULE rules_foorule AS ON INSERT TO rules_foo WHERE
     f1 < 100
         DO INSTEAD
-        nothing;
+        NOTHING;
 
 INSERT INTO rules_foo
     VALUES (1);
@@ -1815,8 +1809,7 @@ FROM
     pparent
     LEFT JOIN cchild USING (pid);
 
-CREATE RULE rrule AS ON
-UPDATE
+CREATE RULE rrule AS ON UPDATE
     TO vview
         DO INSTEAD
         (INSERT INTO cchild (pid, descrip)
@@ -2026,22 +2019,22 @@ INSERT INTO rule_and_refint_t3
 
 -- Ordinary table
 INSERT INTO rule_and_refint_t3
-    VALUES (1, 13, 11, 'row6') ON CONFLICT DO nothing;
+    VALUES (1, 13, 11, 'row6')
+ON CONFLICT
+    DO NOTHING;
 
 -- rule not fired, so fk violation
 INSERT INTO rule_and_refint_t3
-    VALUES (1, 13, 11, 'row6') ON CONFLICT (id3a, id3b, id3c)
-    DO
-    UPDATE
-    SET
+    VALUES (1, 13, 11, 'row6')
+ON CONFLICT (id3a, id3b, id3c)
+    DO UPDATE SET
         id3b = excluded.id3b;
 
 -- rule fired, so unsupported
 INSERT INTO shoelace
-    VALUES ('sl9', 0, 'pink', 35.0, 'inch', 0.0) ON CONFLICT (sl_name)
-    DO
-    UPDATE
-    SET
+    VALUES ('sl9', 0, 'pink', 35.0, 'inch', 0.0)
+ON CONFLICT (sl_name)
+    DO UPDATE SET
         sl_avail = excluded.sl_avail;
 
 CREATE RULE rule_and_refint_t3_ins AS ON INSERT TO rule_and_refint_t3 WHERE (EXISTS (
@@ -2205,8 +2198,7 @@ FROM
 ORDER BY
     id;
 
-CREATE RULE update_id_ordered AS ON
-UPDATE
+CREATE RULE update_id_ordered AS ON UPDATE
     TO id_ordered
         DO INSTEAD
         UPDATE
@@ -2282,8 +2274,7 @@ CREATE RULE t1_ins_2 AS ON INSERT TO t1 WHERE
         DO INSTEAD
         INSERT INTO t1_2 VALUES (new.a);
 
-CREATE RULE t1_upd_1 AS ON
-UPDATE
+CREATE RULE t1_upd_1 AS ON UPDATE
     TO t1 WHERE
     old.a >= 0
     AND old.a < 10
@@ -2293,8 +2284,7 @@ UPDATE
             a = new.a WHERE
             a = old.a;
 
-CREATE RULE t1_upd_2 AS ON
-UPDATE
+CREATE RULE t1_upd_2 AS ON UPDATE
     TO t1 WHERE
     old.a >= 10
     AND old.a < 20
@@ -2364,8 +2354,7 @@ CREATE TABLE rules_log (
 INSERT INTO rules_src
     VALUES (1, 2), (11, 12);
 
-CREATE RULE r1 AS ON
-UPDATE
+CREATE RULE r1 AS ON UPDATE
     TO rules_src DO also INSERT INTO rules_log VALUES (old.*, 'old'), (new.*, 'new');
 
 UPDATE
@@ -2388,8 +2377,7 @@ SELECT
 FROM
     rules_log;
 
-CREATE RULE r2 AS ON
-UPDATE
+CREATE RULE r2 AS ON UPDATE
     TO rules_src DO also VALUES (old.*,
     'old'),
 (new.*,
@@ -2425,8 +2413,7 @@ CREATE RULE r4 AS ON INSERT TO rules_src
         trgt.f1,
         trgt.f2;
 
-CREATE RULE r5 AS ON
-UPDATE
+CREATE RULE r5 AS ON UPDATE
     TO rules_src
         DO INSTEAD
         UPDATE
@@ -2536,10 +2523,12 @@ CREATE UNIQUE INDEX hat_data_unique_idx ON hat_data (hat_name COLLATE "C" bpchar
 -- DO NOTHING with ON CONFLICT
 CREATE RULE hat_nosert AS ON INSERT TO hats
     DO INSTEAD
-    INSERT INTO hat_data VALUES (NEW.hat_name, NEW.hat_color) ON CONFLICT (hat_name COLLATE "C" bpchar_pattern_ops)
+    INSERT INTO hat_data VALUES (NEW.hat_name, NEW.hat_color)
+ON CONFLICT (hat_name COLLATE "C" bpchar_pattern_ops)
 WHERE
-    hat_color = 'green' DO NOTHING RETURNING
-    *;
+    hat_color = 'green'
+        DO NOTHING RETURNING
+        *;
 
 SELECT
     definition
@@ -2576,7 +2565,9 @@ DROP RULE hat_nosert ON hats;
 -- DO NOTHING without ON CONFLICT
 CREATE RULE hat_nosert_all AS ON INSERT TO hats
     DO INSTEAD
-    INSERT INTO hat_data VALUES (NEW.hat_name, NEW.hat_color) ON CONFLICT DO NOTHING RETURNING
+    INSERT INTO hat_data VALUES (NEW.hat_name, NEW.hat_color)
+ON CONFLICT
+    DO NOTHING RETURNING
     *;
 
 SELECT
@@ -2599,15 +2590,13 @@ RETURNING
 -- DO UPDATE with a WHERE clause
 CREATE RULE hat_upsert AS ON INSERT TO hats
     DO INSTEAD
-    INSERT INTO hat_data VALUES (NEW.hat_name, NEW.hat_color) ON CONFLICT (hat_name)
-DO
-UPDATE
-SET
-    hat_name = hat_data.hat_name,
-    hat_color = excluded.hat_color WHERE
-    excluded.hat_color <> 'forbidden'
-    AND hat_data.* != excluded.* RETURNING
-    *;
+    INSERT INTO hat_data VALUES (NEW.hat_name, NEW.hat_color)
+ON CONFLICT (hat_name)
+    DO UPDATE SET
+        hat_name = hat_data.hat_name, hat_color = excluded.hat_color WHERE
+        excluded.hat_color <> 'forbidden'
+        AND hat_data.* != excluded.* RETURNING
+        *;
 
 SELECT
     definition
@@ -2696,19 +2685,11 @@ RETURNING
 
 EXPLAIN (
     COSTS OFF
-) WITH data (
-    hat_name,
-    hat_color
-) AS MATERIALIZED (
-    VALUES (
-            'h8', 'green'
-),
-        (
-            'h9', 'blue'
-),
-        (
-            'h7', 'forbidden'
-))
+) WITH data (hat_name,
+    hat_color) AS MATERIALIZED (
+    VALUES ('h8', 'green'),
+        ('h9', 'blue'),
+        ('h7', 'forbidden'))
 INSERT INTO hats
 SELECT
     *

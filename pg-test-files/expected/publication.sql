@@ -21,9 +21,7 @@ FROM
 
 CREATE PUBLICATION testpib_ins_trunct WITH (publish = INSERT);
 
-ALTER PUBLICATION testpub_default SET (publish =
-UPDATE
-);
+ALTER PUBLICATION testpub_default SET (publish = UPDATE);
 
 -- error cases
 CREATE PUBLICATION testpub_xxx WITH (foo);

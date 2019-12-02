@@ -131,8 +131,7 @@ CREATE TABLE trunc_stats_test4 (
 INSERT INTO trunc_stats_test DEFAULT VALUES; INSERT INTO trunc_stats_test DEFAULT VALUES; INSERT INTO trunc_stats_test DEFAULT VALUES; TRUNCATE trunc_stats_test;
 
 -- test involving a truncate in a transaction; 4 ins but only 1 live
-INSERT INTO trunc_stats_test1 DEFAULT VALUES; INSERT INTO trunc_stats_test1 DEFAULT VALUES; INSERT INTO trunc_stats_test1 DEFAULT VALUES;
-UPDATE
+INSERT INTO trunc_stats_test1 DEFAULT VALUES; INSERT INTO trunc_stats_test1 DEFAULT VALUES; INSERT INTO trunc_stats_test1 DEFAULT VALUES; UPDATE
     trunc_stats_test1
 SET
     id = id + 10
