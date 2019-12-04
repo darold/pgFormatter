@@ -826,7 +826,13 @@ sub beautify
 	    # statement and ON CONFLICT DO UPDATE.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')' and (not defined $last or $last !~ /^DO|SHARE$/i))) {
                 if ($k_stmt !~ /^UPDATE|DELETE$/i || !$self->{ '_is_in_create' }) {
-                    $self->{ '_current_sql_stmt' } = $k_stmt if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i and !$self->{ '_is_in_trigger' } and !$self->{ '_is_in_operator' } && !$self->{ '_is_in_alter' });
+                    if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i and !$self->{ '_is_in_trigger' } and !$self->{ '_is_in_operator' } and !$self->{ '_is_in_alter' })
+		    {
+			if ($k_stmt ne 'COMMENT' or $self->_next_token !~ /^ON|IS$/i)
+			{
+                            $self->{ '_current_sql_stmt' } = $k_stmt;
+		        }
+		    }
                 }
             }
         }
@@ -1671,7 +1677,7 @@ sub beautify
             }
 	    else
 	    {
-                $self->_add_token( $token );
+		$self->_add_token( $token );
             }
 
             if ($token =~ /^VALUES$/i and $last eq '(')
@@ -2444,9 +2450,17 @@ sub _is_keyword
     {
         return 0 if (uc($token) eq 'EVENT' and uc($next_token) ne 'TRIGGER');
     }
+    return 0 if (uc($token) eq 'COMMENT' and (not defined $next_token or $next_token) !~ /^ON|IS$/i);
+
     if (defined $last_token)
     {
         return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' })and $last_token =~ /^OF|FROM$/i);
+        return 0 if ($token =~ /^CONSTRAINT|INDEX$/i and uc($last_token) eq 'AS');
+    }
+
+    if ($DEBUG and defined $token and grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } }) {
+        my ($package, $filename, $line) = caller;
+        print STDERR "DEBUG_KEYWORD: line: $line => last=", ($last_token||''), ", token=$token, next=", ($next_token||''), "\n";
     }
 
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } };
