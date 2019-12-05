@@ -5,7 +5,7 @@
 -- internally passed by value if <= 4 bytes in storage
 
 SELECT
-    char 'c' = char 'c' AS TRUE;
+    char 'c' = char 'c' AS true;
 
 --
 -- Build a table for testing

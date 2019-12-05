@@ -2100,19 +2100,19 @@ SELECT
     *,
     row_to_json(u)
 FROM
-    unnest(ARRAY[(1, 'foo')::rngfunc2, null::rngfunc2]) u;
+    unnest(ARRAY[(1, 'foo')::rngfunc2, NULL::rngfunc2]) u;
 
 SELECT
     *,
     row_to_json(u)
 FROM
-    unnest(ARRAY[null::rngfunc2, null::rngfunc2]) u;
+    unnest(ARRAY[NULL::rngfunc2, NULL::rngfunc2]) u;
 
 SELECT
     *,
     row_to_json(u)
 FROM
-    unnest(ARRAY[null::rngfunc2, (1, 'foo')::rngfunc2, null::rngfunc2]) u;
+    unnest(ARRAY[NULL::rngfunc2, (1, 'foo')::rngfunc2, NULL::rngfunc2]) u;
 
 SELECT
     *,

@@ -4867,7 +4867,7 @@ BEGIN
         RETURN NEXT (1,
             'hello'::varchar);
     END LOOP;
-    RETURN NEXT null::compostype;
+    RETURN NEXT NULL::compostype;
     RETURN NEXT (2,
         'goodbye')::compostype;
 END;

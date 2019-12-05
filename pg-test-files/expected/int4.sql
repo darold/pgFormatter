@@ -293,16 +293,16 @@ SELECT
     2 - - 2 AS four;
 
 SELECT
-    int2 '2' * int2 '2' = int2 '16' / int2 '4' AS TRUE;
+    int2 '2' * int2 '2' = int2 '16' / int2 '4' AS true;
 
 SELECT
-    int4 '2' * int2 '2' = int2 '16' / int4 '4' AS TRUE;
+    int4 '2' * int2 '2' = int2 '16' / int4 '4' AS true;
 
 SELECT
-    int2 '2' * int4 '2' = int4 '16' / int2 '4' AS TRUE;
+    int2 '2' * int4 '2' = int4 '16' / int2 '4' AS true;
 
 SELECT
-    int4 '1000' < int4 '999' AS FALSE;
+    int4 '1000' < int4 '999' AS false;
 
 SELECT
     4 ! AS twenty_four;

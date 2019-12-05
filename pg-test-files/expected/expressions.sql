@@ -7,14 +7,14 @@
 -- current_date  (always matches because of transactional behaviour)
 
 SELECT
-    date(now())::text = current_date::text;
+    date(now())::text = CURRENT_DATE::text;
 
 -- current_time / localtime
 SELECT
-    now()::timetz::text = current_time::text;
+    now()::timetz::text = CURRENT_TIME::text;
 
 SELECT
-    now()::time::text = localtime::text;
+    now()::time::text = LOCALTIME::text;
 
 -- current_timestamp / localtimestamp (always matches because of transactional behaviour)
 SELECT
@@ -22,11 +22,11 @@ SELECT
 
 -- precision
 SELECT
-    length(current_timestamp::text) >= length(current_timestamp(0)::text);
+    length(CURRENT_TIMESTAMP::text) >= length(current_timestamp(0)::text);
 
 -- localtimestamp
 SELECT
-    now()::timestamp::text = localtimestamp::text;
+    now()::timestamp::text = LOCALTIMESTAMP::text;
 
 -- current_role/user/user is tested in rolnames.sql
 -- current database / catalog

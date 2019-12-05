@@ -474,10 +474,10 @@ WHERE
 
 -- corner cases
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb -> null::text;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb -> NULL::text;
 
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb -> null::int;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb -> NULL::int;
 
 SELECT
     '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb -> 1;
@@ -507,10 +507,10 @@ SELECT
     '"foo"'::jsonb -> 'z';
 
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb ->> null::text;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb ->> NULL::text;
 
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb ->> null::int;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb ->> NULL::int;
 
 SELECT
     '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb ->> 1;
@@ -1804,14 +1804,14 @@ FROM
 
 -- anonymous record type
 SELECT
-    jsonb_populate_record(null::record, '{"x": 0, "y": 1}');
+    jsonb_populate_record(NULL::record, '{"x": 0, "y": 1}');
 
 SELECT
     jsonb_populate_record(ROW (1, 2), '{"f1": 0, "f2": 1}');
 
 -- composite domain
 SELECT
-    jsonb_populate_record(null::jb_ordered_pair, '{"x": 0, "y": 1}');
+    jsonb_populate_record(NULL::jb_ordered_pair, '{"x": 0, "y": 1}');
 
 SELECT
     jsonb_populate_record(ROW (1, 2)::jb_ordered_pair, '{"x": 0}');
@@ -1867,7 +1867,7 @@ FROM
 
 -- anonymous record type
 SELECT
-    jsonb_populate_recordset(null::record, '[{"x": 0, "y": 1}]');
+    jsonb_populate_recordset(NULL::record, '[{"x": 0, "y": 1}]');
 
 SELECT
     jsonb_populate_recordset(ROW (1, 2), '[{"f1": 0, "f2": 1}]');
@@ -1881,7 +1881,7 @@ FROM (
 
 -- empty array is a corner case
 SELECT
-    jsonb_populate_recordset(null::record, '[]');
+    jsonb_populate_recordset(NULL::record, '[]');
 
 SELECT
     jsonb_populate_recordset(ROW (1, 2), '[]');
@@ -1893,7 +1893,7 @@ FROM
 
 -- composite domain
 SELECT
-    jsonb_populate_recordset(null::jb_ordered_pair, '[{"x": 0, "y": 1}]');
+    jsonb_populate_recordset(NULL::jb_ordered_pair, '[{"x": 0, "y": 1}]');
 
 SELECT
     jsonb_populate_recordset(ROW (1, 2)::jb_ordered_pair, '[{"x": 0}, {"y": 3}]');

@@ -3,10 +3,10 @@
 --
 
 SELECT
-    text 'this is a text string' = text 'this is a text string' AS TRUE;
+    text 'this is a text string' = text 'this is a text string' AS true;
 
 SELECT
-    text 'this is a text string' = text 'this is a text strin' AS FALSE;
+    text 'this is a text string' = text 'this is a text strin' AS false;
 
 CREATE TABLE TEXT_TBL (
     f1 text

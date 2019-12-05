@@ -176,12 +176,12 @@ FROM
 SELECT
     ROW (1,
         2) < ROW (1,
-        3) AS TRUE;
+        3) AS true;
 
 SELECT
     ROW (1,
         2) < ROW (1,
-        1) AS FALSE;
+        1) AS false;
 
 SELECT
     ROW (1,
@@ -193,23 +193,23 @@ SELECT
         2,
         3) < ROW (1,
         3,
-        NULL) AS TRUE;
+        NULL) AS true;
 
 -- the NULL is not examined
 SELECT
     ROW (11,
         'ABC') < ROW (11,
-        'DEF') AS TRUE;
+        'DEF') AS true;
 
 SELECT
     ROW (11,
         'ABC') > ROW (11,
-        'DEF') AS FALSE;
+        'DEF') AS false;
 
 SELECT
     ROW (12,
         'ABC') > ROW (11,
-        'DEF') AS TRUE;
+        'DEF') AS true;
 
 -- = and <> have different NULL-behavior than < etc
 SELECT
@@ -224,14 +224,14 @@ SELECT
         2,
         3) = ROW (1,
         NULL,
-        4) AS FALSE;
+        4) AS false;
 
 SELECT
     ROW (1,
         2,
         3) <> ROW (1,
         NULL,
-        4) AS TRUE;
+        4) AS true;
 
 -- We allow operators beyond the six standard ones, if they have btree
 -- operator classes.
@@ -239,12 +239,12 @@ SELECT
 SELECT
     ROW ('ABC',
         'DEF') ~<=~ ROW ('DEF',
-        'ABC') AS TRUE;
+        'ABC') AS true;
 
 SELECT
     ROW ('ABC',
         'DEF') ~>=~ ROW ('DEF',
-        'ABC') AS FALSE;
+        'ABC') AS false;
 
 SELECT
     ROW ('ABC',

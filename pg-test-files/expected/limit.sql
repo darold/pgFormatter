@@ -123,7 +123,7 @@ FROM
     int8_tbl
 LIMIT (
     CASE WHEN random() < 0.5 THEN
-        null::bigint
+        NULL::bigint
     END);
 
 SELECT
@@ -131,7 +131,7 @@ SELECT
 FROM
     int8_tbl offset (
         CASE WHEN random() < 0.5 THEN
-            null::bigint
+            NULL::bigint
         END);
 
 -- Test assorted cases involving backwards fetch from a LIMIT plan node

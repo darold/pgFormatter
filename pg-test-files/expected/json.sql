@@ -560,10 +560,10 @@ WHERE
 
 -- corner cases
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json -> null::text;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json -> NULL::text;
 
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json -> null::int;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json -> NULL::int;
 
 SELECT
     '{"a": [{"b": "c"}, {"b": "cc"}]}'::json -> 1;
@@ -596,10 +596,10 @@ SELECT
     '"foo"'::json -> 'z';
 
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json ->> null::text;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json ->> NULL::text;
 
 SELECT
-    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json ->> null::int;
+    '{"a": [{"b": "c"}, {"b": "cc"}]}'::json ->> NULL::int;
 
 SELECT
     '{"a": [{"b": "c"}, {"b": "cc"}]}'::json ->> 1;
@@ -905,7 +905,7 @@ CREATE TYPE jsrec_i_not_null AS (
 SELECT
     *
 FROM
-    json_populate_record(null::jpop, '{"a":"blurfl","x":43.2}') q;
+    json_populate_record(NULL::jpop, '{"a":"blurfl","x":43.2}') q;
 
 SELECT
     *
@@ -915,7 +915,7 @@ FROM
 SELECT
     *
 FROM
-    json_populate_record(null::jpop, '{"a":"blurfl","x":43.2}') q;
+    json_populate_record(NULL::jpop, '{"a":"blurfl","x":43.2}') q;
 
 SELECT
     *
@@ -925,7 +925,7 @@ FROM
 SELECT
     *
 FROM
-    json_populate_record(null::jpop, '{"a":[100,200,false],"x":43.2}') q;
+    json_populate_record(NULL::jpop, '{"a":[100,200,false],"x":43.2}') q;
 
 SELECT
     *
@@ -1304,14 +1304,14 @@ FROM
 
 -- anonymous record type
 SELECT
-    json_populate_record(null::record, '{"x": 0, "y": 1}');
+    json_populate_record(NULL::record, '{"x": 0, "y": 1}');
 
 SELECT
     json_populate_record(ROW (1, 2), '{"f1": 0, "f2": 1}');
 
 -- composite domain
 SELECT
-    json_populate_record(null::j_ordered_pair, '{"x": 0, "y": 1}');
+    json_populate_record(NULL::j_ordered_pair, '{"x": 0, "y": 1}');
 
 SELECT
     json_populate_record(ROW (1, 2)::j_ordered_pair, '{"x": 0}');
@@ -1323,7 +1323,7 @@ SELECT
 SELECT
     *
 FROM
-    json_populate_recordset(null::jpop, '[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+    json_populate_recordset(NULL::jpop, '[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
 
 SELECT
     *
@@ -1333,7 +1333,7 @@ FROM
 SELECT
     *
 FROM
-    json_populate_recordset(null::jpop, '[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+    json_populate_recordset(NULL::jpop, '[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
 
 SELECT
     *
@@ -1360,12 +1360,12 @@ CREATE TYPE jpop2 AS (
 SELECT
     *
 FROM
-    json_populate_recordset(null::jpop2, '[{"a":2,"c":3,"b":{"z":4},"d":6}]') q;
+    json_populate_recordset(NULL::jpop2, '[{"a":2,"c":3,"b":{"z":4},"d":6}]') q;
 
 SELECT
     *
 FROM
-    json_populate_recordset(null::jpop, '[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+    json_populate_recordset(NULL::jpop, '[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
 
 SELECT
     *
@@ -1379,7 +1379,7 @@ FROM
 
 -- anonymous record type
 SELECT
-    json_populate_recordset(null::record, '[{"x": 0, "y": 1}]');
+    json_populate_recordset(NULL::record, '[{"x": 0, "y": 1}]');
 
 SELECT
     json_populate_recordset(ROW (1, 2), '[{"f1": 0, "f2": 1}]');
@@ -1393,7 +1393,7 @@ FROM (
 
 -- empty array is a corner case
 SELECT
-    json_populate_recordset(null::record, '[]');
+    json_populate_recordset(NULL::record, '[]');
 
 SELECT
     json_populate_recordset(ROW (1, 2), '[]');
@@ -1405,7 +1405,7 @@ FROM
 
 -- composite domain
 SELECT
-    json_populate_recordset(null::j_ordered_pair, '[{"x": 0, "y": 1}]');
+    json_populate_recordset(NULL::j_ordered_pair, '[{"x": 0, "y": 1}]');
 
 SELECT
     json_populate_recordset(ROW (1, 2)::j_ordered_pair, '[{"x": 0}, {"y": 3}]');

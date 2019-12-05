@@ -86,6 +86,6 @@ FROM
     LINE_TBL;
 
 SELECT
-    '{nan, 1, nan}'::line = '{nan, 1, nan}'::line AS TRUE,
-    '{nan, 1, nan}'::line = '{nan, 2, nan}'::line AS FALSE;
+    '{nan, 1, nan}'::line = '{nan, 1, nan}'::line AS true,
+    '{nan, 1, nan}'::line = '{nan, 2, nan}'::line AS false;
 

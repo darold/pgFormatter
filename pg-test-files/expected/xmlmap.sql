@@ -131,7 +131,7 @@ CREATE DOMAIN testdatexmldomain AS date;
 CREATE TABLE testxmlschema.test3 AS
 SELECT
     TRUE c1,
-    true::testboolxmldomain c2,
+    TRUE::testboolxmldomain c2,
     '2013-02-21'::date c3,
     '2013-02-21'::testdatexmldomain c4;
 

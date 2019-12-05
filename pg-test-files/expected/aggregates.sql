@@ -123,42 +123,42 @@ SELECT
 
 -- verify correct results for null and NaN inputs
 SELECT
-    sum(null::int4)
+    sum(NULL::int4)
 FROM
     generate_series(1, 3);
 
 SELECT
-    sum(null::int8)
+    sum(NULL::int8)
 FROM
     generate_series(1, 3);
 
 SELECT
-    sum(null::numeric)
+    sum(NULL::numeric)
 FROM
     generate_series(1, 3);
 
 SELECT
-    sum(null::float8)
+    sum(NULL::float8)
 FROM
     generate_series(1, 3);
 
 SELECT
-    avg(null::int4)
+    avg(NULL::int4)
 FROM
     generate_series(1, 3);
 
 SELECT
-    avg(null::int8)
+    avg(NULL::int8)
 FROM
     generate_series(1, 3);
 
 SELECT
-    avg(null::numeric)
+    avg(NULL::numeric)
 FROM
     generate_series(1, 3);
 
 SELECT
-    avg(null::float8)
+    avg(NULL::float8)
 FROM
     generate_series(1, 3);
 

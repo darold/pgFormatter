@@ -2546,7 +2546,7 @@ FROM
     LEFT JOIN (
         SELECT
             *,
-            null::int AS d2
+            NULL::int AS d2
         FROM
             int8_tbl i8b2) b2 ON (i8.q1 = b2.q1) ON (b2.d2 = b1.q2) ON (t1.f1 = b1.d1)
     LEFT JOIN int4_tbl i4 ON (i8.q2 = i4.f1);
@@ -2565,7 +2565,7 @@ FROM
     LEFT JOIN (
         SELECT
             *,
-            null::int AS d2
+            NULL::int AS d2
         FROM
             int8_tbl i8b2) b2 ON (i8.q1 = b2.q1) ON (b2.d2 = b1.q2) ON (t1.f1 = b1.d1)
     LEFT JOIN int4_tbl i4 ON (i8.q2 = i4.f1);
@@ -2588,7 +2588,7 @@ FROM
     LEFT JOIN (
         SELECT
             *,
-            null::int AS d2
+            NULL::int AS d2
         FROM
             int8_tbl i8b2,
             int4_tbl i4b2) b2 ON (i8.q1 = b2.q1) ON (b2.d2 = b1.q2) ON (t1.f1 = b1.d1)
@@ -2608,7 +2608,7 @@ FROM
     LEFT JOIN (
         SELECT
             *,
-            null::int AS d2
+            NULL::int AS d2
         FROM
             int8_tbl i8b2,
             int4_tbl i4b2) b2 ON (i8.q1 = b2.q1) ON (b2.d2 = b1.q2) ON (t1.f1 = b1.d1)
@@ -2632,7 +2632,7 @@ FROM
     LEFT JOIN (
         SELECT
             *,
-            null::int AS d2
+            NULL::int AS d2
         FROM
             int8_tbl i8b2,
             int4_tbl i4b2
@@ -2654,7 +2654,7 @@ FROM
     LEFT JOIN (
         SELECT
             *,
-            null::int AS d2
+            NULL::int AS d2
         FROM
             int8_tbl i8b2,
             int4_tbl i4b2
@@ -3319,7 +3319,7 @@ FROM
             WHEN 0 THEN
                 'doh!'::text
             ELSE
-                null::text
+                NULL::text
             END AS case1,
             t1.stringu2
         FROM
@@ -3338,7 +3338,7 @@ FROM
             WHEN 0 THEN
                 'doh!'::text
             ELSE
-                null::text
+                NULL::text
             END AS case1,
             t1.stringu2
         FROM

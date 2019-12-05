@@ -1459,7 +1459,7 @@ SELECT
     1::inotnull;
 
 SELECT
-    null::inotnull;
+    NULL::inotnull;
 
 CREATE TABLE dom_table (
     x inotnull

@@ -2871,7 +2871,7 @@ FROM
 WHERE
     a = (
         SELECT
-            null::int);
+            NULL::int);
 
 DROP TABLE listp;
 

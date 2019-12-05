@@ -12,55 +12,55 @@ SELECT
 -- check bool input syntax
 
 SELECT
-    TRUE AS TRUE;
+    TRUE AS true;
 
 SELECT
-    FALSE AS FALSE;
+    FALSE AS false;
 
 SELECT
-    bool 't' AS TRUE;
+    bool 't' AS true;
 
 SELECT
-    bool '   f           ' AS FALSE;
+    bool '   f           ' AS false;
 
 SELECT
-    bool 'true' AS TRUE;
+    bool 'true' AS true;
 
 SELECT
     bool 'test' AS error;
 
 SELECT
-    bool 'false' AS FALSE;
+    bool 'false' AS false;
 
 SELECT
     bool 'foo' AS error;
 
 SELECT
-    bool 'y' AS TRUE;
+    bool 'y' AS true;
 
 SELECT
-    bool 'yes' AS TRUE;
+    bool 'yes' AS true;
 
 SELECT
     bool 'yeah' AS error;
 
 SELECT
-    bool 'n' AS FALSE;
+    bool 'n' AS false;
 
 SELECT
-    bool 'no' AS FALSE;
+    bool 'no' AS false;
 
 SELECT
     bool 'nay' AS error;
 
 SELECT
-    bool 'on' AS TRUE;
+    bool 'on' AS true;
 
 SELECT
-    bool 'off' AS FALSE;
+    bool 'off' AS false;
 
 SELECT
-    bool 'of' AS FALSE;
+    bool 'of' AS false;
 
 SELECT
     bool 'o' AS error;
@@ -72,13 +72,13 @@ SELECT
     bool 'off_' AS error;
 
 SELECT
-    bool '1' AS TRUE;
+    bool '1' AS true;
 
 SELECT
     bool '11' AS error;
 
 SELECT
-    bool '0' AS FALSE;
+    bool '0' AS false;
 
 SELECT
     bool '000' AS error;
@@ -89,45 +89,45 @@ SELECT
 -- and, or, not in qualifications
 SELECT
     bool 't'
-    OR bool 'f' AS TRUE;
+    OR bool 'f' AS true;
 
 SELECT
     bool 't'
-    AND bool 'f' AS FALSE;
+    AND bool 'f' AS false;
 
 SELECT
-    NOT bool 'f' AS TRUE;
+    NOT bool 'f' AS true;
 
 SELECT
-    bool 't' = bool 'f' AS FALSE;
+    bool 't' = bool 'f' AS false;
 
 SELECT
-    bool 't' <> bool 'f' AS TRUE;
+    bool 't' <> bool 'f' AS true;
 
 SELECT
-    bool 't' > bool 'f' AS TRUE;
+    bool 't' > bool 'f' AS true;
 
 SELECT
-    bool 't' >= bool 'f' AS TRUE;
+    bool 't' >= bool 'f' AS true;
 
 SELECT
-    bool 'f' < bool 't' AS TRUE;
+    bool 'f' < bool 't' AS true;
 
 SELECT
-    bool 'f' <= bool 't' AS TRUE;
+    bool 'f' <= bool 't' AS true;
 
 -- explicit casts to/from text
 SELECT
-    'TrUe'::text::boolean AS TRUE,
-    'fAlse'::text::boolean AS FALSE;
+    'TrUe'::text::boolean AS true,
+    'fAlse'::text::boolean AS false;
 
 SELECT
-    '    true   '::text::boolean AS TRUE,
-    '     FALSE'::text::boolean AS FALSE;
+    '    true   '::text::boolean AS true,
+    '     FALSE'::text::boolean AS false;
 
 SELECT
-    true::boolean::text AS TRUE,
-    false::boolean::text AS FALSE;
+    TRUE::boolean::text AS true,
+    FALSE::boolean::text AS false;
 
 SELECT
     '  tru e '::text::boolean AS invalid;

@@ -646,17 +646,17 @@ SELECT
 ROLLBACK TO x;
 
 SELECT
-    enum_first(null::bogus);
+    enum_first(NULL::bogus);
 
 -- safe
 SELECT
-    enum_last(null::bogus);
+    enum_last(NULL::bogus);
 
 -- unsafe
 ROLLBACK TO x;
 
 SELECT
-    enum_range(null::bogus);
+    enum_range(NULL::bogus);
 
 -- unsafe
 ROLLBACK TO x;
@@ -706,7 +706,7 @@ CREATE TYPE bogus AS ENUM (
 );
 ALTER TYPE bogus RENAME TO bogon;
 SELECT
-    enum_range(null::bogon);
+    enum_range(NULL::bogon);
 ROLLBACK;
 
 -- ideally, we'd allow this usage; but it requires keeping track of whether
@@ -722,7 +722,7 @@ ALTER TYPE bogon
 ALTER TYPE bogon
     ADD VALUE 'ugly';
 SELECT
-    enum_range(null::bogon);
+    enum_range(NULL::bogon);
 -- fails
 ROLLBACK;
 

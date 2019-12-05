@@ -1047,13 +1047,13 @@ SELECT
 
 -- boundary cases
 SELECT
-    null::int >= ALL ('{1,2,33}');
+    NULL::int >= ALL ('{1,2,33}');
 
 SELECT
-    null::int >= ALL ('{}');
+    NULL::int >= ALL ('{}');
 
 SELECT
-    null::int >= ANY ('{}');
+    NULL::int >= ANY ('{}');
 
 -- cross-datatype
 SELECT
@@ -1071,10 +1071,10 @@ SELECT
 
 -- nulls
 SELECT
-    33 = ANY (null::int[]);
+    33 = ANY (NULL::int[]);
 
 SELECT
-    null::int = ANY ('{1,2,3}');
+    NULL::int = ANY ('{1,2,3}');
 
 SELECT
     33 = ANY ('{1,null,3}');
@@ -1083,10 +1083,10 @@ SELECT
     33 = ANY ('{1,null,33}');
 
 SELECT
-    33 = ALL (null::int[]);
+    33 = ALL (NULL::int[]);
 
 SELECT
-    null::int = ALL ('{1,2,3}');
+    NULL::int = ALL ('{1,2,3}');
 
 SELECT
     33 = ALL ('{1,null,3}');
@@ -1421,16 +1421,16 @@ DROP FUNCTION unnest1 (anyarray);
 DROP FUNCTION unnest2 (anyarray);
 
 SELECT
-    array_fill(null::integer, ARRAY[3, 3], ARRAY[2, 2]);
+    array_fill(NULL::integer, ARRAY[3, 3], ARRAY[2, 2]);
 
 SELECT
-    array_fill(null::integer, ARRAY[3, 3]);
+    array_fill(NULL::integer, ARRAY[3, 3]);
 
 SELECT
-    array_fill(null::text, ARRAY[3, 3], ARRAY[2, 2]);
+    array_fill(NULL::text, ARRAY[3, 3], ARRAY[2, 2]);
 
 SELECT
-    array_fill(null::text, ARRAY[3, 3]);
+    array_fill(NULL::text, ARRAY[3, 3]);
 
 SELECT
     array_fill(7, ARRAY[3, 3], ARRAY[2, 2]);
@@ -1675,7 +1675,7 @@ FROM
     generate_series(1, 2);
 
 SELECT
-    array_agg(null::int[])
+    array_agg(NULL::int[])
 FROM
     generate_series(1, 2);
 
