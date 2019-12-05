@@ -1920,6 +1920,19 @@ sub beautify
             $self->_add_token( $token );
         }
 
+        elsif ( $token =~ /^(?:END::[^\s]+)$/i and $self->{ '_is_in_case' } )
+	{
+            $self->{ '_first_when_in_case' } = 0;
+            if ($self->{ '_is_in_case' })
+	    {
+                $self->{ '_is_in_case' }--;
+                $self->_back($token, $last);
+		$self->{ '_level' } = $self->_pop_level($token, $last);
+            }
+            $self->_new_line($token,$last);
+            $self->_add_token( $token );
+        }
+
         elsif ( $token =~ /^(?:UNION|INTERSECT|EXCEPT)$/i )
 	{
             $self->{ 'no_break' } = 0;
