@@ -2294,6 +2294,9 @@ sub _add_token
 
     my $next_token = $self->_next_token || '';
 
+    my @cast = split(/::/, $token);
+    $token = shift(@cast) if ($#cast >= 0);
+
     # lowercase/uppercase keywords taking care of function with same name
     if ($self->_is_keyword( $token, $next_token, $last_token ) and
 	    (!$self->_is_type($self->_next_token) || $self->{ '_is_in_create' } < 2 ||
@@ -2324,6 +2327,14 @@ sub _add_token
     # Add formatting for HTML output
     if ( $self->{ 'colorize' } && $self->{ 'format' } eq 'html' ) {
         $token = $self->highlight_code($token, $last_token, $next_token);
+    }
+
+    foreach my $c (@cast)
+    {
+        $c = lc($c) if ( $self->{ 'uc_functions' } == 1 );
+        $c = uc($c) if ( $self->{ 'uc_functions' } == 2 );
+        $c = ucfirst( lc( $c ) ) if ( $self->{ 'uc_functions' } == 3 );
+        $token .= '::' . $c;
     }
 
     $self->{ 'content' } .= $token;
@@ -2458,6 +2469,11 @@ sub _is_keyword
 {
     my ( $self, $token, $next_token, $last_token ) = @_;
 
+    return 0 if (!$token);
+
+    # Remove cast if any
+    $token =~ s/::[^:]+$//;
+
     # Fix some false positive
     if (defined $next_token)
     {
@@ -2468,7 +2484,7 @@ sub _is_keyword
     if (defined $last_token)
     {
         return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' })and $last_token =~ /^OF|FROM$/i);
-        return 0 if ($token =~ /^CONSTRAINT|INDEX$/i and uc($last_token) eq 'AS');
+        return 0 if ($token =~ /^CONSTRAINT|INDEX|TRUE|FALSE$/i and uc($last_token) eq 'AS');
     }
 
     if ($DEBUG and defined $token and grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } }) {
@@ -2531,6 +2547,7 @@ sub _is_function
 {
     my ( $self, $token ) = @_;
 
+    return undef if (!$token);
     if ( $token =~ $self->{ 'functions_re' } ) {
         return $1;
     } else {
@@ -3009,7 +3026,7 @@ sub set_dicts
         bit_or bit_out bit_recv bit_send bitand bitcat bitcmp
         biteq bitge bitgt bitle bitlt bitne bitnot
         bitor bitshiftleft bitshiftright bittypmodin bittypmodout bitxor bool
-        bool_and bool_or booland_statefunc booleq boolge boolgt boolin
+        bool_and bool_or booland_statefunc boolean booleq boolge boolgt boolin
         boolle boollt boolne boolor_statefunc boolout boolrecv boolsend
         box box_above box_above_eq box_add box_below box_below_eq box_center
         box_contain box_contain_pt box_contained box_distance box_div box_eq box_ge
