@@ -3013,12 +3013,12 @@ CREATE TABLE blog (
     post text
 );
 
-CREATE TABLE COMMENT (
+CREATE TABLE comment (
     blog_id integer,
     message text
 );
 
-GRANT ALL ON blog, COMMENT TO regress_rls_bob;
+GRANT ALL ON blog, comment TO regress_rls_bob;
 
 CREATE POLICY blog_1 ON blog USING (id % 2 = 0);
 
@@ -3027,7 +3027,7 @@ ALTER TABLE blog ENABLE ROW LEVEL SECURITY;
 INSERT INTO blog
     VALUES (1, 'alice', 'blog #1'), (2, 'bob', 'blog #1'), (3, 'alice', 'blog #2'), (4, 'alice', 'blog #3'), (5, 'john', 'blog #1');
 
-INSERT INTO COMMENT
+INSERT INTO comment
 VALUES (1,
     'cool blog'),
 (1,
@@ -3058,14 +3058,14 @@ SELECT
     author,
     message
 FROM
-    COMMENT
+    comment
     JOIN blog ON id = blog_id;
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-CREATE POLICY comment_1 ON COMMENT USING (blog_id < 4);
+CREATE POLICY comment_1 ON comment USING (blog_id < 4);
 
-ALTER TABLE COMMENT ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comment ENABLE ROW LEVEL SECURITY;
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -3083,12 +3083,12 @@ SELECT
     author,
     message
 FROM
-    COMMENT
+    comment
     JOIN blog ON id = blog_id;
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-DROP TABLE blog, COMMENT;
+DROP TABLE blog, comment;
 
 --
 -- Default Deny Policy

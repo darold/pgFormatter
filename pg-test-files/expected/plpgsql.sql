@@ -665,7 +665,7 @@ BEGIN
     IF new.slotname != old.slotname THEN
         DELETE FROM PLine
         WHERE slotname = old.slotname;
-        INSERT INTO PLine (slotname, phonenumber, COMMENT,
+        INSERT INTO PLine (slotname, phonenumber, comment,
             backlink)
     VALUES (new.slotname,
         new.phonenumber,
@@ -744,7 +744,7 @@ BEGIN
     IF new.slotname != old.slotname THEN
         DELETE FROM PHone
         WHERE slotname = old.slotname;
-        INSERT INTO PHone (slotname, COMMENT,
+        INSERT INTO PHone (slotname, comment,
             slotlink)
     VALUES (new.slotname,
         new.comment,
@@ -1402,7 +1402,7 @@ BEGIN
         RETURN retval || pslot_backlink_view (psrec.slotlink);
     END IF;
     IF sltype = 'HS' THEN
-        retval := COMMENT
+        retval := comment
     FROM
         Hub H,
         HSlot HS
@@ -5781,7 +5781,7 @@ BEGIN
     FOR r IN
     SELECT
         rtrim(roomno) AS roomno,
-        COMMENT
+        comment
     FROM
         Room
     ORDER BY
@@ -5939,11 +5939,11 @@ SELECT
 CREATE OR REPLACE FUNCTION unreserved_test ()
     RETURNS int AS $$
 DECLARE
-    COMMENT int := 21;
+    comment int := 21;
 BEGIN
-    COMMENT := COMMENT * 2;
+    comment := comment * 2;
     COMMENT ON FUNCTION unreserved_test () IS 'this is a test';
-    RETURN COMMENT;
+    RETURN comment;
 END $$
 LANGUAGE plpgsql;
 SELECT

@@ -4299,10 +4299,10 @@ COMMENT ON CONSTRAINT comment_test_pk ON comment_test IS 'PRIMARY KEY constraint
 COMMENT ON INDEX comment_test_pk IS 'Index backing the PRIMARY KEY of comment_test';
 
 SELECT
-    col_description('comment_test'::regclass, 1) AS COMMENT;
+    col_description('comment_test'::regclass, 1) AS comment;
 
 SELECT
-    indexrelid::regclass::text AS INDEX, obj_description(indexrelid, 'pg_class') AS COMMENT
+    indexrelid::regclass::text AS index, obj_description(indexrelid, 'pg_class') AS comment
     FROM
         pg_index
     WHERE
@@ -4312,7 +4312,7 @@ SELECT
         2;
 
 SELECT
-    conname AS CONSTRAINT, obj_description(oid, 'pg_constraint') AS COMMENT
+    conname AS constraint, obj_description(oid, 'pg_constraint') AS comment
     FROM
         pg_constraint
     WHERE
@@ -4346,10 +4346,10 @@ ALTER TABLE comment_test
 
 -- Check that the comments are intact.
 SELECT
-    col_description('comment_test'::regclass, 1) AS COMMENT;
+    col_description('comment_test'::regclass, 1) AS comment;
 
 SELECT
-    indexrelid::regclass::text AS INDEX, obj_description(indexrelid, 'pg_class') AS COMMENT
+    indexrelid::regclass::text AS index, obj_description(indexrelid, 'pg_class') AS comment
     FROM
         pg_index
     WHERE
@@ -4359,7 +4359,7 @@ SELECT
         2;
 
 SELECT
-    conname AS CONSTRAINT, obj_description(oid, 'pg_constraint') AS COMMENT
+    conname AS constraint, obj_description(oid, 'pg_constraint') AS comment
     FROM
         pg_constraint
     WHERE
@@ -4394,10 +4394,10 @@ ALTER TABLE comment_test
 
 -- Comments should be intact
 SELECT
-    col_description('comment_test_child'::regclass, 1) AS COMMENT;
+    col_description('comment_test_child'::regclass, 1) AS comment;
 
 SELECT
-    indexrelid::regclass::text AS INDEX, obj_description(indexrelid, 'pg_class') AS COMMENT
+    indexrelid::regclass::text AS index, obj_description(indexrelid, 'pg_class') AS comment
     FROM
         pg_index
     WHERE
@@ -4407,7 +4407,7 @@ SELECT
         2;
 
 SELECT
-    conname AS CONSTRAINT, obj_description(oid, 'pg_constraint') AS COMMENT
+    conname AS constraint, obj_description(oid, 'pg_constraint') AS comment
     FROM
         pg_constraint
     WHERE

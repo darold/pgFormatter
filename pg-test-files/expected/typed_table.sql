@@ -33,7 +33,7 @@ FROM
 
 -- certain ALTER TABLE operations on typed tables are not allowed
 ALTER TABLE persons
-    ADD COLUMN COMMENT text;
+    ADD COLUMN comment text;
 
 ALTER TABLE persons
     DROP COLUMN name;
