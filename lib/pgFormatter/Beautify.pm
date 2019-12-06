@@ -762,7 +762,7 @@ sub beautify
 	    $self->{ '_is_in_with' } = 0 if (defined $self->_next_token and $self->_next_token !~ /^AS|WITH|,$/i and !$self->{ '_parenthesis_with_level' });
 
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS' && !$self->{ '_is_in_with'}) {
-                $self->_new_line($token,$last);
+                $self->_new_line($token,$last) if ($last ne '(');
 	    	if ($self->{ '_is_in_returns_table' } and !$self->{ '_parenthesis_level' })
 		{
 	            $self->{ '_is_in_returns_table' } = 0;

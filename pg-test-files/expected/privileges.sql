@@ -2266,8 +2266,7 @@ COMMIT;
         SFUNC = int4pl,
         STYPE = int4
     );
-        CREATE PROCEDURE testns.bar (
- )
+        CREATE PROCEDURE testns.bar ( )
         AS 'select 1'
     LANGUAGE sql;
         SELECT
@@ -2291,8 +2290,7 @@ COMMIT;
         STYPE = int4
     );
         DROP PROCEDURE testns.bar ();
-        CREATE PROCEDURE testns.bar (
- )
+        CREATE PROCEDURE testns.bar ( )
         AS 'select 1'
     LANGUAGE sql;
         SELECT
