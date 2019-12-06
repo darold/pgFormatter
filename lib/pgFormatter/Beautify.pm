@@ -2230,7 +2230,7 @@ sub _add_token
                 )
             {
                 print STDERR "DEBUG_SPC: 1) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
-                $self->{ 'content' } .= $sp if ($token !~ /^'.*'$/ || $last_token ne ':');
+                $self->{ 'content' } .= $sp if ($token !~ /^['"].*['"]$/ || $last_token ne ':');
 	    }
             if (!defined($last_token) && $token)
 	    {
