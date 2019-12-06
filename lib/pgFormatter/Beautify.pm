@@ -1055,6 +1055,9 @@ sub beautify
                 $self->_reset_level($token, $last) if ($self->_next_token eq ';');
                 $self->{ '_fct_code_delimiter' } = '';
                 $self->{ '_current_sql_stmt' } = '';
+		$self->{ '_is_in_procedure' } = 0;
+		$self->{ '_is_in_function' } = 0;
+		$self->{ '_is_in_create_function' } = 0;
             }
             next;
         }
@@ -1342,7 +1345,11 @@ sub beautify
 			$self->_back($token, $last);
 		}
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
-                $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
+		if ($self->{ '_is_in_type' })
+		{
+		    $self->_reset_level($token, $last) if ($self->{ '_is_in_block' } == -1 && !$self->{ '_parenthesis_level' });
+                    $self->{ '_is_in_type' }--;
+		}
 	    }
 	    if (!$self->{ '_parenthesis_level' }) {
                 $self->{ '_is_in_filter' } = 0;

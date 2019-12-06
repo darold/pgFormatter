@@ -233,15 +233,14 @@ DROP VIEW vw_ord;
 
 -- ordinality and multiple functions vs. rewind and reverse scan
 BEGIN;
-DECLARE
-    rf_cur SCROLL CURSOR FOR
-        SELECT
-            *
-        FROM
-            ROWS
-        FROM (generate_series(1, 5),
-            generate_series(1, 2))
-        WITH ORDINALITY AS g (i, j, o);
+DECLARE rf_cur SCROLL CURSOR FOR
+    SELECT
+        *
+    FROM
+        ROWS
+    FROM (generate_series(1, 5),
+        generate_series(1, 2))
+    WITH ORDINALITY AS g (i, j, o);
 FETCH ALL FROM rf_cur;
 FETCH BACKWARD ALL FROM rf_cur;
 FETCH ALL FROM rf_cur;
@@ -263,8 +262,8 @@ SELECT
 FROM
     rngfunc2,
     rngfunct (rngfunc2.rngfuncid) z
-    WHERE
-        rngfunc2.f2 = z.f2;
+WHERE
+    rngfunc2.f2 = z.f2;
 
 -- function with implicit LATERAL and explicit ORDINALITY
 SELECT

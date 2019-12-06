@@ -7,3 +7,21 @@ UPDATE point_tbl SET f1[0] = NULL WHERE f1::text = '(10,10)'::point::text RETURN
 SELECT 'TrUe'::text::boolean AS true, 'fAlse'::text::boolean AS false;
 
 SELECT true::boolean::text AS true, false::boolean::text AS false;
+
+CREATE PROCEDURE testns.bar() AS 'select 1' LANGUAGE sql;
+
+ALTER TABLE test9b
+    ALTER COLUMN b TYPE priv_testdomain1;
+
+CREATE TYPE test7b AS (
+    a int,
+    b priv_testdomain1
+);
+        CREATE TYPE test8b AS (
+            a int,
+            b int
+);
+        ALTER TYPE test8b
+            ADD ATTRIBUTE c priv_testdomain1;
+
+

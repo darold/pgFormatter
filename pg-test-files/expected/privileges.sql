@@ -1432,6 +1432,7 @@ SELECT
     '{1}'::int4[]::int8[];
 --other user, fail
 ROLLBACK;
+
 -- privileges on types
 -- switch to superuser
 
@@ -1440,45 +1441,63 @@ CREATE TYPE priv_testtype1 AS (
     a int,
     b text
 );
-        REVOKE USAGE ON TYPE priv_testtype1 FROM PUBLIC;
-        GRANT USAGE ON TYPE priv_testtype1 TO regress_priv_user2;
-        GRANT USAGE ON TYPE _priv_testtype1 TO regress_priv_user2;
-        -- fail
-        GRANT USAGE ON DOMAIN priv_testtype1 TO regress_priv_user2;
-        -- fail
-        CREATE DOMAIN priv_testdomain1 AS int;
-        REVOKE USAGE ON DOMAIN priv_testdomain1 FROM PUBLIC;
-        GRANT USAGE ON DOMAIN priv_testdomain1 TO regress_priv_user2;
-        GRANT USAGE ON TYPE priv_testdomain1 TO regress_priv_user2;
-        -- ok
-        SET SESSION AUTHORIZATION regress_priv_user1;
-        -- commands that should fail
-        CREATE AGGREGATE priv_testagg1a (priv_testdomain1 ) (
-        SFUNC = int4_sum,
-        STYPE = bigint
-    );
-        CREATE DOMAIN priv_testdomain2a AS priv_testdomain1;
-        CREATE DOMAIN priv_testdomain3a AS int;
-        CREATE FUNCTION castfunc (int )
-            RETURNS priv_testdomain3a
-            AS $$
+
+REVOKE USAGE ON TYPE priv_testtype1 FROM PUBLIC;
+
+GRANT USAGE ON TYPE priv_testtype1 TO regress_priv_user2;
+
+GRANT USAGE ON TYPE _priv_testtype1 TO regress_priv_user2;
+
+-- fail
+GRANT USAGE ON DOMAIN priv_testtype1 TO regress_priv_user2;
+
+-- fail
+CREATE DOMAIN priv_testdomain1 AS int;
+
+REVOKE USAGE ON DOMAIN priv_testdomain1 FROM PUBLIC;
+
+GRANT USAGE ON DOMAIN priv_testdomain1 TO regress_priv_user2;
+
+GRANT USAGE ON TYPE priv_testdomain1 TO regress_priv_user2;
+
+-- ok
+SET SESSION AUTHORIZATION regress_priv_user1;
+
+-- commands that should fail
+CREATE AGGREGATE priv_testagg1a (priv_testdomain1) (
+    SFUNC = int4_sum,
+    STYPE = bigint
+);
+
+CREATE DOMAIN priv_testdomain2a AS priv_testdomain1;
+
+CREATE DOMAIN priv_testdomain3a AS int;
+
+CREATE FUNCTION castfunc (int)
+    RETURNS priv_testdomain3a
+    AS $$
     SELECT
         $1::priv_testdomain3a
 $$
 LANGUAGE SQL;
+
 CREATE CAST( priv_testdomain1 AS priv_testdomain3a
 )
-WITH FUNCTION castfunc (int );
-        DROP FUNCTION castfunc (int)
-        CASCADE;
-        DROP DOMAIN priv_testdomain3a;
-        CREATE FUNCTION priv_testfunc5a (a priv_testdomain1 )
-            RETURNS int
-            LANGUAGE SQL
-            AS $$
+WITH FUNCTION castfunc (int);
+
+DROP FUNCTION castfunc (int)
+CASCADE;
+
+DROP DOMAIN priv_testdomain3a;
+
+CREATE FUNCTION priv_testfunc5a (a priv_testdomain1)
+    RETURNS int
+    LANGUAGE SQL
+    AS $$
     SELECT
         $1
 $$;
+
 CREATE FUNCTION priv_testfunc6a (b int)
     RETURNS priv_testdomain1
     LANGUAGE SQL
@@ -1486,70 +1505,91 @@ CREATE FUNCTION priv_testfunc6a (b int)
     SELECT
         $1::priv_testdomain1
 $$;
+
 CREATE OPERATOR "!+!" (
     PROCEDURE = int4pl,
     LEFTARG = priv_testdomain1,
     RIGHTARG = priv_testdomain1
 );
+
 CREATE TABLE test5a (
     a int,
     b priv_testdomain1
 );
+
 CREATE TABLE test6a OF priv_testtype1;
+
 CREATE TABLE test10a (
     a int[],
     b priv_testtype1[]
 );
+
 CREATE TABLE test9a (
     a int,
     b int
 );
+
 ALTER TABLE test9a
     ADD COLUMN c priv_testdomain1;
+
 ALTER TABLE test9a
     ALTER COLUMN b TYPE priv_testdomain1;
+
 CREATE TYPE test7a AS (
     a int,
     b priv_testdomain1
 );
-        CREATE TYPE test8a AS (
-            a int,
-            b int
+
+CREATE TYPE test8a AS (
+    a int,
+    b int
 );
-        ALTER TYPE test8a
-            ADD ATTRIBUTE c priv_testdomain1;
-        ALTER TYPE test8a
-            ALTER ATTRIBUTE b TYPE priv_testdomain1;
-        CREATE TABLE test11a AS (
-            SELECT
-                1::priv_testdomain1 AS a
-            );
-        REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
-        SET SESSION AUTHORIZATION regress_priv_user2;
-        -- commands that should succeed
-        CREATE AGGREGATE priv_testagg1b (priv_testdomain1 ) (
-        SFUNC = int4_sum,
-        STYPE = bigint
-    );
-        CREATE DOMAIN priv_testdomain2b AS priv_testdomain1;
-        CREATE DOMAIN priv_testdomain3b AS int;
-        CREATE FUNCTION castfunc (int )
-            RETURNS priv_testdomain3b
-            AS $$
+
+ALTER TYPE test8a
+    ADD ATTRIBUTE c priv_testdomain1;
+
+ALTER TYPE test8a
+    ALTER ATTRIBUTE b TYPE priv_testdomain1;
+
+CREATE TABLE test11a AS (
+    SELECT
+        1::priv_testdomain1 AS a
+);
+
+REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
+
+SET SESSION AUTHORIZATION regress_priv_user2;
+
+-- commands that should succeed
+CREATE AGGREGATE priv_testagg1b (priv_testdomain1) (
+    SFUNC = int4_sum,
+    STYPE = bigint
+);
+
+CREATE DOMAIN priv_testdomain2b AS priv_testdomain1;
+
+CREATE DOMAIN priv_testdomain3b AS int;
+
+CREATE FUNCTION castfunc (int)
+    RETURNS priv_testdomain3b
+    AS $$
     SELECT
         $1::priv_testdomain3b
 $$
 LANGUAGE SQL;
+
 CREATE CAST( priv_testdomain1 AS priv_testdomain3b
 )
-WITH FUNCTION castfunc (int );
-        CREATE FUNCTION priv_testfunc5b (a priv_testdomain1 )
-            RETURNS int
-            LANGUAGE SQL
-            AS $$
+WITH FUNCTION castfunc (int);
+
+CREATE FUNCTION priv_testfunc5b (a priv_testdomain1)
+    RETURNS int
+    LANGUAGE SQL
+    AS $$
     SELECT
         $1
 $$;
+
 CREATE FUNCTION priv_testfunc6b (b int)
     RETURNS priv_testdomain1
     LANGUAGE SQL
@@ -1557,449 +1597,574 @@ CREATE FUNCTION priv_testfunc6b (b int)
     SELECT
         $1::priv_testdomain1
 $$;
+
 CREATE OPERATOR !+! (
     PROCEDURE = priv_testfunc5b,
     RIGHTARG = priv_testdomain1
 );
+
 CREATE TABLE test5b (
     a int,
     b priv_testdomain1
 );
+
 CREATE TABLE test6b OF priv_testtype1;
+
 CREATE TABLE test10b (
     a int[],
     b priv_testtype1[]
 );
+
 CREATE TABLE test9b (
     a int,
     b int
 );
+
 ALTER TABLE test9b
     ADD COLUMN c priv_testdomain1;
+
 ALTER TABLE test9b
     ALTER COLUMN b TYPE priv_testdomain1;
+
 CREATE TYPE test7b AS (
     a int,
     b priv_testdomain1
 );
-        CREATE TYPE test8b AS (
-            a int,
-            b int
+
+CREATE TYPE test8b AS (
+    a int,
+    b int
 );
-        ALTER TYPE test8b
-            ADD ATTRIBUTE c priv_testdomain1;
-        ALTER TYPE test8b
-            ALTER ATTRIBUTE b TYPE priv_testdomain1;
-        CREATE TABLE test11b AS (
-            SELECT
-                1::priv_testdomain1 AS a
-            );
-        REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
-        \c -
-        DROP AGGREGATE priv_testagg1b (priv_testdomain1);
-        DROP DOMAIN priv_testdomain2b;
-        DROP OPERATOR !+! (
-            NONE, priv_testdomain1);
-        DROP FUNCTION priv_testfunc5b (a priv_testdomain1);
-        DROP FUNCTION priv_testfunc6b (b int);
-        DROP TABLE test5b;
-        DROP TABLE test6b;
-        DROP TABLE test9b;
-        DROP TABLE test10b;
-        DROP TYPE test7b;
-        DROP TYPE test8b;
-        DROP CAST(priv_testdomain1 AS priv_testdomain3b);
-        DROP FUNCTION castfunc (int)
-        CASCADE;
-        DROP DOMAIN priv_testdomain3b;
-        DROP TABLE test11b;
-        DROP TYPE priv_testtype1;
-        -- ok
-        DROP DOMAIN priv_testdomain1;
-        -- ok
-        -- truncate
-        SET SESSION AUTHORIZATION regress_priv_user5;
-        TRUNCATE atest2;
-        -- ok
-        TRUNCATE atest3;
-        -- fail
-        -- has_table_privilege function
-        -- bad-input checks
+
+ALTER TYPE test8b
+    ADD ATTRIBUTE c priv_testdomain1;
+
+ALTER TYPE test8b
+    ALTER ATTRIBUTE b TYPE priv_testdomain1;
+
+CREATE TABLE test11b AS (
+    SELECT
+        1::priv_testdomain1 AS a
+);
+
+REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
+
+\c -
+DROP AGGREGATE priv_testagg1b (priv_testdomain1);
+
+DROP DOMAIN priv_testdomain2b;
+
+DROP OPERATOR !+! (
+    NONE, priv_testdomain1);
+
+DROP FUNCTION priv_testfunc5b (a priv_testdomain1);
+
+DROP FUNCTION priv_testfunc6b (b int);
+
+DROP TABLE test5b;
+
+DROP TABLE test6b;
+
+DROP TABLE test9b;
+
+DROP TABLE test10b;
+
+DROP TYPE test7b;
+
+DROP TYPE test8b;
+
+DROP CAST(priv_testdomain1 AS priv_testdomain3b);
+
+DROP FUNCTION castfunc (int)
+CASCADE;
+
+DROP DOMAIN priv_testdomain3b;
+
+DROP TABLE test11b;
+
+DROP TYPE priv_testtype1;
+
+-- ok
+DROP DOMAIN priv_testdomain1;
+
+-- ok
+-- truncate
+
+SET SESSION AUTHORIZATION regress_priv_user5;
+
+TRUNCATE atest2;
+
+-- ok
+TRUNCATE atest3;
+
+-- fail
+-- has_table_privilege function
+-- bad-input checks
+
+SELECT
+    has_table_privilege(NULL, 'pg_authid', 'select');
+
+SELECT
+    has_table_privilege('pg_shad', 'select');
+
+SELECT
+    has_table_privilege('nosuchuser', 'pg_authid', 'select');
+
+SELECT
+    has_table_privilege('pg_authid', 'sel');
+
+SELECT
+    has_table_privilege(- 999999, 'pg_authid', 'update');
+
+SELECT
+    has_table_privilege(1, 'select');
+
+-- superuser
+\c -
+SELECT
+    has_table_privilege(CURRENT_USER, 'pg_authid', 'select');
+
+SELECT
+    has_table_privilege(CURRENT_USER, 'pg_authid', 'insert');
+
+SELECT
+    has_table_privilege(t2.oid, 'pg_authid', 'update')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_roles
+    WHERE
+        rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(t2.oid, 'pg_authid', 'delete')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_roles
+    WHERE
+        rolname = CURRENT_USER) AS t2;
+
+-- 'rule' privilege no longer exists, but for backwards compatibility
+-- has_table_privilege still recognizes the keyword and says FALSE
+
+SELECT
+    has_table_privilege(CURRENT_USER, t1.oid, 'rule')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_authid') AS t1;
+
+SELECT
+    has_table_privilege(CURRENT_USER, t1.oid, 'references')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_authid') AS t1;
+
+SELECT
+    has_table_privilege(t2.oid, t1.oid, 'select')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_authid') AS t1,
+    (
         SELECT
-            has_table_privilege(NULL, 'pg_authid', 'select');
+            oid
+        FROM
+            pg_roles
+        WHERE
+            rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(t2.oid, t1.oid, 'insert')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_authid') AS t1,
+    (
         SELECT
-            has_table_privilege('pg_shad', 'select');
+            oid
+        FROM
+            pg_roles
+        WHERE
+            rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege('pg_authid', 'update');
+
+SELECT
+    has_table_privilege('pg_authid', 'delete');
+
+SELECT
+    has_table_privilege('pg_authid', 'truncate');
+
+SELECT
+    has_table_privilege(t1.oid, 'select')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_authid') AS t1;
+
+SELECT
+    has_table_privilege(t1.oid, 'trigger')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_authid') AS t1;
+
+-- non-superuser
+SET SESSION AUTHORIZATION regress_priv_user3;
+
+SELECT
+    has_table_privilege(CURRENT_USER, 'pg_class', 'select');
+
+SELECT
+    has_table_privilege(CURRENT_USER, 'pg_class', 'insert');
+
+SELECT
+    has_table_privilege(t2.oid, 'pg_class', 'update')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_roles
+    WHERE
+        rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(t2.oid, 'pg_class', 'delete')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_roles
+    WHERE
+        rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(CURRENT_USER, t1.oid, 'references')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_class') AS t1;
+
+SELECT
+    has_table_privilege(t2.oid, t1.oid, 'select')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_class') AS t1,
+    (
         SELECT
-            has_table_privilege('nosuchuser', 'pg_authid', 'select');
+            oid
+        FROM
+            pg_roles
+        WHERE
+            rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(t2.oid, t1.oid, 'insert')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_class') AS t1,
+    (
         SELECT
-            has_table_privilege('pg_authid', 'sel');
+            oid
+        FROM
+            pg_roles
+        WHERE
+            rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege('pg_class', 'update');
+
+SELECT
+    has_table_privilege('pg_class', 'delete');
+
+SELECT
+    has_table_privilege('pg_class', 'truncate');
+
+SELECT
+    has_table_privilege(t1.oid, 'select')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_class') AS t1;
+
+SELECT
+    has_table_privilege(t1.oid, 'trigger')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'pg_class') AS t1;
+
+SELECT
+    has_table_privilege(CURRENT_USER, 'atest1', 'select');
+
+SELECT
+    has_table_privilege(CURRENT_USER, 'atest1', 'insert');
+
+SELECT
+    has_table_privilege(t2.oid, 'atest1', 'update')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_roles
+    WHERE
+        rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(t2.oid, 'atest1', 'delete')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_roles
+    WHERE
+        rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(CURRENT_USER, t1.oid, 'references')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'atest1') AS t1;
+
+SELECT
+    has_table_privilege(t2.oid, t1.oid, 'select')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'atest1') AS t1,
+    (
         SELECT
-            has_table_privilege(- 999999, 'pg_authid', 'update');
+            oid
+        FROM
+            pg_roles
+        WHERE
+            rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege(t2.oid, t1.oid, 'insert')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'atest1') AS t1,
+    (
         SELECT
-            has_table_privilege(1, 'select');
-        -- superuser
-        \c -
-        SELECT
-            has_table_privilege(CURRENT_USER, 'pg_authid', 'select');
-        SELECT
-            has_table_privilege(CURRENT_USER, 'pg_authid', 'insert');
-        SELECT
-            has_table_privilege(t2.oid, 'pg_authid', 'update')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(t2.oid, 'pg_authid', 'delete')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        -- 'rule' privilege no longer exists, but for backwards compatibility
-        -- has_table_privilege still recognizes the keyword and says FALSE
-        SELECT
-            has_table_privilege(CURRENT_USER, t1.oid, 'rule')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_authid') AS t1;
-        SELECT
-            has_table_privilege(CURRENT_USER, t1.oid, 'references')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_authid') AS t1;
-        SELECT
-            has_table_privilege(t2.oid, t1.oid, 'select')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_authid') AS t1,
-        (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(t2.oid, t1.oid, 'insert')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_authid') AS t1,
-        (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege('pg_authid', 'update');
-        SELECT
-            has_table_privilege('pg_authid', 'delete');
-        SELECT
-            has_table_privilege('pg_authid', 'truncate');
-        SELECT
-            has_table_privilege(t1.oid, 'select')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_authid') AS t1;
-        SELECT
-            has_table_privilege(t1.oid, 'trigger')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_authid') AS t1;
-        -- non-superuser
-        SET SESSION AUTHORIZATION regress_priv_user3;
-        SELECT
-            has_table_privilege(CURRENT_USER, 'pg_class', 'select');
-        SELECT
-            has_table_privilege(CURRENT_USER, 'pg_class', 'insert');
-        SELECT
-            has_table_privilege(t2.oid, 'pg_class', 'update')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(t2.oid, 'pg_class', 'delete')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(CURRENT_USER, t1.oid, 'references')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_class') AS t1;
-        SELECT
-            has_table_privilege(t2.oid, t1.oid, 'select')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_class') AS t1,
-        (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(t2.oid, t1.oid, 'insert')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_class') AS t1,
-        (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege('pg_class', 'update');
-        SELECT
-            has_table_privilege('pg_class', 'delete');
-        SELECT
-            has_table_privilege('pg_class', 'truncate');
-        SELECT
-            has_table_privilege(t1.oid, 'select')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_class') AS t1;
-        SELECT
-            has_table_privilege(t1.oid, 'trigger')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'pg_class') AS t1;
-        SELECT
-            has_table_privilege(CURRENT_USER, 'atest1', 'select');
-        SELECT
-            has_table_privilege(CURRENT_USER, 'atest1', 'insert');
-        SELECT
-            has_table_privilege(t2.oid, 'atest1', 'update')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(t2.oid, 'atest1', 'delete')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(CURRENT_USER, t1.oid, 'references')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'atest1') AS t1;
-        SELECT
-            has_table_privilege(t2.oid, t1.oid, 'select')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'atest1') AS t1,
-        (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege(t2.oid, t1.oid, 'insert')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'atest1') AS t1,
-        (
-            SELECT
-                oid
-            FROM
-                pg_roles
-            WHERE
-                rolname = CURRENT_USER) AS t2;
-        SELECT
-            has_table_privilege('atest1', 'update');
-        SELECT
-            has_table_privilege('atest1', 'delete');
-        SELECT
-            has_table_privilege('atest1', 'truncate');
-        SELECT
-            has_table_privilege(t1.oid, 'select')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'atest1') AS t1;
-        SELECT
-            has_table_privilege(t1.oid, 'trigger')
-        FROM (
-            SELECT
-                oid
-            FROM
-                pg_class
-            WHERE
-                relname = 'atest1') AS t1;
-        -- has_column_privilege function
-        -- bad-input checks (as non-super-user)
-        SELECT
-            has_column_privilege('pg_authid', NULL, 'select');
-        SELECT
-            has_column_privilege('pg_authid', 'nosuchcol', 'select');
-        SELECT
-            has_column_privilege(9999, 'nosuchcol', 'select');
-        SELECT
-            has_column_privilege(9999, 99::int2, 'select');
-        SELECT
-            has_column_privilege('pg_authid', 99::int2, 'select');
-        SELECT
-            has_column_privilege(9999, 99::int2, 'select');
-        CREATE temp TABLE mytable (
-            f1 int,
-            f2 int,
-            f3 int
-        );
-        ALTER TABLE mytable
-            DROP COLUMN f2;
-        SELECT
-            has_column_privilege('mytable', 'f2', 'select');
-        SELECT
-            has_column_privilege('mytable', '........pg.dropped.2........', 'select');
-        SELECT
-            has_column_privilege('mytable', 2::int2, 'select');
-        REVOKE SELECT ON TABLE mytable FROM regress_priv_user3;
-        SELECT
-            has_column_privilege('mytable', 2::int2, 'select');
-        DROP TABLE mytable;
-        -- Grant options
-        SET SESSION AUTHORIZATION regress_priv_user1;
-        CREATE TABLE atest4 (
-            a int
-        );
-        GRANT SELECT ON atest4 TO regress_priv_user2 WITH GRANT OPTION;
-        GRANT UPDATE ON atest4 TO regress_priv_user2;
-        GRANT SELECT ON atest4 TO
-    GROUP regress_priv_group1 WITH GRANT OPTION;
-        SET SESSION AUTHORIZATION regress_priv_user2;
-        GRANT SELECT ON atest4 TO regress_priv_user3;
-        GRANT UPDATE ON atest4 TO regress_priv_user3;
-        -- fail
-        SET SESSION AUTHORIZATION regress_priv_user1;
-        REVOKE SELECT ON atest4 FROM regress_priv_user3;
-        -- does nothing
-        SELECT
-            has_table_privilege('regress_priv_user3', 'atest4', 'SELECT');
-        -- true
-        REVOKE SELECT ON atest4 FROM regress_priv_user2;
-        -- fail
-        REVOKE GRANT OPTION FOR SELECT ON atest4 FROM regress_priv_user2 CASCADE;
-        -- ok
-        SELECT
-            has_table_privilege('regress_priv_user2', 'atest4', 'SELECT');
-        -- true
-        SELECT
-            has_table_privilege('regress_priv_user3', 'atest4', 'SELECT');
-        -- false
-        SELECT
-            has_table_privilege('regress_priv_user1', 'atest4', 'SELECT WITH GRANT OPTION');
-        -- true
-        -- Admin options
-        SET SESSION AUTHORIZATION regress_priv_user4;
-        CREATE FUNCTION dogrant_ok ( )
-            RETURNS void
-            LANGUAGE sql
-            SECURITY DEFINER
-            AS 'GRANT regress_priv_group2 TO regress_priv_user5'
+            oid
+        FROM
+            pg_roles
+        WHERE
+            rolname = CURRENT_USER) AS t2;
+
+SELECT
+    has_table_privilege('atest1', 'update');
+
+SELECT
+    has_table_privilege('atest1', 'delete');
+
+SELECT
+    has_table_privilege('atest1', 'truncate');
+
+SELECT
+    has_table_privilege(t1.oid, 'select')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'atest1') AS t1;
+
+SELECT
+    has_table_privilege(t1.oid, 'trigger')
+FROM (
+    SELECT
+        oid
+    FROM
+        pg_class
+    WHERE
+        relname = 'atest1') AS t1;
+
+-- has_column_privilege function
+-- bad-input checks (as non-super-user)
+
+SELECT
+    has_column_privilege('pg_authid', NULL, 'select');
+
+SELECT
+    has_column_privilege('pg_authid', 'nosuchcol', 'select');
+
+SELECT
+    has_column_privilege(9999, 'nosuchcol', 'select');
+
+SELECT
+    has_column_privilege(9999, 99::int2, 'select');
+
+SELECT
+    has_column_privilege('pg_authid', 99::int2, 'select');
+
+SELECT
+    has_column_privilege(9999, 99::int2, 'select');
+
+CREATE temp TABLE mytable (
+    f1 int,
+    f2 int,
+    f3 int
+);
+
+ALTER TABLE mytable
+    DROP COLUMN f2;
+
+SELECT
+    has_column_privilege('mytable', 'f2', 'select');
+
+SELECT
+    has_column_privilege('mytable', '........pg.dropped.2........', 'select');
+
+SELECT
+    has_column_privilege('mytable', 2::int2, 'select');
+
+REVOKE SELECT ON TABLE mytable FROM regress_priv_user3;
+
+SELECT
+    has_column_privilege('mytable', 2::int2, 'select');
+
+DROP TABLE mytable;
+
+-- Grant options
+SET SESSION AUTHORIZATION regress_priv_user1;
+
+CREATE TABLE atest4 (
+    a int
+);
+
+GRANT SELECT ON atest4 TO regress_priv_user2 WITH GRANT OPTION;
+
+GRANT UPDATE ON atest4 TO regress_priv_user2;
+
+GRANT SELECT ON atest4 TO
+GROUP regress_priv_group1 WITH GRANT OPTION;
+
+SET SESSION AUTHORIZATION regress_priv_user2;
+
+GRANT SELECT ON atest4 TO regress_priv_user3;
+
+GRANT UPDATE ON atest4 TO regress_priv_user3;
+
+-- fail
+SET SESSION AUTHORIZATION regress_priv_user1;
+
+REVOKE SELECT ON atest4 FROM regress_priv_user3;
+
+-- does nothing
+SELECT
+    has_table_privilege('regress_priv_user3', 'atest4', 'SELECT');
+
+-- true
+REVOKE SELECT ON atest4 FROM regress_priv_user2;
+
+-- fail
+REVOKE GRANT OPTION FOR SELECT ON atest4 FROM regress_priv_user2 CASCADE;
+
+-- ok
+SELECT
+    has_table_privilege('regress_priv_user2', 'atest4', 'SELECT');
+
+-- true
+SELECT
+    has_table_privilege('regress_priv_user3', 'atest4', 'SELECT');
+
+-- false
+SELECT
+    has_table_privilege('regress_priv_user1', 'atest4', 'SELECT WITH GRANT OPTION');
+
+-- true
+-- Admin options
+
+SET SESSION AUTHORIZATION regress_priv_user4;
+
+CREATE FUNCTION dogrant_ok ()
+    RETURNS void
+    LANGUAGE sql
+    SECURITY DEFINER
+    AS 'GRANT regress_priv_group2 TO regress_priv_user5'
 ;
+
 GRANT regress_priv_group2 TO regress_priv_user5;
+
 -- ok: had ADMIN OPTION
 SET ROLE regress_priv_group2;
+
 GRANT regress_priv_group2 TO regress_priv_user5;
+
 -- fails: SET ROLE suspended privilege
 SET SESSION AUTHORIZATION regress_priv_user1;
+
 GRANT regress_priv_group2 TO regress_priv_user5;
+
 -- fails: no ADMIN OPTION
 SELECT
     dogrant_ok ();
+
 -- ok: SECURITY DEFINER conveys ADMIN
 SET ROLE regress_priv_group2;
+
 GRANT regress_priv_group2 TO regress_priv_user5;
+
 -- fails: SET ROLE did not help
 SET SESSION AUTHORIZATION regress_priv_group2;
+
 GRANT regress_priv_group2 TO regress_priv_user5;
+
 -- ok: a role can self-admin
 CREATE FUNCTION dogrant_fails ()
     RETURNS void
@@ -2007,91 +2172,137 @@ CREATE FUNCTION dogrant_fails ()
     SECURITY DEFINER
     AS 'GRANT regress_priv_group2 TO regress_priv_user5'
 ;
+
 SELECT
     dogrant_fails ();
+
 -- fails: no self-admin in SECURITY DEFINER
 DROP FUNCTION dogrant_fails ();
+
 SET SESSION AUTHORIZATION regress_priv_user4;
+
 DROP FUNCTION dogrant_ok ();
+
 REVOKE regress_priv_group2 FROM regress_priv_user5;
+
 -- has_sequence_privilege tests
 \c -
 CREATE SEQUENCE x_seq;
+
 GRANT USAGE ON x_seq TO regress_priv_user2;
+
 SELECT
     has_sequence_privilege('regress_priv_user1', 'atest1', 'SELECT');
+
 SELECT
     has_sequence_privilege('regress_priv_user1', 'x_seq', 'INSERT');
+
 SELECT
     has_sequence_privilege('regress_priv_user1', 'x_seq', 'SELECT');
+
 SET SESSION AUTHORIZATION regress_priv_user2;
+
 SELECT
     has_sequence_privilege('x_seq', 'USAGE');
+
 -- largeobject privilege tests
 \c -
 SET SESSION AUTHORIZATION regress_priv_user1;
+
 SELECT
     lo_create(1001);
+
 SELECT
     lo_create(1002);
+
 SELECT
     lo_create(1003);
+
 SELECT
     lo_create(1004);
+
 SELECT
     lo_create(1005);
+
 GRANT ALL ON LARGE OBJECT 1001 TO PUBLIC;
+
 GRANT SELECT ON LARGE OBJECT 1003 TO regress_priv_user2;
+
 GRANT SELECT, UPDATE ON LARGE OBJECT 1004 TO regress_priv_user2;
+
 GRANT ALL ON LARGE OBJECT 1005 TO regress_priv_user2;
+
 GRANT SELECT ON LARGE OBJECT 1005 TO regress_priv_user2 WITH GRANT OPTION;
+
 GRANT SELECT, INSERT ON LARGE OBJECT 1001 TO PUBLIC;
+
 -- to be failed
 GRANT SELECT, UPDATE ON LARGE OBJECT 1001 TO nosuchuser;
+
 -- to be failed
 GRANT SELECT, UPDATE ON LARGE OBJECT 999 TO PUBLIC;
+
 -- to be failed
 \c -
 SET SESSION AUTHORIZATION regress_priv_user2;
+
 SELECT
     lo_create(2001);
+
 SELECT
     lo_create(2002);
+
 SELECT
     loread(lo_open(1001, x '20000'::int), 32);
+
 -- allowed, for now
 SELECT
     lowrite(lo_open(1001, x '40000'::int), 'abcd');
+
 -- fail, wrong mode
 SELECT
     loread(lo_open(1001, x '40000'::int), 32);
+
 SELECT
     loread(lo_open(1002, x '40000'::int), 32);
+
 -- to be denied
 SELECT
     loread(lo_open(1003, x '40000'::int), 32);
+
 SELECT
     loread(lo_open(1004, x '40000'::int), 32);
+
 SELECT
     lowrite(lo_open(1001, x '20000'::int), 'abcd');
+
 SELECT
     lowrite(lo_open(1002, x '20000'::int), 'abcd');
+
 -- to be denied
 SELECT
     lowrite(lo_open(1003, x '20000'::int), 'abcd');
+
 -- to be denied
 SELECT
     lowrite(lo_open(1004, x '20000'::int), 'abcd');
+
 GRANT SELECT ON LARGE OBJECT 1005 TO regress_priv_user3;
+
 GRANT UPDATE ON LARGE OBJECT 1006 TO regress_priv_user3;
+
 -- to be denied
 REVOKE ALL ON LARGE OBJECT 2001, 2002 FROM PUBLIC;
+
 GRANT ALL ON LARGE OBJECT 2001 TO regress_priv_user3;
+
 SELECT
     lo_unlink(1001);
+
 -- to be denied
 SELECT
     lo_unlink(2002);
+
 \c -
 -- confirm ACL setting
 SELECT
@@ -2105,64 +2316,88 @@ WHERE
     AND oid < 3000
 ORDER BY
     oid;
+
 SET SESSION AUTHORIZATION regress_priv_user3;
+
 SELECT
     loread(lo_open(1001, x '40000'::int), 32);
+
 SELECT
     loread(lo_open(1003, x '40000'::int), 32);
+
 -- to be denied
 SELECT
     loread(lo_open(1005, x '40000'::int), 32);
+
 SELECT
     lo_truncate(lo_open(1005, x '20000'::int), 10);
+
 -- to be denied
 SELECT
     lo_truncate(lo_open(2001, x '20000'::int), 10);
+
 -- compatibility mode in largeobject permission
 \c -
 SET lo_compat_privileges = FALSE;
+
 -- default setting
 SET SESSION AUTHORIZATION regress_priv_user4;
+
 SELECT
     loread(lo_open(1002, x '40000'::int), 32);
+
 -- to be denied
 SELECT
     lowrite(lo_open(1002, x '20000'::int), 'abcd');
+
 -- to be denied
 SELECT
     lo_truncate(lo_open(1002, x '20000'::int), 10);
+
 -- to be denied
 SELECT
     lo_put (1002,
         1,
         'abcd');
+
 -- to be denied
 SELECT
     lo_unlink(1002);
+
 -- to be denied
 SELECT
     lo_export(1001, '/dev/null');
+
 -- to be denied
 SELECT
     lo_import('/dev/null');
+
 -- to be denied
 SELECT
     lo_import('/dev/null', 2003);
+
 -- to be denied
 \c -
 SET lo_compat_privileges = TRUE;
+
 -- compatibility mode
 SET SESSION AUTHORIZATION regress_priv_user4;
+
 SELECT
     loread(lo_open(1002, x '40000'::int), 32);
+
 SELECT
     lowrite(lo_open(1002, x '20000'::int), 'abcd');
+
 SELECT
     lo_truncate(lo_open(1002, x '20000'::int), 10);
+
 SELECT
     lo_unlink(1002);
+
 SELECT
     lo_export(1001, '/dev/null');
+
 -- to be denied
 -- don't allow unpriv users to access pg_largeobject contents
 
@@ -2172,70 +2407,97 @@ SELECT
 FROM
     pg_largeobject
 LIMIT 0;
+
 SET SESSION AUTHORIZATION regress_priv_user1;
+
 SELECT
     *
 FROM
     pg_largeobject
 LIMIT 0;
+
 -- to be denied
 -- test default ACLs
 
 \c -
 CREATE SCHEMA testns;
+
 GRANT ALL ON SCHEMA testns TO regress_priv_user1;
+
 CREATE TABLE testns.acltest1 (
     x int
 );
+
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'SELECT');
+
 -- no
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'INSERT');
+
 -- no
 ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT
 SELECT
     ON TABLES TO public;
+
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'SELECT');
+
 -- no
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'INSERT');
+
 -- no
 DROP TABLE testns.acltest1;
+
 CREATE TABLE testns.acltest1 (
     x int
 );
+
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'SELECT');
+
 -- yes
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'INSERT');
+
 -- no
 ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT INSERT ON TABLES TO regress_priv_user1;
+
 DROP TABLE testns.acltest1;
+
 CREATE TABLE testns.acltest1 (
     x int
 );
+
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'SELECT');
+
 -- yes
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'INSERT');
+
 -- yes
 ALTER DEFAULT PRIVILEGES IN SCHEMA testns REVOKE INSERT ON TABLES FROM regress_priv_user1;
+
 DROP TABLE testns.acltest1;
+
 CREATE TABLE testns.acltest1 (
     x int
 );
+
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'SELECT');
+
 -- yes
 SELECT
     has_table_privilege('regress_priv_user1', 'testns.acltest1', 'INSERT');
+
 -- no
 ALTER DEFAULT PRIVILEGES FOR ROLE regress_priv_user1 REVOKE EXECUTE ON FUNCTIONS FROM public;
+
 ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT USAGE ON SCHEMAS TO regress_priv_user2;
+
 -- error
 --
 -- Testing blanket default grants is very hazardous since it might change
@@ -2270,172 +2532,243 @@ SELECT
 -- yes
 ALTER DEFAULT PRIVILEGES REVOKE ALL ON SCHEMAS FROM regress_priv_user2;
 COMMIT;
+
 CREATE SCHEMA testns5;
+
 SELECT
     has_schema_privilege('regress_priv_user2', 'testns5', 'USAGE');
+
 -- no
 SELECT
     has_schema_privilege('regress_priv_user2', 'testns5', 'CREATE');
+
 -- no
 SET ROLE regress_priv_user1;
+
 CREATE FUNCTION testns.foo ()
     RETURNS int
     AS 'select 1'
     LANGUAGE sql;
+
 CREATE AGGREGATE testns.agg1 (int) (
     SFUNC = int4pl,
     STYPE = int4
 );
+
 CREATE PROCEDURE testns.bar ()
     AS 'select 1'
     LANGUAGE sql;
+
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.foo()', 'EXECUTE');
+
 -- no
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.agg1(int)', 'EXECUTE');
+
 -- no
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.bar()', 'EXECUTE');
+
 -- no
 ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT EXECUTE ON ROUTINES TO public;
+
 DROP FUNCTION testns.foo ();
+
 CREATE FUNCTION testns.foo ()
     RETURNS int
     AS 'select 1'
     LANGUAGE sql;
+
 DROP AGGREGATE testns.agg1 (int);
+
 CREATE AGGREGATE testns.agg1 (int) (
     SFUNC = int4pl,
     STYPE = int4
 );
+
 DROP PROCEDURE testns.bar ();
+
 CREATE PROCEDURE testns.bar ()
     AS 'select 1'
     LANGUAGE sql;
+
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.foo()', 'EXECUTE');
+
 -- yes
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.agg1(int)', 'EXECUTE');
+
 -- yes
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.bar()', 'EXECUTE');
+
 -- yes (counts as function here)
 DROP FUNCTION testns.foo ();
+
 DROP AGGREGATE testns.agg1 (int);
+
 DROP PROCEDURE testns.bar ();
+
 ALTER DEFAULT PRIVILEGES FOR ROLE regress_priv_user1 REVOKE USAGE ON TYPES FROM public;
+
 CREATE DOMAIN testns.priv_testdomain1 AS int;
-        SELECT
-            has_type_privilege('regress_priv_user2', 'testns.priv_testdomain1', 'USAGE');
-        -- no
-        ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT USAGE ON TYPES TO public;
-        DROP DOMAIN testns.priv_testdomain1;
-        CREATE DOMAIN testns.priv_testdomain1 AS int;
-        SELECT
-            has_type_privilege('regress_priv_user2', 'testns.priv_testdomain1', 'USAGE');
-        -- yes
-        DROP DOMAIN testns.priv_testdomain1;
-        RESET ROLE;
-        SELECT
-            count(*)
-        FROM
-            pg_default_acl d
-        LEFT JOIN pg_namespace n ON defaclnamespace = n.oid
-    WHERE
-        nspname = 'testns';
-        DROP SCHEMA testns CASCADE;
-        DROP SCHEMA testns2 CASCADE;
-        DROP SCHEMA testns3 CASCADE;
-        DROP SCHEMA testns4 CASCADE;
-        DROP SCHEMA testns5 CASCADE;
-        SELECT
-            d.* -- check that entries went away
-        FROM
-            pg_default_acl d
-        LEFT JOIN pg_namespace n ON defaclnamespace = n.oid
-    WHERE
-        nspname IS NULL
-        AND defaclnamespace != 0;
-        -- Grant on all objects of given type in a schema
-        \c -
-        CREATE SCHEMA testns;
-        CREATE TABLE testns.t1 (
-            f1 int
-        );
-        CREATE TABLE testns.t2 (
-            f1 int
-        );
-        SELECT
-            has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT');
-        -- false
-        GRANT ALL ON ALL TABLES IN SCHEMA testns TO regress_priv_user1;
-        SELECT
-            has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT');
-        -- true
-        SELECT
-            has_table_privilege('regress_priv_user1', 'testns.t2', 'SELECT');
-        -- true
-        REVOKE ALL ON ALL TABLES IN SCHEMA testns FROM regress_priv_user1;
-        SELECT
-            has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT');
-        -- false
-        SELECT
-            has_table_privilege('regress_priv_user1', 'testns.t2', 'SELECT');
-        -- false
-        CREATE FUNCTION testns.priv_testfunc (int )
-            RETURNS int
-            AS 'select 3 * $1;'
+
+SELECT
+    has_type_privilege('regress_priv_user2', 'testns.priv_testdomain1', 'USAGE');
+
+-- no
+ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT USAGE ON TYPES TO public;
+
+DROP DOMAIN testns.priv_testdomain1;
+
+CREATE DOMAIN testns.priv_testdomain1 AS int;
+
+SELECT
+    has_type_privilege('regress_priv_user2', 'testns.priv_testdomain1', 'USAGE');
+
+-- yes
+DROP DOMAIN testns.priv_testdomain1;
+
+RESET ROLE;
+
+SELECT
+    count(*)
+FROM
+    pg_default_acl d
+    LEFT JOIN pg_namespace n ON defaclnamespace = n.oid
+WHERE
+    nspname = 'testns';
+
+DROP SCHEMA testns CASCADE;
+
+DROP SCHEMA testns2 CASCADE;
+
+DROP SCHEMA testns3 CASCADE;
+
+DROP SCHEMA testns4 CASCADE;
+
+DROP SCHEMA testns5 CASCADE;
+
+SELECT
+    d.* -- check that entries went away
+FROM
+    pg_default_acl d
+    LEFT JOIN pg_namespace n ON defaclnamespace = n.oid
+WHERE
+    nspname IS NULL
+    AND defaclnamespace != 0;
+
+-- Grant on all objects of given type in a schema
+\c -
+CREATE SCHEMA testns;
+
+CREATE TABLE testns.t1 (
+    f1 int
+);
+
+CREATE TABLE testns.t2 (
+    f1 int
+);
+
+SELECT
+    has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT');
+
+-- false
+GRANT ALL ON ALL TABLES IN SCHEMA testns TO regress_priv_user1;
+
+SELECT
+    has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT');
+
+-- true
+SELECT
+    has_table_privilege('regress_priv_user1', 'testns.t2', 'SELECT');
+
+-- true
+REVOKE ALL ON ALL TABLES IN SCHEMA testns FROM regress_priv_user1;
+
+SELECT
+    has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT');
+
+-- false
+SELECT
+    has_table_privilege('regress_priv_user1', 'testns.t2', 'SELECT');
+
+-- false
+CREATE FUNCTION testns.priv_testfunc (int)
+    RETURNS int
+    AS 'select 3 * $1;'
     LANGUAGE sql;
+
 CREATE AGGREGATE testns.priv_testagg (int) (
     SFUNC = int4pl,
     STYPE = int4
 );
+
 CREATE PROCEDURE testns.priv_testproc (int
 )
     AS 'select 3'
     LANGUAGE sql;
+
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE');
+
 -- true by default
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE');
+
 -- true by default
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE');
+
 -- true by default
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA testns FROM PUBLIC;
+
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE');
+
 -- false
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE');
+
 -- false
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE');
+
 -- still true, not a function
 REVOKE ALL ON ALL PROCEDURES IN SCHEMA testns FROM PUBLIC;
+
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE');
+
 -- now false
 GRANT ALL ON ALL ROUTINES IN SCHEMA testns TO PUBLIC;
+
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE');
+
 -- true
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE');
+
 -- true
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE');
+
 -- true
 DROP SCHEMA testns CASCADE;
+
 -- Change owner of the schema & and rename of new schema owner
 \c -
 CREATE ROLE regress_schemauser1 superuser LOGIN;
+
 CREATE ROLE regress_schemauser2 superuser LOGIN;
+
 SET SESSION ROLE regress_schemauser1;
+
 CREATE SCHEMA testns;
+
 SELECT
     nspname,
     rolname
@@ -2445,8 +2778,11 @@ FROM
 WHERE
     pg_namespace.nspname = 'testns'
     AND pg_namespace.nspowner = pg_roles.oid;
+
 ALTER SCHEMA testns OWNER TO regress_schemauser2;
+
 ALTER ROLE regress_schemauser2 RENAME TO regress_schemauser_renamed;
+
 SELECT
     nspname,
     rolname
@@ -2456,58 +2792,98 @@ FROM
 WHERE
     pg_namespace.nspname = 'testns'
     AND pg_namespace.nspowner = pg_roles.oid;
+
 SET session ROLE regress_schemauser_renamed;
+
 DROP SCHEMA testns CASCADE;
+
 -- clean up
 \c -
 DROP ROLE regress_schemauser1;
+
 DROP ROLE regress_schemauser_renamed;
+
 -- test that dependent privileges are revoked (or not) properly
 \c -
 SET session ROLE regress_priv_user1;
+
 CREATE TABLE dep_priv_test (
     a int
 );
+
 GRANT SELECT ON dep_priv_test TO regress_priv_user2 WITH GRANT option;
+
 GRANT SELECT ON dep_priv_test TO regress_priv_user3 WITH GRANT option;
+
 SET session ROLE regress_priv_user2;
+
 GRANT SELECT ON dep_priv_test TO regress_priv_user4 WITH GRANT option;
+
 SET session ROLE regress_priv_user3;
+
 GRANT SELECT ON dep_priv_test TO regress_priv_user4 WITH GRANT option;
+
 SET session ROLE regress_priv_user4;
+
 GRANT SELECT ON dep_priv_test TO regress_priv_user5;
+
 \dp dep_priv_test
 SET session ROLE regress_priv_user2;
+
 REVOKE SELECT ON dep_priv_test FROM regress_priv_user4 CASCADE;
+
 \dp dep_priv_test
 SET session ROLE regress_priv_user3;
+
 REVOKE SELECT ON dep_priv_test FROM regress_priv_user4 CASCADE;
+
 \dp dep_priv_test
 SET session ROLE regress_priv_user1;
+
 DROP TABLE dep_priv_test;
+
 -- clean up
 \c
 DROP SEQUENCE x_seq;
+
 DROP AGGREGATE priv_testagg1 (int);
+
 DROP FUNCTION priv_testfunc2 (int);
+
 DROP FUNCTION priv_testfunc4 (boolean);
+
 DROP PROCEDURE priv_testproc1 (int);
+
 DROP VIEW atestv0;
+
 DROP VIEW atestv1;
+
 DROP VIEW atestv2;
+
 -- this should cascade to drop atestv4
 DROP VIEW atestv3 CASCADE;
+
 -- this should complain "does not exist"
 DROP VIEW atestv4;
+
 DROP TABLE atest1;
+
 DROP TABLE atest2;
+
 DROP TABLE atest3;
+
 DROP TABLE atest4;
+
 DROP TABLE atest5;
+
 DROP TABLE atest6;
+
 DROP TABLE atestc;
+
 DROP TABLE atestp1;
+
 DROP TABLE atestp2;
+
 SELECT
     lo_unlink(oid)
 FROM
@@ -2517,109 +2893,154 @@ WHERE
     AND oid < 3000
 ORDER BY
     oid;
+
 DROP GROUP regress_priv_group1;
+
 DROP GROUP regress_priv_group2;
+
 -- these are needed to clean up permissions
 REVOKE USAGE ON
 LANGUAGE sql
 FROM regress_priv_user1;
+
 DROP OWNED BY regress_priv_user1;
+
 DROP USER regress_priv_user1;
+
 DROP USER regress_priv_user2;
+
 DROP USER regress_priv_user3;
+
 DROP USER regress_priv_user4;
+
 DROP USER regress_priv_user5;
+
 DROP USER regress_priv_user6;
+
 -- permissions with LOCK TABLE
 CREATE USER regress_locktable_user;
+
 CREATE TABLE lock_table (
     a int
 );
+
 -- LOCK TABLE and SELECT permission
 GRANT SELECT ON lock_table TO regress_locktable_user;
+
 SET SESSION AUTHORIZATION regress_locktable_user;
+
 BEGIN;
 LOCK TABLE lock_table IN ROW EXCLUSIVE MODE;
 -- should fail
 ROLLBACK;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS SHARE MODE;
 -- should pass
 COMMIT;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS EXCLUSIVE MODE;
 -- should fail
 ROLLBACK;
+
 \c
 REVOKE SELECT ON lock_table FROM regress_locktable_user;
+
 -- LOCK TABLE and INSERT permission
 GRANT INSERT ON lock_table TO regress_locktable_user;
+
 SET SESSION AUTHORIZATION regress_locktable_user;
+
 BEGIN;
 LOCK TABLE lock_table IN ROW EXCLUSIVE MODE;
 -- should pass
 COMMIT;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS SHARE MODE;
 -- should fail
 ROLLBACK;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS EXCLUSIVE MODE;
 -- should fail
 ROLLBACK;
+
 \c
 REVOKE INSERT ON lock_table FROM regress_locktable_user;
+
 -- LOCK TABLE and UPDATE permission
 GRANT UPDATE ON lock_table TO regress_locktable_user;
+
 SET SESSION AUTHORIZATION regress_locktable_user;
+
 BEGIN;
 LOCK TABLE lock_table IN ROW EXCLUSIVE MODE;
 -- should pass
 COMMIT;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS SHARE MODE;
 -- should fail
 ROLLBACK;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS EXCLUSIVE MODE;
 -- should pass
 COMMIT;
+
 \c
 REVOKE UPDATE ON lock_table FROM regress_locktable_user;
+
 -- LOCK TABLE and DELETE permission
 GRANT DELETE ON lock_table TO regress_locktable_user;
+
 SET SESSION AUTHORIZATION regress_locktable_user;
+
 BEGIN;
 LOCK TABLE lock_table IN ROW EXCLUSIVE MODE;
 -- should pass
 COMMIT;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS SHARE MODE;
 -- should fail
 ROLLBACK;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS EXCLUSIVE MODE;
 -- should pass
 COMMIT;
+
 \c
 REVOKE DELETE ON lock_table FROM regress_locktable_user;
+
 -- LOCK TABLE and TRUNCATE permission
 GRANT TRUNCATE ON lock_table TO regress_locktable_user;
+
 SET SESSION AUTHORIZATION regress_locktable_user;
+
 BEGIN;
 LOCK TABLE lock_table IN ROW EXCLUSIVE MODE;
 -- should pass
 COMMIT;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS SHARE MODE;
 -- should fail
 ROLLBACK;
+
 BEGIN;
 LOCK TABLE lock_table IN ACCESS EXCLUSIVE MODE;
 -- should pass
 COMMIT;
+
 \c
 REVOKE TRUNCATE ON lock_table FROM regress_locktable_user;
+
 -- clean up
 DROP TABLE lock_table;
+
 DROP USER regress_locktable_user;
+

@@ -336,12 +336,11 @@ CREATE FUNCTION count_tt1_s ()
 BEGIN;
 INSERT INTO tt1
     VALUES (1);
-DECLARE
-    c1 CURSOR FOR
-        SELECT
-            count_tt1_v (),
-        count_tt1_s ();
-    INSERT INTO tt1
+DECLARE c1 CURSOR FOR
+    SELECT
+        count_tt1_v (),
+    count_tt1_s ();
+INSERT INTO tt1
     VALUES (2);
 FETCH ALL FROM c1;
 ROLLBACK;
@@ -988,15 +987,14 @@ CREATE FUNCTION nochange (int)
     AS 'select $1 limit 1'
     LANGUAGE sql
     STABLE;
-DECLARE
-    c CURSOR FOR
-        SELECT
-            *
-        FROM
-            int8_tbl
-        LIMIT nochange (3);
+DECLARE c CURSOR FOR
+    SELECT
+        *
+    FROM
+        int8_tbl
+    LIMIT nochange (3);
 FETCH ALL FROM c;
-    MOVE BACKWARD ALL IN c;
+MOVE BACKWARD ALL IN c;
 FETCH ALL FROM c;
 ROLLBACK;
 
