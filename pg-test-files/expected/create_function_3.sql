@@ -376,12 +376,14 @@ CREATE OR REPLACE PROCEDURE functest1 (a int)
 LANGUAGE SQL
 AS 'SELECT $1'
 ;
-        DROP FUNCTION functest1 (a int);
-        -- Check behavior of VOID-returning SQL functions
-        CREATE FUNCTION voidtest1 (a int )
-            RETURNS VOID
-            LANGUAGE SQL
-            AS $$
+
+DROP FUNCTION functest1 (a int);
+
+-- Check behavior of VOID-returning SQL functions
+CREATE FUNCTION voidtest1 (a int)
+    RETURNS VOID
+    LANGUAGE SQL
+    AS $$
     SELECT
         a + 1
 $$;

@@ -226,7 +226,7 @@ DROP FUNCTION test_ambiguous_funcname (text);
 -- Likewise for procedures.
 CREATE PROCEDURE test_ambiguous_procname (int
 )
-AS $$
+    AS $$
 BEGIN
 END;
 $$
@@ -234,7 +234,7 @@ LANGUAGE plpgsql;
 
 CREATE PROCEDURE test_ambiguous_procname (text
 )
-AS $$
+    AS $$
 BEGIN
 END;
 $$

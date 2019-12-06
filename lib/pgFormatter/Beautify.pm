@@ -770,6 +770,8 @@ sub beautify
                     $self->_add_token( $token, $last );
 		    $last = $self->_set_last($token, $last);
                     next;
+		} else {
+			$self->_over($token, $last) if ($self->{ '_is_in_procedure' });
 		}
 	    }
             if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' })
@@ -1038,6 +1040,8 @@ sub beautify
 	{
 	    if ($self->_next_token =~ /CODEPART/) {
                 $self->{ '_fct_code_delimiter' } = '0';
+	    } elsif ($token =~ /^'.*'$/) {
+	        $self->{ '_fct_code_delimiter' } = "'";
 	    } else {
 	        $self->{ '_fct_code_delimiter' } = $token;
 	    }
@@ -1045,6 +1049,13 @@ sub beautify
             $last = $self->_set_last($token, $last);
             $self->_new_line($token,$last);
             $self->_over($token,$last) if (defined $self->_next_token && $self->_next_token !~ /^(DECLARE|BEGIN)$/i);
+	    if ($self->{ '_fct_code_delimiter' } eq "'") {
+                $self->{ '_is_in_block' } = -1;
+                $self->{ '_is_in_exception' } = 0;
+                $self->_reset_level($token, $last) if ($self->_next_token eq ';');
+                $self->{ '_fct_code_delimiter' } = '';
+                $self->{ '_current_sql_stmt' } = '';
+            }
             next;
         }
 
@@ -1099,7 +1110,7 @@ sub beautify
             $last = $self->_set_last($token, $last);
             next;
         }
-        elsif ( $token =~ /^(COMMIT|ROLLBACK)$/i and (not defined $last or uc($last) ne 'ON'))
+        elsif ( $token =~ /^(COMMIT|ROLLBACK)$/i and (not defined $last or uc($last) ne 'ON') and !$self->{ '_is_in_procedure' } )
 	{
 	    $self->{ '_is_in_work' } = 0;
 	    $self->{ '_is_in_declare' } = 0;
@@ -1323,10 +1334,13 @@ sub beautify
 			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
 	        );
 		$self->_new_line($token,$last) if ($add_nl);
-                $self->_back($token, $last) if (!$self->{ '_is_in_grouping' }
-						&& !$self->{ '_is_in_trigger' } && !$self->{ 'no_break' }
-						&& ($self->{ '_is_in_create' } <= 2)
-		);
+                if (!$self->{ '_is_in_grouping' } && !$self->{ '_is_in_trigger' }
+						&& !$self->{ 'no_break' }
+						&& $self->{ '_is_in_create' } <= 2
+			)
+		{
+			$self->_back($token, $last);
+		}
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
                 $self->{ '_is_in_type' }-- if ($self->{ '_is_in_type' });
 	    }
@@ -1438,7 +1452,6 @@ sub beautify
 	    }
 	    elsif ($self->{ '_is_in_create' } && $self->{ '_is_in_block' } > -1)
 	    {
-		#$self->{ '_level' } = $self->_pop_level($token, $last);
 	        $self->_pop_level($token, $last);
 	    }
 
