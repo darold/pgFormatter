@@ -166,3 +166,8 @@ CREATE VIEW v AS
     FROM
       aa
   );
+
+-- original snippet
+\set user `echo $PGRST_DB_USER`
+\set passwd `echo $PGRST_DB_PWD`
+CREATE ROLE :user WITH LOGIN noinherit PASSWORD :'passwd';
