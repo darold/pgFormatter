@@ -427,7 +427,7 @@ CREATE FUNCTION leak2 (integer, integer)
     RETURNS boolean
     AS $$
 BEGIN
-    raise notice 'leak % %', $1, $2;
+    RAISE notice 'leak % %', $1, $2;
     RETURN $1 > $2;
 END
 $$

@@ -156,7 +156,7 @@ BEGIN
                 INSERT INTO stock (vin_id, contenant_id, annee, nombre)
                 VALUES (v_vin_id, v_contenant_id, v_annee, v_nombre);
                 IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
-                    raise notice 'stock : % sur % tuples generes', compteur, tuples_a_generer;
+                    RAISE notice 'stock : % sur % tuples generes', compteur, tuples_a_generer;
                 END IF;
                 compteur := compteur + 1;
             END LOOP;
@@ -220,7 +220,7 @@ BEGIN
                 INSERT INTO vin (recoltant_id, appellation_id, type_vin_id)
                 VALUES (v_recoltant_id, v_appellation_id, v_type_vin_id);
                 IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
-                    raise notice 'vins : % sur % tuples generes', compteur, tuples_a_generer;
+                    RAISE notice 'vins : % sur % tuples generes', compteur, tuples_a_generer;
                 END IF;
                 compteur := compteur + 1;
             END LOOP;
@@ -260,24 +260,24 @@ BEGIN
         count(*)
     FROM
         stock INTO stock_total;
-    raise NOTICE 'taille du stock %', stock_total;
+    RAISE NOTICE 'taille du stock %', stock_total;
     -- on calcule la taille de l'echantillon a
     -- supprimer de la table stock
     SELECT
         round(stock_total / 10) INTO echantillon;
-    raise NOTICE 'taille de l''echantillon %', echantillon;
+    RAISE NOTICE 'taille de l''echantillon %', echantillon;
     -- on compte le nombre de vins disponibles
     SELECT
         count(*)
     FROM
         vin INTO vins_disponibles;
-    raise NOTICE '% vins disponibles', vins_disponibles;
+    RAISE NOTICE '% vins disponibles', vins_disponibles;
     -- on compte le nombre de contenants disponibles
     SELECT
         count(*)
     FROM
         contenant INTO contenants_disponibles;
-    raise NOTICE '% contenants disponibles', contenants_disponibles;
+    RAISE NOTICE '% contenants disponibles', contenants_disponibles;
     -- on recupere les bornes min/max de annees
     SELECT
         min(annee),
@@ -300,7 +300,7 @@ BEGIN
             AND vin_id = v_vin_id
             AND annee = v_annee;
         IF (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
-            raise notice 'stock : % sur % echantillon effaces', v_tuples, echantillon;
+            RAISE notice 'stock : % sur % echantillon effaces', v_tuples, echantillon;
         END IF;
     END LOOP;
     --fin boucle v_tuples
@@ -330,12 +330,12 @@ BEGIN
         count(*)
     FROM
         vin INTO vin_total;
-    raise NOTICE '% vins disponibles', vin_total;
+    RAISE NOTICE '% vins disponibles', vin_total;
     -- on calcule la taille de l'echantillon a
     -- supprimer de la table vin
     SELECT
         round(vin_total / 10) INTO echantillon;
-    raise NOTICE 'taille de l''echantillon %', echantillon;
+    RAISE NOTICE 'taille de l''echantillon %', echantillon;
     -- on fait une boucle correspondant a 10% des tuples
     -- de la table vin
     FOR v_tuples IN 1..echantillon LOOP
@@ -349,7 +349,7 @@ BEGIN
         DELETE FROM vin
         WHERE id = v_vin_id;
         IF (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
-            raise notice 'vin : % sur % echantillon effaces', v_tuples, echantillon;
+            RAISE notice 'vin : % sur % echantillon effaces', v_tuples, echantillon;
         END IF;
     END LOOP;
     --fin boucle v_tuples

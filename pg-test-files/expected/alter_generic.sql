@@ -743,15 +743,15 @@ ORDER BY
 CREATE TEXT SEARCH PARSER alt_ts_prs1 (
     START = prsd_start,
     gettoken = prsd_nexttoken,
-END = prsd_end,
-lextypes = prsd_lextype
+    END = prsd_end,
+    lextypes = prsd_lextype
 );
 
 CREATE TEXT SEARCH PARSER alt_ts_prs2 (
     START = prsd_start,
     gettoken = prsd_nexttoken,
-END = prsd_end,
-lextypes = prsd_lextype
+    END = prsd_end,
+    lextypes = prsd_lextype
 );
 
 ALTER TEXT SEARCH PARSER alt_ts_prs1 RENAME TO alt_ts_prs2;
@@ -766,8 +766,8 @@ ALTER TEXT SEARCH PARSER alt_ts_prs2 SET SCHEMA alt_nsp2;
 CREATE TEXT SEARCH PARSER alt_ts_prs2 (
     START = prsd_start,
     gettoken = prsd_nexttoken,
-END = prsd_end,
-lextypes = prsd_lextype
+    END = prsd_end,
+    lextypes = prsd_lextype
 );
 
 ALTER TEXT SEARCH PARSER alt_ts_prs2 SET SCHEMA alt_nsp2;

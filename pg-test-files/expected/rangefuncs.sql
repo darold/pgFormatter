@@ -1619,7 +1619,7 @@ CREATE FUNCTION noticetrigger ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'noticetrigger % %', new.f1, new.data;
+    RAISE notice 'noticetrigger % %', new.f1, new.data;
     RETURN NULL;
 END
 $$

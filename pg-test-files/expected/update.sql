@@ -658,7 +658,7 @@ CREATE FUNCTION trans_updatetrigfunc ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice 'trigger = %, old table = %, new table = %', TG_NAME, (
+    RAISE notice 'trigger = %, old table = %, new table = %', TG_NAME, (
         SELECT
             string_agg(old_table::text, ', ' ORDER BY a)
         FROM
@@ -996,7 +996,7 @@ CREATE FUNCTION trigfunc ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice 'trigger = % fired on table % during %', TG_NAME, TG_TABLE_NAME, TG_OP;
+    RAISE notice 'trigger = % fired on table % during %', TG_NAME, TG_TABLE_NAME, TG_OP;
     RETURN NULL;
 END;
 $$;
@@ -1353,7 +1353,7 @@ CREATE OR REPLACE FUNCTION func_parted_mod_b ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'Trigger: Got OLD row %, but returning NULL', OLD;
+    RAISE notice 'Trigger: Got OLD row %, but returning NULL', OLD;
     RETURN NULL;
 END
 $$

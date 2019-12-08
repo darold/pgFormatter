@@ -99,7 +99,7 @@ BEGIN
             pg_stat_clear_snapshot();
     END LOOP;
     -- report time waited in postmaster log (where it won't change test output)
-    raise log 'wait_for_stats delayed % seconds', extract(epoch FROM clock_timestamp() - start_time);
+    RAISE log 'wait_for_stats delayed % seconds', extract(epoch FROM clock_timestamp() - start_time);
 END
 $$
 LANGUAGE plpgsql;

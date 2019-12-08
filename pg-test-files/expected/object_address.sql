@@ -35,8 +35,8 @@ CREATE TEXT SEARCH TEMPLATE addr_ts_temp (
 CREATE TEXT SEARCH PARSER addr_ts_prs (
     START = prsd_start,
     gettoken = prsd_nexttoken,
-END = prsd_end,
-lextypes = prsd_lextype
+    END = prsd_end,
+    lextypes = prsd_lextype
 );
 
 CREATE TABLE addr_nsp.gentable (
@@ -152,10 +152,10 @@ BEGIN
         BEGIN
             PERFORM
                 pg_get_object_address(objtype, '{one}', '{}');
-        EXCEPTION
+            EXCEPTION
             WHEN invalid_parameter_value THEN
                 RAISE WARNING 'error for %: %', objtype, sqlerrm;
-        END;
+            END;
     END LOOP;
 END;
 
@@ -197,10 +197,10 @@ BEGIN
                 BEGIN
                     PERFORM
                         pg_get_object_address(objtype, names, args);
-                EXCEPTION
+                    EXCEPTION
                     WHEN OTHERS THEN
                         RAISE WARNING 'error for %,%,%: %', objtype, names, args, sqlerrm;
-                END;
+                    END;
             END LOOP;
         END LOOP;
     END LOOP;
@@ -337,6 +337,7 @@ WITH objects (
         ('role', '{regress_addr_user}', '{}'),
         -- database
         -- tablespace
+
         ('foreign-data wrapper', '{addr_fdw}', '{}'),
         ('server', '{addr_fserv}', '{}'),
         ('user mapping', '{regress_addr_user}', '{integer}'),
@@ -344,6 +345,7 @@ WITH objects (
         ('default acl', '{regress_addr_user}', '{r}'),
         -- extension
         -- event trigger
+
         ('policy', '{addr_nsp, gentable, genpol}', '{}'),
         ('transform', '{int}', '{sql}'),
         ('access method', '{btree}', '{}'),
@@ -364,12 +366,20 @@ ORDER BY
     addr1.classid,
     addr1.objid,
     addr1.objsubid;
-        ---
-        --- Cleanup resources
-        ---
-        DROP FOREIGN DATA WRAPPER addr_fdw CASCADE;
-        DROP PUBLICATION addr_pub;
-        DROP SUBSCRIPTION addr_sub;
-        DROP SCHEMA addr_nsp CASCADE;
-        DROP OWNED BY regress_addr_user;
-        DROP USER regress_addr_user;
+
+---
+--- Cleanup resources
+---
+
+DROP FOREIGN DATA WRAPPER addr_fdw CASCADE;
+
+DROP PUBLICATION addr_pub;
+
+DROP SUBSCRIPTION addr_sub;
+
+DROP SCHEMA addr_nsp CASCADE;
+
+DROP OWNED BY regress_addr_user;
+
+DROP USER regress_addr_user;
+

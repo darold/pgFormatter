@@ -2409,7 +2409,7 @@ CREATE FUNCTION y_trigger ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'y_trigger: a = %', new.a;
+    RAISE notice 'y_trigger: a = %', new.a;
     RETURN new;
 END;
 $$
@@ -2464,7 +2464,7 @@ CREATE OR REPLACE FUNCTION y_trigger ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'y_trigger';
+    RAISE notice 'y_trigger';
     RETURN NULL;
 END;
 $$

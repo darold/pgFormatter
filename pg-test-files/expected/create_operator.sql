@@ -78,7 +78,7 @@ DECLARE
 BEGIN
     EXECUTE $e$ select 2 !=-- comment
       1 $e$ INTO r;
-    raise info 'r = %', r;
+    RAISE info 'r = %', r;
 END;
 $$;
 

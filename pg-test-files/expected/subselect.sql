@@ -1494,7 +1494,7 @@ CREATE FUNCTION tattle (x int, y int)
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice 'x = %, y = %', x, y;
+    RAISE notice 'x = %, y = %', x, y;
     RETURN x > y;
 END
 $$;

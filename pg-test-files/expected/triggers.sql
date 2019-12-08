@@ -784,7 +784,7 @@ CREATE FUNCTION trigtest ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice '% % % %', TG_RELNAME, TG_OP, TG_WHEN, TG_LEVEL;
+    RAISE notice '% % % %', TG_RELNAME, TG_OP, TG_WHEN, TG_LEVEL;
     RETURN new;
 END;
 $$
@@ -873,15 +873,15 @@ BEGIN
     -- plpgsql can't discover its trigger data in a hash like perl and python
     -- can, or by a sort of reflection like tcl can,
     -- so we have to hard code the names.
-    raise NOTICE 'TG_NAME: %', TG_name;
-    raise NOTICE 'TG_WHEN: %', TG_when;
-    raise NOTICE 'TG_LEVEL: %', TG_level;
-    raise NOTICE 'TG_OP: %', TG_op;
-    raise NOTICE 'TG_RELID::regclass: %', relid;
-    raise NOTICE 'TG_RELNAME: %', TG_relname;
-    raise NOTICE 'TG_TABLE_NAME: %', TG_table_name;
-    raise NOTICE 'TG_TABLE_SCHEMA: %', TG_table_schema;
-    raise NOTICE 'TG_NARGS: %', TG_nargs;
+    RAISE NOTICE 'TG_NAME: %', TG_name;
+    RAISE NOTICE 'TG_WHEN: %', TG_when;
+    RAISE NOTICE 'TG_LEVEL: %', TG_level;
+    RAISE NOTICE 'TG_OP: %', TG_op;
+    RAISE NOTICE 'TG_RELID::regclass: %', relid;
+    RAISE NOTICE 'TG_RELNAME: %', TG_relname;
+    RAISE NOTICE 'TG_TABLE_NAME: %', TG_table_name;
+    RAISE NOTICE 'TG_TABLE_SCHEMA: %', TG_table_schema;
+    RAISE NOTICE 'TG_NARGS: %', TG_nargs;
     argstr := '[';
     FOR i IN 0..TG_nargs - 1 LOOP
         IF i > 0 THEN
@@ -890,12 +890,12 @@ BEGIN
         argstr := argstr || TG_argv[i];
     END LOOP;
     argstr := argstr || ']';
-    raise NOTICE 'TG_ARGV: %', argstr;
+    RAISE NOTICE 'TG_ARGV: %', argstr;
     IF TG_OP != 'INSERT' THEN
-        raise NOTICE 'OLD: %', OLD;
+        RAISE NOTICE 'OLD: %', OLD;
     END IF;
     IF TG_OP != 'DELETE' THEN
-        raise NOTICE 'NEW: %', NEW;
+        RAISE NOTICE 'NEW: %', NEW;
     END IF;
     IF TG_OP = 'DELETE' THEN
         RETURN OLD;
@@ -945,9 +945,9 @@ CREATE FUNCTION mytrigger ()
     AS $$
 BEGIN
     IF ROW (old.*) = ROW (new.*) THEN
-        raise notice 'row % not changed', new.f1;
+        RAISE notice 'row % not changed', new.f1;
     ELSE
-        raise notice 'row % changed', new.f1;
+        RAISE notice 'row % changed', new.f1;
     END IF;
     RETURN new;
 END
@@ -987,9 +987,9 @@ CREATE OR REPLACE FUNCTION mytrigger ()
     AS $$
 BEGIN
     IF ROW (old.*) IS DISTINCT FROM ROW (new.*) THEN
-        raise notice 'row % changed', new.f1;
+        RAISE notice 'row % changed', new.f1;
     ELSE
-        raise notice 'row % not changed', new.f1;
+        RAISE notice 'row % not changed', new.f1;
     END IF;
     RETURN new;
 END
@@ -1134,16 +1134,16 @@ BEGIN
         END IF;
         argstr := argstr || TG_argv[i];
     END LOOP;
-    raise notice '% % % % (%)', TG_RELNAME, TG_WHEN, TG_OP, TG_LEVEL, argstr;
+    RAISE notice '% % % % (%)', TG_RELNAME, TG_WHEN, TG_OP, TG_LEVEL, argstr;
     IF TG_LEVEL = 'ROW' THEN
         IF TG_OP = 'INSERT' THEN
-            raise NOTICE 'NEW: %', NEW;
+            RAISE NOTICE 'NEW: %', NEW;
             INSERT INTO main_table
             VALUES (NEW.a, NEW.b);
             RETURN NEW;
         END IF;
         IF TG_OP = 'UPDATE' THEN
-            raise NOTICE 'OLD: %, NEW: %', OLD, NEW;
+            RAISE NOTICE 'OLD: %, NEW: %', OLD, NEW;
             UPDATE
                 main_table
             SET
@@ -1158,7 +1158,7 @@ BEGIN
             RETURN NEW;
         END IF;
         IF TG_OP = 'DELETE' THEN
-            raise NOTICE 'OLD: %', OLD;
+            RAISE NOTICE 'OLD: %', OLD;
             DELETE FROM main_table
             WHERE a = OLD.a
                 AND b = OLD.b;
@@ -1424,7 +1424,7 @@ BEGIN
         WHERE
             country_name = NEW.country_name;
         IF NOT FOUND THEN
-            raise exception 'No such country: "%"', NEW.country_name;
+            RAISE exception 'No such country: "%"', NEW.country_name;
         END IF;
     ELSE
         NEW.continent := NULL;
@@ -1440,7 +1440,6 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-
 $$;
 
 CREATE TRIGGER city_insert_trig
@@ -1484,7 +1483,7 @@ BEGIN
         WHERE
             country_name = NEW.country_name;
         IF NOT FOUND THEN
-            raise exception 'No such country: "%"', NEW.country_name;
+            RAISE exception 'No such country: "%"', NEW.country_name;
         END IF;
         UPDATE
             city_table
@@ -1509,7 +1508,6 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-
 $$;
 
 CREATE TRIGGER city_update_trig
@@ -1777,10 +1775,10 @@ CREATE FUNCTION depth_a_tf ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice '%: depth = %', tg_name, pg_trigger_depth();
+    RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     INSERT INTO depth_b
     VALUES (new.id);
-    raise notice '%: depth = %', tg_name, pg_trigger_depth();
+    RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     RETURN new;
 END;
 $$;
@@ -1794,14 +1792,14 @@ CREATE FUNCTION depth_b_tf ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice '%: depth = %', tg_name, pg_trigger_depth();
+    RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     BEGIN
         EXECUTE 'insert into depth_c values (' || new.id::text || ')';
-    exception
+        exception
         WHEN sqlstate 'U9999' THEN
-            raise notice 'SQLSTATE = U9999: depth = %', pg_trigger_depth();
-    END;
-    raise notice '%: depth = %', tg_name, pg_trigger_depth();
+            RAISE notice 'SQLSTATE = U9999: depth = %', pg_trigger_depth();
+        END;
+    RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     IF new.id = 1 THEN
         EXECUTE 'insert into depth_c values (' || new.id::text || ')';
     END IF;
@@ -1819,14 +1817,13 @@ CREATE FUNCTION depth_c_tf ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice '%: depth = %', tg_name, pg_trigger_depth();
+    RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     IF new.id = 1 THEN
-        raise exception sqlstate 'U9999';
+        RAISE exception sqlstate 'U9999';
     END IF;
-    raise notice '%: depth = %', tg_name, pg_trigger_depth();
+    RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     RETURN new;
 END;
-
 $$;
 
 CREATE TRIGGER depth_c_tr
@@ -2148,7 +2145,7 @@ CREATE FUNCTION update_stmt_notice ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'updating %', TG_TABLE_NAME;
+    RAISE notice 'updating %', TG_TABLE_NAME;
     RETURN NULL;
 END;
 $$
@@ -2248,14 +2245,14 @@ CREATE FUNCTION upsert_before_func ()
     AS $$
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
-        raise warning 'before update (old): %', old.*::text;
-        raise warning 'before update (new): %', new.*::text;
+        RAISE warning 'before update (old): %', old.*::text;
+        RAISE warning 'before update (new): %', new.*::text;
     elsif (TG_OP = 'INSERT') THEN
-        raise warning 'before insert (new): %', new.*::text;
+        RAISE warning 'before insert (new): %', new.*::text;
         IF new.key % 2 = 0 THEN
             new.key := new.key + 1;
             new.color := new.color || ' trig modified';
-            raise warning 'before insert (new, modified): %', new.*::text;
+            RAISE warning 'before insert (new, modified): %', new.*::text;
         END IF;
     END IF;
     RETURN new;
@@ -2272,10 +2269,10 @@ CREATE FUNCTION upsert_after_func ()
     AS $$
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
-        raise warning 'after update (old): %', old.*::text;
-        raise warning 'after update (new): %', new.*::text;
+        RAISE warning 'after update (old): %', old.*::text;
+        RAISE warning 'after update (new): %', new.*::text;
     elsif (TG_OP = 'INSERT') THEN
-        raise warning 'after insert (new): %', new.*::text;
+        RAISE warning 'after insert (new): %', new.*::text;
     END IF;
     RETURN NULL;
 END;
@@ -2517,7 +2514,7 @@ CREATE OR REPLACE FUNCTION trigger_notice ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'trigger % on % % % for %', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL;
+    RAISE notice 'trigger % on % % % for %', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL;
     IF TG_LEVEL = 'ROW' THEN
         RETURN NEW;
     END IF;
@@ -2705,7 +2702,7 @@ CREATE FUNCTION bark (text)
     IMMUTABLE
     AS $$
 BEGIN
-    raise notice '% <- woof!', $1;
+    RAISE notice '% <- woof!', $1;
     RETURN TRUE;
 END;
 $$;
@@ -2714,7 +2711,7 @@ CREATE OR REPLACE FUNCTION trigger_notice_ab ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'trigger % on % % % for %: (a,b)=(%,%)', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL, NEW.a, NEW.b;
+    RAISE notice 'trigger % on % % % for %: (a,b)=(%,%)', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL, NEW.a, NEW.b;
     IF TG_LEVEL = 'ROW' THEN
         RETURN NEW;
     END IF;
@@ -3089,7 +3086,7 @@ CREATE OR REPLACE FUNCTION dump_insert ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice 'trigger = %, new table = %', TG_NAME, (
+    RAISE notice 'trigger = %, new table = %', TG_NAME, (
         SELECT
             string_agg(new_table::text, ', ' ORDER BY a)
         FROM
@@ -3103,7 +3100,7 @@ CREATE OR REPLACE FUNCTION dump_update ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice 'trigger = %, old table = %, new table = %', TG_NAME, (
+    RAISE notice 'trigger = %, old table = %, new table = %', TG_NAME, (
         SELECT
             string_agg(old_table::text, ', ' ORDER BY a)
         FROM
@@ -3122,7 +3119,7 @@ CREATE OR REPLACE FUNCTION dump_delete ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice 'trigger = %, old table = %', TG_NAME, (
+    RAISE notice 'trigger = %, old table = %', TG_NAME, (
         SELECT
             string_agg(old_table::text, ', ' ORDER BY a)
         FROM

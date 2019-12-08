@@ -1266,7 +1266,7 @@ CREATE OR REPLACE FUNCTION donothingbrtrig_func ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    raise notice 'b: %', new.b;
+    RAISE notice 'b: %', new.b;
     RETURN NULL;
 END
 $$

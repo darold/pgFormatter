@@ -253,7 +253,7 @@ BEGIN
         *
     FROM
         vv LOOP
-            raise notice '%', r;
+            RAISE notice '%', r;
         END LOOP;
 END
 $$

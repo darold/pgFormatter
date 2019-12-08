@@ -10,7 +10,6 @@ BEGIN
         RAISE EXCEPTION 'role % does not exist.', NEW.role;
     END IF;
 END;
-
 $$
 LANGUAGE 'plpgsql';
 

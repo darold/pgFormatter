@@ -961,7 +961,7 @@ CREATE FUNCTION bleat (int)
     RETURNS int
     AS $$
 BEGIN
-    raise notice 'bleat %', $1;
+    RAISE notice 'bleat %', $1;
     RETURN $1;
 END
 $$
@@ -2028,7 +2028,7 @@ DECLARE
 BEGIN
     SELECT
         dfunc (a => -- comment 1) INTO r;
-    raise info 'r = %', r;
+    RAISE info 'r = %', r;
 END;
 $$;
 

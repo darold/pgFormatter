@@ -329,7 +329,6 @@ BEGIN
         RAISE EXCEPTION 'object % of type % cannot be dropped', obj.object_identity, obj.object_type;
     END LOOP;
 END;
-
 $$;
 
 CREATE EVENT TRIGGER undroppable ON sql_drop
@@ -496,15 +495,18 @@ SELECT
     x * 1.001
 FROM
     generate_series(1, 500) AS t (x);
-        ALTER TABLE rewriteme
-            ALTER COLUMN foo TYPE numeric;
-        ALTER TABLE rewriteme
-            ADD COLUMN baz int DEFAULT 0;
-        -- test with more than one reason to rewrite a single table
-        CREATE OR REPLACE FUNCTION test_evtrig_no_rewrite ( )
-            RETURNS event_trigger
-            LANGUAGE plpgsql
-            AS $$
+
+ALTER TABLE rewriteme
+    ALTER COLUMN foo TYPE numeric;
+
+ALTER TABLE rewriteme
+    ADD COLUMN baz int DEFAULT 0;
+
+-- test with more than one reason to rewrite a single table
+CREATE OR REPLACE FUNCTION test_evtrig_no_rewrite ()
+    RETURNS event_trigger
+    LANGUAGE plpgsql
+    AS $$
 BEGIN
     RAISE NOTICE 'Table ''%'' is being rewritten (reason = %)', pg_event_trigger_table_rewrite_oid ()::regclass, pg_event_trigger_table_rewrite_reason ();
 END;
@@ -531,6 +533,7 @@ ALTER TABLE rewriteme
     ALTER COLUMN bar TYPE timestamp;
 -- does rewrite
 ROLLBACK;
+
 -- typed tables are rewritten when their type changes.  Don't emit table
 -- name, because firing order is not stable.
 
@@ -542,36 +545,49 @@ BEGIN
     RAISE NOTICE 'Table is being rewritten (reason = %)', pg_event_trigger_table_rewrite_reason ();
 END;
 $$;
+
 CREATE TYPE rewritetype AS (
     a int
 );
-        CREATE TABLE rewritemetoo1 OF rewritetype;
-        CREATE TABLE rewritemetoo2 OF rewritetype;
-        ALTER TYPE rewritetype
-            ALTER attribute a TYPE text CASCADE;
-        -- but this doesn't work
-        CREATE TABLE rewritemetoo3 (
-            a rewritetype
-        );
-        ALTER TYPE rewritetype
-            ALTER attribute a TYPE varchar CASCADE;
-        DROP TABLE rewriteme;
-        DROP EVENT TRIGGER no_rewrite_allowed;
-        DROP FUNCTION test_evtrig_no_rewrite ();
-        -- test Row Security Event Trigger
-        RESET SESSION AUTHORIZATION;
-        CREATE TABLE event_trigger_test (
-            a integer,
-            b text
-        );
-        CREATE OR REPLACE FUNCTION start_command ( )
-            RETURNS event_trigger
-            AS $$
+
+CREATE TABLE rewritemetoo1 OF rewritetype;
+
+CREATE TABLE rewritemetoo2 OF rewritetype;
+
+ALTER TYPE rewritetype
+    ALTER attribute a TYPE text CASCADE;
+
+-- but this doesn't work
+CREATE TABLE rewritemetoo3 (
+    a rewritetype
+);
+
+ALTER TYPE rewritetype
+    ALTER attribute a TYPE varchar CASCADE;
+
+DROP TABLE rewriteme;
+
+DROP EVENT TRIGGER no_rewrite_allowed;
+
+DROP FUNCTION test_evtrig_no_rewrite ();
+
+-- test Row Security Event Trigger
+RESET SESSION AUTHORIZATION;
+
+CREATE TABLE event_trigger_test (
+    a integer,
+    b text
+);
+
+CREATE OR REPLACE FUNCTION start_command ()
+    RETURNS event_trigger
+    AS $$
 BEGIN
     RAISE NOTICE '% - ddl_command_start', tg_tag;
 END;
 $$
 LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION end_command ()
     RETURNS event_trigger
     AS $$
@@ -580,6 +596,7 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION drop_sql_command ()
     RETURNS event_trigger
     AS $$
@@ -588,19 +605,30 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
 CREATE EVENT TRIGGER start_rls_command ON ddl_command_start
     WHEN TAG IN ('CREATE POLICY', 'ALTER POLICY', 'DROP POLICY')
     EXECUTE PROCEDURE start_command ();
+
 CREATE EVENT TRIGGER end_rls_command ON ddl_command_end
     WHEN TAG IN ('CREATE POLICY', 'ALTER POLICY', 'DROP POLICY')
     EXECUTE PROCEDURE end_command ();
+
 CREATE EVENT TRIGGER sql_drop_command ON sql_drop
     WHEN TAG IN ('DROP POLICY')
     EXECUTE PROCEDURE drop_sql_command ();
+
 CREATE POLICY p1 ON event_trigger_test USING (FALSE);
+
 ALTER POLICY p1 ON event_trigger_test USING (TRUE);
+
 ALTER POLICY p1 ON event_trigger_test RENAME TO p2;
+
 DROP POLICY p2 ON event_trigger_test;
+
 DROP EVENT TRIGGER start_rls_command;
+
 DROP EVENT TRIGGER end_rls_command;
+
 DROP EVENT TRIGGER sql_drop_command;
+

@@ -630,7 +630,7 @@ CREATE FUNCTION test_trigger ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    raise notice 'old tuple: %', to_json(OLD)::text;
+    RAISE notice 'old tuple: %', to_json(OLD)::text;
     IF TG_OP = 'DELETE' THEN
         RETURN OLD;
     ELSE

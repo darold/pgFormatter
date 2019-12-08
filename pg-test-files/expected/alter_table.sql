@@ -3825,8 +3825,8 @@ CREATE conversion alter1.ascii_to_utf8 FOR 'sql_ascii' TO 'utf8' FROM ascii_to_u
 CREATE text search parser alter1.prs (
     START = prsd_start,
     gettoken = prsd_nexttoken,
-END = prsd_end,
-lextypes = prsd_lextype
+    END = prsd_end,
+    lextypes = prsd_lextype
 );
 
 CREATE text search configuration alter1.cfg (

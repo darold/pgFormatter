@@ -1426,7 +1426,7 @@ BEGIN
         *
     FROM
         inserted LOOP
-            raise notice 'a = %, b = %, c = %', r.a, r.b, r.c;
+            RAISE notice 'a = %, b = %, c = %', r.a, r.b, r.c;
         END LOOP;
     RETURN new;
 END;
