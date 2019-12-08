@@ -3704,7 +3704,11 @@ sub _dump_var
 	foreach my $v (sort keys %{$self})
 	{
 		next if ($v !~ /^_/);
-		print STDERR "$v => $self->{$v}\n";
+ 		if ($self->{$v} =~ /ARRAY/) {
+			print STDERR "$v => (", join(',', @{$self->{$v}}), ")\n";
+		} else {
+			print STDERR "$v => $self->{$v}\n";
+		}
 	}
 }
 
