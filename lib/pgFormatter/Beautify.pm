@@ -2253,6 +2253,10 @@ sub beautify
                  if (defined $last and uc($last) eq 'AS' and uc($token) eq 'WITH') {
 			$self->_new_line($token,$last);
 		 }
+ 		 if (uc($token) eq 'INSERT' and defined $last and $last eq ';')
+ 		 {
+		     $self->_set_level($self->{ '_level_stack' }[-1], $token, $last);
+		 }
                  $self->_add_token( $token, $last );
                  if (defined $last && uc($last) eq 'LANGUAGE' && (!defined $self->_next_token || $self->_next_token ne ';'))
                  {
