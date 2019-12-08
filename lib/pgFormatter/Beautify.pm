@@ -535,6 +535,8 @@ sub _set_level
 {
     my ($self, $position, $token, $last_token) = @_;
 
+    return 0 if (not defined $position);
+
     if ($DEBUG)
     {
         my ($package, $filename, $line) = caller;
@@ -858,7 +860,7 @@ sub beautify
                 if ($k_stmt !~ /^UPDATE|DELETE$/i || !$self->{ '_is_in_create' }) {
                     if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i and !$self->{ '_is_in_trigger' } and !$self->{ '_is_in_operator' } and !$self->{ '_is_in_alter' })
 		    {
-			if ($k_stmt ne 'COMMENT' or $self->_next_token !~ /^ON|IS$/i)
+			if ($k_stmt ne 'COMMENT' or $self->_next_token =~ /^ON|IS$/i)
 			{
                             $self->{ '_current_sql_stmt' } = $k_stmt;
 		        }
