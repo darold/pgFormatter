@@ -16,3 +16,21 @@ WITH RECURSIVE t(nombre) AS (
 )
 SELECT nombre FROM t;
 
+CREATE FUNCTION tg_phone_bu ()
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    IF new.slotname != old.slotname THEN
+        DELETE FROM PHone
+        WHERE slotname = old.slotname;
+        INSERT INTO PHone (slotname, comment,
+            slotlink)
+    VALUES (new.slotname,
+        new.comment,
+        new.slotlink);
+        RETURN NULL;
+    END IF;
+    RETURN new;
+END;
+$$
+LANGUAGE plpgsql;

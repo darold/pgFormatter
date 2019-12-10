@@ -659,12 +659,8 @@ BEGIN
     IF new.slotname != old.slotname THEN
         DELETE FROM PLine
         WHERE slotname = old.slotname;
-        INSERT INTO PLine (slotname, phonenumber, comment,
-            backlink)
-    VALUES (new.slotname,
-        new.phonenumber,
-        new.comment,
-        new.backlink);
+        INSERT INTO PLine (slotname, phonenumber, comment, backlink)
+        VALUES (new.slotname, new.phonenumber, new.comment, new.backlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -738,11 +734,8 @@ BEGIN
     IF new.slotname != old.slotname THEN
         DELETE FROM PHone
         WHERE slotname = old.slotname;
-        INSERT INTO PHone (slotname, comment,
-            slotlink)
-    VALUES (new.slotname,
-        new.comment,
-        new.slotlink);
+        INSERT INTO PHone (slotname, comment, slotlink)
+        VALUES (new.slotname, new.comment, new.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;

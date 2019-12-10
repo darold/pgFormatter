@@ -1718,8 +1718,9 @@ sub beautify
             if ($token =~ /^VALUES$/i and !$self->{ '_is_in_rule' } and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
 	    {
 		$self->_over($token,$last);
-		if ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '(') {
-	            $self->{ '_insert_values' } = 1;
+		if ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '(')
+		{
+		    $self->{ '_insert_values' } = 1;
 		    $self->_push_level($self->{ '_level' }, $token, $last);
 	        }
 	    }
