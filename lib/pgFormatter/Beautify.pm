@@ -1484,6 +1484,7 @@ sub beautify
             $self->_add_token( $token );
 	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
 	    $add_newline = 0 if ($self->{ '_is_in_function' });
+	    $add_newline = 0 if (defined $self->_next_token and $self->_is_comment($self->_next_token));
 
 	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and $self->{ '_current_sql_stmt' } ne 'INSERT');
         }
@@ -2624,7 +2625,7 @@ sub _is_comment
 {
     my ( $self, $token ) = @_;
 
-    return 1 if ( $token =~ m#^((?:--)[\ \t\S]*|/\*[\ \t\r\n\S]*?\*/)$#s );
+    return 1 if ( $token =~ m#^\s*((?:--)[\ \t\S]*|/\*[\ \t\r\n\S]*?\*/)$#s );
 
     return 0;
 }
