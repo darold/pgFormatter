@@ -1594,7 +1594,7 @@ sub beautify
 	{
             if ($self->_next_token =~ /^(UPDATE|KEY|NO|VALUES)$/i)
 	    {
-                $self->_back($token, $last);
+                $self->_back($token, $last) if ($#{$self->{ '_level_stack' }} == -1 or  $self->{ '_level' } > $self->{ '_level_stack' }[-1]);
                 $self->_new_line($token,$last);
             }
 	    elsif ($self->_next_token =~ /^EACH$/ and $self->{ '_is_in_trigger' })
