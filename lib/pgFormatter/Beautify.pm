@@ -653,6 +653,7 @@ sub beautify
     $self->{ '_parenthesis_level_value' } = 0;
     $self->{ '_parenthesis_with_level' } = 0;
     $self->{ '_is_in_returns_table' } = 0;
+    $self->{ '_has_limit' }  = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -1546,6 +1547,7 @@ sub beautify
             $self->{ '_parenthesis_level_value' } = 0;
 	    $self->{ '_parenthesis_with_level' } = 0;
             $self->{ '_is_in_returns_table' } = 0;
+	    $self->{ '_has_limit' } = 0;
 
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -1594,8 +1596,9 @@ sub beautify
 	{
             if ($self->_next_token =~ /^(UPDATE|KEY|NO|VALUES)$/i)
 	    {
-                $self->_back($token, $last) if ($#{$self->{ '_level_stack' }} == -1 or  $self->{ '_level' } > $self->{ '_level_stack' }[-1]);
+		$self->_back($token, $last) if (!$self->{ '_has_limit' } and ($#{$self->{ '_level_stack' }} == -1 or  $self->{ '_level' } > $self->{ '_level_stack' }[-1]));
                 $self->_new_line($token,$last);
+		$self->{ '_has_limit' } = 0;
             }
 	    elsif ($self->_next_token =~ /^EACH$/ and $self->{ '_is_in_trigger' })
 	    {
@@ -1841,6 +1844,7 @@ sub beautify
 		$self->{ '_has_over_in_join' } = 0;
             }
             $self->{ '_is_in_join' } = 0;
+	    $self->{ '_has_limit' } = 1 if (uc($token) eq 'LIMIT');
             if ($token !~ /^EXCEPTION$/i) {
                 $self->_back($token, $last);
             } else {
