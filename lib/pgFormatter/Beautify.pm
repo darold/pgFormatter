@@ -2123,7 +2123,7 @@ sub beautify
                 $self->_new_line($token,$last);
                 $self->_add_token( $token );
                 $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
-                $self->_new_line($token,$last);
+                $self->_new_line($token,$last) if (!$self->_is_comment($token) or !defined $self->_next_token or $self->_next_token ne ')');
                 $self->{ 'break' } = " " unless ( $self->{ 'spaces' } != 0 );
             }
         }
