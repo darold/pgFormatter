@@ -113,6 +113,11 @@ For example, to install everything just like Debian does, proceed as follow:
 
 By default INSTALLDIRS is set to site.
 
+Regression tests can be executed with the following command:
+
+	make test
+
+
 =head1 SPECIAL FORMATTING
 
 =head2 Option -W, --wrap-after

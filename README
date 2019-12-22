@@ -111,6 +111,10 @@ INSTALLATION
 
     By default INSTALLDIRS is set to site.
 
+    Regression tests can be executed with the following command:
+
+            make test
+
 SPECIAL FORMATTING
   Option -W, --wrap-after
     This option can be used to set number of column after which lists must

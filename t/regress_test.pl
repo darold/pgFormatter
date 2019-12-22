@@ -1,4 +1,4 @@
-my @files = `find samples/ -maxdepth 1 -name '*.sql' | sort`;
+my @files = `find t/test-files/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
 my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to 'pg_format' to test installed binary in /usr/bin
 my $exit = 0;
@@ -15,7 +15,7 @@ foreach my $f (@files)
 	$opt = "-T -n " if ($f =~ m#/ex51.sql$#);
 	my $cmd = "./pg_format $opt -u 2 $f >/tmp/output.sql";
 	`$cmd`;
-	$f =~ s/\//\/expected\//;
+	$f =~ s/test-files\//test-files\/expected\//;
 	if (lc($ARGV[0]) eq 'update') {
 		`cp -f /tmp/output.sql $f`;
 	} else { 
@@ -31,7 +31,7 @@ foreach my $f (@files)
 	unlink("/tmp/output.sql");
 }
 
-@files = `find pg-test-files/sql/ -maxdepth 1 -name '*.sql' | sort`;
+@files = `find t/pg-test-files/sql/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
 
 foreach my $f (@files)
