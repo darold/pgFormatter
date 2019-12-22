@@ -351,7 +351,7 @@ BEGIN
             EXECUTE format('DROP TABLE IF EXISTS audit_tbls.%I', format('%s_%s', obj.schema_name, obj.object_name));
         END IF;
         INSERT INTO dropped_objects (TYPE, SCHEMA, object)
-        VALUES (obj.object_type, obj.schema_name, obj.object_identity);
+            VALUES (obj.object_type, obj.schema_name, obj.object_identity);
     END LOOP;
 END
 $$;

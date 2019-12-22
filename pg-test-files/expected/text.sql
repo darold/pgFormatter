@@ -114,15 +114,15 @@ SELECT
  select format(' Hello % x ', 20);
  -- check literal and sql identifiers
  select format(' INSERT INTO % I
-        VALUES (% L, % L) ', ' mytab ', 10, ' Hello ');
+            VALUES (% L, % L) ', ' mytab ', 10, ' Hello ');
  select format(' % s % s % s ',' Hello ', NULL,' World ');
  select format(' INSERT INTO % I
-        VALUES (% L, % L) ', ' mytab ', 10, NULL);
+                VALUES (% L, % L) ', ' mytab ', 10, NULL);
  select format(' INSERT INTO % I
-        VALUES (% L, % L) ', ' mytab ', NULL, ' Hello ');
+                    VALUES (% L, % L) ', ' mytab ', NULL, ' Hello ');
  -- should fail, sql identifier cannot be NULL
  select format(' INSERT INTO % I
-        VALUES (% L, % L) ', NULL, 10, ' Hello ');
+                        VALUES (% L, % L) ', NULL, 10, ' Hello ');
  -- check positional placeholders
  select format(' % 1$s % 3$s ', 1, 2, 3);
  select format(' % 1$s % 12$s ', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);

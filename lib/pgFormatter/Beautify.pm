@@ -1708,7 +1708,7 @@ sub beautify
 	    {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
-                    $self->_back($token, $last);
+		    $self->_back($token, $last) if (uc($token) ne 'VALUES' or $self->{ '_current_sql_stmt' } ne 'INSERT');
 		    $self->_new_line($token,$last) if (!$self->{ '_is_in_rule' } and ($last !~ /^DEFAULT$/i or $self->_next_token() ne ';'));
                 }
             }
@@ -1845,7 +1845,7 @@ sub beautify
             }
             $self->{ '_is_in_join' } = 0;
 	    $self->{ '_has_limit' } = 1 if (uc($token) eq 'LIMIT');
-            if ($token !~ /^EXCEPTION$/i) {
+            if ($token !~ /^EXCEPTION/i) {
                 $self->_back($token, $last);
             } else {
                 $self->_set_level($self->_pop_level($token, $last), $token, $last);
@@ -1908,7 +1908,7 @@ sub beautify
 		$self->_set_level($self->{ '_level_stack' }[-1], $token, $last);
 		$self->{ '_is_in_exception' } = 0;
 	    }
-            $self->_new_line($token,$last) if (not defined $last or uc($last) ne 'CASE');
+            $self->_new_line($token,$last) if (not defined $last or $last !~ /^CASE|,|\($/i );
             $self->_add_token( $token );
             if (!$self->{ '_is_in_case' } && !$self->{ '_is_in_trigger' }) {
                 $self->_over($token,$last);
@@ -2263,7 +2263,11 @@ sub beautify
 		 }
  		 if (uc($token) eq 'INSERT' and defined $last and $last eq ';')
  		 {
-		     $self->_set_level($self->{ '_level_stack' }[-1], $token, $last);
+		     if ($#{ $self->{ '_level_stack' } } >= 0) {
+		         $self->_set_level($self->{ '_level_stack' }[-1], $token, $last);
+		     } else {
+			 $self->_back($token,$last);
+		     }
 		 }
                  $self->_add_token( $token, $last );
                  if (defined $last && uc($last) eq 'LANGUAGE' && (!defined $self->_next_token || $self->_next_token ne ';'))
@@ -2409,13 +2413,13 @@ sub _add_token
     }
     else
     {
-
         # lowercase/uppercase known functions or words followed by an open parenthesis
         # if the token is not a keyword, an open parenthesis or a comment
         my $fct = $self->_is_function( $token ) || '';
         if (($fct && $next_token eq '(')
 		    || (!$self->_is_keyword( $token, $next_token, $last_token ) && !$next_token eq '('
-			    && $token ne '(' && !$self->_is_comment( $token )) ) {
+			    && $token ne '(' && !$self->_is_comment( $token )) )
+	{
             $token =~ s/$fct/\L$fct\E/i if ( $self->{ 'uc_functions' } == 1 );
             $token =~ s/$fct/\U$fct\E/i if ( $self->{ 'uc_functions' } == 2 );
             $fct = ucfirst( lc( $fct ) );
@@ -2582,7 +2586,7 @@ sub _is_keyword
 
     if (defined $last_token)
     {
-        return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' })and $last_token =~ /^OF|FROM$/i);
+        return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' }) and $last_token =~ /^OF|FROM$/i);
         return 0 if ($token =~ /^CONSTRAINT|INDEX|TRUE|FALSE$/i and uc($last_token) eq 'AS');
     }
 

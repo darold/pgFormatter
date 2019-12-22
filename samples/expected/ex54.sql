@@ -63,15 +63,15 @@ CREATE OR REPLACE PROCEDURE foo ()
 DECLARE
 BEGIN
     INSERT INTO bar (COLUMN)
-    VALUES (1);
+        VALUES (1);
     COMMIT;
     BEGIN
         INSERT INTO bar (COLUMN)
-        VALUES (2);
+            VALUES (2);
         COMMIT;
         BEGIN
             INSERT INTO bar (COLUMN)
-            VALUES (3);
+                VALUES (3);
             COMMIT;
         END;
     END;
@@ -295,8 +295,8 @@ CREATE PROCEDURE insert_data (a integer, b integer)
 LANGUAGE SQL
 AS $$
     INSERT INTO tbl
-    VALUES (a);
+        VALUES (a);
     INSERT INTO tbl
-    VALUES (b);
+        VALUES (b);
 $$;
 

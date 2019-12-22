@@ -2892,24 +2892,24 @@ FROM
 --ok
 WITH cte1 AS (
 INSERT INTO t1
-    VALUES (21, 'Fail')
-RETURNING
-    *)
-SELECT
-    *
-FROM
-    cte1;
+        VALUES (21, 'Fail')
+    RETURNING
+        *)
+    SELECT
+        *
+    FROM
+        cte1;
 
 --fail
 WITH cte1 AS (
 INSERT INTO t1
-    VALUES (20, 'Success')
-RETURNING
-    *)
-SELECT
-    *
-FROM
-    cte1;
+        VALUES (20, 'Success')
+    RETURNING
+        *)
+    SELECT
+        *
+    FROM
+        cte1;
 
 --ok
 --

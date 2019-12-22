@@ -421,7 +421,7 @@ CREATE FUNCTION voidtest3 (a int)
     LANGUAGE SQL
     AS $$
     INSERT INTO sometable
-    VALUES (a + 1)
+        VALUES (a + 1)
 $$;
 
 SELECT
@@ -432,9 +432,9 @@ CREATE FUNCTION voidtest4 (a int)
     LANGUAGE SQL
     AS $$
     INSERT INTO sometable
-    VALUES (a - 1)
-RETURNING
-    f1
+        VALUES (a - 1)
+    RETURNING
+        f1
 $$;
 
 SELECT

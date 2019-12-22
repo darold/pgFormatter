@@ -279,6 +279,6 @@ DECLARE
     CREATE VIEW foo AS
     SELECT
         1 INTO b;
-        INSERT INTO b
-        SELECT
-            1 INTO f;
+    INSERT INTO b
+    SELECT
+        1 INTO f;

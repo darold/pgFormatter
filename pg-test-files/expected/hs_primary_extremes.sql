@@ -19,7 +19,7 @@ BEGIN
         RETURN;
     END IF;
     INSERT INTO hs_extreme
-    VALUES (n);
+        VALUES (n);
     PERFORM
         hs_subxids (n - 1);
     RETURN;

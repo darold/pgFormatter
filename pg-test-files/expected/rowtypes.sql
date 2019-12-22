@@ -910,7 +910,7 @@ CREATE FUNCTION fcompos1 (v compos)
     RETURNS void
     AS $$
     INSERT INTO compos
-    VALUES (v);
+        VALUES (v);
 
 -- fail
 $$
@@ -920,7 +920,7 @@ CREATE FUNCTION fcompos1 (v compos)
     RETURNS void
     AS $$
     INSERT INTO compos
-    VALUES (v.*);
+        VALUES (v.*);
 
 $$
 LANGUAGE sql;

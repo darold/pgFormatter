@@ -335,7 +335,7 @@ DECLARE
 BEGIN
     EXECUTE 'select count(*) from ' || quote_ident(tg_table_name) INTO c;
     INSERT INTO trunc_trigger_log
-    VALUES (TG_OP, TG_LEVEL, TG_WHEN, TG_ARGV[0], tg_table_name, c);
+        VALUES (TG_OP, TG_LEVEL, TG_WHEN, TG_ARGV[0], tg_table_name, c);
     RETURN NULL;
 END;
 $$
@@ -527,9 +527,9 @@ CREATE FUNCTION tp_ins_data ()
     AS $$
 BEGIN
     INSERT INTO truncprim
-    VALUES (1), (100), (150);
+        VALUES (1), (100), (150);
     INSERT INTO truncpart
-    VALUES (1), (100), (150);
+        VALUES (1), (100), (150);
 END
 $$;
 

@@ -1139,7 +1139,7 @@ BEGIN
         IF TG_OP = 'INSERT' THEN
             RAISE NOTICE 'NEW: %', NEW;
             INSERT INTO main_table
-            VALUES (NEW.a, NEW.b);
+                VALUES (NEW.a, NEW.b);
             RETURN NEW;
         END IF;
         IF TG_OP = 'UPDATE' THEN
@@ -1431,12 +1431,12 @@ BEGIN
     END IF;
     IF NEW.city_id IS NOT NULL THEN
         INSERT INTO city_table
-        VALUES (NEW.city_id, NEW.city_name, NEW.population, ctry_id);
+            VALUES (NEW.city_id, NEW.city_name, NEW.population, ctry_id);
     ELSE
         INSERT INTO city_table (city_name, population, country_id)
-        VALUES (NEW.city_name, NEW.population, ctry_id)
-    RETURNING
-        city_id INTO NEW.city_id;
+            VALUES (NEW.city_name, NEW.population, ctry_id)
+        RETURNING
+            city_id INTO NEW.city_id;
     END IF;
     RETURN NEW;
 END;
@@ -1777,7 +1777,7 @@ CREATE FUNCTION depth_a_tf ()
 BEGIN
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     INSERT INTO depth_b
-    VALUES (new.id);
+        VALUES (new.id);
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     RETURN new;
 END;
@@ -2615,17 +2615,17 @@ WITH ins (
     a
 ) AS (
 INSERT INTO parted2_stmt_trig
-    VALUES (1), (2)
-RETURNING
-    a)
-INSERT INTO parted_stmt_trig
-SELECT
-    a
-FROM
-    ins
-RETURNING
-    tableoid::regclass,
-    a;
+        VALUES (1), (2)
+    RETURNING
+        a)
+    INSERT INTO parted_stmt_trig
+    SELECT
+        a
+    FROM
+        ins
+    RETURNING
+        tableoid::regclass,
+        a;
 
 WITH upd AS (
     UPDATE
@@ -3567,15 +3567,15 @@ CREATE TRIGGER table2_trig
 
 WITH wcte AS (
 INSERT INTO table1
-    VALUES (42))
-INSERT INTO table2
-    VALUES ('hello world');
+        VALUES (42))
+    INSERT INTO table2
+        VALUES ('hello world');
 
 WITH wcte AS (
 INSERT INTO table1
-    VALUES (43))
-INSERT INTO table1
-    VALUES (44);
+        VALUES (43))
+    INSERT INTO table1
+        VALUES (44);
 
 SELECT
     *

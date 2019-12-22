@@ -21,7 +21,7 @@ CREATE PROCEDURE ptest1 (x text)
 LANGUAGE SQL
 AS $$
     INSERT INTO cp_test
-    VALUES (1, x);
+        VALUES (1, x);
 $$;
 
 \df ptest1
@@ -103,9 +103,9 @@ CREATE OR REPLACE PROCEDURE ptest5 (a int, b text, c int DEFAULT 100)
 LANGUAGE SQL
 AS $$
     INSERT INTO cp_test
-    VALUES (a, b);
+        VALUES (a, b);
     INSERT INTO cp_test
-    VALUES (c, b);
+        VALUES (c, b);
 $$;
 
 TRUNCATE cp_test;
@@ -155,7 +155,7 @@ LANGUAGE SQL
 WINDOW
 AS $$
     INSERT INTO cp_test
-    VALUES (1, 'a')
+        VALUES (1, 'a')
 $$;
 
 CREATE PROCEDURE ptestx ()
@@ -163,14 +163,14 @@ LANGUAGE SQL
 STRICT
 AS $$
     INSERT INTO cp_test
-    VALUES (1, 'a')
+        VALUES (1, 'a')
 $$;
 
 CREATE PROCEDURE ptestx (OUT a int)
 LANGUAGE SQL
 AS $$
     INSERT INTO cp_test
-    VALUES (1, 'a')
+        VALUES (1, 'a')
 $$;
 
 ALTER PROCEDURE ptest1 (text) STRICT;

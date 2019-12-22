@@ -397,7 +397,7 @@ BEGIN
     END IF;
     FOR i IN oldnslots + 1..newnslots LOOP
         INSERT INTO HSlot (slotname, hubname, slotno, slotlink)
-        VALUES ('HS.dummy', hname, i, '');
+            VALUES ('HS.dummy', hname, i, '');
     END LOOP;
     RETURN 0;
 END
@@ -610,7 +610,7 @@ BEGIN
         DELETE FROM PSlot
         WHERE slotname = old.slotname;
         INSERT INTO PSlot (slotname, pfname, slotlink, backlink)
-        VALUES (new.slotname, new.pfname, new.slotlink, new.backlink);
+            VALUES (new.slotname, new.pfname, new.slotlink, new.backlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -635,7 +635,7 @@ BEGIN
         DELETE FROM WSlot
         WHERE slotname = old.slotname;
         INSERT INTO WSlot (slotname, roomno, slotlink, backlink)
-        VALUES (new.slotname, new.roomno, new.slotlink, new.backlink);
+            VALUES (new.slotname, new.roomno, new.slotlink, new.backlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -660,7 +660,7 @@ BEGIN
         DELETE FROM PLine
         WHERE slotname = old.slotname;
         INSERT INTO PLine (slotname, phonenumber, comment, backlink)
-        VALUES (new.slotname, new.phonenumber, new.comment, new.backlink);
+            VALUES (new.slotname, new.phonenumber, new.comment, new.backlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -685,7 +685,7 @@ BEGIN
         DELETE FROM IFace
         WHERE slotname = old.slotname;
         INSERT INTO IFace (slotname, sysname, ifname, slotlink)
-        VALUES (new.slotname, new.sysname, new.ifname, new.slotlink);
+            VALUES (new.slotname, new.sysname, new.ifname, new.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -710,7 +710,7 @@ BEGIN
         DELETE FROM HSlot
         WHERE slotname = old.slotname;
         INSERT INTO HSlot (slotname, hubname, slotno, slotlink)
-        VALUES (new.slotname, new.hubname, new.slotno, new.slotlink);
+            VALUES (new.slotname, new.hubname, new.slotno, new.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -735,7 +735,7 @@ BEGIN
         DELETE FROM PHone
         WHERE slotname = old.slotname;
         INSERT INTO PHone (slotname, comment, slotlink)
-        VALUES (new.slotname, new.comment, new.slotlink);
+            VALUES (new.slotname, new.comment, new.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -2330,10 +2330,10 @@ CREATE FUNCTION test_found ()
 DECLARE
 BEGIN
     INSERT INTO found_test_tbl
-    VALUES (1);
+        VALUES (1);
     IF FOUND THEN
         INSERT INTO found_test_tbl
-        VALUES (2);
+            VALUES (2);
     END IF;
     UPDATE
         found_test_tbl
@@ -2343,21 +2343,21 @@ BEGIN
         a = 1;
     IF FOUND THEN
         INSERT INTO found_test_tbl
-        VALUES (3);
+            VALUES (3);
     END IF;
     DELETE FROM found_test_tbl
     WHERE a = 9999;
     -- matches no rows
     IF NOT FOUND THEN
         INSERT INTO found_test_tbl
-        VALUES (4);
+            VALUES (4);
     END IF;
     FOR i IN 1..10 LOOP
         -- no need to do anything
     END LOOP;
     IF FOUND THEN
         INSERT INTO found_test_tbl
-        VALUES (5);
+            VALUES (5);
     END IF;
     -- never executes the loop
     FOR i IN 2..1 LOOP
@@ -2365,7 +2365,7 @@ BEGIN
     END LOOP;
     IF NOT FOUND THEN
         INSERT INTO found_test_tbl
-        VALUES (6);
+            VALUES (6);
     END IF;
     RETURN TRUE;
 END;
@@ -2675,7 +2675,7 @@ CREATE FUNCTION perform_simple_func (int)
 BEGIN
     IF $1 < 20 THEN
         INSERT INTO perform_test
-        VALUES ($1, $1 + 10);
+            VALUES ($1, $1 + 10);
         RETURN TRUE;
     ELSE
         RETURN FALSE;
@@ -2690,19 +2690,19 @@ CREATE FUNCTION perform_test_func ()
 BEGIN
     IF FOUND THEN
         INSERT INTO perform_test
-        VALUES (100, 100);
+            VALUES (100, 100);
     END IF;
     PERFORM
         perform_simple_func (5);
     IF FOUND THEN
         INSERT INTO perform_test
-        VALUES (100, 100);
+            VALUES (100, 100);
     END IF;
     PERFORM
         perform_simple_func (50);
     IF FOUND THEN
         INSERT INTO perform_test
-        VALUES (100, 100);
+            VALUES (100, 100);
     END IF;
     RETURN;
 END;
@@ -2770,7 +2770,7 @@ BEGIN
         -- error code for existing user
     END IF;
     INSERT INTO users (LOGIN)
-    VALUES (a_login);
+        VALUES (a_login);
     my_id_user = sp_id_user (a_login);
     IF my_id_user = 0 THEN
         RETURN - 2;
@@ -3542,9 +3542,9 @@ DECLARE
 BEGIN
     -- should work
     INSERT INTO foo
-    VALUES (5, 6)
-RETURNING
-    * INTO x;
+        VALUES (5, 6)
+    RETURNING
+        * INTO x;
     RAISE notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3561,9 +3561,9 @@ DECLARE
 BEGIN
     -- should fail due to implicit strict
     INSERT INTO foo
-    VALUES (7, 8), (9, 10)
-RETURNING
-    * INTO x;
+        VALUES (7, 8), (9, 10)
+    RETURNING
+        * INTO x;
     RAISE notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -6423,9 +6423,9 @@ END;
         AFTER INSERT ON transition_table_base REFERENCING NEW TABLE AS newtable
         FOR EACH STATEMENT
         EXECUTE PROCEDURE transition_table_base_ins_func ( );
-        INSERT INTO transition_table_base
+    INSERT INTO transition_table_base
         VALUES (1, 'One'), (2, 'Two');
-        INSERT INTO transition_table_base
+    INSERT INTO transition_table_base
         VALUES (3, 'Three'), (4, 'Four');
     CREATE OR REPLACE FUNCTION transition_table_base_upd_func ( )
         RETURNS TRIGGER
@@ -6565,31 +6565,31 @@ END;
     SELECT
         generate_series(1, 200);
     ANALYZE transition_table_level1;
-    INSERT INTO transition_table_level2 (level2_no, parent_no)
-    SELECT
-        level2_no,
-        level2_no / 50 + 1 AS parent_no
-    FROM
-        generate_series(1, 9999) level2_no;
+INSERT INTO transition_table_level2 (level2_no, parent_no)
+SELECT
+    level2_no,
+    level2_no / 50 + 1 AS parent_no
+FROM
+    generate_series(1, 9999) level2_no;
     ANALYZE transition_table_level2;
-    INSERT INTO transition_table_status (level, node_no, status)
-    SELECT
-        1,
-        level1_no,
-        0
-    FROM
-        transition_table_level1;
-        INSERT INTO transition_table_status (level, node_no, status)
-        SELECT
-            2,
-            level2_no,
-            0
-        FROM
-            transition_table_level2;
+INSERT INTO transition_table_status (level, node_no, status)
+SELECT
+    1,
+    level1_no,
+    0
+FROM
+    transition_table_level1;
+INSERT INTO transition_table_status (level, node_no, status)
+SELECT
+    2,
+    level2_no,
+    0
+FROM
+    transition_table_level2;
     ANALYZE transition_table_status;
-    INSERT INTO transition_table_level1 (level1_no)
-    SELECT
-        generate_series(201, 1000);
+INSERT INTO transition_table_level1 (level1_no)
+SELECT
+    generate_series(201, 1000);
     ANALYZE transition_table_level1;
     -- behave reasonably if someone tries to modify a transition table
     CREATE FUNCTION transition_table_level2_bad_usage_func ( )
@@ -6598,7 +6598,7 @@ END;
         AS $$
         BEGIN
             INSERT INTO dx
-            VALUES (1000000, 1000000, 'x');
+                VALUES (1000000, 1000000, 'x');
             RETURN NULL;
         END;
     $$;
@@ -6618,7 +6618,7 @@ END;
         level1_no = - 1
     WHERE
         level1_no = 30;
-        INSERT INTO transition_table_level2 (level2_no, parent_no)
+    INSERT INTO transition_table_level2 (level2_no, parent_no)
         VALUES (10000, 10000);
     UPDATE
         transition_table_level2
@@ -6679,7 +6679,7 @@ END;
         AFTER UPDATE ON alter_table_under_transition_tables REFERENCING OLD TABLE AS d NEW TABLE AS i
         FOR EACH STATEMENT
         EXECUTE PROCEDURE alter_table_under_transition_tables_upd_func ( );
-        INSERT INTO alter_table_under_transition_tables
+    INSERT INTO alter_table_under_transition_tables
         VALUES (1, '1'), (2, '2'), (3, '3');
     UPDATE
         alter_table_under_transition_tables
@@ -6706,7 +6706,7 @@ END;
     CREATE TABLE multi_test (
         i int
     );
-    INSERT INTO multi_test
+INSERT INTO multi_test
     VALUES (1);
     CREATE OR REPLACE FUNCTION multi_test_trig ( )
         RETURNS TRIGGER
@@ -6757,7 +6757,7 @@ FOR VALUES IN (1 );
 FOR VALUES IN (2 );
 INSERT INTO partitioned_table
     VALUES (1, 'Row 1');
-    INSERT INTO partitioned_table
+INSERT INTO partitioned_table
     VALUES (2, 'Row 2');
     CREATE OR REPLACE FUNCTION get_from_partitioned_table (partitioned_table.a % TYPE )
         RETURNS partitioned_table AS $$

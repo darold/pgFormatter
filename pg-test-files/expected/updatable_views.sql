@@ -962,7 +962,7 @@ CREATE FUNCTION rw_view1_trig_fn ()
 BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO base_tbl
-        VALUES (NEW.a, NEW.b);
+            VALUES (NEW.a, NEW.b);
         RETURN NEW;
     ELSIF TG_OP = 'UPDATE' THEN
         UPDATE
@@ -2679,7 +2679,7 @@ CREATE FUNCTION rw_view1_trig_fn ()
 BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO base_tbl
-        VALUES (NEW.a, 10);
+            VALUES (NEW.a, 10);
         RETURN NEW;
     ELSIF TG_OP = 'UPDATE' THEN
         UPDATE
@@ -4205,7 +4205,7 @@ CREATE FUNCTION base_tab_def_view_instrig_func ()
     AS $$
 BEGIN
     INSERT INTO base_tab_def
-    VALUES (new.a, new.b, new.c, new.d, new.e);
+        VALUES (new.a, new.b, new.c, new.d, new.e);
     RETURN new;
 END;
 $$

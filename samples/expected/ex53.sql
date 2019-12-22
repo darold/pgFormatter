@@ -188,7 +188,7 @@ BEGIN
     END IF;
     FOR i IN oldnslots + 1..newnslots LOOP
         INSERT INTO HSlot (slotname, hubname, slotno, slotlink)
-        VALUES ('HS.dummy', hname, i, '');
+            VALUES ('HS.dummy', hname, i, '');
     END LOOP;
     RETURN 0;
 END

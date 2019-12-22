@@ -1888,13 +1888,13 @@ FROM
 
 WITH t AS (
 INSERT INTO y
-    VALUES (11), (12), (13), (14), (15), (16), (17), (18), (19), (20)
-RETURNING
-    *)
-SELECT
-    *
-FROM
-    t;
+        VALUES (11), (12), (13), (14), (15), (16), (17), (18), (19), (20)
+    RETURNING
+        *)
+    SELECT
+        *
+    FROM
+        t;
 
 SELECT
     *
@@ -2164,18 +2164,18 @@ INSERT INTO withz
 -- Test EXCLUDED.* reference within CTE
 WITH aa AS (
 INSERT INTO withz
-    VALUES (1, 5)
-ON CONFLICT (k)
-    DO UPDATE SET
-        v = EXCLUDED.v
-    WHERE
-        withz.k != EXCLUDED.k
-    RETURNING
-        *)
-    SELECT
-        *
-    FROM
-        aa;
+        VALUES (1, 5)
+    ON CONFLICT (k)
+        DO UPDATE SET
+            v = EXCLUDED.v
+        WHERE
+            withz.k != EXCLUDED.k
+        RETURNING
+            *)
+        SELECT
+            *
+        FROM
+            aa;
 
 -- New query/snapshot demonstrates side-effects of previous query.
 SELECT
@@ -2293,35 +2293,35 @@ WITH simpletup AS (
 ),
 upsert_cte AS (
 INSERT INTO withz
-    VALUES (2, 'Blue')
-ON CONFLICT (k)
-    DO UPDATE SET
-        (k, v) = (
-            SELECT
+        VALUES (2, 'Blue')
+    ON CONFLICT (k)
+        DO UPDATE SET
+            (k, v) = (
+                SELECT
+                    k,
+                    v
+                FROM
+                    simpletup
+                WHERE
+                    simpletup.k = withz.k)
+            RETURNING
                 k,
-                v
-            FROM
-                simpletup
-            WHERE
-                simpletup.k = withz.k)
+                v)
+    INSERT INTO withz
+        VALUES (2, 'Red')
+    ON CONFLICT (k)
+        DO UPDATE SET
+            (k, v) = (
+                SELECT
+                    k,
+                    v
+                FROM
+                    upsert_cte
+                WHERE
+                    upsert_cte.k = withz.k)
         RETURNING
             k,
-            v)
-INSERT INTO withz
-    VALUES (2, 'Red')
-ON CONFLICT (k)
-    DO UPDATE SET
-        (k, v) = (
-            SELECT
-                k,
-                v
-            FROM
-                upsert_cte
-            WHERE
-                upsert_cte.k = withz.k)
-    RETURNING
-        k,
-        v;
+            v;
 
 DROP TABLE withz;
 
@@ -2422,13 +2422,13 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-    VALUES (21), (22), (23)
-RETURNING
-    *)
-SELECT
-    *
-FROM
-    t;
+        VALUES (21), (22), (23)
+    RETURNING
+        *)
+    SELECT
+        *
+    FROM
+        t;
 
 SELECT
     *
@@ -2444,14 +2444,14 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-    VALUES (31), (32), (33)
-RETURNING
-    *)
-SELECT
-    *
-FROM
-    t
-LIMIT 1;
+        VALUES (31), (32), (33)
+    RETURNING
+        *)
+    SELECT
+        *
+    FROM
+        t
+    LIMIT 1;
 
 SELECT
     *
@@ -2477,13 +2477,13 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-    VALUES (41), (42), (43)
-RETURNING
-    *)
-SELECT
-    *
-FROM
-    t;
+        VALUES (41), (42), (43)
+    RETURNING
+        *)
+    SELECT
+        *
+    FROM
+        t;
 
 SELECT
     *
@@ -2538,15 +2538,15 @@ FROM
 
 WITH wcte AS (
 INSERT INTO child1
-    VALUES (42, 'new')
-RETURNING
-    id AS newid)
-UPDATE
-    parent
-SET
-    id = id + newid
-FROM
-    wcte;
+        VALUES (42, 'new')
+    RETURNING
+        id AS newid)
+    UPDATE
+        parent
+    SET
+        id = id + newid
+    FROM
+        wcte;
 
 SELECT
     *
@@ -2568,11 +2568,11 @@ FROM
 
 WITH wcte AS (
 INSERT INTO child2
-    VALUES (42, 'new2')
-RETURNING
-    id AS newid)
-DELETE FROM parent USING wcte
-WHERE id = newid;
+        VALUES (42, 'new2')
+    RETURNING
+        id AS newid)
+    DELETE FROM parent USING wcte
+    WHERE id = newid;
 
 SELECT
     *
@@ -2585,11 +2585,11 @@ EXPLAIN (
     COSTS OFF
 ) WITH wcte AS (
 INSERT INTO int8_tbl
-    VALUES (42, 47)
-RETURNING
-    q2)
-DELETE FROM a USING wcte
-WHERE aa = q2;
+        VALUES (42, 47)
+    RETURNING
+        q2)
+    DELETE FROM a USING wcte
+    WHERE aa = q2;
 
 -- error cases
 -- data-modifying WITH tries to use its own output
@@ -2605,11 +2605,11 @@ VALUES (FALSE);
 -- no RETURNING in a referenced data-modifying WITH
 WITH t AS (
 INSERT INTO y
-    VALUES (0))
-SELECT
-    *
-FROM
-    t;
+        VALUES (0))
+    SELECT
+        *
+    FROM
+        t;
 
 -- data-modifying WITH allowed only at the top level
 SELECT
@@ -2635,8 +2635,8 @@ CREATE RULE y_rule AS ON INSERT TO y WHERE
 
 WITH t AS (
 INSERT INTO y
-    VALUES (0))
-    VALUES (FALSE);
+        VALUES (0))
+        VALUES (FALSE);
 
 DROP RULE y_rule ON y;
 

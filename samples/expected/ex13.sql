@@ -53,7 +53,7 @@ BEGIN
         DELETE FROM PHone
         WHERE slotname = old.slotname;
         INSERT INTO PHone (slotname, comment, slotlink)
-        VALUES (new.slotname, new.comment, new.slotlink);
+            VALUES (new.slotname, new.comment, new.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;

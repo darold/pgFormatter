@@ -308,9 +308,9 @@ DECLARE
 BEGIN
     LOOP
         INSERT INTO brin_summarize
-        VALUES (1)
-    RETURNING
-        ctid INTO curtid;
+            VALUES (1)
+        RETURNING
+            ctid INTO curtid;
         EXIT
         WHEN curtid > tid '(2, 0)';
     END LOOP;

@@ -1214,14 +1214,14 @@ SET ROLE regress_coldesc_role;
 
 WITH result AS (
 INSERT INTO brtrigpartcon
-    VALUES (1, 'hi there')
-RETURNING
-    1)
-INSERT INTO inserttest3 (f3)
-SELECT
-    *
-FROM
-    result;
+        VALUES (1, 'hi there')
+    RETURNING
+        1)
+    INSERT INTO inserttest3 (f3)
+    SELECT
+        *
+    FROM
+        result;
 
 RESET ROLE;
 

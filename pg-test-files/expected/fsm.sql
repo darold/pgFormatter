@@ -64,9 +64,9 @@ BEGIN
     num = 11;
     LOOP
         INSERT INTO fsm_check_size
-        VALUES (num, 'b')
-    RETURNING
-        ctid INTO curtid;
+            VALUES (num, 'b')
+        RETURNING
+            ctid INTO curtid;
         EXIT
         WHEN curtid >= tid '(4, 0)';
         num = num + 1;
