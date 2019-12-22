@@ -1339,7 +1339,7 @@ sub beautify
                 next;
             }
 	    if ( ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
-		    && $self->{ '_is_in_create' } == 2) || uc($self->_next_token) eq 'INHERITS'
+		    && $self->{ '_is_in_create' } == 2) || (defined $self->_next_token and uc($self->_next_token) eq 'INHERITS')
 	    )
 	    {
                 $self->_back($token, $last) if ($self->{ '_is_in_block' } < 0);
