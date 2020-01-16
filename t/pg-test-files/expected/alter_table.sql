@@ -4740,20 +4740,20 @@ ALTER TABLE test_add_column
 \d test_add_column
 ALTER TABLE test_add_column
     ADD COLUMN IF NOT EXISTS c2 integer, -- skipping because c2 already exists
-        ADD COLUMN c3 integer;
+    ADD COLUMN c3 integer;
 
 -- fail because c3 already exists
 \d test_add_column
 ALTER TABLE test_add_column
     ADD COLUMN IF NOT EXISTS c2 integer, -- skipping because c2 already exists
-        ADD COLUMN IF NOT EXISTS c3 integer;
+    ADD COLUMN IF NOT EXISTS c3 integer;
 
 -- skipping because c3 already exists
 \d test_add_column
 ALTER TABLE test_add_column
     ADD COLUMN IF NOT EXISTS c2 integer, -- skipping because c2 already exists
-        ADD COLUMN IF NOT EXISTS c3 integer, -- skipping because c3 already exists
-            ADD COLUMN c4 integer;
+    ADD COLUMN IF NOT EXISTS c3 integer, -- skipping because c3 already exists
+    ADD COLUMN c4 integer;
 
 \d test_add_column
 DROP TABLE test_add_column;

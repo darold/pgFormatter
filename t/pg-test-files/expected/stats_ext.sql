@@ -81,12 +81,12 @@ CREATE TABLE ab1 (
 );
 
 CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a,
-    b
+b
 FROM
     ab1;
 
 CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a,
-    b
+b
 FROM
     ab1;
 

@@ -602,7 +602,7 @@ sub beautify
     $self->{ '_is_meta_command' } = 0;
     $self->{ '_fct_code_delimiter' } = '';
     $self->{ '_first_when_in_case' } = 0;
-
+    $self->{ '_is_in_if' } = 0;
     $self->{ '_is_in_conversion' } = 0;
     $self->{ '_is_in_case' } = 0;
     $self->{ '_is_in_where' } = 0;
@@ -1296,7 +1296,8 @@ sub beautify
 		if (!$self->{ '_is_in_if' } and !$self->{ '_is_in_alter' } and (!$self->{ '_is_in_function' } or $last ne '('))
 		{
 		    $self->_over($token,$last) if ($self->{ '_is_in_operator' } <= 2 && $self->{ '_is_in_create' } <= 2);
-		    if (!$self->{ '_is_in_function' } and !$self->_is_type($self->_next_token)) {
+		    if (!$self->{ '_is_in_function' } and !$self->_is_type($self->_next_token))
+		    {
 		        if ($self->{ '_is_in_operator' } == 1) {
 			    $self->_new_line($token,$last);
 		            $self->{ '_is_in_operator' }++;
@@ -1922,12 +1923,15 @@ sub beautify
 	    $self->{ 'no_break' } = 0;
             if (defined $self->_next_token and $self->_next_token !~ /^(EXISTS|;)$/i)
 	    {
-                $self->_new_line($token,$last) if ($token =~ /^LOOP$/i);
-                $self->_over($token,$last);
-	        $self->_push_level($self->{ '_level' }, $token, $last);
-                if ($token =~ /^IF$/i) {
-                    $self->{ '_is_in_if' } = 1;
-                }
+		if (uc($self->_next_token) ne 'NOT' || uc($self->{ '_tokens' }->[ 1 ]) ne 'EXISTS')
+		{
+                    $self->_new_line($token,$last) if ($token =~ /^LOOP$/i);
+		    $self->_over($token,$last);
+	            $self->_push_level($self->{ '_level' }, $token, $last);
+                    if ($token =~ /^IF$/i) {
+                        $self->{ '_is_in_if' } = 1;
+                    }
+	        }
             }
         }
 

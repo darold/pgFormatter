@@ -699,10 +699,10 @@ FROM
     mvtest_foo_data;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mvtest_mv_foo AS
-    SELECT
-        *
-    FROM
-        mvtest_foo_data;
+SELECT
+    *
+FROM
+    mvtest_foo_data;
 
 CREATE UNIQUE INDEX ON mvtest_mv_foo (i);
 

@@ -378,12 +378,12 @@ WHERE
     relkind = 'r';
 
 CREATE TABLE IF NOT EXISTS as_select1 AS
-    SELECT
-        *
-    FROM
-        pg_class
-    WHERE
-        relkind = 'r';
+SELECT
+    *
+FROM
+    pg_class
+WHERE
+    relkind = 'r';
 
 DROP TABLE as_select1;
 
@@ -403,7 +403,7 @@ FROM
     as_select1;
 
 CREATE TABLE IF NOT EXISTS as_select1 AS
-    EXECUTE select1;
+EXECUTE select1;
 
 DROP TABLE as_select1;
 

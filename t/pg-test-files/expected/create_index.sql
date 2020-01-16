@@ -10,10 +10,10 @@ CREATE INDEX onek_unique1 ON onek
 USING btree (unique1 int4_ops);
 
 CREATE INDEX IF NOT EXISTS onek_unique1 ON onek
-    USING btree (unique1 int4_ops);
+USING btree (unique1 int4_ops);
 
 CREATE INDEX IF NOT EXISTS ON onek
-    USING btree (unique1 int4_ops);
+USING btree (unique1 int4_ops);
 
 CREATE INDEX onek_unique2 ON onek
 USING btree (unique2 int4_ops);
