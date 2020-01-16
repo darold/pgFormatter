@@ -9,30 +9,23 @@ CREATE TABLE gist_point_tbl (
     p point
 );
 
-CREATE INDEX gist_pointidx ON gist_point_tbl
-USING gist (p);
+CREATE INDEX gist_pointidx ON gist_point_tbl USING gist (p);
 
 -- Verify the fillfactor and buffering options
-CREATE INDEX gist_pointidx2 ON gist_point_tbl
-USING gist (p) WITH (buffering = ON, fillfactor = 50);
+CREATE INDEX gist_pointidx2 ON gist_point_tbl USING gist (p) WITH (buffering = ON, fillfactor = 50);
 
-CREATE INDEX gist_pointidx3 ON gist_point_tbl
-USING gist (p) WITH (buffering = OFF);
+CREATE INDEX gist_pointidx3 ON gist_point_tbl USING gist (p) WITH (buffering = OFF);
 
-CREATE INDEX gist_pointidx4 ON gist_point_tbl
-USING gist (p) WITH (buffering = auto);
+CREATE INDEX gist_pointidx4 ON gist_point_tbl USING gist (p) WITH (buffering = auto);
 
 DROP INDEX gist_pointidx2, gist_pointidx3, gist_pointidx4;
 
 -- Make sure bad values are refused
-CREATE INDEX gist_pointidx5 ON gist_point_tbl
-USING gist (p) WITH (buffering = invalid_value);
+CREATE INDEX gist_pointidx5 ON gist_point_tbl USING gist (p) WITH (buffering = invalid_value);
 
-CREATE INDEX gist_pointidx5 ON gist_point_tbl
-USING gist (p) WITH (fillfactor = 9);
+CREATE INDEX gist_pointidx5 ON gist_point_tbl USING gist (p) WITH (fillfactor = 9);
 
-CREATE INDEX gist_pointidx5 ON gist_point_tbl
-USING gist (p) WITH (fillfactor = 101);
+CREATE INDEX gist_pointidx5 ON gist_point_tbl USING gist (p) WITH (fillfactor = 101);
 
 -- Insert enough data to create a tree that's a couple of levels deep.
 INSERT INTO gist_point_tbl (id, p)
@@ -91,8 +84,7 @@ SET enable_bitmapscan = OFF;
 SET enable_indexonlyscan = ON;
 
 -- Test index-only scan with point opclass
-CREATE INDEX gist_tbl_point_index ON gist_tbl
-USING gist (p);
+CREATE INDEX gist_tbl_point_index ON gist_tbl USING gist (p);
 
 -- check that the planner chooses an index-only scan
 EXPLAIN (
@@ -198,8 +190,7 @@ FROM (
 DROP INDEX gist_tbl_point_index;
 
 -- Test index-only scan with box opclass
-CREATE INDEX gist_tbl_box_index ON gist_tbl
-USING gist (b);
+CREATE INDEX gist_tbl_box_index ON gist_tbl USING gist (b);
 
 -- check that the planner chooses an index-only scan
 EXPLAIN (
@@ -225,8 +216,7 @@ DROP INDEX gist_tbl_box_index;
 -- Test that an index-only scan is not chosen, when the query involves the
 -- circle column (the circle opclass does not support index-only scans).
 
-CREATE INDEX gist_tbl_multi_index ON gist_tbl
-USING gist (p, c);
+CREATE INDEX gist_tbl_multi_index ON gist_tbl USING gist (p, c);
 
 EXPLAIN (
     COSTS OFF

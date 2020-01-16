@@ -218,8 +218,7 @@ SELECT
 FROM
     generate_series(0, 1000);
 
-CREATE INDEX point_gist_tbl_index ON point_gist_tbl
-USING gist (f1);
+CREATE INDEX point_gist_tbl_index ON point_gist_tbl USING gist (f1);
 
 INSERT INTO point_gist_tbl
     VALUES ('(0.0000009,0.0000009)');

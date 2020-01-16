@@ -55,8 +55,7 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE UNIQUE INDEX tbl_include_unique1_idx_unique ON tbl_include_unique1
-USING btree (c1, c2) INCLUDE (c3, c4);
+CREATE UNIQUE INDEX tbl_include_unique1_idx_unique ON tbl_include_unique1 USING btree (c1, c2) INCLUDE (c3, c4);
 
 ALTER TABLE tbl_include_unique1
     ADD UNIQUE
@@ -92,8 +91,7 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE UNIQUE INDEX tbl_include_unique2_idx_unique ON tbl_include_unique2
-USING btree (c1, c2) INCLUDE (c3, c4);
+CREATE UNIQUE INDEX tbl_include_unique2_idx_unique ON tbl_include_unique2 USING btree (c1, c2) INCLUDE (c3, c4);
 
 ALTER TABLE tbl_include_unique2
     ADD UNIQUE (c1, c2) INCLUDE (c3, c4);
@@ -144,12 +142,10 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE UNIQUE INDEX tbl_include_box_idx_unique ON tbl_include_box
-USING btree (c1, c2) INCLUDE (c3, c4);
+CREATE UNIQUE INDEX tbl_include_box_idx_unique ON tbl_include_box USING btree (c1, c2) INCLUDE (c3, c4);
 
 ALTER TABLE tbl_include_box
-    ADD PRIMARY KEY
-    USING INDEX tbl_include_box_idx_unique;
+    ADD PRIMARY KEY USING INDEX tbl_include_box_idx_unique;
 
 SELECT
     pg_get_indexdef(i.indexrelid)
@@ -497,8 +493,7 @@ CREATE TABLE tbl (
     c4 int
 );
 
-CREATE UNIQUE INDEX tbl_idx ON tbl
-USING btree (c1, c2, c3, c4);
+CREATE UNIQUE INDEX tbl_idx ON tbl USING btree (c1, c2, c3, c4);
 
 SELECT
     indexdef
@@ -536,8 +531,7 @@ CREATE TABLE tbl (
     c4 box
 );
 
-CREATE UNIQUE INDEX tbl_idx ON tbl
-USING btree (c1, c2) INCLUDE (c3, c4);
+CREATE UNIQUE INDEX tbl_idx ON tbl USING btree (c1, c2) INCLUDE (c3, c4);
 
 SELECT
     indexdef
@@ -739,26 +733,19 @@ CREATE TABLE tbl (
     c4 box
 );
 
-CREATE INDEX ON tbl
-USING brin (c1, c2) INCLUDE (c3, c4);
+CREATE INDEX ON tbl USING brin (c1, c2) INCLUDE (c3, c4);
 
-CREATE INDEX ON tbl
-USING gist (c3) INCLUDE (c1, c4);
+CREATE INDEX ON tbl USING gist (c3) INCLUDE (c1, c4);
 
-CREATE INDEX ON tbl
-USING spgist (c3) INCLUDE (c4);
+CREATE INDEX ON tbl USING spgist (c3) INCLUDE (c4);
 
-CREATE INDEX ON tbl
-USING gin (c1, c2) INCLUDE (c3, c4);
+CREATE INDEX ON tbl USING gin (c1, c2) INCLUDE (c3, c4);
 
-CREATE INDEX ON tbl
-USING HASH (c1, c2) INCLUDE (c3, c4);
+CREATE INDEX ON tbl USING HASH (c1, c2) INCLUDE (c3, c4);
 
-CREATE INDEX ON tbl
-USING rtree (c3) INCLUDE (c1, c4);
+CREATE INDEX ON tbl USING rtree (c3) INCLUDE (c1, c4);
 
-CREATE INDEX ON tbl
-USING btree (c1, c2) INCLUDE (c3, c4);
+CREATE INDEX ON tbl USING btree (c1, c2) INCLUDE (c3, c4);
 
 DROP TABLE tbl;
 
@@ -782,8 +769,7 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE UNIQUE INDEX tbl_idx_unique ON tbl
-USING btree (c1, c2) INCLUDE (c3, c4);
+CREATE UNIQUE INDEX tbl_idx_unique ON tbl USING btree (c1, c2) INCLUDE (c3, c4);
 
 UPDATE
     tbl

@@ -500,8 +500,7 @@ CREATE TABLE test_range_gist (
     ir int4range
 );
 
-CREATE INDEX test_range_gist_idx ON test_range_gist
-USING gist (ir);
+CREATE INDEX test_range_gist_idx ON test_range_gist USING gist (ir);
 
 INSERT INTO test_range_gist
 SELECT
@@ -716,8 +715,7 @@ WHERE
 -- now check same queries using a bulk-loaded index
 DROP INDEX test_range_gist_idx;
 
-CREATE INDEX test_range_gist_idx ON test_range_gist
-USING gist (ir);
+CREATE INDEX test_range_gist_idx ON test_range_gist USING gist (ir);
 
 SELECT
     count(*)
@@ -801,8 +799,7 @@ CREATE TABLE test_range_spgist (
     ir int4range
 );
 
-CREATE INDEX test_range_spgist_idx ON test_range_spgist
-USING spgist (ir);
+CREATE INDEX test_range_spgist_idx ON test_range_spgist USING spgist (ir);
 
 INSERT INTO test_range_spgist
 SELECT
@@ -1017,8 +1014,7 @@ WHERE
 -- now check same queries using a bulk-loaded index
 DROP INDEX test_range_spgist_idx;
 
-CREATE INDEX test_range_spgist_idx ON test_range_spgist
-USING spgist (ir);
+CREATE INDEX test_range_spgist_idx ON test_range_spgist USING spgist (ir);
 
 SELECT
     count(*)

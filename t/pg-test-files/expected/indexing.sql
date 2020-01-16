@@ -255,8 +255,7 @@ CREATE INDEX idxpart1_a_b_idx ON idxpart1 (a, b);
 
 CREATE INDEX idxpart1_tst1 ON idxpart1 (b, a);
 
-CREATE INDEX idxpart1_tst2 ON idxpart1
-USING HASH (a);
+CREATE INDEX idxpart1_tst2 ON idxpart1 USING HASH (a);
 
 CREATE INDEX idxpart1_tst3 ON idxpart1 (a, b)
 WHERE
@@ -311,8 +310,7 @@ CREATE TABLE idxpart1 (
     b int
 );
 
-CREATE INDEX ON idxpart1
-USING HASH (a);
+CREATE INDEX ON idxpart1 USING HASH (a);
 
 CREATE INDEX ON idxpart1 (a)
 WHERE

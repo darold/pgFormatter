@@ -81,8 +81,7 @@ ORDER BY
     tenthous
 LIMIT 25;
 
-CREATE INDEX brinidx ON brintest
-USING brin (byteacol, charcol, namecol, int8col, int2col, int4col, textcol, oidcol, tidcol, float4col, float8col, macaddrcol, inetcol inet_inclusion_ops, inetcol inet_minmax_ops, cidrcol inet_inclusion_ops, cidrcol inet_minmax_ops, bpcharcol, datecol, timecol, timestampcol, timestamptzcol, intervalcol, timetzcol, bitcol, varbitcol, numericcol, uuidcol, int4rangecol, lsncol, boxcol) WITH (pages_per_range = 1);
+CREATE INDEX brinidx ON brintest USING brin (byteacol, charcol, namecol, int8col, int2col, int4col, textcol, oidcol, tidcol, float4col, float8col, macaddrcol, inetcol inet_inclusion_ops, inetcol inet_minmax_ops, cidrcol inet_inclusion_ops, cidrcol inet_minmax_ops, bpcharcol, datecol, timecol, timestampcol, timestamptzcol, intervalcol, timetzcol, bitcol, varbitcol, numericcol, uuidcol, int4rangecol, lsncol, boxcol) WITH (pages_per_range = 1);
 
 CREATE TABLE brinopers (
     colname name,
@@ -298,8 +297,7 @@ WITH (
     autovacuum_enabled = FALSE
 );
 
-CREATE INDEX brin_summarize_idx ON brin_summarize
-USING brin (value) WITH (pages_per_range = 2);
+CREATE INDEX brin_summarize_idx ON brin_summarize USING brin (value) WITH (pages_per_range = 2);
 
 -- Fill a few pages
 DO $$
@@ -359,11 +357,9 @@ SELECT
 FROM
     generate_series(1, 10000) x (x);
 
-CREATE INDEX brin_test_a_idx ON brin_test
-USING brin (a) WITH (pages_per_range = 2);
+CREATE INDEX brin_test_a_idx ON brin_test USING brin (a) WITH (pages_per_range = 2);
 
-CREATE INDEX brin_test_b_idx ON brin_test
-USING brin (b) WITH (pages_per_range = 2);
+CREATE INDEX brin_test_b_idx ON brin_test USING brin (b) WITH (pages_per_range = 2);
 
 VACUUM ANALYZE brin_test;
 

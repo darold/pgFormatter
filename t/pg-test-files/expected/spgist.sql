@@ -9,8 +9,7 @@ CREATE TABLE spgist_point_tbl (
     p point
 );
 
-CREATE INDEX spgist_point_idx ON spgist_point_tbl
-USING spgist (p) WITH (fillfactor = 75);
+CREATE INDEX spgist_point_idx ON spgist_point_tbl USING spgist (p) WITH (fillfactor = 75);
 
 -- Test vacuum-root operation. It gets invoked when the root is also a leaf,
 -- i.e. the index is very small.
@@ -72,8 +71,7 @@ FROM
     generate_series(1, 100, 5) j,
     generate_series(1, 10) s;
 
-CREATE INDEX spgist_box_idx ON spgist_box_tbl
-USING spgist (b);
+CREATE INDEX spgist_box_idx ON spgist_box_tbl USING spgist (b);
 
 SELECT
     count(*)
@@ -99,8 +97,7 @@ CREATE TABLE spgist_text_tbl (
     t text
 );
 
-CREATE INDEX spgist_text_idx ON spgist_text_tbl
-USING spgist (t);
+CREATE INDEX spgist_text_idx ON spgist_text_tbl USING spgist (t);
 
 INSERT INTO spgist_text_tbl (id, t)
 SELECT
@@ -127,11 +124,9 @@ FROM
     generate_series(1, 100) g;
 
 -- Test out-of-range fillfactor values
-CREATE INDEX spgist_point_idx2 ON spgist_point_tbl
-USING spgist (p) WITH (fillfactor = 9);
+CREATE INDEX spgist_point_idx2 ON spgist_point_tbl USING spgist (p) WITH (fillfactor = 9);
 
-CREATE INDEX spgist_point_idx2 ON spgist_point_tbl
-USING spgist (p) WITH (fillfactor = 101);
+CREATE INDEX spgist_point_idx2 ON spgist_point_tbl USING spgist (p) WITH (fillfactor = 101);
 
 -- Modify fillfactor in existing index
 ALTER INDEX spgist_point_idx SET (fillfactor = 90);

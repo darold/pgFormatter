@@ -12,8 +12,7 @@ WITH (
     autovacuum_enabled = OFF
 );
 
-CREATE INDEX gin_test_idx ON gin_test_tbl
-USING gin (i) WITH (fastupdate = ON, gin_pending_list_limit = 4096);
+CREATE INDEX gin_test_idx ON gin_test_tbl USING gin (i) WITH (fastupdate = ON, gin_pending_list_limit = 4096);
 
 INSERT INTO gin_test_tbl
 SELECT

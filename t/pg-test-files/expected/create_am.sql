@@ -11,8 +11,7 @@ CREATE ACCESS METHOD bogus TYPE INDEX HANDLER int4in;
 CREATE ACCESS METHOD bogus TYPE INDEX HANDLER heap_tableam_handler;
 
 -- Try to create gist2 index on fast_emp4000: fail because opclass doesn't exist
-CREATE INDEX grect2ind2 ON fast_emp4000
-USING gist2 (home_base);
+CREATE INDEX grect2ind2 ON fast_emp4000 USING gist2 (home_base);
 
 -- Make operator class for boxes using gist2
 CREATE OPERATOR CLASS box_ops DEFAULT FOR TYPE box
@@ -40,8 +39,7 @@ CREATE OPERATOR CLASS box_ops DEFAULT FOR TYPE box
 );
 
 -- Create gist2 index on fast_emp4000
-CREATE INDEX grect2ind2 ON fast_emp4000
-USING gist2 (home_base);
+CREATE INDEX grect2ind2 ON fast_emp4000 USING gist2 (home_base);
 
 -- Now check the results from plain indexscan; temporarily drop existing
 -- index grect2ind to ensure it doesn't capture the plan
@@ -181,8 +179,7 @@ FROM
     tableam_tbl_heap2;
 
 -- CREATE VIEW doesn't support USING
-CREATE VIEW tableam_view_heap2
-USING heap2 AS
+CREATE VIEW tableam_view_heap2 USING heap2 AS
 SELECT
     *
 FROM
@@ -193,8 +190,7 @@ CREATE SEQUENCE tableam_seq_heap2
     USING heap2;
 
 -- CREATE MATERIALIZED VIEW does support USING
-CREATE MATERIALIZED VIEW tableam_tblmv_heap2
-USING heap2 AS
+CREATE MATERIALIZED VIEW tableam_tblmv_heap2 USING heap2 AS
 SELECT
     *
 FROM
@@ -300,8 +296,7 @@ SELECT
     INTO tableam_tblselectinto_heapx
 FROM
     tableam_tbl_heapx;
-CREATE MATERIALIZED VIEW tableam_tblmv_heapx
-USING heap2 AS
+CREATE MATERIALIZED VIEW tableam_tblmv_heapx USING heap2 AS
 SELECT
     *
 FROM

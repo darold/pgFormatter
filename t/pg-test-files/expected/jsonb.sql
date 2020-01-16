@@ -2231,8 +2231,7 @@ FROM
 WHERE
     j @ ? '$.bar';
 
-CREATE INDEX jidx ON testjsonb
-USING gin (j);
+CREATE INDEX jidx ON testjsonb USING gin (j);
 
 SET enable_seqscan = OFF;
 
@@ -2538,8 +2537,7 @@ WHERE
     j @ ? '$.bar';
 
 -- array exists - array elements should behave as keys (for GIN index scans too)
-CREATE INDEX jidx_array ON testjsonb
-USING gin ((j -> 'array'));
+CREATE INDEX jidx_array ON testjsonb USING gin ((j -> 'array'));
 
 SELECT
     count(*)
@@ -2655,8 +2653,7 @@ DROP INDEX jidx;
 DROP INDEX jidx_array;
 
 -- btree
-CREATE INDEX jidx ON testjsonb
-USING btree (j);
+CREATE INDEX jidx ON testjsonb USING btree (j);
 
 SET enable_seqscan = OFF;
 
@@ -2677,8 +2674,7 @@ WHERE
 --gin path opclass
 DROP INDEX jidx;
 
-CREATE INDEX jidx ON testjsonb
-USING gin (j jsonb_path_ops);
+CREATE INDEX jidx ON testjsonb USING gin (j jsonb_path_ops);
 
 SET enable_seqscan = OFF;
 
@@ -2999,8 +2995,7 @@ INSERT INTO nestjsonb (j)
 INSERT INTO nestjsonb (j)
     VALUES ('[1,[14,2,3]]');
 
-CREATE INDEX ON nestjsonb
-USING gin (j jsonb_path_ops);
+CREATE INDEX ON nestjsonb USING gin (j jsonb_path_ops);
 
 SET enable_seqscan = ON;
 

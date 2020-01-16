@@ -20,8 +20,7 @@ SELECT
 FROM
     generate_series(1, 8000) AS x;
 
-CREATE INDEX tbl_gist_idx ON tbl_gist
-USING gist (c4) INCLUDE (c1, c2, c3);
+CREATE INDEX tbl_gist_idx ON tbl_gist USING gist (c4) INCLUDE (c1, c2, c3);
 
 SELECT
     pg_get_indexdef(i.indexrelid)
@@ -70,8 +69,7 @@ CREATE TABLE tbl_gist (
 );
 
 -- size is chosen to exceed page size and trigger actual truncation
-CREATE INDEX tbl_gist_idx ON tbl_gist
-USING gist (c4) INCLUDE (c1, c2, c3);
+CREATE INDEX tbl_gist_idx ON tbl_gist USING gist (c4) INCLUDE (c1, c2, c3);
 
 INSERT INTO tbl_gist
 SELECT
@@ -135,8 +133,7 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE INDEX CONCURRENTLY tbl_gist_idx ON tbl_gist
-USING gist (c4) INCLUDE (c1, c2, c3);
+CREATE INDEX CONCURRENTLY tbl_gist_idx ON tbl_gist USING gist (c4) INCLUDE (c1, c2, c3);
 
 SELECT
     indexdef
@@ -169,8 +166,7 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE INDEX tbl_gist_idx ON tbl_gist
-USING gist (c4) INCLUDE (c1, c3);
+CREATE INDEX tbl_gist_idx ON tbl_gist USING gist (c4) INCLUDE (c1, c3);
 
 SELECT
     indexdef
@@ -226,8 +222,7 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE INDEX tbl_gist_idx ON tbl_gist
-USING gist (c4) INCLUDE (c1, c3);
+CREATE INDEX tbl_gist_idx ON tbl_gist USING gist (c4) INCLUDE (c1, c3);
 
 UPDATE
     tbl_gist
@@ -269,8 +264,7 @@ SELECT
 FROM
     generate_series(1, 10) AS x;
 
-CREATE INDEX tbl_gist_idx ON tbl_gist
-USING gist (c4) INCLUDE (c1, c3);
+CREATE INDEX tbl_gist_idx ON tbl_gist USING gist (c4) INCLUDE (c1, c3);
 
 ALTER TABLE tbl_gist
     ALTER c1 TYPE bigint;

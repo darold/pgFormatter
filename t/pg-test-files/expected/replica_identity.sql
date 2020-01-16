@@ -17,8 +17,7 @@ CREATE UNIQUE INDEX test_replica_identity_keyab_key ON test_replica_identity (ke
 
 CREATE UNIQUE INDEX test_replica_identity_nonkey ON test_replica_identity (keya, nonkey);
 
-CREATE INDEX test_replica_identity_hash ON test_replica_identity
-USING HASH (nonkey);
+CREATE INDEX test_replica_identity_hash ON test_replica_identity USING HASH (nonkey);
 
 CREATE UNIQUE INDEX test_replica_identity_expr ON test_replica_identity (keya, keyb, (3));
 

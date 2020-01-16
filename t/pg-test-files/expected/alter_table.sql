@@ -4389,8 +4389,7 @@ ALTER TABLE comment_test
     ALTER COLUMN id SET DATA TYPE text;
 
 ALTER TABLE comment_test
-    ALTER COLUMN id SET DATA TYPE int
-    USING id::integer;
+    ALTER COLUMN id SET DATA TYPE int USING id::integer;
 
 -- Comments should be intact
 SELECT

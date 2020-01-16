@@ -147,8 +147,7 @@ FROM
 WHERE
     a @@ '!no_such_lexeme';
 
-CREATE INDEX wowidx ON test_tsvector
-USING gist (a);
+CREATE INDEX wowidx ON test_tsvector USING gist (a);
 
 SET enable_seqscan = OFF;
 
@@ -328,8 +327,7 @@ RESET enable_bitmapscan;
 
 DROP INDEX wowidx;
 
-CREATE INDEX wowidx ON test_tsvector
-USING gin (a);
+CREATE INDEX wowidx ON test_tsvector USING gin (a);
 
 SET enable_seqscan = OFF;
 
@@ -1069,8 +1067,7 @@ SELECT
 FROM
     to_tsquery('english', 'bar & new & qq & foo & york') AS query;
 
-CREATE INDEX qq ON test_tsquery
-USING gist (keyword tsquery_ops);
+CREATE INDEX qq ON test_tsquery USING gist (keyword tsquery_ops);
 
 SET enable_seqscan = OFF;
 
@@ -1218,8 +1215,7 @@ CREATE temp TABLE pendtest (
     ts tsvector
 );
 
-CREATE INDEX pendtest_idx ON pendtest
-USING gin (ts);
+CREATE INDEX pendtest_idx ON pendtest USING gin (ts);
 
 INSERT INTO pendtest
     VALUES (to_tsvector('Lore ipsam'));
@@ -1273,8 +1269,7 @@ INSERT INTO phrase_index_test
 INSERT INTO phrase_index_test
     VALUES (to_tsvector('english', 'A fat cat has just eaten a rat.'));
 
-CREATE INDEX phrase_index_test_idx ON phrase_index_test
-USING gin (fts);
+CREATE INDEX phrase_index_test_idx ON phrase_index_test USING gin (fts);
 
 SET enable_seqscan = OFF;
 

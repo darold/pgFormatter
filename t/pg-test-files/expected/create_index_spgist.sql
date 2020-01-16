@@ -17,8 +17,7 @@ FROM
 INSERT INTO quad_point_tbl
     VALUES (NULL), (NULL), (NULL);
 
-CREATE INDEX sp_quad_ind ON quad_point_tbl
-USING spgist (p);
+CREATE INDEX sp_quad_ind ON quad_point_tbl USING spgist (p);
 
 CREATE TABLE kd_point_tbl AS
 SELECT
@@ -26,8 +25,7 @@ SELECT
 FROM
     quad_point_tbl;
 
-CREATE INDEX sp_kd_ind ON kd_point_tbl
-USING spgist (p kd_point_ops);
+CREATE INDEX sp_kd_ind ON kd_point_tbl USING spgist (p kd_point_ops);
 
 CREATE TABLE radix_text_tbl AS
 SELECT
@@ -49,8 +47,7 @@ INSERT INTO radix_text_tbl
 INSERT INTO radix_text_tbl
     VALUES ('P0123456789abcdefF');
 
-CREATE INDEX sp_radix_ind ON radix_text_tbl
-USING spgist (t);
+CREATE INDEX sp_radix_ind ON radix_text_tbl USING spgist (t);
 
 -- get non-indexed results for comparison purposes
 SET enable_seqscan = ON;

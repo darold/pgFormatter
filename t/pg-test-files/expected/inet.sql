@@ -254,8 +254,7 @@ SET enable_seqscan TO ON;
 DROP INDEX inet_idx1;
 
 -- check that gist index works correctly
-CREATE INDEX inet_idx2 ON inet_tbl
-USING gist (i inet_ops);
+CREATE INDEX inet_idx2 ON inet_tbl USING gist (i inet_ops);
 
 SET enable_seqscan TO OFF;
 
@@ -385,8 +384,7 @@ SET enable_seqscan TO ON;
 DROP INDEX inet_idx2;
 
 -- check that spgist index works correctly
-CREATE INDEX inet_idx3 ON inet_tbl
-USING spgist (i);
+CREATE INDEX inet_idx3 ON inet_tbl USING spgist (i);
 
 SET enable_seqscan TO OFF;
 

@@ -2135,10 +2135,11 @@ sub beautify
         elsif ($token =~ /^USING$/i and (!$self->{ '_is_in_policy' } || $self->{ 'format_type' }))
 	{
 	    $self->{ '_is_in_using' } = 1;
+	    #print STDERR "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU $self->{ '_is_in_from' } :: $self->{ '_is_in_index' }\n";
             if (!$self->{ '_is_in_from' })
 	    {
 		$self->_over($token,$last) if ($self->{ '_is_in_operator' });
-                $self->_new_line($token,$last) if (uc($last) ne 'EXCLUDE');
+                $self->_new_line($token,$last) if (uc($last) ne 'EXCLUDE' and !$self->{ '_is_in_index' });
             }
 	    else
 	    {

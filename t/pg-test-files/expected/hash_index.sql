@@ -253,8 +253,7 @@ SELECT
 FROM
     generate_series(1, 500) a;
 
-CREATE INDEX hash_split_index ON hash_split_heap
-USING HASH (keycol);
+CREATE INDEX hash_split_index ON hash_split_heap USING HASH (keycol);
 
 INSERT INTO hash_split_heap
 SELECT
@@ -305,8 +304,7 @@ CREATE TEMP TABLE hash_temp_heap (
 );
 INSERT INTO hash_temp_heap
     VALUES (1, 1);
-CREATE INDEX hash_idx ON hash_temp_heap
-USING HASH (x);
+CREATE INDEX hash_idx ON hash_temp_heap USING HASH (x);
 DROP TABLE hash_temp_heap CASCADE;
 -- Float4 type.
 CREATE TABLE hash_heap_float4 (
@@ -315,11 +313,8 @@ CREATE TABLE hash_heap_float4 (
 );
 INSERT INTO hash_heap_float4
     VALUES (1.1, 1);
-CREATE INDEX hash_idx ON hash_heap_float4
-USING HASH (x);
+CREATE INDEX hash_idx ON hash_heap_float4 USING HASH (x);
 DROP TABLE hash_heap_float4 CASCADE;
 -- Test out-of-range fillfactor values
-CREATE INDEX hash_f8_index2 ON hash_f8_heap
-USING HASH (random float8_ops) WITH (fillfactor = 9);
-CREATE INDEX hash_f8_index2 ON hash_f8_heap
-USING HASH (random float8_ops) WITH (fillfactor = 101);
+CREATE INDEX hash_f8_index2 ON hash_f8_heap USING HASH (random float8_ops) WITH (fillfactor = 9);
+CREATE INDEX hash_f8_index2 ON hash_f8_heap USING HASH (random float8_ops) WITH (fillfactor = 101);

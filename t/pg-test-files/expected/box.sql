@@ -224,8 +224,7 @@ SELECT
 FROM
     generate_series(1, 50) AS i;
 
-CREATE INDEX box_spgist ON box_temp
-USING spgist (f1);
+CREATE INDEX box_spgist ON box_temp USING spgist (f1);
 
 INSERT INTO box_temp
     VALUES (NULL), ('(0,0)(0,100)'), ('(-3,4.3333333333)(40,1)'), ('(0,100)(0,infinity)'), ('(-infinity,0)(0,infinity)'), ('(-infinity,-infinity)(infinity,infinity)');
@@ -465,8 +464,7 @@ FROM
 INSERT INTO quad_box_tbl
     VALUES (NULL), (NULL), ('((-infinity,-infinity),(infinity,infinity))'), ('((-infinity,100),(-infinity,500))'), ('((-infinity,-infinity),(700,infinity))');
 
-CREATE INDEX quad_box_tbl_idx ON quad_box_tbl
-USING spgist (b);
+CREATE INDEX quad_box_tbl_idx ON quad_box_tbl USING spgist (b);
 
 SET enable_seqscan = OFF;
 

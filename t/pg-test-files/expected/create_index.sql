@@ -6,52 +6,37 @@
 -- BTREE
 --
 
-CREATE INDEX onek_unique1 ON onek
-USING btree (unique1 int4_ops);
+CREATE INDEX onek_unique1 ON onek USING btree (unique1 int4_ops);
 
-CREATE INDEX IF NOT EXISTS onek_unique1 ON onek
-USING btree (unique1 int4_ops);
+CREATE INDEX IF NOT EXISTS onek_unique1 ON onek USING btree (unique1 int4_ops);
 
-CREATE INDEX IF NOT EXISTS ON onek
-USING btree (unique1 int4_ops);
+CREATE INDEX IF NOT EXISTS ON onek USING btree (unique1 int4_ops);
 
-CREATE INDEX onek_unique2 ON onek
-USING btree (unique2 int4_ops);
+CREATE INDEX onek_unique2 ON onek USING btree (unique2 int4_ops);
 
-CREATE INDEX onek_hundred ON onek
-USING btree (hundred int4_ops);
+CREATE INDEX onek_hundred ON onek USING btree (hundred int4_ops);
 
-CREATE INDEX onek_stringu1 ON onek
-USING btree (stringu1 name_ops);
+CREATE INDEX onek_stringu1 ON onek USING btree (stringu1 name_ops);
 
-CREATE INDEX tenk1_unique1 ON tenk1
-USING btree (unique1 int4_ops);
+CREATE INDEX tenk1_unique1 ON tenk1 USING btree (unique1 int4_ops);
 
-CREATE INDEX tenk1_unique2 ON tenk1
-USING btree (unique2 int4_ops);
+CREATE INDEX tenk1_unique2 ON tenk1 USING btree (unique2 int4_ops);
 
-CREATE INDEX tenk1_hundred ON tenk1
-USING btree (hundred int4_ops);
+CREATE INDEX tenk1_hundred ON tenk1 USING btree (hundred int4_ops);
 
 CREATE INDEX tenk1_thous_tenthous ON tenk1 (thousand, tenthous);
 
-CREATE INDEX tenk2_unique1 ON tenk2
-USING btree (unique1 int4_ops);
+CREATE INDEX tenk2_unique1 ON tenk2 USING btree (unique1 int4_ops);
 
-CREATE INDEX tenk2_unique2 ON tenk2
-USING btree (unique2 int4_ops);
+CREATE INDEX tenk2_unique2 ON tenk2 USING btree (unique2 int4_ops);
 
-CREATE INDEX tenk2_hundred ON tenk2
-USING btree (hundred int4_ops);
+CREATE INDEX tenk2_hundred ON tenk2 USING btree (hundred int4_ops);
 
-CREATE INDEX rix ON road
-USING btree (name text_ops);
+CREATE INDEX rix ON road USING btree (name text_ops);
 
-CREATE INDEX iix ON ihighway
-USING btree (name text_ops);
+CREATE INDEX iix ON ihighway USING btree (name text_ops);
 
-CREATE INDEX six ON shighway
-USING btree (name text_ops);
+CREATE INDEX six ON shighway USING btree (name text_ops);
 
 -- test comments
 COMMENT ON INDEX six_wrong IS 'bad index';
@@ -69,34 +54,27 @@ COMMENT ON INDEX six IS NULL;
 -- "lost".
 --
 
-CREATE INDEX bt_i4_index ON bt_i4_heap
-USING btree (seqno int4_ops);
+CREATE INDEX bt_i4_index ON bt_i4_heap USING btree (seqno int4_ops);
 
-CREATE INDEX bt_name_index ON bt_name_heap
-USING btree (seqno name_ops);
+CREATE INDEX bt_name_index ON bt_name_heap USING btree (seqno name_ops);
 
-CREATE INDEX bt_txt_index ON bt_txt_heap
-USING btree (seqno text_ops);
+CREATE INDEX bt_txt_index ON bt_txt_heap USING btree (seqno text_ops);
 
-CREATE INDEX bt_f8_index ON bt_f8_heap
-USING btree (seqno float8_ops);
+CREATE INDEX bt_f8_index ON bt_f8_heap USING btree (seqno float8_ops);
 
 --
 -- BTREE partial indices
 --
 
-CREATE INDEX onek2_u1_prtl ON onek2
-USING btree (unique1 int4_ops)
+CREATE INDEX onek2_u1_prtl ON onek2 USING btree (unique1 int4_ops)
 WHERE
     unique1 < 20 OR unique1 > 980;
 
-CREATE INDEX onek2_u2_prtl ON onek2
-USING btree (unique2 int4_ops)
+CREATE INDEX onek2_u2_prtl ON onek2 USING btree (unique2 int4_ops)
 WHERE
     stringu1 < 'B';
 
-CREATE INDEX onek2_stu1_prtl ON onek2
-USING btree (stringu1 name_ops)
+CREATE INDEX onek2_stu1_prtl ON onek2 USING btree (stringu1 name_ops)
 WHERE
     onek2.stringu1 >= 'J' AND onek2.stringu1 < 'K';
 
@@ -104,20 +82,16 @@ WHERE
 -- GiST (rtree-equivalent opclasses only)
 --
 
-CREATE INDEX grect2ind ON fast_emp4000
-USING gist (home_base);
+CREATE INDEX grect2ind ON fast_emp4000 USING gist (home_base);
 
-CREATE INDEX gpolygonind ON polygon_tbl
-USING gist (f1);
+CREATE INDEX gpolygonind ON polygon_tbl USING gist (f1);
 
-CREATE INDEX gcircleind ON circle_tbl
-USING gist (f1);
+CREATE INDEX gcircleind ON circle_tbl USING gist (f1);
 
 INSERT INTO POINT_TBL (f1)
     VALUES (NULL);
 
-CREATE INDEX gpointind ON point_tbl
-USING gist (f1);
+CREATE INDEX gpointind ON point_tbl USING gist (f1);
 
 CREATE TEMP TABLE gpolygon_tbl AS
 SELECT
@@ -137,11 +111,9 @@ SELECT
 FROM
     slow_emp4000;
 
-CREATE INDEX ggpolygonind ON gpolygon_tbl
-USING gist (f1);
+CREATE INDEX ggpolygonind ON gpolygon_tbl USING gist (f1);
 
-CREATE INDEX ggcircleind ON gcircle_tbl
-USING gist (f1);
+CREATE INDEX ggcircleind ON gcircle_tbl USING gist (f1);
 
 --
 -- Test GiST indexes
@@ -774,8 +746,7 @@ SET enable_indexscan = OFF;
 
 SET enable_bitmapscan = ON;
 
-CREATE INDEX intarrayidx ON array_index_op_test
-USING gin (i);
+CREATE INDEX intarrayidx ON array_index_op_test USING gin (i);
 
 EXPLAIN (
     COSTS OFF
@@ -933,8 +904,7 @@ WHERE
 ORDER BY
     seqno;
 
-CREATE INDEX textarrayidx ON array_index_op_test
-USING gin (t);
+CREATE INDEX textarrayidx ON array_index_op_test USING gin (t);
 
 EXPLAIN (
     COSTS OFF
@@ -1059,8 +1029,7 @@ ORDER BY
 -- And try it with a multicolumn GIN index
 DROP INDEX intarrayidx, textarrayidx;
 
-CREATE INDEX botharrayidx ON array_index_op_test
-USING gin (i, t);
+CREATE INDEX botharrayidx ON array_index_op_test USING gin (i, t);
 
 SELECT
     *
@@ -1166,8 +1135,7 @@ SELECT
 FROM
     generate_series(1, 10000) g;
 
-CREATE INDEX array_gin_test_idx ON array_gin_test
-USING gin (a);
+CREATE INDEX array_gin_test_idx ON array_gin_test USING gin (a);
 
 SELECT
     COUNT(*)
@@ -1182,32 +1150,26 @@ DROP TABLE array_gin_test;
 -- Test GIN index's reloptions
 --
 
-CREATE INDEX gin_relopts_test ON array_index_op_test
-USING gin (i) WITH (FASTUPDATE = ON, GIN_PENDING_LIST_LIMIT = 128);
+CREATE INDEX gin_relopts_test ON array_index_op_test USING gin (i) WITH (FASTUPDATE = ON, GIN_PENDING_LIST_LIMIT = 128);
 
 \d+ gin_relopts_test
 --
 -- HASH
 --
 
-CREATE INDEX hash_i4_index ON hash_i4_heap
-USING HASH (random int4_ops);
+CREATE INDEX hash_i4_index ON hash_i4_heap USING HASH (random int4_ops);
 
-CREATE INDEX hash_name_index ON hash_name_heap
-USING HASH (random name_ops);
+CREATE INDEX hash_name_index ON hash_name_heap USING HASH (random name_ops);
 
-CREATE INDEX hash_txt_index ON hash_txt_heap
-USING HASH (random text_ops);
+CREATE INDEX hash_txt_index ON hash_txt_heap USING HASH (random text_ops);
 
-CREATE INDEX hash_f8_index ON hash_f8_heap
-USING HASH (random float8_ops) WITH (fillfactor = 60);
+CREATE INDEX hash_f8_index ON hash_f8_heap USING HASH (random float8_ops) WITH (fillfactor = 60);
 
 CREATE UNLOGGED TABLE unlogged_hash_table (
     id int4
 );
 
-CREATE INDEX unlogged_hash_index ON unlogged_hash_table
-USING HASH (id int4_ops);
+CREATE INDEX unlogged_hash_index ON unlogged_hash_table USING HASH (id int4_ops);
 
 DROP TABLE unlogged_hash_table;
 
@@ -1217,8 +1179,7 @@ DROP TABLE unlogged_hash_table;
 
 SET maintenance_work_mem = '1MB';
 
-CREATE INDEX hash_tuplesort_idx ON tenk1
-USING HASH (stringu1 name_ops) WITH (fillfactor = 10);
+CREATE INDEX hash_tuplesort_idx ON tenk1 USING HASH (stringu1 name_ops) WITH (fillfactor = 10);
 
 EXPLAIN (
     COSTS OFF
@@ -1330,8 +1291,7 @@ CREATE UNIQUE INDEX covering_pkey ON covering_index_heap (f1, f2) INCLUDE (f3);
 
 -- Try to use existing covering index as primary key
 ALTER TABLE covering_index_heap
-    ADD CONSTRAINT covering_pkey PRIMARY KEY
-    USING INDEX covering_pkey;
+    ADD CONSTRAINT covering_pkey PRIMARY KEY USING INDEX covering_pkey;
 
 DROP TABLE covering_index_heap;
 
@@ -1469,8 +1429,7 @@ INSERT INTO cwi_test
 CREATE UNIQUE INDEX cwi_uniq_idx ON cwi_test (a, b);
 
 ALTER TABLE cwi_test
-    ADD PRIMARY KEY
-    USING INDEX cwi_uniq_idx;
+    ADD PRIMARY KEY USING INDEX cwi_uniq_idx;
 
 \d cwi_test
 \d cwi_uniq_idx
@@ -1478,8 +1437,7 @@ CREATE UNIQUE INDEX cwi_uniq2_idx ON cwi_test (b, a);
 
 ALTER TABLE cwi_test
     DROP CONSTRAINT cwi_uniq_idx,
-    ADD CONSTRAINT cwi_replaced_pkey PRIMARY KEY
-    USING INDEX cwi_uniq2_idx;
+    ADD CONSTRAINT cwi_replaced_pkey PRIMARY KEY USING INDEX cwi_uniq2_idx;
 
 \d cwi_test
 \d cwi_replaced_pkey
@@ -1497,8 +1455,7 @@ PARTITION BY HASH (a);
 CREATE UNIQUE INDEX ON cwi_test (a);
 
 ALTER TABLE cwi_test
-    ADD PRIMARY KEY
-    USING INDEX cwi_test_a_idx;
+    ADD PRIMARY KEY USING INDEX cwi_test_a_idx;
 
 DROP TABLE cwi_test;
 
@@ -2144,8 +2101,7 @@ CREATE INDEX concur_reindex_ind4 ON concur_reindex_tab (c1, c1, c2);
 
 -- Create table for check on foreign key dependence switch with indexes swapped
 ALTER TABLE concur_reindex_tab
-    ADD PRIMARY KEY
-    USING INDEX concur_reindex_ind1;
+    ADD PRIMARY KEY USING INDEX concur_reindex_ind1;
 
 CREATE TABLE concur_reindex_tab2 (
     c1 int REFERENCES concur_reindex_tab

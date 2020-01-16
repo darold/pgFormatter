@@ -357,8 +357,7 @@ SET enable_bitmapscan = OFF;
 -- Btree index / opclass with the various operators
 --
 
-CREATE UNIQUE INDEX enumtest_btree ON enumtest
-USING btree (col);
+CREATE UNIQUE INDEX enumtest_btree ON enumtest USING btree (col);
 
 SELECT
     *
@@ -435,8 +434,7 @@ DROP INDEX enumtest_btree;
 -- Hash index / opclass with the = operator
 --
 
-CREATE INDEX enumtest_hash ON enumtest
-USING HASH (col);
+CREATE INDEX enumtest_hash ON enumtest USING HASH (col);
 
 SELECT
     *

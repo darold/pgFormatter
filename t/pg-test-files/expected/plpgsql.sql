@@ -26,8 +26,7 @@ CREATE TABLE Room (
     comment text
 );
 
-CREATE UNIQUE INDEX Room_rno ON Room
-USING btree (roomno bpchar_ops);
+CREATE UNIQUE INDEX Room_rno ON Room USING btree (roomno bpchar_ops);
 
 CREATE TABLE WSlot (
     slotname char(20),
@@ -36,16 +35,14 @@ CREATE TABLE WSlot (
     backlink char(20)
 );
 
-CREATE UNIQUE INDEX WSlot_name ON WSlot
-USING btree (slotname bpchar_ops);
+CREATE UNIQUE INDEX WSlot_name ON WSlot USING btree (slotname bpchar_ops);
 
 CREATE TABLE PField (
     name text,
     comment text
 );
 
-CREATE UNIQUE INDEX PField_name ON PField
-USING btree (name text_ops);
+CREATE UNIQUE INDEX PField_name ON PField USING btree (name text_ops);
 
 CREATE TABLE PSlot (
     slotname char(20),
@@ -54,8 +51,7 @@ CREATE TABLE PSlot (
     backlink char(20)
 );
 
-CREATE UNIQUE INDEX PSlot_name ON PSlot
-USING btree (slotname bpchar_ops);
+CREATE UNIQUE INDEX PSlot_name ON PSlot USING btree (slotname bpchar_ops);
 
 CREATE TABLE PLine (
     slotname char(20),
@@ -64,8 +60,7 @@ CREATE TABLE PLine (
     backlink char(20)
 );
 
-CREATE UNIQUE INDEX PLine_name ON PLine
-USING btree (slotname bpchar_ops);
+CREATE UNIQUE INDEX PLine_name ON PLine USING btree (slotname bpchar_ops);
 
 CREATE TABLE Hub (
     name char(14),
@@ -73,8 +68,7 @@ CREATE TABLE Hub (
     nslots integer
 );
 
-CREATE UNIQUE INDEX Hub_name ON Hub
-USING btree (name bpchar_ops);
+CREATE UNIQUE INDEX Hub_name ON Hub USING btree (name bpchar_ops);
 
 CREATE TABLE HSlot (
     slotname char(20),
@@ -83,19 +77,16 @@ CREATE TABLE HSlot (
     slotlink char(20)
 );
 
-CREATE UNIQUE INDEX HSlot_name ON HSlot
-USING btree (slotname bpchar_ops);
+CREATE UNIQUE INDEX HSlot_name ON HSlot USING btree (slotname bpchar_ops);
 
-CREATE INDEX HSlot_hubname ON HSlot
-USING btree (hubname bpchar_ops);
+CREATE INDEX HSlot_hubname ON HSlot USING btree (hubname bpchar_ops);
 
 CREATE TABLE SYSTEM (
     name text,
     comment text
 );
 
-CREATE UNIQUE INDEX System_name ON SYSTEM
-USING btree (name text_ops);
+CREATE UNIQUE INDEX System_name ON SYSTEM USING btree (name text_ops);
 
 CREATE TABLE IFace (
     slotname char(20),
@@ -104,8 +95,7 @@ CREATE TABLE IFace (
     slotlink char(20)
 );
 
-CREATE UNIQUE INDEX IFace_name ON IFace
-USING btree (slotname bpchar_ops);
+CREATE UNIQUE INDEX IFace_name ON IFace USING btree (slotname bpchar_ops);
 
 CREATE TABLE PHone (
     slotname char(20),
@@ -113,8 +103,7 @@ CREATE TABLE PHone (
     slotlink char(20)
 );
 
-CREATE UNIQUE INDEX PHone_name ON PHone
-USING btree (slotname bpchar_ops);
+CREATE UNIQUE INDEX PHone_name ON PHone USING btree (slotname bpchar_ops);
 
 -- ************************************************************
 -- *

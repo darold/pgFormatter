@@ -160,11 +160,9 @@ FROM
 ORDER BY
     1;
 
-CREATE INDEX macaddr8_data_btree ON macaddr8_data
-USING btree (b);
+CREATE INDEX macaddr8_data_btree ON macaddr8_data USING btree (b);
 
-CREATE INDEX macaddr8_data_hash ON macaddr8_data
-USING HASH (b);
+CREATE INDEX macaddr8_data_hash ON macaddr8_data USING HASH (b);
 
 SELECT
     a,

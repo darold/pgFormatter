@@ -56,11 +56,9 @@ SELECT
 FROM
     macaddr_data;
 
-CREATE INDEX macaddr_data_btree ON macaddr_data
-USING btree (b);
+CREATE INDEX macaddr_data_btree ON macaddr_data USING btree (b);
 
-CREATE INDEX macaddr_data_hash ON macaddr_data
-USING HASH (b);
+CREATE INDEX macaddr_data_hash ON macaddr_data USING HASH (b);
 
 SELECT
     a,

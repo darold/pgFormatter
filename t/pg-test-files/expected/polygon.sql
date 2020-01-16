@@ -80,8 +80,7 @@ FROM
 INSERT INTO quad_poly_tbl
     VALUES (11001, NULL), (11002, NULL), (11003, NULL);
 
-CREATE INDEX quad_poly_tbl_idx ON quad_poly_tbl
-USING spgist (p);
+CREATE INDEX quad_poly_tbl_idx ON quad_poly_tbl USING spgist (p);
 
 -- get reference results for ORDER BY distance from seq scan
 SET enable_seqscan = ON;

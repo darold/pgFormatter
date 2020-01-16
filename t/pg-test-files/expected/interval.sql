@@ -173,8 +173,7 @@ ORDER BY
     r1.f1,
     r2.f1;
 
-CREATE INDEX ON INTERVAL_TBL_OF
-USING btree (f1);
+CREATE INDEX ON INTERVAL_TBL_OF USING btree (f1);
 
 SET enable_seqscan TO FALSE;
 
