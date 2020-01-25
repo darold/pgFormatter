@@ -620,6 +620,7 @@ sub beautify
     $self->{ '_is_in_block' } = -1;
     $self->{ '_is_in_work' } = 0;
     $self->{ '_is_in_function' } = 0;
+    $self->{ '_is_in_statistics' } = 0;
     $self->{ '_is_in_procedure' } = 0;
     $self->{ '_is_in_index' } = 0;
     $self->{ '_is_in_with' }  = 0;
@@ -901,6 +902,9 @@ sub beautify
         } elsif ($token =~ /^VIEW$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_index' } = 1;
 	    $self->{ '_is_in_create' } = 0;
+        } elsif ($token =~ /^STATISTICS$/i and $self->{ '_is_in_create' }) {
+            $self->{ '_is_in_statistics' } = 1;
+            $self->{ '_is_in_create' } = 0;
         } elsif ($token =~ /^AGGREGATE$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_aggregate' } = 1;
             $self->{ '_has_order_by' } = 1;
@@ -1485,7 +1489,7 @@ sub beautify
             $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'start');
             $self->_add_token( $token );
 	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
-	    $add_newline = 0 if ($self->{ '_is_in_function' });
+	    $add_newline = 0 if ($self->{ '_is_in_function' } or $self->{ '_is_in_statistics' });
 	    $add_newline = 0 if (defined $self->_next_token and $self->_is_comment($self->_next_token));
 
 	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and $self->{ '_current_sql_stmt' } ne 'INSERT');
@@ -1518,6 +1522,7 @@ sub beautify
             $self->{ '_is_in_function' } = 0;
             $self->{ '_is_in_prodedure' } = 0;
             $self->{ '_is_in_index' } = 0;
+	    $self->{ '_is_in_statistics' } = 0;
             $self->{ '_is_in_if' } = 0;
             $self->{ '_is_in_with' } = 0;
             $self->{ '_is_in_overlaps' } = 0;
@@ -1704,7 +1709,7 @@ sub beautify
                 $last = $self->_set_last($token, $last);
 		next;
             }
-	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }
+	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }  and !$self->{ '_is_in_statistics' }
 				    and $self->{ '_current_sql_stmt' } !~ /DELETE|REVOKE/))
 	    {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))

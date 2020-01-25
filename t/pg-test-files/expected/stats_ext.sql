@@ -33,45 +33,22 @@ $$;
 -- Verify failures
 CREATE STATISTICS tst;
 
-CREATE STATISTICS tst ON a,
-b;
+CREATE STATISTICS tst ON a, b;
 
-CREATE STATISTICS tst
-FROM
-    sometab;
+CREATE STATISTICS tst FROM sometab;
 
-CREATE STATISTICS tst ON a,
-b
-FROM
-    nonexistant;
+CREATE STATISTICS tst ON a, b FROM nonexistant;
 
-CREATE STATISTICS tst ON a,
-b
-FROM
-    pg_class;
+CREATE STATISTICS tst ON a, b FROM pg_class;
 
-CREATE STATISTICS tst ON relname,
-relname,
-relnatts
-FROM
-    pg_class;
+CREATE STATISTICS tst ON relname, relname, relnatts FROM pg_class;
 
-CREATE STATISTICS tst ON relnatts + relpages
-FROM
-    pg_class;
+CREATE STATISTICS tst ON relnatts + relpages FROM pg_class;
 
-CREATE STATISTICS tst ON (
-    relpages,
-    reltuples)
-FROM
-    pg_class;
+CREATE STATISTICS tst ON (relpages, reltuples)
+FROM pg_class;
 
-CREATE STATISTICS tst (
-    unrecognized
-) ON relname,
-relnatts
-FROM
-    pg_class;
+CREATE STATISTICS tst (unrecognized) ON relname, relnatts FROM pg_class;
 
 -- Ensure stats are dropped sanely, and test IF NOT EXISTS while at it
 CREATE TABLE ab1 (
@@ -80,24 +57,15 @@ CREATE TABLE ab1 (
     c INTEGER
 );
 
-CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a,
-b
-FROM
-    ab1;
+CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a, b FROM ab1;
 
-CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a,
-b
-FROM
-    ab1;
+CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a, b FROM ab1;
 
 DROP STATISTICS ab1_a_b_stats;
 
 CREATE SCHEMA regress_schema_2;
 
-CREATE STATISTICS regress_schema_2.ab1_a_b_stats ON a,
-b
-FROM
-    ab1;
+CREATE STATISTICS regress_schema_2.ab1_a_b_stats ON a, b FROM ab1;
 
 -- Let's also verify the pg_get_statisticsobjdef output looks sane.
 SELECT
@@ -110,21 +78,11 @@ WHERE
 DROP STATISTICS regress_schema_2.ab1_a_b_stats;
 
 -- Ensure statistics are dropped when columns are
-CREATE STATISTICS ab1_b_c_stats ON b,
-c
-FROM
-    ab1;
+CREATE STATISTICS ab1_b_c_stats ON b, c FROM ab1;
 
-CREATE STATISTICS ab1_a_b_c_stats ON a,
-b,
-c
-FROM
-    ab1;
+CREATE STATISTICS ab1_a_b_c_stats ON a, b, c FROM ab1;
 
-CREATE STATISTICS ab1_b_a_stats ON b,
-a
-FROM
-    ab1;
+CREATE STATISTICS ab1_b_a_stats ON b, a FROM ab1;
 
 ALTER TABLE ab1
     DROP COLUMN a;
@@ -163,10 +121,7 @@ SELECT
 FROM
     generate_series(1, 1000) a;
 
-CREATE STATISTICS ab1_a_b_stats ON a,
-b
-FROM
-    ab1;
+CREATE STATISTICS ab1_a_b_stats ON a, b FROM ab1;
 
 ANALYZE ab1;
 
@@ -231,50 +186,23 @@ PARTITION BY RANGE (a, b);
 CREATE TABLE tststats.pt1 PARTITION OF tststats.pt
 FOR VALUES FROM (- 10, - 10) TO (10, 10);
 
-CREATE STATISTICS tststats.s1 ON a,
-b
-FROM
-    tststats.t;
+CREATE STATISTICS tststats.s1 ON a, b FROM tststats.t;
 
-CREATE STATISTICS tststats.s2 ON a,
-b
-FROM
-    tststats.ti;
+CREATE STATISTICS tststats.s2 ON a, b FROM tststats.ti;
 
-CREATE STATISTICS tststats.s3 ON a,
-b
-FROM
-    tststats.s;
+CREATE STATISTICS tststats.s3 ON a, b FROM tststats.s;
 
-CREATE STATISTICS tststats.s4 ON a,
-b
-FROM
-    tststats.v;
+CREATE STATISTICS tststats.s4 ON a, b FROM tststats.v;
 
-CREATE STATISTICS tststats.s5 ON a,
-b
-FROM
-    tststats.mv;
+CREATE STATISTICS tststats.s5 ON a, b FROM tststats.mv;
 
-CREATE STATISTICS tststats.s6 ON a,
-b
-FROM
-    tststats.ty;
+CREATE STATISTICS tststats.s6 ON a, b FROM tststats.ty;
 
-CREATE STATISTICS tststats.s7 ON a,
-b
-FROM
-    tststats.f;
+CREATE STATISTICS tststats.s7 ON a, b FROM tststats.f;
 
-CREATE STATISTICS tststats.s8 ON a,
-b
-FROM
-    tststats.pt;
+CREATE STATISTICS tststats.s8 ON a, b FROM tststats.pt;
 
-CREATE STATISTICS tststats.s9 ON a,
-b
-FROM
-    tststats.pt1;
+CREATE STATISTICS tststats.s9 ON a, b FROM tststats.pt1;
 
 DO $$
 DECLARE
@@ -346,11 +274,7 @@ FROM
     check_estimated_rows ('SELECT COUNT(*) FROM ndistinct GROUP BY b, c, d');
 
 -- correct command
-CREATE STATISTICS s10 ON a,
-b,
-c
-FROM
-    ndistinct;
+CREATE STATISTICS s10 ON a, b, c FROM ndistinct;
 
 ANALYZE ndistinct;
 
@@ -513,13 +437,7 @@ FROM
     check_estimated_rows ('SELECT * FROM functional_dependencies WHERE a = 1 AND b = ''1'' AND c = 1');
 
 -- create statistics
-CREATE STATISTICS func_deps_stat (
-    dependencies
-) ON a,
-b,
-c
-FROM
-    functional_dependencies;
+CREATE STATISTICS func_deps_stat (dependencies) ON a, b, c FROM functional_dependencies;
 
 ANALYZE functional_dependencies;
 
@@ -560,13 +478,7 @@ FROM
     check_estimated_rows ('SELECT * FROM functional_dependencies WHERE a = 1 AND b = ''1'' AND c = 1');
 
 -- create statistics
-CREATE STATISTICS func_deps_stat (
-    dependencies
-) ON a,
-b,
-c
-FROM
-    functional_dependencies;
+CREATE STATISTICS func_deps_stat (dependencies) ON a, b, c FROM functional_dependencies;
 
 ANALYZE functional_dependencies;
 
@@ -630,13 +542,7 @@ FROM
     check_estimated_rows ('SELECT * FROM mcv_lists WHERE a = 1 AND b = ''1'' AND c = 1');
 
 -- create statistics
-CREATE STATISTICS mcv_lists_stats (
-    mcv
-) ON a,
-b,
-c
-FROM
-    mcv_lists;
+CREATE STATISTICS mcv_lists_stats (mcv) ON a, b, c FROM mcv_lists;
 
 ANALYZE mcv_lists;
 
@@ -697,13 +603,7 @@ FROM
     check_estimated_rows ('SELECT * FROM mcv_lists WHERE a <= 4 AND b <= ''0'' AND c <= 4');
 
 -- create statistics
-CREATE STATISTICS mcv_lists_stats (
-    mcv
-) ON a,
-b,
-c
-FROM
-    mcv_lists;
+CREATE STATISTICS mcv_lists_stats (mcv) ON a, b, c FROM mcv_lists;
 
 ANALYZE mcv_lists;
 
@@ -806,13 +706,7 @@ FROM
     check_estimated_rows ('SELECT * FROM mcv_lists WHERE a IS NULL AND b IS NULL AND c IS NULL');
 
 -- create statistics
-CREATE STATISTICS mcv_lists_stats (
-    mcv
-) ON a,
-b,
-c
-FROM
-    mcv_lists;
+CREATE STATISTICS mcv_lists_stats (mcv) ON a, b, c FROM mcv_lists;
 
 ANALYZE mcv_lists;
 
@@ -862,13 +756,7 @@ SELECT
 FROM
     generate_series(1, 5000) s (i);
 
-CREATE STATISTICS mcv_lists_arrays_stats (
-    mcv
-) ON a,
-b,
-c
-FROM
-    mcv_lists_arrays;
+CREATE STATISTICS mcv_lists_arrays_stats (mcv) ON a, b, c FROM mcv_lists_arrays;
 
 ANALYZE mcv_lists_arrays;
 
@@ -909,13 +797,7 @@ SELECT
 FROM
     check_estimated_rows ('SELECT * FROM mcv_lists_bool WHERE NOT a AND b AND NOT c');
 
-CREATE STATISTICS mcv_lists_bool_stats (
-    mcv
-) ON a,
-b,
-c
-FROM
-    mcv_lists_bool;
+CREATE STATISTICS mcv_lists_bool_stats (mcv) ON a, b, c FROM mcv_lists_bool;
 
 ANALYZE mcv_lists_bool;
 

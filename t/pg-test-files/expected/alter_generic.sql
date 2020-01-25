@@ -461,15 +461,9 @@ CREATE TABLE alt_regress_1 (
     b INTEGER
 );
 
-CREATE STATISTICS alt_stat1 ON a,
-b
-FROM
-    alt_regress_1;
+CREATE STATISTICS alt_stat1 ON a, b FROM alt_regress_1;
 
-CREATE STATISTICS alt_stat2 ON a,
-b
-FROM
-    alt_regress_1;
+CREATE STATISTICS alt_stat2 ON a, b FROM alt_regress_1;
 
 ALTER STATISTICS alt_stat1 RENAME TO alt_stat2;
 
@@ -493,15 +487,9 @@ CREATE TABLE alt_regress_2 (
     b INTEGER
 );
 
-CREATE STATISTICS alt_stat1 ON a,
-b
-FROM
-    alt_regress_2;
+CREATE STATISTICS alt_stat1 ON a, b FROM alt_regress_2;
 
-CREATE STATISTICS alt_stat2 ON a,
-b
-FROM
-    alt_regress_2;
+CREATE STATISTICS alt_stat2 ON a, b FROM alt_regress_2;
 
 ALTER STATISTICS alt_stat3 RENAME TO alt_stat4;
 

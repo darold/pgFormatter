@@ -41,3 +41,32 @@ INSERT INTO foo AS bar DEFAULT
     RETURNING
         foo.*;
 
+CREATE TYPE foo AS enum (
+    'busy',
+    'help'
+);
+
+CREATE TYPE IF NOT EXISTS foo AS enum ( 'busy',
+    'help'
+);
+
+CREATE TABLE IF NOT EXISTS foo (
+    id bigint PRIMARY KEY,
+    /*
+     This text will receive an extra level of indentation
+     every time pg_format is executed
+     */
+    bar text NOT NULL
+    /* this is the end*/
+);
+
+CREATE INDEX onek_unique1 ON onek
+    USING btree (unique1 int4_ops);
+
+CREATE INDEX IF NOT EXISTS onek_unique1 ON onek
+    USING btree (unique1 int4_ops);
+
+CREATE STATISTICS ab1_a_b_stats ON a, b FROM ab1;
+
+CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a, b FROM ab1;
+

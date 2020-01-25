@@ -285,10 +285,7 @@ CREATE INDEX ctlt1_b_key ON ctlt1 (b);
 
 CREATE INDEX ctlt1_fnidx ON ctlt1 ((a || b));
 
-CREATE STATISTICS ctlt1_a_b_stat ON a,
-b
-FROM
-    ctlt1;
+CREATE STATISTICS ctlt1_a_b_stat ON a, b FROM ctlt1;
 
 COMMENT ON STATISTICS ctlt1_a_b_stat IS 'ab stats';
 

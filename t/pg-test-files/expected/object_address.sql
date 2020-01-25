@@ -127,10 +127,7 @@ CREATE SUBSCRIPTION addr_sub CONNECTION '' PUBLICATION bar WITH (
     slot_name = NONE
 );
 
-CREATE STATISTICS addr_nsp.gentable_stat ON a,
-b
-FROM
-    addr_nsp.gentable;
+CREATE STATISTICS addr_nsp.gentable_stat ON a, b FROM addr_nsp.gentable;
 
 -- test some error cases
 SELECT
