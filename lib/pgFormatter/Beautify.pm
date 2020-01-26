@@ -1429,6 +1429,7 @@ sub beautify
                     and ($self->_is_keyword($self->_next_token) or $self->_is_function($self->_next_token))
 		    and $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
+	    	    and !$self->{ '_is_in_over' }
                 );
             }
         }
@@ -1886,7 +1887,7 @@ sub beautify
 	{
             $self->_add_token( $token );
 	    $self->{ '_col_count' } = 0 if (defined $last && $last =~ /^(?:GROUP|ORDER)/i);
-	    if (!$self->{ '_has_order_by' }) {
+	    if (!$self->{ '_has_order_by' } and !$self->{ '_is_in_over' }) {
                 $self->_new_line($token,$last) if (!$self->{ 'wrap_after' });
                 $self->_over($token,$last);
 	    }
@@ -2140,7 +2141,6 @@ sub beautify
         elsif ($token =~ /^USING$/i and (!$self->{ '_is_in_policy' } || $self->{ 'format_type' }))
 	{
 	    $self->{ '_is_in_using' } = 1;
-	    #print STDERR "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU $self->{ '_is_in_from' } :: $self->{ '_is_in_index' }\n";
             if (!$self->{ '_is_in_from' })
 	    {
 		$self->_over($token,$last) if ($self->{ '_is_in_operator' });

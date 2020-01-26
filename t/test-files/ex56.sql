@@ -70,3 +70,4 @@ CREATE STATISTICS ab1_a_b_stats ON a, b FROM ab1;
 
 CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a, b FROM ab1;
 
+SELECT a , b , Row_number() OVER (PARTITION BY Coalesce(c.order_id , c.id)ORDER BY c.id ASC) , e , d FROM c;
