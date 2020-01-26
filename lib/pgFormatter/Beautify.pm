@@ -3748,7 +3748,7 @@ Please report any bugs or feature requests to: https://github.com/darold/pgForma
 
 =head1 COPYRIGHT
 
-Copyright 2012-2019 Gilles Darold. All rights reserved.
+Copyright 2012-2020 Gilles Darold. All rights reserved.
 
 =head1 LICENSE
 
