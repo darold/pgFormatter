@@ -14,6 +14,8 @@ also avalaible in CGI mode as a select box option.
 
 Here is the complete list of changes and acknowledgments:
 
+  - Fix indentation if CASE clause when there is ; in statement.
+    Thanks to Sergey Shepelev for the report.
   - Fix indentation of ORDER BY in OVER() clause. Thanks to Giorgi
     Modebadze for the report.
   - Keep CREATE STATISTICS statement on a single line.

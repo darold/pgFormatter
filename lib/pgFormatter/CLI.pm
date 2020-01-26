@@ -15,12 +15,12 @@ pgFormatter::CLI - Implementation of command line program to format SQL queries.
 
 =head1 VERSION
 
-Version 4.1
+Version 4.2
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '4.1';
+our $VERSION = '4.2';
 
 use autodie;
 use pgFormatter::Beautify;

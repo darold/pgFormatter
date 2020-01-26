@@ -33,7 +33,7 @@ local $SIG{ __WARN__ } = sub {
 use FindBin;
 use lib "$FindBin::RealBin/lib";
 
-our $VERSION = '4.1';
+our $VERSION = '4.2';
 
 # Find out whether current run should be treated as CGI or CLI
 my $program;
