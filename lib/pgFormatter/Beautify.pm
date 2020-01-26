@@ -1504,6 +1504,9 @@ sub beautify
 	    # statement separator or executing psql meta command (prefix 'g' includes all its variants)
 
             $self->_add_token($token);
+
+	    next if ($token eq ';' and $self->{ '_is_in_case' });
+
             if ($self->{ '_is_in_rule' }) {
 		$self->_back($token, $last);
 	    }
@@ -1897,7 +1900,7 @@ sub beautify
 	    }
         }
 
-        elsif ( $token =~ /^(?:CASE)$/i )
+        elsif ( $token =~ /^(?:CASE)$/i and uc($last) ne 'END')
 	{
             $self->_add_token( $token );
             # Store current indent position to print END at the right level
@@ -1959,7 +1962,7 @@ sub beautify
 
         elsif ( $token =~ /^(?:ELSE|ELSIF)$/i )
 	{
-            $self->_back($token, $last);
+	    $self->_back($token, $last);
             $self->_new_line($token,$last);
             $self->_add_token( $token );
             $self->_new_line($token,$last) if ($token !~ /^ELSIF$/i);

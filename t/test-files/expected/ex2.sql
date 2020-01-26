@@ -32,3 +32,18 @@ SELECT
 FROM
     my_table;
 
+CREATE OR REPLACE FUNCTION task_job_maint_after ()
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    CASE new.state
+    WHEN 'final' THEN
+        NOTIFY task_job_final;
+    ELSE
+        NULL;
+    END CASE;
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
