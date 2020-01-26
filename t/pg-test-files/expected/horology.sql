@@ -309,7 +309,7 @@ SELECT
 SELECT
     timestamp WITH time zone '2005-04-03 12:00-06' - interval '24 hours' AS "Apr 2, 11:00";
 
-RESET TIME ZONE;
+RESET time zone;
 
 SELECT
     timestamptz(date '1994-01-01', time '11:00') AS "Jan_01_1994_10am";
@@ -988,7 +988,7 @@ SET TIME ZONE 'America/New_York';
 
 SET TIME ZONE '-1.5';
 
-SHOW TIME ZONE;
+SHOW time zone;
 
 SELECT
     '2012-12-12 12:00'::timestamptz;
@@ -999,5 +999,5 @@ SELECT
 SELECT
     to_char('2012-12-12 12:00'::timestamptz, 'YYYY-MM-DD HH:MI:SS TZ');
 
-RESET TIME ZONE;
+RESET time zone;
 

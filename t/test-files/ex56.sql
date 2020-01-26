@@ -71,3 +71,23 @@ CREATE STATISTICS ab1_a_b_stats ON a, b FROM ab1;
 CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a, b FROM ab1;
 
 SELECT a , b , Row_number() OVER (PARTITION BY Coalesce(c.order_id , c.id)ORDER BY c.id ASC) , e , d FROM c;
+
+CREATE TABLE sh.z (
+    id SERIAL NOT NULL
+    , b SmALLINT NULL
+    , v TEXT NULL
+    , d TexT NULL
+    , e TiMESTAMP NULL
+    , f BOOLEAN NOT NULL
+    , g BOoLEAN NOT NULL);
+
+SET TIME ZONE 'CST7CDT';
+
+SELECT f1, f1::INTERVAL DAY TO MINUTE AS "minutes",
+  (f1 + INTERVAL '1 month')::INTERVAL MONTH::INTERVAL YEAR AS "years"
+  FROM interval_tbl;
+
+SELECT '19970210 173201' AT TIME ZONE 'America/New_York';
+
+SELECT * FROM XMLTABLE('*' PASSING '<a>a</a>' COLUMNS a xml PATH '.', b text PATH '.', c text PATH '"hi"', d boolean PATH '. = "a"', e integer PATH 'string-length(.)');
+

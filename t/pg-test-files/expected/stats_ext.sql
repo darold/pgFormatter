@@ -52,9 +52,9 @@ CREATE STATISTICS tst (unrecognized) ON relname, relnatts FROM pg_class;
 
 -- Ensure stats are dropped sanely, and test IF NOT EXISTS while at it
 CREATE TABLE ab1 (
-    a INTEGER,
-    b INTEGER,
-    c INTEGER
+    a integer,
+    b integer,
+    c integer
 );
 
 CREATE STATISTICS IF NOT EXISTS ab1_a_b_stats ON a, b FROM ab1;
@@ -107,8 +107,8 @@ WHERE
 
 -- Ensure things work sanely with SET STATISTICS 0
 CREATE TABLE ab1 (
-    a INTEGER,
-    b INTEGER
+    a integer,
+    b integer
 );
 
 ALTER TABLE ab1
@@ -226,13 +226,13 @@ DROP FOREIGN DATA WRAPPER extstats_dummy_fdw CASCADE;
 
 -- n-distinct tests
 CREATE TABLE ndistinct (
-    filler1 TEXT,
-    filler2 NUMERIC,
-    a INT,
-    b INT,
-    filler3 DATE,
-    c INT,
-    d INT
+    filler1 text,
+    filler2 numeric,
+    a int,
+    b int,
+    filler3 date,
+    c int,
+    d int
 );
 
 -- over-estimates when using only per-column statistics
@@ -401,13 +401,13 @@ FROM
 
 -- functional dependencies tests
 CREATE TABLE functional_dependencies (
-    filler1 TEXT,
-    filler2 NUMERIC,
-    a INT,
-    b TEXT,
-    filler3 DATE,
-    c INT,
-    d TEXT
+    filler1 text,
+    filler2 numeric,
+    a int,
+    b text,
+    filler3 date,
+    c int,
+    d text
 );
 
 CREATE INDEX fdeps_ab_idx ON functional_dependencies (a, b);
@@ -510,13 +510,13 @@ FROM
 
 -- MCV lists
 CREATE TABLE mcv_lists (
-    filler1 TEXT,
-    filler2 NUMERIC,
-    a INT,
-    b VARCHAR,
-    filler3 DATE,
-    c INT,
-    d TEXT
+    filler1 text,
+    filler2 numeric,
+    a int,
+    b varchar,
+    filler3 date,
+    c int,
+    d text
 );
 
 -- random data (no MCV list)
@@ -743,9 +743,9 @@ WHERE
 
 -- mcv with arrays
 CREATE TABLE mcv_lists_arrays (
-    a TEXT[],
-    b NUMERIC[],
-    c INT[]
+    a text[],
+    b numeric[],
+    c int[]
 );
 
 INSERT INTO mcv_lists_arrays (a, b, c)
@@ -762,9 +762,9 @@ ANALYZE mcv_lists_arrays;
 
 -- mcv with bool
 CREATE TABLE mcv_lists_bool (
-    a BOOL,
-    b BOOL,
-    c BOOL
+    a bool,
+    b bool,
+    c bool
 );
 
 INSERT INTO mcv_lists_bool (a, b, c)

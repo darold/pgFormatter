@@ -3,25 +3,25 @@
 --
 
 CREATE TABLE a (
-    aa TEXT
+    aa text
 );
 
 CREATE TABLE b (
-    bb TEXT
+    bb text
 )
 INHERITS (
     a
 );
 
 CREATE TABLE c (
-    cc TEXT
+    cc text
 )
 INHERITS (
     a
 );
 
 CREATE TABLE d (
-    dd TEXT
+    dd text
 )
 INHERITS (
     b,
@@ -513,7 +513,7 @@ WHERE
 
 -- Confirm PRIMARY KEY adds NOT NULL constraint to child table
 CREATE TEMP TABLE z (
-    b TEXT,
+    b text,
     PRIMARY KEY (aa, b)
 )
 INHERITS (
@@ -1043,14 +1043,14 @@ DROP TABLE p2;
 DROP TABLE p1;
 
 CREATE TABLE ac (
-    aa TEXT
+    aa text
 );
 
 ALTER TABLE ac
     ADD CONSTRAINT ac_check CHECK (aa IS NOT NULL);
 
 CREATE TABLE bc (
-    bb TEXT
+    bb text
 )
 INHERITS (
     ac

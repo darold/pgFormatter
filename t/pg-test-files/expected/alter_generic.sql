@@ -457,8 +457,8 @@ DROP OPERATOR FAMILY alt_opf18
 SET SESSION AUTHORIZATION regress_alter_generic_user1;
 
 CREATE TABLE alt_regress_1 (
-    a INTEGER,
-    b INTEGER
+    a integer,
+    b integer
 );
 
 CREATE STATISTICS alt_stat1 ON a, b FROM alt_regress_1;
@@ -483,8 +483,8 @@ ALTER STATISTICS alt_stat2 SET SCHEMA alt_nsp2;
 SET SESSION AUTHORIZATION regress_alter_generic_user2;
 
 CREATE TABLE alt_regress_2 (
-    a INTEGER,
-    b INTEGER
+    a integer,
+    b integer
 );
 
 CREATE STATISTICS alt_stat1 ON a, b FROM alt_regress_2;

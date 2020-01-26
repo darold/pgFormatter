@@ -61,7 +61,7 @@ CREATE FUNCTION check_password (uname1 text, pass1 text, uname2 text, pass2 text
     SET search_path TO admin, pg_temp
     AS $_$
 DECLARE
-    passed BOOLEAN;
+    passed boolean;
 BEGIN
     SELECT
         (pwd = $2) INTO passed

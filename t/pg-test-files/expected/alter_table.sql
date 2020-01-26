@@ -4498,8 +4498,8 @@ DROP TABLE old_system_table;
 
 -- set logged
 CREATE UNLOGGED TABLE unlogged1 (
-    f1 SERIAL PRIMARY KEY,
-    f2 TEXT
+    f1 serial PRIMARY KEY,
+    f2 text
 );
 
 -- check relpersistence of an unlogged table
@@ -4537,14 +4537,14 @@ ORDER BY
     relname;
 
 CREATE UNLOGGED TABLE unlogged2 (
-    f1 SERIAL PRIMARY KEY,
-    f2 INTEGER REFERENCES unlogged1
+    f1 serial PRIMARY KEY,
+    f2 integer REFERENCES unlogged1
 );
 
 -- foreign key
 CREATE UNLOGGED TABLE unlogged3 (
-    f1 SERIAL PRIMARY KEY,
-    f2 INTEGER REFERENCES unlogged3
+    f1 serial PRIMARY KEY,
+    f2 integer REFERENCES unlogged3
 );
 
 -- self-referencing foreign key
@@ -4601,8 +4601,8 @@ DROP TABLE unlogged1;
 
 -- set unlogged
 CREATE TABLE logged1 (
-    f1 SERIAL PRIMARY KEY,
-    f2 TEXT
+    f1 serial PRIMARY KEY,
+    f2 text
 );
 
 -- check relpersistence of a permanent table
@@ -4640,14 +4640,14 @@ ORDER BY
     relname;
 
 CREATE TABLE logged2 (
-    f1 SERIAL PRIMARY KEY,
-    f2 INTEGER REFERENCES logged1
+    f1 serial PRIMARY KEY,
+    f2 integer REFERENCES logged1
 );
 
 -- foreign key
 CREATE TABLE logged3 (
-    f1 SERIAL PRIMARY KEY,
-    f2 INTEGER REFERENCES logged3
+    f1 serial PRIMARY KEY,
+    f2 integer REFERENCES logged3
 );
 
 -- self-referencing foreign key

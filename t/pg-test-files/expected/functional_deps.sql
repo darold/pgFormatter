@@ -208,7 +208,7 @@ GROUP BY
 
 -- Drupal example, http://drupal.org/node/555530
 CREATE TEMP TABLE node (
-    nid SERIAL,
+    nid serial,
     vid integer NOT NULL DEFAULT '0',
     type varchar(32) NOT NULL DEFAULT '',
     title varchar(128) NOT NULL DEFAULT '',

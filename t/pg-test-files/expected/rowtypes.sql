@@ -854,16 +854,16 @@ DROP TYPE testtype1, testtype2, testtype3, testtype4, testtype5, testtype6;
 
 BEGIN;
 CREATE TABLE price (
-    id SERIAL PRIMARY KEY,
-    active BOOLEAN NOT NULL,
-    price NUMERIC
+    id serial PRIMARY KEY,
+    active boolean NOT NULL,
+    price numeric
 );
 CREATE TYPE price_input AS (
-    id INTEGER,
-    price NUMERIC
+    id integer,
+    price numeric
 );
 CREATE TYPE price_key AS (
-    id INTEGER
+    id integer
 );
 CREATE FUNCTION price_key_from_table (price)
     RETURNS price_key

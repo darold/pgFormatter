@@ -130,6 +130,8 @@ Takes options as hash. Following options are recognized:
 
 =item * uc_keywords - what to do with keywords - meaning of value like with uc_functions
 
+=item * uc_types - what to do with data types - meaning of value like with uc_functions
+
 =item * wrap - wraps given keywords in pre- and post- markup. Specific docs in SQL::Beautify
 
 =item * format_type - try an other formatting
@@ -152,7 +154,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -655,6 +657,7 @@ sub beautify
     $self->{ '_parenthesis_with_level' } = 0;
     $self->{ '_is_in_returns_table' } = 0;
     $self->{ '_has_limit' }  = 0;
+    $self->{ '_not_a_type' } = 0;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
@@ -1555,6 +1558,7 @@ sub beautify
 	    $self->{ '_parenthesis_with_level' } = 0;
             $self->{ '_is_in_returns_table' } = 0;
 	    $self->{ '_has_limit' } = 0;
+	    $self->{ '_not_a_type' } = 0;
 
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -2409,11 +2413,10 @@ sub _add_token
 
     my @cast = split(/::/, $token);
     $token = shift(@cast) if ($#cast >= 0);
-
     # lowercase/uppercase keywords taking care of function with same name
     if ($self->_is_keyword( $token, $next_token, $last_token ) and
-	    (!$self->_is_type($self->_next_token) || $self->{ '_is_in_create' } < 2 ||
-		    $self->{ '_is_in_create_function' })
+	    (!$self->_is_type($self->_next_token) or $self->{ '_is_in_create' } < 2
+		   or $self->{ '_is_in_create_function' })
         and (!$self->_is_function( $token ) || $next_token ne '(')
     )
     {
@@ -2436,6 +2439,31 @@ sub _add_token
             $token =~ s/$fct/$fct/i if ( $self->{ 'uc_functions' } == 3 );
         }
     }
+
+    if ($token =~ /^(AT|SET)$/i)
+    {
+        $self->{ '_not_a_type' } = 1;
+    }
+    elsif (!$self->_is_type($token))
+    {
+        $self->{ '_not_a_type' } = 0;
+    }
+
+    # Type are always lowercase
+    if (!$self->{ '_not_a_type' })
+    {
+	    if ($self->_is_type($token) and defined $last_token)
+	    {
+		if ((!$self->_is_keyword($last_token) or $self->_is_type($last_token) or $self->_is_type($next_token))
+			and (not defined $next_token or $next_token !~ /^(SEARCH)$/i))
+		{
+		    $token = lc( $token )            if ( $self->{ 'uc_types' } == 1 );
+		    $token = uc( $token )            if ( $self->{ 'uc_types' } == 2 );
+		    $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_types' } == 3 );
+		}
+	    }
+    }
+    #$self->{ '_not_a_type' } = 0 if ($token =~ /^(ZONE|TO|=|;)$/i);
 
     # Add formatting for HTML output
     if ( $self->{ 'colorize' } && $self->{ 'format' } eq 'html' ) {
@@ -2954,9 +2982,11 @@ Currently defined defaults:
 
 =item break => "\n"
 
-=item uc_keywords => 0
+=item uc_keywords => 2
 
 =item uc_functions => 0
+
+=item uc_types => 1
 
 =item no_comments => 0
 
@@ -2994,8 +3024,9 @@ sub set_defaults
     $self->{ 'break' }        = "\n";
     $self->{ 'wrap' }         = {};
     $self->{ 'rules' }        = {};
-    $self->{ 'uc_keywords' }  = 0;
+    $self->{ 'uc_keywords' }  = 2;
     $self->{ 'uc_functions' } = 0;
+    $self->{ 'uc_types' }  = 1;
     $self->{ 'no_comments' }  = 0;
     $self->{ 'no_grouping' }  = 0;
     $self->{ 'placeholder' }  = '';
@@ -3078,9 +3109,10 @@ sub set_dicts
         );
 
     my @pg_types = qw(
-        BIGINT BIGSERIAL BIT BOOLEAN BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INT INTEGER INTERVAL JSON
-        JSONB LINE LSEG MACADDR MACADDR8 MONEY NUMERIC PATH PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
-       	SERIAL TEXT TIME TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 VARYING VARCHAR
+        BIGINT BIGSERIAL BIT BOOLEAN BOOL BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INT INTEGER INTERVAL
+        JSON JSONB LINE LSEG MACADDR MACADDR8 MONEY NUMERIC PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
+       	SERIAL TEXT TIME TIMESTAMP TIMESTAMPTZ TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 VARYING VARCHAR
+	ZONE
 	);
 
     my @sql_keywords = map { uc } qw(

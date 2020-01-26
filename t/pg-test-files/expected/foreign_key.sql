@@ -1555,13 +1555,13 @@ DROP TABLE pktable_base;
 -- deferrable, explicitly deferred
 
 CREATE TABLE pktable (
-    id INT4 PRIMARY KEY,
-    other INT4
+    id int4 PRIMARY KEY,
+    other int4
 );
 
 CREATE TABLE fktable (
-    id INT4 PRIMARY KEY,
-    fk INT4 REFERENCES pktable DEFERRABLE
+    id int4 PRIMARY KEY,
+    fk int4 REFERENCES pktable DEFERRABLE
 );
 
 -- default to immediate: should fail
@@ -1582,13 +1582,13 @@ DROP TABLE fktable, pktable;
 
 -- deferrable, initially deferred
 CREATE TABLE pktable (
-    id INT4 PRIMARY KEY,
-    other INT4
+    id int4 PRIMARY KEY,
+    other int4
 );
 
 CREATE TABLE fktable (
-    id INT4 PRIMARY KEY,
-    fk INT4 REFERENCES pktable DEFERRABLE INITIALLY DEFERRED
+    id int4 PRIMARY KEY,
+    fk int4 REFERENCES pktable DEFERRABLE INITIALLY DEFERRED
 );
 
 -- default to deferred, should succeed
@@ -1616,13 +1616,13 @@ DROP TABLE fktable, pktable;
 -- retroactively)
 
 CREATE TABLE pktable (
-    id INT4 PRIMARY KEY,
-    other INT4
+    id int4 PRIMARY KEY,
+    other int4
 );
 
 CREATE TABLE fktable (
-    id INT4 PRIMARY KEY,
-    fk INT4 REFERENCES pktable DEFERRABLE
+    id int4 PRIMARY KEY,
+    fk int4 REFERENCES pktable DEFERRABLE
 );
 
 BEGIN;
@@ -1641,13 +1641,13 @@ DROP TABLE fktable, pktable;
 
 -- deferrable, initially deferred
 CREATE TABLE pktable (
-    id INT4 PRIMARY KEY,
-    other INT4
+    id int4 PRIMARY KEY,
+    other int4
 );
 
 CREATE TABLE fktable (
-    id INT4 PRIMARY KEY,
-    fk INT4 REFERENCES pktable DEFERRABLE INITIALLY DEFERRED
+    id int4 PRIMARY KEY,
+    fk int4 REFERENCES pktable DEFERRABLE INITIALLY DEFERRED
 );
 
 BEGIN;
@@ -1663,18 +1663,18 @@ DROP TABLE pktable, fktable;
 -- where the index cannot be used because of type incompatibilities.
 
 CREATE TEMP TABLE pktable (
-    id1 INT4 PRIMARY KEY,
-    id2 VARCHAR(4) UNIQUE,
-    id3 REAL UNIQUE,
+    id1 int4 PRIMARY KEY,
+    id2 varchar(4) UNIQUE,
+    id3 real UNIQUE,
     UNIQUE (id1, id2, id3)
 );
 
 CREATE TEMP TABLE fktable (
-    x1 INT4 REFERENCES pktable (id1),
-    x2 VARCHAR(4) REFERENCES pktable (id2),
-    x3 REAL REFERENCES pktable (id3),
-    x4 TEXT,
-    x5 INT2
+    x1 int4 REFERENCES pktable (id1),
+    x2 varchar(4) REFERENCES pktable (id2),
+    x3 real REFERENCES pktable (id3),
+    x4 text,
+    x5 int2
 );
 
 -- check individual constraints with alter table.
@@ -1849,8 +1849,8 @@ ALTER TABLE fktable
 -- changes in 8.0.
 
 CREATE TEMP TABLE users (
-    id INT PRIMARY KEY,
-    name VARCHAR NOT NULL
+    id int PRIMARY KEY,
+    name varchar NOT NULL
 );
 
 INSERT INTO users
@@ -1863,10 +1863,10 @@ INSERT INTO users
     VALUES (3, 'Samko');
 
 CREATE TEMP TABLE tasks (
-    id INT PRIMARY KEY,
+    id int PRIMARY KEY,
     owner INT REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
-    worker INT REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
-    checked_by INT REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL
+    worker int REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
+    checked_by int REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 INSERT INTO tasks
@@ -2476,13 +2476,13 @@ DROP TABLE fk_notpartitioned_pk, fk_partitioned_fk;
 -- Ensure that works.
 
 CREATE TABLE fk_notpartitioned_pk (
-    a INT,
+    a int,
     PRIMARY KEY (a),
     CHECK (a > 0)
 );
 
 CREATE TABLE fk_partitioned_fk (
-    a INT REFERENCES fk_notpartitioned_pk (a) PRIMARY KEY
+    a int REFERENCES fk_notpartitioned_pk (a) PRIMARY KEY
 )
 PARTITION BY RANGE (a);
 

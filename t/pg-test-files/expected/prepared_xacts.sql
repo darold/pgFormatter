@@ -8,7 +8,7 @@
 -- create a simple table that we'll use in the tests
 
 CREATE TABLE pxtest1 (
-    foobar VARCHAR(10)
+    foobar varchar(10)
 );
 
 INSERT INTO pxtest1

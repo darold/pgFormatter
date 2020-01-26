@@ -1464,7 +1464,7 @@ DROP TABLE cwi_test;
 --
 
 CREATE TABLE syscol_table (
-    a INT
+    a int
 );
 
 -- System columns cannot be indexed
@@ -2345,7 +2345,7 @@ CREATE SCHEMA schema_to_reindex;
 SET search_path = 'schema_to_reindex';
 
 CREATE TABLE table1 (
-    col1 SERIAL PRIMARY KEY
+    col1 serial PRIMARY KEY
 );
 
 INSERT INTO table1
@@ -2353,8 +2353,8 @@ SELECT
     generate_series(1, 400);
 
 CREATE TABLE table2 (
-    col1 SERIAL PRIMARY KEY,
-    col2 TEXT NOT NULL
+    col1 serial PRIMARY KEY,
+    col2 text NOT NULL
 );
 
 INSERT INTO table2

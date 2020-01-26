@@ -552,7 +552,7 @@ WHERE
     xpath_exists('/myns:menu/myns:beers/myns:name[text() = ''Molson'']', data, ARRAY[ARRAY['myns', 'http://myns.com']]);
 
 CREATE TABLE query (
-    expr TEXT
+    expr text
 );
 
 INSERT INTO query

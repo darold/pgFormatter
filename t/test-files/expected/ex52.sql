@@ -1,15 +1,15 @@
 DROP OPERATOR === ();
 
 CREATE TYPE jwt_token AS (
-    token TEXT,
-    field: TEXT
+    token text,
+    field: text
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
-    id SERIAL PRIMARY KEY,
-    users_id INTEGER NOT NULL REFERENCES users (id),
-    students_id INTEGER NOT NULL REFERENCES students (id),
-    communication BOOLEAN NOT NULL
+    id serial PRIMARY KEY,
+    users_id integer NOT NULL REFERENCES users (id),
+    students_id integer NOT NULL REFERENCES students (id),
+    communication boolean NOT NULL
 );
 
 CREATE TABLE nulltest (

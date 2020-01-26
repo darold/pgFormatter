@@ -91,14 +91,14 @@ DROP TABLE idxpart;
 -- https://postgr.es/m/20180124162006.pmapfiznhgngwtjf@alvherre.pgsql
 
 CREATE TABLE idxpart (
-    col1 INT
+    col1 int
 )
 PARTITION BY RANGE (col1);
 
 CREATE INDEX ON idxpart (col1);
 
 CREATE TABLE idxpart_two (
-    col2 INT
+    col2 int
 );
 
 SELECT
@@ -113,9 +113,9 @@ DROP TABLE idxpart, idxpart_two;
 -- https://postgr.es/m/CAKcux6mxNCGsgATwf5CGMF8g4WSupCXicCVMeKUTuWbyxHOMsQ@mail.gmail.com
 
 CREATE TABLE idxpart (
-    a INT,
-    b TEXT,
-    c INT
+    a int,
+    b text,
+    c int
 )
 PARTITION BY RANGE (a);
 
@@ -1511,9 +1511,9 @@ DROP TABLE idxpart;
 -- it doesn't match the parent's PK.
 
 CREATE TABLE idxpart (
-    c1 INT PRIMARY KEY,
-    c2 INT,
-    c3 VARCHAR(10)
+    c1 int PRIMARY KEY,
+    c2 int,
+    c3 varchar(10)
 )
 PARTITION BY RANGE (c1);
 

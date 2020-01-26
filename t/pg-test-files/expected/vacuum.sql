@@ -3,7 +3,7 @@
 --
 
 CREATE TABLE vactst (
-    i INT
+    i int
 );
 
 INSERT INTO vactst
@@ -194,7 +194,7 @@ VACUUM (ANALYZE,
     FULL) vactst;
 
 CREATE TABLE vaccluster (
-    i INT PRIMARY KEY
+    i int PRIMARY KEY
 );
 
 ALTER TABLE vaccluster CLUSTER ON vaccluster_pkey;
@@ -207,7 +207,7 @@ CREATE FUNCTION do_analyze ()
     AS 'ANALYZE pg_am'
 ;
 
-CREATE FUNCTION wrap_do_analyze (c INT)
+CREATE FUNCTION wrap_do_analyze (c int)
     RETURNS INT IMMUTABLE
     LANGUAGE SQL
     AS 'SELECT $1 FROM do_analyze()'
@@ -239,7 +239,7 @@ VACUUM (DISABLE_PAGE_SKIPPING) vaccluster;
 
 -- INDEX_CLEANUP option
 CREATE TABLE no_index_cleanup (
-    i INT PRIMARY KEY
+    i int PRIMARY KEY
 )
 WITH (
     vacuum_index_cleanup = FALSE

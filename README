@@ -52,6 +52,9 @@ DESCRIPTION
         -u | --keyword-case N : Change the case of the reserved keyword. Default is
                                 uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                                 2=>uppercase, 3=>capitalize.
+        -U | --type-case N    : Change the case of the data type name. Default is
+                                lowercase: 1. Values: 0=>unchanged, 1=>lowercase,
+                                2=>uppercase, 3=>capitalize.
         -v | --version        : show pg_format version and exit.
         -w | --wrap-limit N   : wrap queries at a certain length.
         -W | --wrap-after N   : number of column after which lists must be wrapped.

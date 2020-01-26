@@ -211,10 +211,10 @@ SELECT
     to_jsonb (timestamp '2014-05-28 12:22:35.614298');
 
 BEGIN;
-SET LOCAL TIME ZONE 10.5;
+SET LOCAL time zone 10.5;
 SELECT
     to_jsonb (timestamptz '2014-05-28 12:22:35.614298-04');
-SET LOCAL TIME ZONE - 8;
+SET LOCAL time zone - 8;
 SELECT
     to_jsonb (timestamptz '2014-05-28 12:22:35.614298-04');
 COMMIT;

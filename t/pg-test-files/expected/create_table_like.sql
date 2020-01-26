@@ -11,11 +11,11 @@ CREATE TABLE inhx (
  * INCLUDING DEFAULTS is specified
  */
 CREATE TABLE ctla (
-    aa TEXT
+    aa text
 );
 
 CREATE TABLE ctlb (
-    bb TEXT
+    bb text
 )
 INHERITS (
     ctla

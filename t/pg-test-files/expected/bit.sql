@@ -6,7 +6,7 @@
 --
 
 CREATE TABLE BIT_TABLE (
-    b BIT(11)
+    b bit(11)
 );
 
 INSERT INTO BIT_TABLE
@@ -35,7 +35,7 @@ FROM
     BIT_TABLE;
 
 CREATE TABLE VARBIT_TABLE (
-    v BIT VARYING(11)
+    v bit varying(11)
 );
 
 INSERT INTO VARBIT_TABLE
@@ -107,8 +107,8 @@ FROM
 DROP TABLE varbit_table;
 
 CREATE TABLE varbit_table (
-    a BIT VARYING(16),
-    b BIT VARYING(16)
+    a bit varying(16),
+    b bit varying(16)
 );
 
 SELECT
@@ -147,8 +147,8 @@ DROP TABLE varbit_table;
 DROP TABLE bit_table;
 
 CREATE TABLE bit_table (
-    a BIT(16),
-    b BIT(16)
+    a bit(16),
+    b bit(16)
 );
 
 SELECT
@@ -349,7 +349,7 @@ SELECT
 -- Shifting
 
 CREATE TABLE BIT_SHIFT_TABLE (
-    b BIT(16)
+    b bit(16)
 );
 
 INSERT INTO BIT_SHIFT_TABLE
@@ -387,7 +387,7 @@ FROM
     BIT_SHIFT_TABLE;
 
 CREATE TABLE VARBIT_SHIFT_TABLE (
-    v BIT VARYING(20)
+    v bit varying(20)
 );
 
 INSERT INTO VARBIT_SHIFT_TABLE
@@ -395,25 +395,25 @@ INSERT INTO VARBIT_SHIFT_TABLE
 
 INSERT INTO VARBIT_SHIFT_TABLE
 SELECT
-    CAST(v || B '0' AS BIT VARYING(6)) >> 1
+    CAST(v || B '0' AS bit varying(6)) >> 1
 FROM
     VARBIT_SHIFT_TABLE;
 
 INSERT INTO VARBIT_SHIFT_TABLE
 SELECT
-    CAST(v || B '00' AS BIT VARYING(8)) >> 2
+    CAST(v || B '00' AS bit varying(8)) >> 2
 FROM
     VARBIT_SHIFT_TABLE;
 
 INSERT INTO VARBIT_SHIFT_TABLE
 SELECT
-    CAST(v || B '0000' AS BIT VARYING(12)) >> 4
+    CAST(v || B '0000' AS bit varying(12)) >> 4
 FROM
     VARBIT_SHIFT_TABLE;
 
 INSERT INTO VARBIT_SHIFT_TABLE
 SELECT
-    CAST(v || B '00000000' AS BIT VARYING(20)) >> 8
+    CAST(v || B '00000000' AS bit varying(20)) >> 8
 FROM
     VARBIT_SHIFT_TABLE;
 

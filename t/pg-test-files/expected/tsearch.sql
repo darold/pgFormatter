@@ -868,8 +868,8 @@ SELECT
 
 --Rewrite sub system
 CREATE TABLE test_tsquery (
-    txtkeyword TEXT,
-    txtsample TEXT
+    txtkeyword text,
+    txtsample text
 );
 
 \set ECHO none

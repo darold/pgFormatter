@@ -2654,8 +2654,8 @@ DROP FUNCTION duplic (anyelement);
 --
 
 CREATE TABLE perform_test (
-    a INT,
-    b INT
+    a int,
+    b int
 );
 
 CREATE FUNCTION perform_simple_func (int)
@@ -5442,11 +5442,11 @@ DROP FUNCTION rttest ();
 -- Test for proper cleanup at subtransaction exit.  This example
 -- exposed a bug in PG 8.2.
 
-CREATE FUNCTION leaker_1 (fail BOOL)
+CREATE FUNCTION leaker_1 (fail bool)
     RETURNS INTEGER
     AS $$
 DECLARE
-    v_var INTEGER;
+    v_var integer;
 BEGIN
     BEGIN
         v_var := (leaker_2 (fail)).error_code;
@@ -5460,7 +5460,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION leaker_2 (fail BOOL, OUT error_code INTEGER, OUT new_id INTEGER)
+CREATE FUNCTION leaker_2 (fail bool, OUT error_code integer, OUT new_id integer)
     RETURNS RECORD
     AS $$
 BEGIN

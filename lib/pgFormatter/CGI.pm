@@ -105,6 +105,7 @@ sub set_config {
     $self->{ 'colorize' }     = 1;
     $self->{ 'uc_keyword' }   = 2;
     $self->{ 'uc_function' }  = 0;
+    $self->{ 'uc_type' }      = 1;
     $self->{ 'debug' }        = 0;
     $self->{ 'content' }      = '';
     $self->{ 'original_content' }      = '';
@@ -158,7 +159,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -173,6 +174,8 @@ sub get_params {
 	if (!-T $tmpfilename) {
 		$self->{ 'colorize' }   = 0;
 		$self->{ 'uc_keyword' } = 0;
+		$self->{ 'uc_function' }= 0;
+		$self->{ 'uc_type' }    = 0;
 		$self->{ 'content' }    = "FATAL: Only text files are supported! Found content-type: $type";
 	} else {
 		binmode $fh;
@@ -182,6 +185,8 @@ sub get_params {
     else {
         $self->{ 'colorize' }   = 0;
         $self->{ 'uc_keyword' } = 0;
+	$self->{ 'uc_function' }= 0;
+	$self->{ 'uc_type' }    = 0;
         $self->{ 'content' }    = "FATAL: Only text files are supported! Found content-type: $type";
     }
 
@@ -200,6 +205,7 @@ sub sanitize_params {
     $self->{ 'spaces' }       = 4 if $self->{ 'spaces' } !~ /^\d{1,2}$/;
     $self->{ 'uc_keyword' }   = 2 if $self->{ 'uc_keyword' } && ( $self->{ 'uc_keyword' } !~ /^(0|1|2|3)$/ );
     $self->{ 'uc_function' }  = 0 if $self->{ 'uc_function' } && ( $self->{ 'uc_function' } !~ /^(0|1|2|3)$/ );
+    $self->{ 'uc_type' }      = 1 if $self->{ 'uc_type' } && ( $self->{ 'uc_type' } !~ /^(0|1|2|3)$/ );
     $self->{ 'nocomment' }    = 0 if $self->{ 'nocomment' } !~ /^(0|1)$/;
     $self->{ 'nogrouping' }   = 0 if $self->{ 'nogrouping' } !~ /^(0|1)$/;
     $self->{ 'show_example' } = 0 if $self->{ 'show_example' } !~ /^(0|1)$/;
@@ -243,6 +249,7 @@ sub beautify_query {
     $args{ 'spaces' }       = $self->{ 'spaces' };
     $args{ 'uc_keywords' }  = $self->{ 'uc_keyword' };
     $args{ 'uc_functions' } = $self->{ 'uc_function' };
+    $args{ 'uc_types' }     = $self->{ 'uc_type' };
     $args{ 'separator' }    = $self->{ 'separator' };
     $args{ 'comma' }        = $self->{ 'comma' };
     $args{ 'format' }       = $self->{ 'format' };
@@ -297,6 +304,9 @@ sub print_body {
     my %fct_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
     $fct_toggle{ $self->{ 'uc_function' } } = ' selected="selected"';
 
+    my %typ_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
+    $typ_toggle{ $self->{ 'uc_type' } } = ' selected="selected"';
+
     my $service_url = $self->{ 'service_url' } || $self->{ 'cgi' }->url;
 
     print <<_END_OF_HTML_;
@@ -343,6 +353,13 @@ sub print_body {
             <option value="1"$fct_toggle{1} >Lower case</option>
             <option value="2"$fct_toggle{2} >Upper case</option>
             <option value="3"$fct_toggle{3} >Capitalize</option>
+      </select>
+    <br />
+      Datatypes: <select name="uc_type" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();">
+            <option value="0"$typ_toggle{0}>Unchanged</option>
+            <option value="1"$typ_toggle{1} >Lower case</option>
+            <option value="2"$typ_toggle{2} >Upper case</option>
+            <option value="3"$typ_toggle{3} >Capitalize</option>
       </select>
     </div>
     </fieldset>

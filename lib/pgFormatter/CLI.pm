@@ -88,6 +88,7 @@ sub beautify {
     $args{ 'spaces' }       = $self->{ 'cfg' }->{ 'spaces' };
     $args{ 'uc_keywords' }  = $self->{ 'cfg' }->{ 'keyword-case' };
     $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
+    $args{ 'uc_types' }     = $self->{ 'cfg' }->{ 'type-case' };
     $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
     $args{ 'separator' }    = $self->{ 'cfg' }->{ 'separator' };
     $args{ 'comma' }        = $self->{ 'cfg' }->{ 'comma' };
@@ -212,6 +213,9 @@ Options:
     -u | --keyword-case N : Change the case of the reserved keyword. Default is
                             uppercase: 2. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
+    -U | --type-case N    : Change the case of the data type name. Default is
+                            lowercase: 1. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
     -v | --version        : show pg_format version and exit.
     -w | --wrap-limit N   : wrap queries at a certain length.
     -W | --wrap-after N   : number of column after which lists must be wrapped.
@@ -282,6 +286,7 @@ sub get_command_line_args {
         'format-type|t!',
         'tabs|T!',
         'keyword-case|u=i',
+        'type-case|U=i',
         'version|v!',
         'wrap-limit|w=i',
         'wrap-after|W=i',
@@ -300,6 +305,7 @@ sub get_command_line_args {
     $cfg{ 'output' }        //= '-';
     $cfg{ 'function-case' } //= 0;
     $cfg{ 'keyword-case' }  //= 2;
+    $cfg{ 'type-case' }     //= 1;
     $cfg{ 'comma' }           = 'end';
     $cfg{ 'format' }        //= 'text';
     $cfg{ 'comma-break' }   //= 0;
@@ -336,6 +342,7 @@ sub validate_args {
 
     $self->show_help_and_die( 2, 'function-case can be only one of: 0, 1, 2, or 3.' ) unless $self->{ 'cfg' }->{ 'function-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'keyword-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'keyword-case' } =~ m{\A[0123]\z};
+    $self->show_help_and_die( 2, 'type-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'type-case' } =~ m{\A[0123]\z};
 
     if ($self->{ 'cfg' }->{ 'comma-end' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'end';

@@ -1,9 +1,99 @@
+January 26 2020 - v4.2
+
+This is a maintenance release to fix issues reported by users since
+the last three months. As usual there is also some improvements and
+more formatting supported.
+
+New option:
+
+  * -U | --type-case N    : Change the case of the data type name. Default is
+                            lowercase: 1. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize.
+
+also avalaible in CGI mode as a select box option.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix indentation of ORDER BY in OVER() clause. Thanks to Giorgi
+    Modebadze for the report.
+  - Keep CREATE STATISTICS statement on a single line.
+  - Restore CREATE INDEX on a single line (no newline before using)
+    to conform to pg_dump output.
+  - Fix indentation when IF NOT EXISTS clause is present.
+  - Add execution of regression tests through call to: make test.
+    Thanks to Christoph Berg for the feature request.
+  - Fix uninitialized variable error.
+  - Fix identation of VALUES clause for INSERT statement in function
+   code. Thanks to Sergey Shepelev for the report.
+  - Fix indentation between comment and closed parenthesis before a
+    column alias. Thanks to Laszlo Zsolt Nagy for the report.
+  - Fix indentation of a FOR UPDATE clause in plpgsql function and
+    after a LIMIT clause. Thanks to Sergey Shepelev.
+  - Remove extra newline on inline comment. Thanks to prichardson211
+    for the report.
+  - Fix indentation of VALUES in some cases of INSERT statements
+  - Fix wrong current statement assignment with comment keywword.
+  - Fix invalid indentation of INSERT into function.
+  - Dump array values in _dump_var() function.
+  - Add RAISE to keywords.
+  - Fix indentation in function with nested BEGIN/END blocks. Thanks
+    to prichardson211 for the reports.
+  - Fix other bad formatting in CREATE TYPE statements.
+  - Indent AS followed by code delimiter in CREATE PROCEDURE statement
+    just like with CREATE FUNCTION.
+  - Fix indentation after a function/procedure with single quote as
+    delimiter.
+  - Prevent newline between open and close parenthesis in create
+    function clause when there is no parameters.
+  - Apply same behavior than previous commit for colon followed by the
+    variable name in double quotes
+  - Fix formatting of psql variable used in sql file. Thanks to Girish
+    Pasupathy for the report.
+  - Add detection of cast in token for keyword and function formatting
+    Do not treat TRUE/FALSE as keyword when used a column aliases.
+  - Fix formatting with casts type after case when using ::. Thanks to
+    Giorgi Modebadze for the report.
+  - Fix wrong detection as keyword or column name of tokens COMMENT,
+    INDEX and CONSTRAINT.
+  - Add debug information for SQL keyword detection.
+  - Fix new line in FK constrains between ON and UPDATE.
+  - Remove newline between UPDATE and the relation name, they appears
+    now on the same line.
+  - Fix formatting of ON CONFLICT DO clause. Thanks to prichardson211
+    for the report.
+  - Fix formatting of PREPARE ... AS UPDATE
+  - Replace double quote in functions that has single quote as quote
+    separator as we replace it by $$.
+  - Fix wrong formatting with CREATE TABLE in EXPLAIN statement.
+  - Add newline between AS and WITH keywords. Thanks to Andriy Diulin
+    for the report.
+  - Fix indent of RETURNS TABLE clause. Thanks to Ziyaddin Sadigov for
+    the report.
+  - Fix formatting of trigger with INSTEAD OF.
+  - Fix indentation of SELECT inside INSERT statement. Thanks to
+    Laszlo Zsolt Nagy for the report.
+  - Fix case where formatting adds a newline before ASC or DESC.
+    Thanks to Giorgi Modebadze for the report.
+  - Fix formatting in CREATE TABLE statement with no indent after
+    first foreign key.
+  - Fix parsing of function with internal language that was breaking
+    formatting of subsequent statements.
+  - Fix formatting of CONSTRAINT TRIGGER.
+  - Add more debug capabilities.
+  - Fix wrap in compound FOREIGN KEY. Thanks to Victor Andree for the
+    report.
+  - Fix exception when the statement does not end with a semi colon.
+    Thanks to Ralph R. for the report.
+  - Allow testing installed binary in /usr/bin required for Debian
+  - package testsuite. Thanks to Christoph Berg for the patch.
+  - Reflect test result in exit code of regress_test.pl. Thanks to
+    Christoph Berg for the patch.
+
 September 20 2019 - v4.1
 
 This is a maintenance release to fix issues reported by users since
 the last three month. As usual there is also some improvements and
 new features.
-
 
   * Add -T, --tabs option to make pg_format use tabs instead of space
     characters.  When this option is used spaces number is set to 1

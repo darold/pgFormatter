@@ -222,9 +222,9 @@ FROM
 --      +->E-+->G
 
 CREATE TEMP TABLE department (
-    id INTEGER PRIMARY KEY, -- department ID
-    parent_department INTEGER REFERENCES department, -- upper department ID
-    name TEXT -- department name
+    id integer PRIMARY KEY, -- department ID
+    parent_department integer REFERENCES department, -- upper department ID
+    name text -- department name
 );
 
 INSERT INTO department
@@ -574,8 +574,8 @@ FROM
 --
 
 CREATE TEMPORARY TABLE tree (
-    id INTEGER PRIMARY KEY,
-    parent_id INTEGER REFERENCES tree (id)
+    id integer PRIMARY KEY,
+    parent_id integer REFERENCES tree (id)
 );
 
 INSERT INTO tree
@@ -951,7 +951,7 @@ FROM
 --
 
 CREATE TEMPORARY TABLE y (
-    a INTEGER
+    a integer
 );
 
 INSERT INTO y
@@ -1124,7 +1124,7 @@ FROM
     x;
 
 CREATE TEMPORARY TABLE y (
-    a INTEGER
+    a integer
 );
 
 INSERT INTO y
@@ -2333,7 +2333,7 @@ SELECT
     generate_series(1, 3);
 
 CREATE TEMPORARY TABLE yy (
-    a INTEGER
+    a integer
 );
 
 WITH RECURSIVE t1 AS (

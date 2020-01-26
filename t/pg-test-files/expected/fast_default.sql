@@ -101,8 +101,8 @@ ALTER TABLE has_volatile
 
 -- Test a large sample of different datatypes
 CREATE TABLE T (
-    pk INT NOT NULL PRIMARY KEY,
-    c_int INT DEFAULT 1
+    pk int NOT NULL PRIMARY KEY,
+    c_int int DEFAULT 1
 );
 
 SELECT
@@ -119,29 +119,29 @@ INSERT INTO T
     VALUES (3), (4);
 
 ALTER TABLE T
-    ADD COLUMN c_text TEXT DEFAULT 'world',
+    ADD COLUMN c_text text DEFAULT 'world',
     ALTER COLUMN c_bpchar SET DEFAULT 'dog';
 
 INSERT INTO T
     VALUES (5), (6);
 
 ALTER TABLE T
-    ADD COLUMN c_date DATE DEFAULT '2016-06-02',
+    ADD COLUMN c_date date DEFAULT '2016-06-02',
     ALTER COLUMN c_text SET DEFAULT 'cat';
 
 INSERT INTO T
     VALUES (7), (8);
 
 ALTER TABLE T
-    ADD COLUMN c_timestamp TIMESTAMP DEFAULT '2016-09-01 12:00:00',
-    ADD COLUMN c_timestamp_null TIMESTAMP,
+    ADD COLUMN c_timestamp timestamp DEFAULT '2016-09-01 12:00:00',
+    ADD COLUMN c_timestamp_null timestamp,
     ALTER COLUMN c_date SET DEFAULT '2010-01-01';
 
 INSERT INTO T
     VALUES (9), (10);
 
 ALTER TABLE T
-    ADD COLUMN c_array TEXT[] DEFAULT '{"This", "is", "the", "real", "world"}',
+    ADD COLUMN c_array text[] DEFAULT '{"This", "is", "the", "real", "world"}',
     ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31 11:12:13',
     ALTER COLUMN c_timestamp_null SET DEFAULT '2016-09-29 12:00:00';
 
@@ -149,15 +149,15 @@ INSERT INTO T
     VALUES (11), (12);
 
 ALTER TABLE T
-    ADD COLUMN c_small SMALLINT DEFAULT - 5,
-    ADD COLUMN c_small_null SMALLINT,
+    ADD COLUMN c_small smallint DEFAULT - 5,
+    ADD COLUMN c_small_null smallint,
     ALTER COLUMN c_array SET DEFAULT '{"This", "is", "no", "fantasy"}';
 
 INSERT INTO T
     VALUES (13), (14);
 
 ALTER TABLE T
-    ADD COLUMN c_big BIGINT DEFAULT 180000000000018,
+    ADD COLUMN c_big bigint DEFAULT 180000000000018,
     ALTER COLUMN c_small SET DEFAULT 9,
     ALTER COLUMN c_small_null SET DEFAULT 13;
 
@@ -165,28 +165,28 @@ INSERT INTO T
     VALUES (15), (16);
 
 ALTER TABLE T
-    ADD COLUMN c_num NUMERIC DEFAULT 1.00000000001,
+    ADD COLUMN c_num numeric DEFAULT 1.00000000001,
     ALTER COLUMN c_big SET DEFAULT - 9999999999999999;
 
 INSERT INTO T
     VALUES (17), (18);
 
 ALTER TABLE T
-    ADD COLUMN c_time TIME DEFAULT '12:00:00',
+    ADD COLUMN c_time time DEFAULT '12:00:00',
     ALTER COLUMN c_num SET DEFAULT 2.000000000000002;
 
 INSERT INTO T
     VALUES (19), (20);
 
 ALTER TABLE T
-    ADD COLUMN c_interval INTERVAL DEFAULT '1 day',
+    ADD COLUMN c_interval interval DEFAULT '1 day',
     ALTER COLUMN c_time SET DEFAULT '23:59:59';
 
 INSERT INTO T
     VALUES (21), (22);
 
 ALTER TABLE T
-    ADD COLUMN c_hugetext TEXT DEFAULT repeat('abcdefg', 1000),
+    ADD COLUMN c_hugetext text DEFAULT repeat('abcdefg', 1000),
     ALTER COLUMN c_interval SET DEFAULT '3 hours';
 
 INSERT INTO T
@@ -242,12 +242,12 @@ SELECT
 DROP TABLE T;
 
 -- Test expressions in the defaults
-CREATE OR REPLACE FUNCTION foo (a INT)
+CREATE OR REPLACE FUNCTION foo (a int)
     RETURNS TEXT
     AS $$
 DECLARE
-    res TEXT := '';
-    i INT;
+    res text := '';
+    i int;
 BEGIN
     i := 0;
     WHILE (i < a)
@@ -262,8 +262,8 @@ LANGUAGE PLPGSQL
 STABLE;
 
 CREATE TABLE T (
-    pk INT NOT NULL PRIMARY KEY,
-    c_int INT DEFAULT LENGTH(foo (6))
+    pk int NOT NULL PRIMARY KEY,
+    c_int int DEFAULT LENGTH(foo (6))
 );
 
 SELECT
@@ -280,28 +280,28 @@ INSERT INTO T
     VALUES (3), (4);
 
 ALTER TABLE T
-    ADD COLUMN c_text TEXT DEFAULT foo (6),
+    ADD COLUMN c_text text DEFAULT foo (6),
     ALTER COLUMN c_bpchar SET DEFAULT foo (3);
 
 INSERT INTO T
     VALUES (5), (6);
 
 ALTER TABLE T
-    ADD COLUMN c_date DATE DEFAULT '2016-06-02'::DATE + LENGTH(foo (10)),
+    ADD COLUMN c_date date DEFAULT '2016-06-02'::DATE + LENGTH(foo (10)),
     ALTER COLUMN c_text SET DEFAULT foo (12);
 
 INSERT INTO T
     VALUES (7), (8);
 
 ALTER TABLE T
-    ADD COLUMN c_timestamp TIMESTAMP DEFAULT '2016-09-01'::DATE + LENGTH(foo (10)),
+    ADD COLUMN c_timestamp timestamp DEFAULT '2016-09-01'::DATE + LENGTH(foo (10)),
     ALTER COLUMN c_date SET DEFAULT '2010-01-01'::DATE - LENGTH(foo (4));
 
 INSERT INTO T
     VALUES (9), (10);
 
 ALTER TABLE T
-    ADD COLUMN c_array TEXT[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::TEXT[],
+    ADD COLUMN c_array text[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::TEXT[],
     ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31'::DATE + LENGTH(foo (30));
 
 INSERT INTO T
@@ -334,11 +334,11 @@ SELECT
 
 DROP TABLE T;
 
-DROP FUNCTION foo (INT);
+DROP FUNCTION foo (int);
 
 -- Fall back to full rewrite for volatile expressions
 CREATE TABLE T (
-    pk INT NOT NULL PRIMARY KEY
+    pk int NOT NULL PRIMARY KEY
 );
 
 INSERT INTO T
@@ -349,14 +349,14 @@ SELECT
 
 -- now() is stable, because it returns the transaction timestamp
 ALTER TABLE T
-    ADD COLUMN c1 TIMESTAMP DEFAULT now();
+    ADD COLUMN c1 timestamp DEFAULT now();
 
 SELECT
     comp ();
 
 -- clock_timestamp() is volatile
 ALTER TABLE T
-    ADD COLUMN c2 TIMESTAMP DEFAULT clock_timestamp();
+    ADD COLUMN c2 timestamp DEFAULT clock_timestamp();
 
 SELECT
     comp ();
@@ -365,7 +365,7 @@ DROP TABLE T;
 
 -- Simple querie
 CREATE TABLE T (
-    pk INT NOT NULL PRIMARY KEY
+    pk int NOT NULL PRIMARY KEY
 );
 
 SELECT
@@ -378,7 +378,7 @@ FROM
     generate_series(1, 10) a;
 
 ALTER TABLE T
-    ADD COLUMN c_bigint BIGINT NOT NULL DEFAULT - 1;
+    ADD COLUMN c_bigint bigint NOT NULL DEFAULT - 1;
 
 INSERT INTO T
 SELECT
@@ -388,7 +388,7 @@ FROM
     generate_series(11, 20) a (b);
 
 ALTER TABLE T
-    ADD COLUMN c_text TEXT DEFAULT 'hello';
+    ADD COLUMN c_text text DEFAULT 'hello';
 
 INSERT INTO T
 SELECT
@@ -552,7 +552,7 @@ DROP TABLE T;
 
 -- Combine with other DDL
 CREATE TABLE T (
-    pk INT NOT NULL PRIMARY KEY
+    pk int NOT NULL PRIMARY KEY
 );
 
 SELECT
@@ -562,13 +562,13 @@ INSERT INTO T
     VALUES (1), (2);
 
 ALTER TABLE T
-    ADD COLUMN c_int INT NOT NULL DEFAULT - 1;
+    ADD COLUMN c_int int NOT NULL DEFAULT - 1;
 
 INSERT INTO T
     VALUES (3), (4);
 
 ALTER TABLE T
-    ADD COLUMN c_text TEXT DEFAULT 'Hello';
+    ADD COLUMN c_text text DEFAULT 'Hello';
 
 INSERT INTO T
     VALUES (5), (6);
@@ -986,10 +986,10 @@ INSERT INTO vtype
     VALUES (1);
 
 ALTER TABLE vtype
-    ADD COLUMN b DOUBLE PRECISION DEFAULT 0.2;
+    ADD COLUMN b double PRECISION DEFAULT 0.2;
 
 ALTER TABLE vtype
-    ADD COLUMN c BOOLEAN DEFAULT TRUE;
+    ADD COLUMN c boolean DEFAULT TRUE;
 
 SELECT
     *

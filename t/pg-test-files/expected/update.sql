@@ -3,14 +3,14 @@
 --
 
 CREATE TABLE update_test (
-    a INT DEFAULT 10,
-    b INT,
-    c TEXT
+    a int DEFAULT 10,
+    b int,
+    c text
 );
 
 CREATE TABLE upsert_test (
-    a INT PRIMARY KEY,
-    b TEXT
+    a int PRIMARY KEY,
+    b text
 );
 
 INSERT INTO update_test

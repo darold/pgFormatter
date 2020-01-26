@@ -3,15 +3,15 @@
 --
 
 CREATE TABLE clstr_tst_s (
-    rf_a SERIAL PRIMARY KEY,
-    b INT
+    rf_a serial PRIMARY KEY,
+    b int
 );
 
 CREATE TABLE clstr_tst (
-    a SERIAL PRIMARY KEY,
-    b INT,
-    c TEXT,
-    d TEXT,
+    a serial PRIMARY KEY,
+    b int,
+    c text,
+    d text,
     CONSTRAINT clstr_tst_con FOREIGN KEY (b) REFERENCES clstr_tst_s
 );
 
@@ -292,15 +292,15 @@ WHERE
 CREATE USER regress_clstr_user;
 
 CREATE TABLE clstr_1 (
-    a INT PRIMARY KEY
+    a int PRIMARY KEY
 );
 
 CREATE TABLE clstr_2 (
-    a INT PRIMARY KEY
+    a int PRIMARY KEY
 );
 
 CREATE TABLE clstr_3 (
-    a INT PRIMARY KEY
+    a int PRIMARY KEY
 );
 
 ALTER TABLE clstr_1 OWNER TO regress_clstr_user;

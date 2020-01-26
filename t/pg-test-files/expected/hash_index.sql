@@ -244,7 +244,7 @@ WHERE
 --
 
 CREATE TABLE hash_split_heap (
-    keycol INT
+    keycol int
 );
 
 INSERT INTO hash_split_heap

@@ -346,8 +346,8 @@ SELECT
 
 -- test brin cost estimates behave sanely based on correlation of values
 CREATE TABLE brin_test (
-    a INT,
-    b INT
+    a int,
+    b int
 );
 
 INSERT INTO brin_test

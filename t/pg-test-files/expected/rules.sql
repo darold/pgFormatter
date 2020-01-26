@@ -2427,7 +2427,7 @@ CREATE RULE r5 AS ON UPDATE
 --
 
 CREATE TABLE rule_t1 (
-    a INT
+    a int
 );
 
 CREATE VIEW rule_v1 AS

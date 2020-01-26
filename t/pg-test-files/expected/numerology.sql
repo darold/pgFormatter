@@ -34,7 +34,7 @@ ORDER BY
 
 -- int4
 CREATE TABLE TEMP_INT4 (
-    f1 INT4
+    f1 int4
 );
 
 INSERT INTO TEMP_INT4 (f1)
@@ -61,7 +61,7 @@ ORDER BY
 
 -- int2
 CREATE TABLE TEMP_INT2 (
-    f1 INT2
+    f1 int2
 );
 
 INSERT INTO TEMP_INT2 (f1)
@@ -93,8 +93,8 @@ ORDER BY
 --
 
 CREATE TABLE TEMP_GROUP (
-    f1 INT4,
-    f2 INT4,
+    f1 int4,
+    f2 int4,
     f3 FLOAT8
 );
 

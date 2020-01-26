@@ -541,12 +541,12 @@ FROM
 --
 
 CREATE TEMPORARY TABLE bitwise_test (
-    i2 INT2,
-    i4 INT4,
-    i8 INT8,
-    i INTEGER,
-    x INT2,
-    y BIT(4)
+    i2 int2,
+    i4 int4,
+    i8 int8,
+    i integer,
+    x int2,
+    y bit(4)
 );
 
 -- empty case
@@ -606,10 +606,10 @@ SELECT
     NOT boolor_statefunc(FALSE, FALSE) AS "t";
 
 CREATE TEMPORARY TABLE bool_test (
-    b1 BOOL,
-    b2 BOOL,
-    b3 BOOL,
-    b4 BOOL
+    b1 bool,
+    b2 bool,
+    b3 bool,
+    b4 bool
 );
 
 -- empty case

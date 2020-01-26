@@ -1,6 +1,6 @@
 -- Simple create
 CREATE TABLE reloptions_test (
-    i INT
+    i int
 )
 WITH (
     FiLLFaCToR = 30,
@@ -17,28 +17,28 @@ WHERE
 
 -- Fail min/max values check
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     fillfactor = 2
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     fillfactor = 110
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     autovacuum_analyze_scale_factor = - 10.0
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     autovacuum_analyze_scale_factor = 110.0
@@ -46,14 +46,14 @@ WITH (
 
 -- Fail when option and namespace do not exist
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     not_existing_option = 2
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     not_existing_namespace.fillfactor = 2
@@ -61,56 +61,56 @@ WITH (
 
 -- Fail while setting improper values
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     fillfactor = - 30.1
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     fillfactor = 'string'
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     fillfactor = TRUE
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     autovacuum_enabled = 12
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     autovacuum_enabled = 30.5
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     autovacuum_enabled = 'string'
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     autovacuum_analyze_scale_factor = 'string'
 );
 
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     autovacuum_analyze_scale_factor = TRUE
@@ -118,7 +118,7 @@ WITH (
 
 -- Fail if option is specified twice
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     fillfactor = 30,
@@ -127,7 +127,7 @@ WITH (
 
 -- Specifying name only for a non-Boolean option should fail
 CREATE TABLE reloptions_test2 (
-    i INT
+    i int
 )
 WITH (
     fillfactor
@@ -181,7 +181,7 @@ ALTER TABLE reloptions_test RESET (fillfactor = 12);
 DROP TABLE reloptions_test;
 
 CREATE TABLE reloptions_test (
-    i INT NOT NULL,
+    i int NOT NULL,
     j text
 )
 WITH (
@@ -239,7 +239,7 @@ SELECT
 DROP TABLE reloptions_test;
 
 CREATE TABLE reloptions_test (
-    s VARCHAR
+    s varchar
 )
 WITH (
     toast.autovacuum_vacuum_cost_delay = 23
@@ -289,7 +289,7 @@ WITH (
 DROP TABLE reloptions_test;
 
 CREATE TABLE reloptions_test (
-    s VARCHAR
+    s varchar
 )
 WITH (
     toast.autovacuum_vacuum_cost_delay = 23,

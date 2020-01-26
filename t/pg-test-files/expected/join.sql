@@ -441,18 +441,18 @@ WHERE
 --
 
 CREATE TABLE t1 (
-    name TEXT,
-    n INTEGER
+    name text,
+    n integer
 );
 
 CREATE TABLE t2 (
-    name TEXT,
-    n INTEGER
+    name text,
+    n integer
 );
 
 CREATE TABLE t3 (
-    name TEXT,
-    n INTEGER
+    name text,
+    n integer
 );
 
 INSERT INTO t1

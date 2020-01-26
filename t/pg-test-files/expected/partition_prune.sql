@@ -1151,8 +1151,8 @@ WHERE
 DROP TABLE coercepart;
 
 CREATE TABLE part (
-    a INT,
-    b INT
+    a int,
+    b int
 )
 PARTITION BY LIST (a);
 

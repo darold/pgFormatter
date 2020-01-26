@@ -316,83 +316,83 @@ INSERT INTO foo
 
 -- with a tab
 CREATE TABLE foo (
-    id INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY,
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL
+    id int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY,
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL
 );
 
 -- long line to be truncated on the left
 CREATE TABLE foo (
-    id INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY,
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL
+    id int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY,
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL
 );
 
 -- long line to be truncated on the right
 CREATE TABLE foo (
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL,
-    id INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL,
+    id int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY
 );
 
 -- long line to be truncated both ways
 CREATE TABLE foo (
-    id INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY,
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL
+    id int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY,
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL
 );
 
 -- long line to be truncated on the left, many lines
 CREATE TEMPORARY TABLE foo (
-    id INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY,
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL
+    id int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY,
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL
 );
 
 -- long line to be truncated on the right, many lines
 CREATE TEMPORARY TABLE foo (
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL,
-    id INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL,
+    id int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY
 );
 
 -- long line to be truncated both ways, many lines
 CREATE TEMPORARY TABLE foo (
-    id INT4 UNIQUE NOT NULL,
-    idx INT4 UNIQUE NOT NULL,
-    idy INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY,
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL,
-    idz INT4 UNIQUE NOT NULL,
-    idv INT4 UNIQUE NOT NULL
+    id int4 UNIQUE NOT NULL,
+    idx int4 UNIQUE NOT NULL,
+    idy int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY,
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL,
+    idz int4 UNIQUE NOT NULL,
+    idv int4 UNIQUE NOT NULL
 );
 
 -- more than 10 lines...
 CREATE TEMPORARY TABLE foo (
-    id INT4 UNIQUE NOT NULL,
-    idm INT4 UNIQUE NOT NULL,
-    idx INT4 UNIQUE NOT NULL,
-    idy INT4 UNIQUE NOT NULL,
-    id2 TEXT NOT NULL PRIMARY KEY,
-    id3 INTEGER NOT NUL,
-    id4 INT4 UNIQUE NOT NULL,
-    id5 TEXT UNIQUE NOT NULL,
-    idz INT4 UNIQUE NOT NULL,
-    idv INT4 UNIQUE NOT NULL
+    id int4 UNIQUE NOT NULL,
+    idm int4 UNIQUE NOT NULL,
+    idx int4 UNIQUE NOT NULL,
+    idy int4 UNIQUE NOT NULL,
+    id2 text NOT NULL PRIMARY KEY,
+    id3 integer NOT NUL,
+    id4 int4 UNIQUE NOT NULL,
+    id5 text UNIQUE NOT NULL,
+    idz int4 UNIQUE NOT NULL,
+    idv int4 UNIQUE NOT NULL
 );
 
 -- Check that stack depth detection mechanism works and

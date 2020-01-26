@@ -8,11 +8,11 @@ CREATE SCHEMA lock_schema1;
 SET search_path = lock_schema1;
 
 CREATE TABLE lock_tbl1 (
-    a BIGINT
+    a bigint
 );
 
 CREATE TABLE lock_tbl1a (
-    a BIGINT
+    a bigint
 );
 
 CREATE VIEW lock_view1 AS
@@ -216,7 +216,7 @@ ROLLBACK;
 
 -- Verify that we can lock a table with inheritance children.
 CREATE TABLE lock_tbl2 (
-    b BIGINT
+    b bigint
 )
 INHERITS (
     lock_tbl1

@@ -86,3 +86,30 @@ SELECT
 FROM
     c;
 
+CREATE TABLE sh.z (
+    id serial NOT NULL,
+    b smallint NULL,
+    v text NULL,
+    d text NULL,
+    e timestamp NULL,
+    f boolean NOT NULL,
+    g boolean NOT NULL
+);
+
+SET TIME ZONE 'CST7CDT';
+
+SELECT
+    f1,
+    f1::INTERVAL DAY TO MINUTE AS "minutes",
+    (f1 + interval '1 month')::INTERVAL MONTH::INTERVAL YEAR AS "years"
+FROM
+    interval_tbl;
+
+SELECT
+    '19970210 173201' AT TIME ZONE 'America/New_York';
+
+SELECT
+    *
+FROM
+    XMLTABLE('*' PASSING '<a>a</a>' COLUMNS a xml PATH '.', b text PATH '.', c text PATH '"hi"', d boolean PATH '. = "a"', e integer PATH 'string-length(.)');
+

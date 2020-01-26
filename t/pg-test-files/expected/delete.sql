@@ -1,6 +1,6 @@
 CREATE TABLE delete_test (
-    id SERIAL PRIMARY KEY,
-    a INT,
+    id serial PRIMARY KEY,
+    a int,
     b text
 );
 

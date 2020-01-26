@@ -643,7 +643,7 @@ FROM
 
 -- ERROR
 CREATE TABLE lt1 (
-    a INT
+    a int
 )
 PARTITION BY RANGE (a);
 

@@ -685,7 +685,7 @@ ROLLBACK;
 BEGIN;
 SAVEPOINT x;
 CREATE TABLE koju (
-    a INT UNIQUE
+    a int UNIQUE
 );
 INSERT INTO koju
     VALUES (1);
@@ -694,7 +694,7 @@ INSERT INTO koju
 ROLLBACK TO x;
 
 CREATE TABLE koju (
-    a INT UNIQUE
+    a int UNIQUE
 );
 
 INSERT INTO koju
