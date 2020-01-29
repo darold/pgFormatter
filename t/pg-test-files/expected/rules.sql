@@ -83,10 +83,12 @@ CREATE TABLE rtest_admin (
 );
 
 CREATE RULE rtest_sys_upd AS ON UPDATE
-    TO rtest_system DO also ( UPDATE
-            rtest_interface SET
-            sysname = new.sysname WHERE
-            sysname = old.sysname;
+    TO rtest_system
+        DO ALSO
+        ( UPDATE
+                rtest_interface SET
+                sysname = new.sysname WHERE
+                sysname = old.sysname;
 
 UPDATE
     rtest_admin
@@ -95,8 +97,10 @@ SET
 WHERE
     sysname = old.sysname);
 
-CREATE RULE rtest_sys_del AS ON DELETE TO rtest_system DO also ( DELETE FROM rtest_interface
-    WHERE sysname = old.sysname;
+CREATE RULE rtest_sys_del AS ON DELETE TO rtest_system
+    DO ALSO
+    ( DELETE FROM rtest_interface
+        WHERE sysname = old.sysname;
 
 DELETE FROM rtest_admin
 WHERE sysname = old.sysname;
@@ -104,13 +108,17 @@ WHERE sysname = old.sysname;
 );
 
 CREATE RULE rtest_pers_upd AS ON UPDATE
-    TO rtest_person DO also UPDATE
-        rtest_admin SET
-        pname = new.pname WHERE
-        pname = old.pname;
+    TO rtest_person
+        DO ALSO
+        UPDATE
+            rtest_admin SET
+            pname = new.pname WHERE
+            pname = old.pname;
 
-CREATE RULE rtest_pers_del AS ON DELETE TO rtest_person DO also DELETE FROM rtest_admin
-WHERE pname = old.pname;
+CREATE RULE rtest_pers_del AS ON DELETE TO rtest_person
+    DO ALSO
+    DELETE FROM rtest_admin
+    WHERE pname = old.pname;
 
 --
 -- Tables and rules for the logging test
@@ -2355,7 +2363,9 @@ INSERT INTO rules_src
     VALUES (1, 2), (11, 12);
 
 CREATE RULE r1 AS ON UPDATE
-    TO rules_src DO also INSERT INTO rules_log VALUES (old.*, 'old'), (new.*, 'new');
+    TO rules_src
+        DO ALSO
+        INSERT INTO rules_log VALUES (old.*, 'old'), (new.*, 'new');
 
 UPDATE
     rules_src
@@ -2378,10 +2388,12 @@ FROM
     rules_log;
 
 CREATE RULE r2 AS ON UPDATE
-    TO rules_src DO also VALUES (old.*,
-    'old'),
-(new.*,
-    'new');
+    TO rules_src
+        DO ALSO
+    VALUES (old.*,
+        'old'),
+    (new.*,
+        'new');
 
 UPDATE
     rules_src

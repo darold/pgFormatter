@@ -1048,14 +1048,14 @@ sub beautify
             $last = $self->_set_last($token, $last);
             next;
         }
-        elsif ($token =~ /^INSTEAD$/i and defined $last and uc($last) eq 'DO')
+        elsif ($token =~ /^INSTEAD|ALSO$/i and defined $last and uc($last) eq 'DO')
 	{
                 $self->_add_token( $token );
                 $self->_new_line($token,$last);
                 $last = $self->_set_last($token, $last);
                 next;
         }
-        elsif ($token =~ /^DO$/i and defined $self->_next_token and $self->_next_token =~ /^INSTEAD|UPDATE|NOTHING$/i)
+        elsif ($token =~ /^DO$/i and defined $self->_next_token and $self->_next_token =~ /^INSTEAD|ALSO|UPDATE|NOTHING$/i)
 	{
                 $self->_new_line($token,$last);
 		$self->_over($token,$last);
@@ -3086,7 +3086,7 @@ sub set_dicts
     # Afterwards, when everything is ready, put it in $self->{'dict'}->{...}
 
     my @pg_keywords = map { uc } qw( 
-        ADD AFTER AGGREGATE ALL ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
+        ADD AFTER AGGREGATE ALL ALSO ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
         BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY CACHE CASCADE CASE CAST CHECK CHECKPOINT CLOSE CLUSTER
 	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY
 	COST COSTS CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER CURSOR

@@ -1645,7 +1645,9 @@ CREATE temp TABLE tt_log (
     data text
 );
 
-CREATE RULE insert_tt_rule AS ON INSERT TO tt DO also INSERT INTO tt_log VALUES (new.*);
+CREATE RULE insert_tt_rule AS ON INSERT TO tt
+    DO ALSO
+    INSERT INTO tt_log VALUES (new.*);
 
 SELECT
     insert_tt2 ('foollog',

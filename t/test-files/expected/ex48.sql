@@ -1,6 +1,14 @@
 INSERT INTO test_exists
     VALUES (NEW.a, NEW.b || NEW.a::text);
 
+CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view
+    DO ALSO
+    INSERT INTO base_tab_def VALUES (new.a, new.b, new.c, new.d, new.e);
+
+CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view
+    DO INSTEAD
+    INSERT INTO base_tab_def VALUES (new.a, new.b, new.c, new.d, new.e);
+
 CREATE RULE test_rule_exists AS ON INSERT TO test_exists
     DO INSTEAD
     INSERT INTO test_exists VALUES (NEW.a, NEW.b || NEW.a::text);

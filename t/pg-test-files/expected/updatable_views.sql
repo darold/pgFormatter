@@ -4306,7 +4306,9 @@ ORDER BY
 
 DROP RULE base_tab_def_view_ins_rule ON base_tab_def_view;
 
-CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view DO also INSERT INTO base_tab_def VALUES (new.a, new.b, new.c, new.d, new.e);
+CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view
+    DO ALSO
+    INSERT INTO base_tab_def VALUES (new.a, new.b, new.c, new.d, new.e);
 
 TRUNCATE base_tab_def;
 
