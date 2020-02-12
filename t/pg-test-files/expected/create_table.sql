@@ -653,7 +653,7 @@ PARTITION BY RANGE (a);
 
 -- some checks after successful creation of a partitioned table
 CREATE FUNCTION plusone (a int)
-    RETURNS INT
+    RETURNS int
     AS $$
     SELECT
         a + 1;

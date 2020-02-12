@@ -2291,9 +2291,9 @@ DECLARE
     rslt text;
 BEGIN
     IF $1 <= 0 THEN
-        rslt = CAST($2 AS TEXT);
+        rslt = CAST($2 AS text);
     ELSE
-        rslt = CAST($1 AS TEXT) || ',' || recursion_test ($1 - 1,
+        rslt = CAST($1 AS text) || ',' || recursion_test ($1 - 1,
             $2);
     END IF;
     RETURN rslt;
@@ -5443,7 +5443,7 @@ DROP FUNCTION rttest ();
 -- exposed a bug in PG 8.2.
 
 CREATE FUNCTION leaker_1 (fail bool)
-    RETURNS INTEGER
+    RETURNS integer
     AS $$
 DECLARE
     v_var integer;

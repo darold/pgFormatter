@@ -208,7 +208,7 @@ CREATE FUNCTION do_analyze ()
 ;
 
 CREATE FUNCTION wrap_do_analyze (c int)
-    RETURNS INT IMMUTABLE
+    RETURNS int IMMUTABLE
     LANGUAGE SQL
     AS 'SELECT $1 FROM do_analyze()'
 ;

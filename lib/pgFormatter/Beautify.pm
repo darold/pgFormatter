@@ -270,7 +270,7 @@ sub query
     $self->{ 'query' } = join('', @temp_content);
 
     # Replace any \' by %BSLH%
-    $self->{ 'query' } =~ s/\\'/PGFBSLHQ/g;
+    $self->{ 'query' } =~ s/\\'/PGFBSLHQ/ig;
 
     # Store values of code that must not be changed following the given placeholder
     if ($self->{ 'placeholder' }) {
@@ -326,7 +326,7 @@ sub content
     }
 
     # Replace any %BSLH% by \'
-    $self->{ 'content' } =~ s/PGFBSLHQ/\\'/g;
+    $self->{ 'content' } =~ s/PGFBSLHQ/\\'/ig;
 
     return $self->{ 'content' };
 }
@@ -498,7 +498,7 @@ sub tokenize_sql
 
     my @query = ();
     @query = grep { /\S/ } $query =~ m{$re}smxg;
-    map { s/(.*PGFBSLHQ)$/'$1/; } @query;
+    map { s/(.*PGFBSLHQ)$/'$1/i; } @query;
     $self->{ '_tokens' } = \@query;
 
     return @query;
@@ -2303,6 +2303,18 @@ sub beautify
     return;
 }
 
+sub _lower
+{
+    my ( $self, $token ) = @_;
+
+    if ($DEBUG) {
+        my ($package, $filename, $line) = caller;
+        print STDERR "DEBUG_ADD: line: $line => token=$token\n";
+    }
+
+    return lc($token);
+}
+
 =head2 _add_token
 
 Add a token to the beautified string.
@@ -2378,7 +2390,7 @@ sub _add_token
         }
 	elsif (defined $last_token and (!$self->{ '_is_in_operator' } or !$self->{ '_is_in_alter' }))
 	{
-	    if ($last_token eq '(' && ($self->{ '_is_in_type' } or ($self->{ '_is_in_operator' } and !$self->_is_type($token))))
+	    if ($last_token eq '(' && ($self->{ '_is_in_type' } or ($self->{ '_is_in_operator' } and !$self->_is_type($token, $last_token, $self->_next_token))))
 	    {
                 print STDERR "DEBUG_SPC: 5) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
                 $self->{ 'content' } .= $sp;
@@ -2413,12 +2425,21 @@ sub _add_token
     }
 
     my $next_token = $self->_next_token || '';
+    my @cast = ();
+    my @next_cast = ();
 
-    my @cast = split(/::/, $token);
-    $token = shift(@cast) if ($#cast >= 0);
+    # Be sure that we not going to modify a constant
+    if ($self->{ '_is_in_create' } < 2 and $token !~ /^[E]*'.*'$/)
+    {
+	    @cast = split(/::/, $token);
+	    $token = shift(@cast) if ($#cast >= 0);
+	    @next_cast = split(/::/, $next_token);
+	    $next_token = shift(@next_cast) if ($#next_cast >= 0);
+    }
+
     # lowercase/uppercase keywords taking care of function with same name
     if ($self->_is_keyword( $token, $next_token, $last_token ) and
-	    (!$self->_is_type($self->_next_token) or $self->{ '_is_in_create' } < 2
+	    (!$self->_is_type($next_token) or $self->{ '_is_in_create' } < 2
 		   or $self->{ '_is_in_create_function' })
         and (!$self->_is_function( $token ) || $next_token ne '(')
     )
@@ -2443,11 +2464,13 @@ sub _add_token
         }
     }
 
+    my $tk_is_type = $self->_is_type($token, $last_token, $next_token);
+
     if ($token =~ /^(AT|SET)$/i)
     {
         $self->{ '_not_a_type' } = 1;
     }
-    elsif (!$self->_is_type($token))
+    elsif (!$tk_is_type)
     {
         $self->{ '_not_a_type' } = 0;
     }
@@ -2455,10 +2478,10 @@ sub _add_token
     # Type are always lowercase
     if (!$self->{ '_not_a_type' })
     {
-	    if ($self->_is_type($token) and defined $last_token)
+	    if ($tk_is_type and defined $last_token)
 	    {
-		if ((!$self->_is_keyword($last_token) or $self->_is_type($last_token) or $self->_is_type($next_token))
-			and (not defined $next_token or $next_token !~ /^(SEARCH)$/i))
+		if ($last_token =~ /^(AS|RETURNS)$/ or !$self->_is_keyword($last_token)
+				or $self->_is_type($last_token) or $self->_is_type($next_token))
 		{
 		    $token = lc( $token )            if ( $self->{ 'uc_types' } == 1 );
 		    $token = uc( $token )            if ( $self->{ 'uc_types' } == 2 );
@@ -2475,9 +2498,21 @@ sub _add_token
 
     foreach my $c (@cast)
     {
-        $c = lc($c) if ( $self->{ 'uc_functions' } == 1 );
-        $c = uc($c) if ( $self->{ 'uc_functions' } == 2 );
-        $c = ucfirst( lc( $c ) ) if ( $self->{ 'uc_functions' } == 3 );
+	my @words = split(/(\s+)/, $c);
+	$c = '';
+	foreach my $w (@words)
+	{
+		if (!$self->_is_type($token))
+		{
+			$c .= $w;
+		}
+		else
+		{
+			$c .= lc($w) if ( $self->{ 'uc_types' } == 1 );
+			$c .= uc($w) if ( $self->{ 'uc_types' } == 2 );
+			$c .= ucfirst( lc( $w ) ) if ( $self->{ 'uc_types' } == 3 );
+		}
+        }
         $token .= '::' . $c;
     }
 
@@ -2647,9 +2682,17 @@ Check if a token is a known SQL type
 
 sub _is_type
 {
-    my ( $self, $token ) = @_;
+    my ( $self, $token, $last_token, $next_token ) = @_;
 
     return if (!defined $token);
+    return if (defined $next_token and $next_token =~ /^(SEARCH)$/i);
+
+    if ($DEBUG and defined $token)
+    {
+        my ($package, $filename, $line) = caller;
+        print STDERR "DEBUG_TYPE: line: $line => token=[$token], last=", ($last_token||''), ", next=", ($next_token||''), ", type=", (grep { uc($_) eq uc( $token ) } @{ $self->{ 'types' } }), "\n";
+    }
+
     $token =~ s/\s*\(.*//; # remove any parameter to the type
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'types' } };
 }
@@ -3064,7 +3107,7 @@ sub format
 
     if ( grep(/^$format$/i, 'text', 'html') ) {
         $self->{ 'format' } = lc($format);
-    return 1;
+        return 1;
     }
     return 0;
 }

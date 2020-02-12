@@ -862,7 +862,7 @@ ALTER DOMAIN con
     DROP CONSTRAINT IF EXISTS nonexistent;
 
 -- Test ALTER DOMAIN .. CONSTRAINT .. NOT VALID
-CREATE DOMAIN things AS INT;
+CREATE DOMAIN things AS int;
 
 CREATE TABLE thethings (
     stuff things

@@ -36,7 +36,7 @@ $$
 LANGUAGE 'plpgsql';
 
 CREATE FUNCTION comp ()
-    RETURNS TEXT
+    RETURNS text
     AS $$
 BEGIN
     RETURN (
@@ -243,7 +243,7 @@ DROP TABLE T;
 
 -- Test expressions in the defaults
 CREATE OR REPLACE FUNCTION foo (a int)
-    RETURNS TEXT
+    RETURNS text
     AS $$
 DECLARE
     res text := '';
