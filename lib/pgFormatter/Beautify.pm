@@ -2516,6 +2516,16 @@ sub _add_token
         $token .= '::' . $c;
     }
 
+    # Format cast in function code
+    my $reg = join('|', @{$self->{ 'types' }});
+    $reg = '(?:TIMESTAMP WITH TIME ZONE|TIMESTAMP WITHOUT TIME ZONE|CHARACTER VARYING|' . $reg . ')';
+    if ($token =~ /::/)
+    {
+        $token =~ s/::($reg)/'::' . lc($1)/igse if ( $self->{ 'uc_types' } == 1 );
+        $token =~ s/::($reg)/'::' . uc($1)/igse if ( $self->{ 'uc_types' } == 2 );
+        $token =~ s/::($reg)/'::' . ucfirst(lc($1))/igse if ( $self->{ 'uc_types' } == 3 );
+    }
+
     $self->{ 'content' } .= $token;
 
     # This can't be the beginning of a new line anymore.
@@ -3155,10 +3165,10 @@ sub set_dicts
         );
 
     my @pg_types = qw(
-        BIGINT BIGSERIAL BIT BOOLEAN BOOL BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INT INTEGER INTERVAL
-        JSON JSONB LINE LSEG MACADDR MACADDR8 MONEY NUMERIC PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
-       	SERIAL TEXT TIME TIMESTAMP TIMESTAMPTZ TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 VARYING VARCHAR
-	ZONE
+        BIGINT BIGSERIAL BIT BOOLEAN BOOL BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INTEGER INTERVAL
+        JSONB JSON LINE LSEG MACADDR8 MACADDR MONEY NUMERIC PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
+       	SERIAL TEXT TIME TIMESTAMPTZ TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 INT VARYING
+	VARCHAR ZONE FLOAT4 FLOAT8 FLOAT
 	);
 
     my @sql_keywords = map { uc } qw(
