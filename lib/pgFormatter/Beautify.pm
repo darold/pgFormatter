@@ -1422,7 +1422,7 @@ sub beautify
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line($token,$last)
                     if (defined $self->_next_token
-                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER|WITHIN|DESC|ASC$/i
+                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER|WITHIN|DESC|ASC|WITHOUT$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
@@ -1496,7 +1496,7 @@ sub beautify
 	    $add_newline = 0 if ($self->{ '_is_in_function' } or $self->{ '_is_in_statistics' });
 	    $add_newline = 0 if (defined $self->_next_token and $self->_is_comment($self->_next_token));
 
-	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and $self->{ '_current_sql_stmt' } ne 'INSERT');
+	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT'));
         }
 
         elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ )
@@ -1733,7 +1733,7 @@ sub beautify
                 next;
             }
 
-            if ($token =~ /^VALUES$/i and !$self->{ '_is_in_rule' } and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
+            if ($token =~ /^VALUES$/i and !$self->{ '_is_in_rule' } and !$self->{ 'comma_break' } and ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '('))
 	    {
 		$self->_over($token,$last);
 		if ($self->{ '_current_sql_stmt' } eq 'INSERT' or $last eq '(')
@@ -2286,6 +2286,10 @@ sub beautify
 			 $self->_back($token,$last);
 		     }
 		 }
+		 if ($self->{ 'comma_break' } && $self->{ '_current_sql_stmt' } eq 'INSERT' && $last eq '(')
+	 	 {
+                     $self->_new_line($token,$last);
+		 }
                  $self->_add_token( $token, $last );
                  if (defined $last && uc($last) eq 'LANGUAGE' && (!defined $self->_next_token || $self->_next_token ne ';'))
                  {
@@ -2390,9 +2394,15 @@ sub _add_token
         }
 	elsif (defined $last_token and (!$self->{ '_is_in_operator' } or !$self->{ '_is_in_alter' }))
 	{
-	    if ($last_token eq '(' && ($self->{ '_is_in_type' } or ($self->{ '_is_in_operator' } and !$self->_is_type($token, $last_token, $self->_next_token))))
+	    if ($last_token eq '(' and ($self->{ '_is_in_type' } or ($self->{ '_is_in_operator' }
+					    and !$self->_is_type($token, $last_token, $self->_next_token))))
 	    {
-                print STDERR "DEBUG_SPC: 5) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+                print STDERR "DEBUG_SPC: 5a) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+                $self->{ 'content' } .= $sp;
+	    }
+	    elsif ($self->{ 'comma_break' } and $self->{ '_current_sql_stmt' } eq 'INSERT')
+	    {
+                print STDERR "DEBUG_SPC: 5b) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
                 $self->{ 'content' } .= $sp;
 	    }
         }
@@ -2440,8 +2450,8 @@ sub _add_token
     # lowercase/uppercase keywords taking care of function with same name
     if ($self->_is_keyword( $token, $next_token, $last_token ) and
 	    (!$self->_is_type($next_token) or $self->{ '_is_in_create' } < 2
-		   or $self->{ '_is_in_create_function' })
-        and (!$self->_is_function( $token ) || $next_token ne '(')
+		   or $self->{ '_is_in_create_function' } or uc($token) eq 'AS')
+		   and (!$self->_is_function( $token ) || $next_token ne '(' || uc($token) eq 'CAST')
     )
     {
         $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
@@ -3161,7 +3171,7 @@ sub set_dicts
 	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES READ_ONLY SHAREABLE READ_WRITE
         BASETYPE SFUNC STYPE SFUNC1 STYPE1 SSPACE FINALFUNC FINALFUNC_EXTRA FINALFUNC_MODIFY COMBINEFUNC SERIALFUNC DESERIALFUNC
        	INITCOND MSFUNC MINVFUNC MSTYPE MSSPACE MFINALFUNC MFINALFUNC_EXTRA MFINALFUNC_MODIFY MINITCOND SORTOP
-	REFRESH MATERIALIZED RAISE
+	REFRESH MATERIALIZED RAISE WITHOUT
         );
 
     my @pg_types = qw(
@@ -3184,7 +3194,7 @@ sub set_dicts
         REAL RECHECK REF REGEXP RELATIVE RELEASE RLIKE ROW SEARCH SECOND SEQUENCES SESSION SHARE SIMPLE
         SMALLINT SONAME STANDALONE STATEMENT STATISTICS STATUS STORAGE STRAIGHT_JOIN SYSID TABLES TEMP TERMINATED
         TREAT TRUSTED TYPES UNENCRYPTED UNKNOWN UNSIGNED UNTIL USE VALID VALIDATE VALIDATOR VALUE VARIABLES VARYING
-        WHITESPACE WITHOUT WORK WRAPPER WRITE XMLATTRIBUTES YEAR YES ZONE
+        WHITESPACE WORK WRAPPER WRITE XMLATTRIBUTES YEAR YES ZONE
         );
 
     my @redshift_keywords =  map { uc } qw(
