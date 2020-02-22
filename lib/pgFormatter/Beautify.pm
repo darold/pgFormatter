@@ -1722,7 +1722,7 @@ sub beautify
 	    {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
-		    $self->_back($token, $last) if (uc($token) ne 'VALUES' or $self->{ '_current_sql_stmt' } ne 'INSERT');
+		    $self->_back($token, $last) if ((uc($token) ne 'VALUES' or $self->{ '_current_sql_stmt' } ne 'INSERT') and (uc($token) ne 'WHERE' or $self->{'_is_in_with' } < 2 or $self->{ '_level' } > 1));
 		    $self->_new_line($token,$last) if (!$self->{ '_is_in_rule' } and ($last !~ /^DEFAULT$/i or $self->_next_token() ne ';'));
                 }
             }

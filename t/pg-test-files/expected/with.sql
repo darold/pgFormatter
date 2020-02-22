@@ -1147,8 +1147,8 @@ WITH RECURSIVE x (
     FROM
         y
     LEFT JOIN x ON x.n = y.a
-WHERE
-    n < 10
+    WHERE
+        n < 10
 )
 SELECT
     *
@@ -1171,8 +1171,8 @@ WITH RECURSIVE x (
     FROM
         x
     RIGHT JOIN y ON x.n = y.a
-WHERE
-    n < 10
+    WHERE
+        n < 10
 )
 SELECT
     *
@@ -1195,8 +1195,8 @@ WITH RECURSIVE x (
     FROM
         x
     FULL JOIN y ON x.n = y.a
-WHERE
-    n < 10
+    WHERE
+        n < 10
 )
 SELECT
     *

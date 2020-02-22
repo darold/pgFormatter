@@ -13,6 +13,7 @@ foreach my $f (@files)
 	#$opt .= ' -t' if (grep(/^-t/, @ARGV) or $f =~ /float4\.sql/);
 	$opt .= ' -t' if (grep(/^-t/, @ARGV));
 	$opt = "-T -n " if ($f =~ m#/ex51.sql$#);
+	$opt = "--comma-break " if ($f =~ m#/ex57.sql$#);
 	my $cmd = "./pg_format $opt -u 2 $f >/tmp/output.sql";
 	`$cmd`;
 	$f =~ s/test-files\//test-files\/expected\//;
