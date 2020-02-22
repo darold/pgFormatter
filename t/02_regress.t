@@ -1,4 +1,4 @@
-use Test::Simple tests => 57;
+use Test::Simple tests => 58;
 
 my $ret = `perl -I. -wc pg_format 2>&1`;
 

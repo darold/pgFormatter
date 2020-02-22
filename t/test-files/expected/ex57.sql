@@ -13,11 +13,31 @@ SELECT
     (12)::float4,
     CAST(2 AS varchar(10));
 
-INSERT INTO (field_one, field_two, field_three)
-    VALUES (1, 2, 3);
+INSERT INTO (
+    field_one,
+    field_two,
+    field_three)
+VALUES (
+    1,
+    2,
+    3);
 
-INSERT INTO (field_one, field_two, field_3)
-    VALUES (1, 2, 3), (4, 5, 6), (7, 8, 9);
+INSERT INTO (
+    field_one,
+    field_two,
+    field_3)
+VALUES (
+    1,
+    2,
+    3),
+(
+    4,
+    5,
+    6),
+(
+    7,
+    8,
+    9);
 
 CREATE CAST( int8 AS int8alias1) WITHOUT FUNCTION;
 
