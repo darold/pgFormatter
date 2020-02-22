@@ -100,6 +100,7 @@ sub beautify {
     $args{ 'wrap_after' }   = $self->{ 'cfg' }->{ 'wrap-after' };
     $args{ 'space' }        = $self->{ 'cfg' }->{ 'space' };
     $args{ 'no_grouping' }  = $self->{ 'cfg' }->{ 'nogrouping' };
+    $args{ 'numbering' }    = $self->{ 'cfg' }->{ 'numbering' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -203,6 +204,7 @@ Options:
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
+    -N | --numbering      : statement numbering as a comment before each query.
     -o | --output file    : define the filename for the output. Default: stdout.
     -p | --placeholder re : set regex to find code that must not be changed.
     -s | --spaces size    : change space indent, default 4 spaces.
@@ -279,6 +281,7 @@ sub get_command_line_args {
         'help|h!',
         'maxlength|m=i',
         'nocomment|n!',
+        'numbering|N!',
         'output|o=s',
         'placeholder|p=s',
         'separator|S=s',
@@ -314,6 +317,7 @@ sub get_command_line_args {
     $cfg{ 'wrap-limit' }    //= 0;
     $cfg{ 'wrap-after' }    //= 0;
     $cfg{ 'space' }         //= ' ';
+    $cfg{ 'numbering' }     //= 0;
 
     if ($cfg{ 'tabs' }) {
         $cfg{ 'spaces' } = 1;

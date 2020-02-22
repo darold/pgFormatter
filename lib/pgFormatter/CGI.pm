@@ -120,6 +120,7 @@ sub set_config {
     $self->{ 'comma_break' }  = 0;
     $self->{ 'format_type' }  = 0;
     $self->{ 'wrap_after' }   = 0;
+    $self->{ 'numbering' }    = 0;
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -159,7 +160,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -214,6 +215,7 @@ sub sanitize_params {
     $self->{ 'comma_break' }  = 0 if ($self->{ 'comma_break' } !~ /^(0|1)$/);
     $self->{ 'format_type' }  = 0 if ($self->{ 'format_type' } !~ /^(0|1)$/);
     $self->{ 'wrap_after' }   = 0 if ($self->{ 'wrap_after' } !~ /^\d{1,2}$/);
+    $self->{ 'numbering' }    = 0 if ($self->{ 'numbering' } !~ /^\d{1,2}$/);
 
     if ( $self->{ 'show_example' } ) {
         $self->{ 'content' } = q{
@@ -258,6 +260,7 @@ sub beautify_query {
     $args{ 'format_type' }  = 1 if ($self->{ 'format_type' });
     $args{ 'wrap_after' }   = $self->{ 'wrap_after' };
     $args{ 'no_grouping' }  = 1 if $self->{ 'nogrouping' };
+    $args{ 'numbering' }    = 1 if $self->{ 'numbering' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
@@ -295,8 +298,9 @@ sub print_body {
     my $chk_anonymize   = $self->{ 'anonymize' } ? 'checked="checked" ' : '';
     my $chk_comma       = $self->{ 'comma' } eq 'start' ? 'checked="checked" ' : '';
     my $chk_comma_break = $self->{ 'comma_break' } ? 'checked="checked" ' : '';
-    my $chk_format_type  = $self->{ 'format_type' } ? 'checked="checked" ' : '';
-    my $chk_nogrouping   = $self->{ 'nogrouping' } ? 'checked="checked" ' : '';
+    my $chk_format_type = $self->{ 'format_type' } ? 'checked="checked" ' : '';
+    my $chk_nogrouping  = $self->{ 'nogrouping' } ? 'checked="checked" ' : '';
+    my $chk_numbering   = $self->{ 'numbering' } ? 'checked="checked" ' : '';
 
     my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
     $kw_toggle{ $self->{ 'uc_keyword' } } = ' selected="selected"';
@@ -335,6 +339,9 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_no_grouping" name="nogrouping" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_nogrouping/>
       <label for="id_no_grouping">No transaction grouping</label>
+      <br />
+      <input type="checkbox" id="id_numbering" name="numbering" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_numbering/>
+      <label for="id_no_grouping">Statement numbering</label>
       </div>
     </fieldset>
       <br />

@@ -42,6 +42,7 @@ DESCRIPTION
         -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                                 the given size. Default: no truncate.
         -n | --nocomment      : remove any comment from SQL code.
+        -N | --numbering      : statement numbering as a comment before each query.
         -o | --output file    : define the filename for the output. Default: stdout.
         -p | --placeholder re : set regex to find code that must not be changed.
         -s | --spaces size    : change space indent, default 4 spaces.

@@ -140,6 +140,8 @@ Takes options as hash. Following options are recognized:
 
 =item * wrap_after - number of column after which lists must be wrapped
 
+=item * numbering - statement numbering as a comment before each query
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -154,7 +156,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after numbering) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -658,10 +660,12 @@ sub beautify
     $self->{ '_is_in_returns_table' } = 0;
     $self->{ '_has_limit' }  = 0;
     $self->{ '_not_a_type' } = 0;
+    $self->{ 'stmt_number' } = 1;
 
     my $last = '';
     my @token_array = $self->tokenize_sql();
 
+    $self->{ 'content' } .= "-- Statement # $self->{ 'stmt_number' }\n" if ($self->{ 'numbering' } and $#{ $self->{ '_tokens' } } > 0);
     while ( defined( my $token = $self->_token ) )
     {
         my $rule = $self->_get_rule( $token );
@@ -1589,6 +1593,8 @@ sub beautify
 	    {
 		$self->{ '_new_line' } = 0;
                 $self->_new_line($token,$last);
+		$self->{ 'stmt_number' }++;
+		$self->{ 'content' } .= "-- Statement # $self->{ 'stmt_number' }\n" if ($self->{ 'numbering' } and $#{ $self->{ '_tokens' } } > 0);
             }
             # End of statement; remove all indentation when we are not in a BEGIN/END block
             if (!$self->{ '_is_in_declare' } && $self->{ '_is_in_block' } == -1)
