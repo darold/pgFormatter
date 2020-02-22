@@ -116,16 +116,16 @@ SET DateStyle = 'ISO';
 
 -- As of 7.4, allow time without time zone having a time zone specified
 SELECT
-    time without time zone '040506.789+08';
+    time WITHOUT time zone '040506.789+08';
 
 SELECT
-    time without time zone '040506.789-08';
+    time WITHOUT time zone '040506.789-08';
 
 SELECT
-    time without time zone 'T040506.789+08';
+    time WITHOUT time zone 'T040506.789+08';
 
 SELECT
-    time without time zone 'T040506.789-08';
+    time WITHOUT time zone 'T040506.789-08';
 
 SELECT
     time WITH time zone '040506.789+08';
@@ -185,62 +185,62 @@ SELECT
 --
 
 SELECT
-    timestamp without time zone '1996-03-01' - interval '1 second' AS "Feb 29";
+    timestamp WITHOUT time zone '1996-03-01' - interval '1 second' AS "Feb 29";
 
 SELECT
-    timestamp without time zone '1999-03-01' - interval '1 second' AS "Feb 28";
+    timestamp WITHOUT time zone '1999-03-01' - interval '1 second' AS "Feb 28";
 
 SELECT
-    timestamp without time zone '2000-03-01' - interval '1 second' AS "Feb 29";
+    timestamp WITHOUT time zone '2000-03-01' - interval '1 second' AS "Feb 29";
 
 SELECT
-    timestamp without time zone '1999-12-01' + interval '1 month - 1 second' AS "Dec 31";
+    timestamp WITHOUT time zone '1999-12-01' + interval '1 month - 1 second' AS "Dec 31";
 
 SELECT
-    timestamp without time zone 'Jan 1, 4713 BC' + interval '106000000 days' AS "Feb 23, 285506";
+    timestamp WITHOUT time zone 'Jan 1, 4713 BC' + interval '106000000 days' AS "Feb 23, 285506";
 
 SELECT
-    timestamp without time zone 'Jan 1, 4713 BC' + interval '107000000 days' AS "Jan 20, 288244";
+    timestamp WITHOUT time zone 'Jan 1, 4713 BC' + interval '107000000 days' AS "Jan 20, 288244";
 
 SELECT
-    timestamp without time zone 'Jan 1, 4713 BC' + interval '109203489 days' AS "Dec 31, 294276";
+    timestamp WITHOUT time zone 'Jan 1, 4713 BC' + interval '109203489 days' AS "Dec 31, 294276";
 
 SELECT
-    timestamp without time zone '12/31/294276' - timestamp without time zone '12/23/1999' AS "106751991 Days";
+    timestamp WITHOUT time zone '12/31/294276' - timestamp WITHOUT time zone '12/23/1999' AS "106751991 Days";
 
 -- Shorthand values
 -- Not directly usable for regression testing since these are not constants.
 -- So, just try to test parser and hope for the best - thomas 97/04/26
 
 SELECT
-    (timestamp without time zone 'today' = (timestamp without time zone 'yesterday' + interval '1 day')) AS "True";
+    (timestamp WITHOUT time zone 'today' = (timestamp WITHOUT time zone 'yesterday' + interval '1 day')) AS "True";
 
 SELECT
-    (timestamp without time zone 'today' = (timestamp without time zone 'tomorrow' - interval '1 day')) AS "True";
+    (timestamp WITHOUT time zone 'today' = (timestamp WITHOUT time zone 'tomorrow' - interval '1 day')) AS "True";
 
 SELECT
-    (timestamp without time zone 'today 10:30' = (timestamp without time zone 'yesterday' + interval '1 day 10 hr 30 min')) AS "True";
+    (timestamp WITHOUT time zone 'today 10:30' = (timestamp WITHOUT time zone 'yesterday' + interval '1 day 10 hr 30 min')) AS "True";
 
 SELECT
-    (timestamp without time zone '10:30 today' = (timestamp without time zone 'yesterday' + interval '1 day 10 hr 30 min')) AS "True";
+    (timestamp WITHOUT time zone '10:30 today' = (timestamp WITHOUT time zone 'yesterday' + interval '1 day 10 hr 30 min')) AS "True";
 
 SELECT
-    (timestamp without time zone 'tomorrow' = (timestamp without time zone 'yesterday' + interval '2 days')) AS "True";
+    (timestamp WITHOUT time zone 'tomorrow' = (timestamp WITHOUT time zone 'yesterday' + interval '2 days')) AS "True";
 
 SELECT
-    (timestamp without time zone 'tomorrow 16:00:00' = (timestamp without time zone 'today' + interval '1 day 16 hours')) AS "True";
+    (timestamp WITHOUT time zone 'tomorrow 16:00:00' = (timestamp WITHOUT time zone 'today' + interval '1 day 16 hours')) AS "True";
 
 SELECT
-    (timestamp without time zone '16:00:00 tomorrow' = (timestamp without time zone 'today' + interval '1 day 16 hours')) AS "True";
+    (timestamp WITHOUT time zone '16:00:00 tomorrow' = (timestamp WITHOUT time zone 'today' + interval '1 day 16 hours')) AS "True";
 
 SELECT
-    (timestamp without time zone 'yesterday 12:34:56' = (timestamp without time zone 'tomorrow' - interval '2 days - 12:34:56')) AS "True";
+    (timestamp WITHOUT time zone 'yesterday 12:34:56' = (timestamp WITHOUT time zone 'tomorrow' - interval '2 days - 12:34:56')) AS "True";
 
 SELECT
-    (timestamp without time zone '12:34:56 yesterday' = (timestamp without time zone 'tomorrow' - interval '2 days - 12:34:56')) AS "True";
+    (timestamp WITHOUT time zone '12:34:56 yesterday' = (timestamp WITHOUT time zone 'tomorrow' - interval '2 days - 12:34:56')) AS "True";
 
 SELECT
-    (timestamp without time zone 'tomorrow' > 'now') AS "True";
+    (timestamp WITHOUT time zone 'tomorrow' > 'now') AS "True";
 
 -- Convert from date and time to timestamp
 -- This test used to be timestamp(date,time) but no longer allowed by grammar
@@ -382,7 +382,7 @@ SELECT
     CAST(CAST(date 'today' + time WITH time zone '05:30' + interval '02:01' AS time WITH time zone) AS time) AS "07:31:00";
 
 SELECT
-    CAST(cast(date 'today' + time WITH time zone '03:30' + interval '1 month 04:01' AS timestamp without time zone) AS time) AS "07:31:00";
+    CAST(CAST(date 'today' + time WITH time zone '03:30' + interval '1 month 04:01' AS timestamp WITHOUT time zone) AS time) AS "07:31:00";
 
 SELECT
     t.d1 AS t,
@@ -460,34 +460,34 @@ SELECT
 
 -- test without time zone
 SELECT
-    (timestamp without time zone '2000-11-27',
-        timestamp without time zone '2000-11-28')
-    OVERLAPS(timestamp without time zone '2000-11-27 12:00', timestamp without time zone '2000-11-30') AS "True";
+    (timestamp WITHOUT time zone '2000-11-27',
+        timestamp WITHOUT time zone '2000-11-28')
+    OVERLAPS(timestamp WITHOUT time zone '2000-11-27 12:00', timestamp WITHOUT time zone '2000-11-30') AS "True";
 
 SELECT
-    (timestamp without time zone '2000-11-26',
-        timestamp without time zone '2000-11-27')
-    OVERLAPS(timestamp without time zone '2000-11-27 12:00', timestamp without time zone '2000-11-30') AS "False";
+    (timestamp WITHOUT time zone '2000-11-26',
+        timestamp WITHOUT time zone '2000-11-27')
+    OVERLAPS(timestamp WITHOUT time zone '2000-11-27 12:00', timestamp WITHOUT time zone '2000-11-30') AS "False";
 
 SELECT
-    (timestamp without time zone '2000-11-27',
-        timestamp without time zone '2000-11-28')
-    OVERLAPS(timestamp without time zone '2000-11-27 12:00', interval '1 day') AS "True";
+    (timestamp WITHOUT time zone '2000-11-27',
+        timestamp WITHOUT time zone '2000-11-28')
+    OVERLAPS(timestamp WITHOUT time zone '2000-11-27 12:00', interval '1 day') AS "True";
 
 SELECT
-    (timestamp without time zone '2000-11-27',
+    (timestamp WITHOUT time zone '2000-11-27',
         interval '12 hours')
-    OVERLAPS(timestamp without time zone '2000-11-27 12:00', timestamp without time zone '2000-11-30') AS "False";
+    OVERLAPS(timestamp WITHOUT time zone '2000-11-27 12:00', timestamp WITHOUT time zone '2000-11-30') AS "False";
 
 SELECT
-    (timestamp without time zone '2000-11-27',
+    (timestamp WITHOUT time zone '2000-11-27',
         interval '12 hours')
-    OVERLAPS(timestamp without time zone '2000-11-27', interval '12 hours') AS "True";
+    OVERLAPS(timestamp WITHOUT time zone '2000-11-27', interval '12 hours') AS "True";
 
 SELECT
-    (timestamp without time zone '2000-11-27',
+    (timestamp WITHOUT time zone '2000-11-27',
         interval '12 hours')
-    OVERLAPS(timestamp without time zone '2000-11-27 12:00', interval '12 hours') AS "False";
+    OVERLAPS(timestamp WITHOUT time zone '2000-11-27 12:00', interval '12 hours') AS "False";
 
 -- test time and interval
 SELECT

@@ -31,10 +31,10 @@ CREATE DOMAIN domaintext text;
 
 -- Test explicit coercions --- these should succeed (and truncate)
 SELECT
-    cast('123456' AS domainvarchar);
+    CAST('123456' AS domainvarchar);
 
 SELECT
-    cast('12345' AS domainvarchar);
+    CAST('12345' AS domainvarchar);
 
 -- Test tables using domains
 CREATE TABLE basictest (
@@ -662,18 +662,18 @@ FROM
 
 -- Test out coerced (casted) constraints
 SELECT
-    cast('1' AS dnotnull);
+    CAST('1' AS dnotnull);
 
 SELECT
-    cast(NULL AS dnotnull);
-
--- fail
-SELECT
-    cast(cast(NULL AS dnull) AS dnotnull);
+    CAST(NULL AS dnotnull);
 
 -- fail
 SELECT
-    cast(col4 AS dnotnull)
+    CAST(CAST(NULL AS dnull) AS dnotnull);
+
+-- fail
+SELECT
+    CAST(col4 AS dnotnull)
 FROM
     nulltest;
 
@@ -895,7 +895,7 @@ CREATE DOMAIN dom AS integer;
 
 CREATE VIEW domview AS
 SELECT
-    cast(col1 AS dom)
+    CAST(col1 AS dom)
 FROM
     domtab;
 

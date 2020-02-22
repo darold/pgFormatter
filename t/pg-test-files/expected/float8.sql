@@ -673,13 +673,13 @@ CREATE TYPE xfloat8 (
     LIKE = float8
 );
 
-CREATE cast( xfloat8 AS float8) without FUNCTION;
+CREATE CAST( xfloat8 AS float8) WITHOUT FUNCTION;
 
-CREATE cast( float8 AS xfloat8) without FUNCTION;
+CREATE CAST( float8 AS xfloat8) WITHOUT FUNCTION;
 
-CREATE cast( xfloat8 AS bigint) without FUNCTION;
+CREATE CAST( xfloat8 AS bigint) WITHOUT FUNCTION;
 
-CREATE cast( bigint AS xfloat8) without FUNCTION;
+CREATE CAST( bigint AS xfloat8) WITHOUT FUNCTION;
 
 -- float8: seeeeeee eeeeeeee eeeeeeee mmmmmmmm mmmmmmmm(x4)
 -- we don't care to assume the platform's strtod() handles subnormals

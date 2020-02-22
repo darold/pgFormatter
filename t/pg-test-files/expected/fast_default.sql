@@ -287,22 +287,22 @@ INSERT INTO T
     VALUES (5), (6);
 
 ALTER TABLE T
-    ADD COLUMN c_date date DEFAULT '2016-06-02'::DATE + LENGTH(foo (10)),
+    ADD COLUMN c_date date DEFAULT '2016-06-02'::date + LENGTH(foo (10)),
     ALTER COLUMN c_text SET DEFAULT foo (12);
 
 INSERT INTO T
     VALUES (7), (8);
 
 ALTER TABLE T
-    ADD COLUMN c_timestamp timestamp DEFAULT '2016-09-01'::DATE + LENGTH(foo (10)),
-    ALTER COLUMN c_date SET DEFAULT '2010-01-01'::DATE - LENGTH(foo (4));
+    ADD COLUMN c_timestamp timestamp DEFAULT '2016-09-01'::date + LENGTH(foo (10)),
+    ALTER COLUMN c_date SET DEFAULT '2010-01-01'::date - LENGTH(foo (4));
 
 INSERT INTO T
     VALUES (9), (10);
 
 ALTER TABLE T
-    ADD COLUMN c_array text[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::TEXT[],
-    ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31'::DATE + LENGTH(foo (30));
+    ADD COLUMN c_array text[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::text[],
+    ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31'::date + LENGTH(foo (30));
 
 INSERT INTO T
     VALUES (11), (12);
@@ -613,7 +613,7 @@ ALTER TABLE t1
 
 SELECT
     a,
-    stddev(cast((
+    stddev(CAST((
             SELECT
                 sum(1)
             FROM generate_series(1, 20) x) AS float4)) OVER (PARTITION BY a, b, c ORDER BY b) AS z

@@ -1274,7 +1274,7 @@ SELECT
 CREATE TEMP TABLE arraggtest (
     f1 int[],
     f2 text[][],
-    f3 FLOAT[]
+    f3 float[]
 );
 
 INSERT INTO arraggtest (f1, f2, f3)

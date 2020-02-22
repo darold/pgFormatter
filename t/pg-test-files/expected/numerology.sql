@@ -9,7 +9,7 @@
 --
 
 CREATE TABLE TEMP_FLOAT (
-    f1 FLOAT8
+    f1 float8
 );
 
 INSERT INTO TEMP_FLOAT (f1)
@@ -95,7 +95,7 @@ ORDER BY
 CREATE TABLE TEMP_GROUP (
     f1 int4,
     f2 int4,
-    f3 FLOAT8
+    f3 float8
 );
 
 INSERT INTO TEMP_GROUP

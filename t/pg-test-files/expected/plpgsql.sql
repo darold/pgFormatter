@@ -5630,7 +5630,7 @@ $$
 LANGUAGE sql
 IMMUTABLE STRICT;
 
-CREATE cast( integer AS date
+CREATE CAST( integer AS date
 )
 WITH FUNCTION sql_to_date (integer
 )
@@ -5666,8 +5666,7 @@ ROLLBACK TO SAVEPOINT s1;
         cast_invoker (20150720);
 COMMIT;
     DROP FUNCTION cast_invoker (integer);
-    DROP FUNCTION sql_to_date (integer)
-    CASCADE;
+    DROP FUNCTION sql_to_date (integer) CASCADE;
     -- Test handling of cast cache inside DO blocks
     -- (to check the original crash case, this must be a cast not previously
     -- used in this session)

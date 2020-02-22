@@ -40,25 +40,25 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 = timestamp without time zone 'today';
+    d1 = timestamp WITHOUT time zone 'today';
 SELECT
     count(*) AS Three
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 = timestamp without time zone 'tomorrow';
+    d1 = timestamp WITHOUT time zone 'tomorrow';
 SELECT
     count(*) AS One
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 = timestamp without time zone 'yesterday';
+    d1 = timestamp WITHOUT time zone 'yesterday';
 SELECT
     count(*) AS One
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 = timestamp(2) without time zone 'now';
+    d1 = timestamp(2) WITHOUT time zone 'now';
 COMMIT;
 
 DELETE FROM TIMESTAMP_TBL;
@@ -78,7 +78,7 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 = timestamp(2) without time zone 'now';
+    d1 = timestamp(2) WITHOUT time zone 'now';
 COMMIT;
 
 TRUNCATE TIMESTAMP_TBL;
@@ -336,7 +336,7 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 > timestamp without time zone '1997-01-02';
+    d1 > timestamp WITHOUT time zone '1997-01-02';
 
 SELECT
     '' AS "15",
@@ -344,7 +344,7 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 < timestamp without time zone '1997-01-02';
+    d1 < timestamp WITHOUT time zone '1997-01-02';
 
 SELECT
     '' AS one,
@@ -352,7 +352,7 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 = timestamp without time zone '1997-01-02';
+    d1 = timestamp WITHOUT time zone '1997-01-02';
 
 SELECT
     '' AS "63",
@@ -360,7 +360,7 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 != timestamp without time zone '1997-01-02';
+    d1 != timestamp WITHOUT time zone '1997-01-02';
 
 SELECT
     '' AS "16",
@@ -368,7 +368,7 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 <= timestamp without time zone '1997-01-02';
+    d1 <= timestamp WITHOUT time zone '1997-01-02';
 
 SELECT
     '' AS "49",
@@ -376,11 +376,11 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 >= timestamp without time zone '1997-01-02';
+    d1 >= timestamp WITHOUT time zone '1997-01-02';
 
 SELECT
     '' AS "54",
-    d1 - timestamp without time zone '1997-01-02' AS diff
+    d1 - timestamp WITHOUT time zone '1997-01-02' AS diff
 FROM
     TIMESTAMP_TBL
 WHERE
@@ -394,12 +394,12 @@ SELECT
 -- Test casting within a BETWEEN qualifier
 SELECT
     '' AS "54",
-    d1 - timestamp without time zone '1997-01-02' AS diff
+    d1 - timestamp WITHOUT time zone '1997-01-02' AS diff
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 BETWEEN timestamp without time zone '1902-01-01'
-    AND timestamp without time zone '2038-01-01';
+    d1 BETWEEN timestamp WITHOUT time zone '1902-01-01'
+    AND timestamp WITHOUT time zone '2038-01-01';
 
 SELECT
     '' AS "54",

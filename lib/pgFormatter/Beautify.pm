@@ -841,7 +841,7 @@ sub beautify
         elsif ( uc($token) eq 'PASSING' and defined $self->_next_token && uc($self->_next_token) eq 'BY')
 	{
             $self->{ '_has_order_by' } = 1;
-        } 
+        }
 
 	# Explain need indentation in option list
         if ( uc($token) eq 'EXPLAIN' )
@@ -2490,7 +2490,7 @@ sub _add_token
     {
 	    if ($tk_is_type and defined $last_token)
 	    {
-		if ($last_token =~ /^(AS|RETURNS)$/ or !$self->_is_keyword($last_token)
+		if ($last_token =~ /^(AS|RETURNS)$/i or !$self->_is_keyword($last_token)
 				or $self->_is_type($last_token) or $self->_is_type($next_token))
 		{
 		    $token = lc( $token )            if ( $self->{ 'uc_types' } == 1 );
@@ -2499,7 +2499,6 @@ sub _add_token
 		}
 	    }
     }
-    #$self->{ '_not_a_type' } = 0 if ($token =~ /^(ZONE|TO|=|;)$/i);
 
     # Add formatting for HTML output
     if ( $self->{ 'colorize' } && $self->{ 'format' } eq 'html' ) {

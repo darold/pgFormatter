@@ -485,8 +485,8 @@ SELECT
 -- test casting to restricted precision (bug #14479)
 SELECT
     f1,
-    f1::INTERVAL DAY TO MINUTE AS "minutes",
-    (f1 + interval '1 month')::INTERVAL MONTH::INTERVAL YEAR AS "years"
+    f1::interval DAY TO MINUTE AS "minutes",
+    (f1 + interval '1 month')::interval MONTH::interval YEAR AS "years"
 FROM
     interval_tbl;
 

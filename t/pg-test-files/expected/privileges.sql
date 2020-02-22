@@ -499,8 +499,7 @@ WHERE
     AND abs(y.a) << < 5;
 
 -- clean up (regress_priv_user1's objects are all dropped later)
-DROP FUNCTION leak2 (integer, integer)
-CASCADE;
+DROP FUNCTION leak2 (integer, integer) CASCADE;
 
 -- groups
 SET SESSION AUTHORIZATION regress_priv_user3;
@@ -1485,8 +1484,7 @@ CREATE CAST( priv_testdomain1 AS priv_testdomain3a
 )
 WITH FUNCTION castfunc (int);
 
-DROP FUNCTION castfunc (int)
-CASCADE;
+DROP FUNCTION castfunc (int) CASCADE;
 
 DROP DOMAIN priv_testdomain3a;
 
@@ -1675,8 +1673,7 @@ DROP TYPE test8b;
 
 DROP CAST(priv_testdomain1 AS priv_testdomain3b);
 
-DROP FUNCTION castfunc (int)
-CASCADE;
+DROP FUNCTION castfunc (int) CASCADE;
 
 DROP DOMAIN priv_testdomain3b;
 

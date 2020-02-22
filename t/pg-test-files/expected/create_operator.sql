@@ -157,7 +157,7 @@ CREATE OR REPLACE FUNCTION fn_op2 (boolean, boolean)
     RETURNS boolean
     AS $$
     SELECT
-        NULL::BOOLEAN;
+        NULL::boolean;
 $$
 LANGUAGE sql
 IMMUTABLE;

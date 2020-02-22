@@ -673,7 +673,7 @@ DROP TABLE orderstest CASCADE;
 
 CREATE temp TABLE parts (
     partnum text,
-    COST float8
+    cost float8
 );
 
 CREATE temp TABLE shipped (
