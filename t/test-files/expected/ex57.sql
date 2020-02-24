@@ -1,17 +1,17 @@
-CREATE FUNCTION fn_opf12 (int4, int2)
-    RETURNS bigint
-    AS 'SELECT NULL::bigint;'
+CREATE FUNCTION fn_opf12 (INT4, INT2)
+    RETURNS BIGINT
+    AS 'SELECT NULL::BIGINT;'
     LANGUAGE SQL;
 
 SELECT
-    1::numeric,
-    CAST(2 AS varchar(10));
+    1::NUMERIC,
+    CAST(2 AS VARCHAR(10));
 
 SELECT
-    1::numeric,
-    '1.2'::float8,
-    (12)::float4,
-    CAST(2 AS varchar(10));
+    1::NUMERIC,
+    '1.2'::FLOAT8,
+    (12)::FLOAT4,
+    CAST(2 AS VARCHAR(10));
 
 INSERT INTO (
     field_one,
@@ -39,7 +39,7 @@ VALUES (
     8,
     9);
 
-CREATE CAST( int8 AS int8alias1) WITHOUT FUNCTION;
+CREATE CAST( INT8 AS int8alias1) WITHOUT FUNCTION;
 
 CREATE TABLE test11a AS (
     SELECT
@@ -48,8 +48,19 @@ CREATE TABLE test11a AS (
 
 SELECT
     f1,
-    f1::interval DAY TO MINUTE AS "minutes",
-    (f1 + interval '1 month')::interval MONTH::interval YEAR AS "years"
+    f1::INTERVAL DAY TO MINUTE AS "minutes",
+    (f1 + INTERVAL '1 month')::INTERVAL MONTH::INTERVAL YEAR AS "years"
 FROM
     interval_tbl;
 
+CREATE FUNCTION foo (bar1 IN TEXT, bar2 IN DATE)
+LANGUAGE plpgsql
+AS $procedure$
+DECLARE
+    foobar1 BIGINT;
+    foobar2 DATE;
+    foobar3 TEXT;
+    foobar4 INT;
+BEGIN
+    NULL;
+END;

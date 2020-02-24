@@ -24,3 +24,17 @@ SELECT f1, f1::INTERVAL DAY TO MINUTE AS "minutes",
   (f1 + INTERVAL '1 month')::INTERVAL MONTH::INTERVAL YEAR AS "years"
   FROM interval_tbl;
 
+CREATE FUNCTION foo (
+    bar1 IN text,
+    bar2 IN date
+)
+LANGUAGE plpgsql
+AS $procedure$
+DECLARE
+    foobar1 BIGINT;
+    foobar2 DATE;
+    foobar3 TEXT;
+    foobar4 INT;
+BEGIN
+    NULL;
+END;

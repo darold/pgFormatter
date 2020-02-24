@@ -2496,7 +2496,7 @@ sub _add_token
     {
 	    if ($tk_is_type and defined $last_token)
 	    {
-		if ($last_token =~ /^(AS|RETURNS)$/i or !$self->_is_keyword($last_token)
+		if ($last_token =~ /^(AS|RETURNS|INOUT|IN|OUT)$/i or !$self->_is_keyword($last_token)
 				or $self->_is_type($last_token) or $self->_is_type($next_token))
 		{
 		    $token = lc( $token )            if ( $self->{ 'uc_types' } == 1 );
