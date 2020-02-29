@@ -286,13 +286,9 @@ VACUUM (
 VACUUM (FREEZE) vacparted;
 
 -- check behavior with duplicate column mentions
-VACUUM ANALYZE vacparted (a,
-    b,
-    a);
+VACUUM ANALYZE vacparted (a, b, a);
 
-ANALYZE vacparted (a,
-    b,
-    b);
+ANALYZE vacparted (a, b, b);
 
 -- multiple tables specified
 VACUUM vaccluster,

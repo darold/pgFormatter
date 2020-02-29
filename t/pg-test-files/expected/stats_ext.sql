@@ -19,8 +19,7 @@ BEGIN
     LOOP
         IF first_row THEN
             first_row := FALSE;
-            tmp := regexp_match (ln,
-                'rows=(\d*) .* rows=(\d*)');
+            tmp := regexp_match(ln, 'rows=(\d*) .* rows=(\d*)');
             RETURN query
             SELECT
                 tmp[1]::int,

@@ -703,6 +703,13 @@ sub beautify
                 $self->{ '_is_in_function' }++;
 	    } elsif (uc($token) eq 'IN' and $self->{ '_tokens' }[1] !~ /^(SELECT|WITH|VALUES)$/i) {
                 $self->{ '_is_in_function' }++;
+	    # try to detect if this is a user function
+	    } elsif (!$self->{ '_is_in_function' } and !$self->{ '_is_in_create' }
+			    and !$self->_is_comment($token) and length($token) > 2 # lazy exclusion of operators/comma 
+			    and $last !~ /^(?:AS|RECURSIVE|WITH|OPERATOR|INTO|TYPE|VIEW)/i
+			    and !$self->_is_keyword($token, $self->_next_token(), $last))
+	    {
+                $self->{ '_is_in_function' }++;
 	    }
         }
 
@@ -722,7 +729,7 @@ sub beautify
                 $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
                 if (!$self->{ '_parenthesis_function_level' }) {
 	            $self->_set_level(pop(@{ $self->{ '_level_parenthesis_function' } }) || 0, $token, $last);
-		    $self->_over($token,$last) if (!$self->{ '_is_in_create' } && !$self->{ '_is_in_operator' } && !$self->{ '_is_in_alter' });
+		    $self->_over($token,$last) if (!$self->{ '_is_in_create' } && !$self->{ '_is_in_operator' } && !$self->{ '_is_in_alter' } and uc($self->_next_token($token,$last)||'') ne 'LOOP');
 	        }
             }
 	    $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
@@ -1386,12 +1393,14 @@ sub beautify
 			    and !$self->{ '_is_in_function' }
 			    and (defined $self->_next_token 
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
+		    		    and uc($self->{ '_tokens' }[1]) ne 'ORDINALITY'
 			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
 	        );
 		$self->_new_line($token,$last) if ($add_nl);
-                if (!$self->{ '_is_in_grouping' } && !$self->{ '_is_in_trigger' }
-						&& !$self->{ 'no_break' }
-						&& $self->{ '_is_in_create' } <= 2
+                if (!$self->{ '_is_in_grouping' } and !$self->{ '_is_in_trigger' }
+				and !$self->{ 'no_break' }
+				and $self->{ '_is_in_create' } <= 2
+				and $self->_next_token !~ /^LOOP$/i
 			)
 		{
 			$self->_back($token, $last);
@@ -1875,7 +1884,7 @@ sub beautify
 	    if (uc($token) ne 'EXCEPTION' or not defined $last or uc($last) ne 'RAISE')
 	    {
 		# Excluding CREATE/DROP GROUP
-                $self->_new_line($token,$last) if (not defined $last or $last !~ /^(CREATE|DROP)$/);
+                $self->_new_line($token,$last) if (!$self->{ '_is_in_function' } and (not defined $last or $last !~ /^(CREATE|DROP)$/));
             }
             # Store current indent position to print END at the right level
             if (uc($last) ne 'RAISE' and $token =~ /^EXCEPTION$/i)
@@ -1903,7 +1912,7 @@ sub beautify
             $self->_add_token( $token );
 	    $self->{ '_col_count' } = 0 if (defined $last && $last =~ /^(?:GROUP|ORDER)/i);
 	    if (!$self->{ '_has_order_by' } and !$self->{ '_is_in_over' }) {
-                $self->_new_line($token,$last) if (!$self->{ 'wrap_after' });
+                $self->_new_line($token,$last) if (!$self->{ 'wrap_after' } and !$self->{ '_is_in_function' });
                 $self->_over($token,$last);
 	    }
         }
@@ -1940,7 +1949,13 @@ sub beautify
 
         elsif ( $token =~ /^(?:IF|LOOP)$/i && $self->{ '_current_sql_stmt' } ne 'GRANT')
 	{
-            $self->_add_token( $token );
+	    if ($self->{ '_is_in_join' }) {
+	        $self->{ '_is_in_join' } = 0;
+		$self->_back($token,$last);
+                $self->_add_token( $token );
+	    } else {
+                $self->_add_token( $token );
+	    }
 	    $self->{ 'no_break' } = 0;
             if (defined $self->_next_token and $self->_next_token !~ /^(EXISTS|;)$/i)
 	    {
@@ -2159,7 +2174,7 @@ sub beautify
             if (!$self->{ '_is_in_from' })
 	    {
 		$self->_over($token,$last) if ($self->{ '_is_in_operator' });
-                $self->_new_line($token,$last) if (uc($last) ne 'EXCLUDE' and !$self->{ '_is_in_index' });
+                $self->_new_line($token,$last) if (uc($last) ne 'EXCLUDE' and !$self->{ '_is_in_index' } and !$self->{ '_is_in_function' });
             }
 	    else
 	    {
@@ -3224,6 +3239,7 @@ sub set_dicts
 
     my @pg_functions = map { lc } qw(
         ascii age bit_length btrim cardinality cast char_length character_length coalesce
+	brin_summarize_range brin_summarize_new_values
 	convert chr current_date current_time current_timestamp count decode date_part date_trunc
 	encode extract get_byte get_bit initcap isfinite interval justify_hours justify_days
         lower length lpad ltrim localtime localtimestamp md5 now octet_length overlay position pg_client_encoding
@@ -3373,20 +3389,21 @@ sub set_dicts
         interval_pl_timetz interval_recv interval_send interval_smaller interval_transform interval_um intervaltypmodin
         intervaltypmodout intinterval isclosed isempty ishorizontal iso8859_1_to_utf8 iso8859_to_utf8
         iso_to_koi8r iso_to_mic iso_to_win1251 iso_to_win866 isopen isparallel isperp
-        isvertical johab_to_utf8 json_agg jsonb_agg json_array_elements jsonb_array_elements json_array_elements_text jsonb_array_elements_text
+        isvertical johab_to_utf8 json_agg jsonb_agg json_array_elements jsonb_array_elements
+	json_array_elements_text jsonb_array_elements_text json_to_tsvector jsonb_insert 
         json_array_length jsonb_array_length json_build_array json_build_object json_each jsonb_each json_each_text
         jsonb_each_text json_extract_path jsonb_extract_path json_extract_path_text jsonb_extract_path_text json_in
 	json_object json_object_agg jsonb_object_agg json_object_keys jsonb_object_keys json_out json_populate_record
 	jsonb_populate_record json_populate_recordset jsonb_pretty jsonb_populate_recordset json_recv json_send
 	jsonb_set json_typeof jsonb_typeof json_to_record jsonb_to_record json_to_recordset jsonb_to_recordset
 	justify_interval koi8r_to_iso koi8r_to_mic koi8r_to_utf8 koi8r_to_win1251 koi8r_to_win866 koi8u_to_utf8
-	jsonb_path_query jsonb_build_object
+	jsonb_path_query jsonb_build_object jsonb_object jsonb_build_array jsonb_path_match jsonb_path_exists
         lag language_handler_in language_handler_out last_value lastval latin1_to_mic latin2_to_mic latin2_to_win1250
-        latin3_to_mic latin4_to_mic lead like_escape likejoinsel
+        latin3_to_mic latin4_to_mic lead like_escape likejoinsel jsonb_path_query_first jsonb_path_query_array
         likesel line line_distance line_eq line_horizontal line_in line_interpt
         line_intersect line_out line_parallel line_perp line_recv line_send line_vertical
-        ln lo_close lo_creat lo_create lo_export lo_import lo_lseek
-        lo_open lo_tell lo_truncate lo_unlink log loread lower_inc
+        ln lo_close lo_creat lo_create lo_export lo_import lo_lseek lo_compat lo_from_bytea lo_get lo_import_with_oid
+        lo_open lo_tell lo_truncate lo_unlink log lo_read lower_inc lo_seek64 lo_put lo_tell64 lo_truncate64 lo_write
         lower_inf lowrite lseg lseg_center lseg_distance lseg_eq lseg_ge
         lseg_gt lseg_horizontal lseg_in lseg_interpt lseg_intersect lseg_le lseg_length
         lseg_lt lseg_ne lseg_out lseg_parallel lseg_perp lseg_recv lseg_send
@@ -3395,9 +3412,9 @@ sub set_dicts
         macaddr_send makeaclitem make_interval make_tsrange masklen max mic_to_ascii mic_to_big5 mic_to_euc_cn
         mic_to_euc_jp mic_to_euc_kr mic_to_euc_tw mic_to_iso mic_to_koi8r mic_to_latin1 mic_to_latin2
         mic_to_latin3 mic_to_latin4 mic_to_sjis mic_to_win1250 mic_to_win1251 mic_to_win866 min
-        mktinterval mode mod money mul_d_interval name nameeq namege
-        namegt nameiclike nameicnlike nameicregexeq nameicregexne namein namele
-        namelike namelt namene namenlike nameout namerecv nameregexeq
+        mktinterval mode mod money mul_d_interval name nameeq namege make_timestamptz make_timestamp
+        namegt nameiclike nameicnlike nameicregexeq nameicregexne namein namele make_time make_date
+        namelike namelt namene namenlike nameout namerecv nameregexeq make_interval
         nameregexne namesend neqjoinsel neqsel netmask network network_cmp
         network_eq network_ge network_gt network_le network_lt network_ne network_sub
         network_subeq network_sup network_supeq nextval nlikejoinsel nlikesel notlike
@@ -3414,7 +3431,7 @@ sub set_dicts
         oidvectortypes on_pb on_pl on_ppath on_ps on_sb on_sl
         opaque_in opaque_out overlaps path path_add path_add_pt path_center
         path_contain_pt path_distance path_div_pt path_in path_inter path_length path_mul_pt
-        path_n_eq path_n_ge path_n_gt path_n_le path_n_lt path_npoints path_out
+        path_n_eq path_n_ge path_n_gt path_n_le path_n_lt path_npoints path_out parse_ident
         path_recv path_send path_sub_pt pclose percent_rank percentile_cont percentile_disc
 	pg_advisory_lock pg_advisory_lock_shared pg_advisory_unlock pg_advisory_unlock_all pg_advisory_unlock_shared
 	pg_advisory_xact_lock pg_advisory_xact_lock_shared pg_available_extension_versions pg_available_extensions
@@ -3477,10 +3494,11 @@ sub set_dicts
         prsd_start pt_contained_circle pt_contained_poly querytree
         quote_nullable radians radius random range_adjacent range_after range_before
         range_cmp range_contained_by range_contains range_contains_elem range_eq range_ge range_gist_compress
-        range_gist_consistent range_gist_decompress range_gist_penalty range_gist_picksplit range_gist_same range_gist_union range_gt
+        range_gist_consistent range_gist_decompress range_gist_penalty range_gist_picksplit range_gist_same
+	range_gist_union range_gt range_merge
         range_in range_intersect range_le range_lt range_minus range_ne range_out
         range_overlaps range_overleft range_overright range_recv range_send range_typanalyze range_union
-        rank record_eq record_ge record_gt record_in record_le record_lt
+        rank record_eq record_ge record_gt record_in record_le record_lt regexp_match
         record_ne record_out record_recv record_send regclass regclassin regclassout
         regclassrecv regclasssend regconfigin regconfigout regconfigrecv regconfigsend regdictionaryin
         regdictionaryout regdictionaryrecv regdictionarysend regexeqjoinsel regexeqsel regexnejoinsel regexnesel
@@ -3528,14 +3546,15 @@ sub set_dicts
         tintervalleneq tintervallenge tintervallengt tintervallenle tintervallenlt tintervallenne tintervallt
         tintervalne tintervalout tintervalov tintervalrecv tintervalrel tintervalsame tintervalsend
         tintervalstart to_json to_tsquery to_tsvector transaction_timestamp trigger_out trunc ts_debug
-        ts_headline ts_lexize ts_match_qv ts_match_tq ts_match_tt ts_match_vq ts_parse
-        ts_rank ts_rank_cd ts_rewrite ts_stat ts_token_type ts_typanalyze tsmatchjoinsel
+        ts_headline ts_lexize ts_match_qv ts_match_tq ts_match_tt ts_match_vq ts_parse ts_delete ts_filter
+        ts_rank ts_rank_cd ts_rewrite ts_stat ts_token_type ts_typanalyze tsmatchjoinsel tsquery_phrase
         tsmatchsel tsq_mcontained tsq_mcontains tsquery_and tsquery_cmp tsquery_eq tsquery_ge
-        tsquery_gt tsquery_le tsquery_lt tsquery_ne tsquery_not tsquery_or tsqueryin
-        tsqueryout tsqueryrecv tsquerysend tsrange tsrange_subdiff tstzrange tstzrange_subdiff
+        tsquery_gt tsquery_le tsquery_lt tsquery_ne tsquery_not tsquery_or tsqueryin websearch_to_tsquery
+        tsqueryout tsqueryrecv tsquerysend tsrange tsrange_subdiff tstzrange tstzrange_subdiff phraseto_tsquery
         tsvector_cmp tsvector_concat tsvector_eq tsvector_ge tsvector_gt tsvector_le tsvector_lt
         tsvector_ne tsvectorin tsvectorout tsvectorrecv tsvectorsend txid_current txid_current_snapshot
-        txid_snapshot_in txid_snapshot_out txid_snapshot_recv txid_snapshot_send txid_snapshot_xip txid_snapshot_xmax txid_snapshot_xmin
+        txid_snapshot_in txid_snapshot_out txid_snapshot_recv txid_snapshot_send txid_snapshot_xip
+	txid_snapshot_xmax txid_snapshot_xmin
         txid_visible_in_snapshot uhc_to_utf8 unknownin unknownout unknownrecv unknownsend unnest
         upper_inc upper_inf utf8_to_ascii utf8_to_big5 utf8_to_euc_cn utf8_to_euc_jis_2004 utf8_to_euc_jp
         utf8_to_euc_kr utf8_to_euc_tw utf8_to_gb18030 utf8_to_gbk utf8_to_iso8859 utf8_to_iso8859_1 utf8_to_johab

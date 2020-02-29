@@ -116,8 +116,7 @@ BEGIN
         matches[ORDINALITY]
     FROM
         brinopers,
-        unnest(op
-)
+        unnest(op)
     WITH ORDINALITY AS oper LOOP
         -- prepare the condition
         IF r.value IS NULL THEN
@@ -238,8 +237,7 @@ ORDER BY
 LIMIT 5 OFFSET 5;
 
 SELECT
-    brin_desummarize_range ('brinidx',
-        0);
+    brin_desummarize_range ('brinidx', 0);
 
 VACUUM brintest;
 
@@ -258,35 +256,31 @@ WHERE
 
 -- Tests for brin_summarize_new_values
 SELECT
-    brin_summarize_new_values ('brintest');
+    brin_summarize_new_values('brintest');
 
 -- error, not an index
 SELECT
-    brin_summarize_new_values ('tenk1_unique1');
+    brin_summarize_new_values('tenk1_unique1');
 
 -- error, not a BRIN index
 SELECT
-    brin_summarize_new_values ('brinidx');
+    brin_summarize_new_values('brinidx');
 
 -- ok, no change expected
 -- Tests for brin_desummarize_range
 
 SELECT
-    brin_desummarize_range ('brinidx',
-        - 1);
+    brin_desummarize_range ('brinidx', - 1);
 
 -- error, invalid range
 SELECT
-    brin_desummarize_range ('brinidx',
-        0);
+    brin_desummarize_range ('brinidx', 0);
 
 SELECT
-    brin_desummarize_range ('brinidx',
-        0);
+    brin_desummarize_range ('brinidx', 0);
 
 SELECT
-    brin_desummarize_range ('brinidx',
-        100000000);
+    brin_desummarize_range ('brinidx', 100000000);
 
 -- Test brin_summarize_range
 CREATE TABLE brin_summarize (
@@ -317,32 +311,26 @@ $$;
 
 -- summarize one range
 SELECT
-    brin_summarize_range ('brin_summarize_idx',
-        0);
+    brin_summarize_range('brin_summarize_idx', 0);
 
 -- nothing: already summarized
 SELECT
-    brin_summarize_range ('brin_summarize_idx',
-        1);
+    brin_summarize_range('brin_summarize_idx', 1);
 
 -- summarize one range
 SELECT
-    brin_summarize_range ('brin_summarize_idx',
-        2);
+    brin_summarize_range('brin_summarize_idx', 2);
 
 -- nothing: page doesn't exist in table
 SELECT
-    brin_summarize_range ('brin_summarize_idx',
-        4294967295);
+    brin_summarize_range('brin_summarize_idx', 4294967295);
 
 -- invalid block number values
 SELECT
-    brin_summarize_range ('brin_summarize_idx',
-        - 1);
+    brin_summarize_range('brin_summarize_idx', - 1);
 
 SELECT
-    brin_summarize_range ('brin_summarize_idx',
-        4294967296);
+    brin_summarize_range('brin_summarize_idx', 4294967296);
 
 -- test brin cost estimates behave sanely based on correlation of values
 CREATE TABLE brin_test (

@@ -660,8 +660,7 @@ SELECT
     to_tsquery('english', 'foo <-> a <-> the <-> bar');
 
 SELECT
-    phraseto_tsquery ('english',
-        'PostgreSQL can be extended by the user in many ways');
+    phraseto_tsquery('english', 'PostgreSQL can be extended by the user in many ways');
 
 SELECT
     ts_rank_cd(to_tsvector('english', '
@@ -772,7 +771,7 @@ SELECT
  Water, water, every where,
    Nor any drop to drink.
  S. T. Coleridge (1772-1834)
- ', phraseto_tsquery ('english', 'painted Ocean'));
+ ', phraseto_tsquery('english', 'painted Ocean'));
 
 SELECT
     ts_headline('english', '
@@ -785,7 +784,7 @@ SELECT
  Water, water, every where,
    Nor any drop to drink.
  S. T. Coleridge (1772-1834)
- ', phraseto_tsquery ('english', 'idle as a painted Ship'));
+ ', phraseto_tsquery('english', 'idle as a painted Ship'));
 
 SELECT
     ts_headline('english', '
@@ -1130,13 +1129,13 @@ FROM
     to_tsquery('english', 'bar &  new & qq & foo & york') AS query;
 
 SELECT
-    ts_rewrite(tsquery_phrase ('foo', 'foo'), 'foo', 'bar | baz');
+    ts_rewrite(tsquery_phrase('foo', 'foo'), 'foo', 'bar | baz');
 
 SELECT
-    to_tsvector('foo bar') @@ ts_rewrite(tsquery_phrase ('foo', 'foo'), 'foo', 'bar | baz');
+    to_tsvector('foo bar') @@ ts_rewrite(tsquery_phrase('foo', 'foo'), 'foo', 'bar | baz');
 
 SELECT
-    to_tsvector('bar baz') @@ ts_rewrite(tsquery_phrase ('foo', 'foo'), 'foo', 'bar | baz');
+    to_tsvector('bar baz') @@ ts_rewrite(tsquery_phrase('foo', 'foo'), 'foo', 'bar | baz');
 
 RESET enable_seqscan;
 
@@ -1278,280 +1277,217 @@ SELECT
 FROM
     phrase_index_test
 WHERE
-    fts @@ phraseto_tsquery ('english', 'fat cat');
+    fts @@ phraseto_tsquery('english', 'fat cat');
 
 SET enable_seqscan = ON;
 
 -- test websearch_to_tsquery function
 SELECT
-    websearch_to_tsquery ('simple',
-        'I have a fat:*ABCD cat');
+    websearch_to_tsquery('simple', 'I have a fat:*ABCD cat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'orange:**AABBCCDD');
+    websearch_to_tsquery('simple', 'orange:**AABBCCDD');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat:A!cat:B|rat:C<');
+    websearch_to_tsquery('simple', 'fat:A!cat:B|rat:C<');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat:A : cat:B');
+    websearch_to_tsquery('simple', 'fat:A : cat:B');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat*rat');
+    websearch_to_tsquery('simple', 'fat*rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat-rat');
+    websearch_to_tsquery('simple', 'fat-rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat_rat');
+    websearch_to_tsquery('simple', 'fat_rat');
 
 -- weights are completely ignored
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc : def');
+    websearch_to_tsquery('simple', 'abc : def');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc:def');
+    websearch_to_tsquery('simple', 'abc:def');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'a:::b');
+    websearch_to_tsquery('simple', 'a:::b');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc:d');
+    websearch_to_tsquery('simple', 'abc:d');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        ':');
+    websearch_to_tsquery('simple', ':');
 
 -- these operators are ignored
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc & def');
+    websearch_to_tsquery('simple', 'abc & def');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc | def');
+    websearch_to_tsquery('simple', 'abc | def');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc <-> def');
+    websearch_to_tsquery('simple', 'abc <-> def');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc (pg or class)');
+    websearch_to_tsquery('simple', 'abc (pg or class)');
 
 -- NOT is ignored in quotes
 SELECT
-    websearch_to_tsquery ('english',
-        'My brand new smartphone');
+    websearch_to_tsquery('english', 'My brand new smartphone');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'My brand "new smartphone"');
+    websearch_to_tsquery('english', 'My brand "new smartphone"');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'My brand "new -smartphone"');
+    websearch_to_tsquery('english', 'My brand "new -smartphone"');
 
 -- test OR operator
 SELECT
-    websearch_to_tsquery ('simple',
-        'cat or rat');
+    websearch_to_tsquery('simple', 'cat or rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'cat OR rat');
+    websearch_to_tsquery('simple', 'cat OR rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'cat "OR" rat');
+    websearch_to_tsquery('simple', 'cat "OR" rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'cat OR');
+    websearch_to_tsquery('simple', 'cat OR');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'OR rat');
+    websearch_to_tsquery('simple', 'OR rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        '"fat cat OR rat"');
+    websearch_to_tsquery('simple', '"fat cat OR rat"');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat (cat OR rat');
+    websearch_to_tsquery('simple', 'fat (cat OR rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'or OR or');
+    websearch_to_tsquery('simple', 'or OR or');
 
 -- OR is an operator here ...
 SELECT
-    websearch_to_tsquery ('simple',
-        '"fat cat"or"fat rat"');
+    websearch_to_tsquery('simple', '"fat cat"or"fat rat"');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or(rat');
+    websearch_to_tsquery('simple', 'fat or(rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or)rat');
+    websearch_to_tsquery('simple', 'fat or)rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or&rat');
+    websearch_to_tsquery('simple', 'fat or&rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or|rat');
+    websearch_to_tsquery('simple', 'fat or|rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or!rat');
+    websearch_to_tsquery('simple', 'fat or!rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or<rat');
+    websearch_to_tsquery('simple', 'fat or<rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or>rat');
+    websearch_to_tsquery('simple', 'fat or>rat');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'fat or ');
+    websearch_to_tsquery('simple', 'fat or ');
 
 -- ... but not here
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc orange');
+    websearch_to_tsquery('simple', 'abc orange');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc OR1234');
+    websearch_to_tsquery('simple', 'abc OR1234');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc or-abc');
+    websearch_to_tsquery('simple', 'abc or-abc');
 
 SELECT
-    websearch_to_tsquery ('simple',
-        'abc OR_abc');
+    websearch_to_tsquery('simple', 'abc OR_abc');
 
 -- test quotes
 SELECT
-    websearch_to_tsquery ('english',
-        '"pg_class pg');
+    websearch_to_tsquery('english', '"pg_class pg');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'pg_class pg"');
+    websearch_to_tsquery('english', 'pg_class pg"');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '"pg_class pg"');
+    websearch_to_tsquery('english', '"pg_class pg"');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'abc "pg_class pg"');
+    websearch_to_tsquery('english', 'abc "pg_class pg"');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '"pg_class pg" def');
+    websearch_to_tsquery('english', '"pg_class pg" def');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'abc "pg pg_class pg" def');
+    websearch_to_tsquery('english', 'abc "pg pg_class pg" def');
 
 SELECT
-    websearch_to_tsquery ('english',
-        ' or "pg pg_class pg" or ');
+    websearch_to_tsquery('english', ' or "pg pg_class pg" or ');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '""pg pg_class pg""');
+    websearch_to_tsquery('english', '""pg pg_class pg""');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'abc """"" def');
+    websearch_to_tsquery('english', 'abc """"" def');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'cat -"fat rat"');
+    websearch_to_tsquery('english', 'cat -"fat rat"');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'cat -"fat rat" cheese');
+    websearch_to_tsquery('english', 'cat -"fat rat" cheese');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'abc "def -"');
+    websearch_to_tsquery('english', 'abc "def -"');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'abc "def :"');
+    websearch_to_tsquery('english', 'abc "def :"');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '"A fat cat" has just eaten a -rat.');
+    websearch_to_tsquery('english', '"A fat cat" has just eaten a -rat.');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '"A fat cat" has just eaten OR !rat.');
+    websearch_to_tsquery('english', '"A fat cat" has just eaten OR !rat.');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '"A fat cat" has just (+eaten OR -rat)');
+    websearch_to_tsquery('english', '"A fat cat" has just (+eaten OR -rat)');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'this is ----fine');
+    websearch_to_tsquery('english', 'this is ----fine');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '(()) )))) this ||| is && -fine, "dear friend" OR good');
+    websearch_to_tsquery('english', '(()) )))) this ||| is && -fine, "dear friend" OR good');
 
 SELECT
-    websearch_to_tsquery ('english',
-        'an old <-> cat " is fine &&& too');
+    websearch_to_tsquery('english', 'an old <-> cat " is fine &&& too');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '"A the" OR just on');
+    websearch_to_tsquery('english', '"A the" OR just on');
 
 SELECT
-    websearch_to_tsquery ('english',
-        '"a fat cat" ate a rat');
+    websearch_to_tsquery('english', '"a fat cat" ate a rat');
 
 SELECT
-    to_tsvector('english', 'A fat cat ate a rat') @@ websearch_to_tsquery ('english',
-        '"a fat cat" ate a rat');
+    to_tsvector('english', 'A fat cat ate a rat') @@ websearch_to_tsquery('english', '"a fat cat" ate a rat');
 
 SELECT
-    to_tsvector('english', 'A fat grey cat ate a rat') @@ websearch_to_tsquery ('english',
-        '"a fat cat" ate a rat');
+    to_tsvector('english', 'A fat grey cat ate a rat') @@ websearch_to_tsquery('english', '"a fat cat" ate a rat');
 
 -- cases handled by gettoken_tsvector()
 SELECT
-    websearch_to_tsquery ('''');
+    websearch_to_tsquery('''');
 
 SELECT
-    websearch_to_tsquery ('''abc''''def''');
+    websearch_to_tsquery('''abc''''def''');
 
 SELECT
-    websearch_to_tsquery ('\abc');
+    websearch_to_tsquery('\abc');
 
 SELECT
-    websearch_to_tsquery ('\');
+    websearch_to_tsquery('\');
 

@@ -362,9 +362,7 @@ EXPLAIN (
 )
 SELECT
     c,
-    sum(b
-    ORDER BY
-        a)
+    sum(b ORDER BY a)
 FROM
     pagg_tab
 GROUP BY
@@ -382,9 +380,7 @@ EXPLAIN (
 )
 SELECT
     a,
-    sum(b
-    ORDER BY
-        a)
+    sum(b ORDER BY a)
 FROM
     pagg_tab
 GROUP BY

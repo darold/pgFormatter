@@ -345,16 +345,13 @@ SELECT
 
 -- should fail
 SELECT
-    range_merge (numrange(1.0, 2.0),
-        numrange(2.0, 3.0));
+    range_merge(numrange(1.0, 2.0), numrange(2.0, 3.0));
 
 SELECT
-    range_merge (numrange(1.0, 2.0),
-        numrange(1.5, 3.0));
+    range_merge(numrange(1.0, 2.0), numrange(1.5, 3.0));
 
 SELECT
-    range_merge (numrange(1.0, 2.0),
-        numrange(2.5, 3.0));
+    range_merge(numrange(1.0, 2.0), numrange(2.5, 3.0));
 
 -- shouldn't fail
 SELECT
@@ -1270,12 +1267,10 @@ CREATE TYPE textrange2 AS RANGE (
 );
 
 SELECT
-    textrange1 ('a',
-        'Z') @> 'b'::text;
+    textrange1 ('a', 'Z') @> 'b'::text;
 
 SELECT
-    textrange2 ('a',
-        'z') @> 'b'::text;
+    textrange2 ('a', 'z') @> 'b'::text;
 
 DROP TYPE textrange1;
 
@@ -1291,13 +1286,11 @@ CREATE FUNCTION anyarray_anyrange_func (a anyarray, r anyrange)
     LANGUAGE sql;
 
 SELECT
-    anyarray_anyrange_func (ARRAY[1, 2],
-        int4range(10, 20));
+    anyarray_anyrange_func (ARRAY[1, 2], int4range(10, 20));
 
 -- should fail
 SELECT
-    anyarray_anyrange_func (ARRAY[1, 2],
-        numrange(10, 20));
+    anyarray_anyrange_func (ARRAY[1, 2], numrange(10, 20));
 
 DROP FUNCTION anyarray_anyrange_func (anyarray, anyrange);
 
@@ -1333,12 +1326,10 @@ $$
 LANGUAGE sql;
 
 SELECT
-    rangetypes_sql (int4range(1, 10),
-        ARRAY[2, 20]);
+    rangetypes_sql (int4range(1, 10), ARRAY[2, 20]);
 
 SELECT
-    rangetypes_sql (numrange(1, 10),
-        ARRAY[2, 20]);
+    rangetypes_sql (numrange(1, 10), ARRAY[2, 20]);
 
 -- match failure
 --
@@ -1372,21 +1363,17 @@ CREATE TYPE arrayrange AS RANGE (
 );
 
 SELECT
-    arrayrange (ARRAY[1, 2],
-        ARRAY[2, 1]);
+    arrayrange (ARRAY[1, 2], ARRAY[2, 1]);
 
 SELECT
-    arrayrange (ARRAY[2, 1],
-        ARRAY[1, 2]);
+    arrayrange (ARRAY[2, 1], ARRAY[1, 2]);
 
 -- fail
 SELECT
-    ARRAY[1, 1] <@ arrayrange (ARRAY[1, 2],
-        ARRAY[2, 1]);
+    ARRAY[1, 1] <@ arrayrange (ARRAY[1, 2], ARRAY[2, 1]);
 
 SELECT
-    ARRAY[1, 3] <@ arrayrange (ARRAY[1, 2],
-        ARRAY[2, 1]);
+    ARRAY[1, 3] <@ arrayrange (ARRAY[1, 2], ARRAY[2, 1]);
 
 --
 -- Ranges of composites
@@ -1477,8 +1464,7 @@ LANGUAGE sql;
 SELECT
     *
 FROM
-    table_succeed (123,
-        int4range(1, 11));
+    table_succeed (123, int4range(1, 11));
 
 -- should fail
 CREATE FUNCTION outparam_fail (i anyelement, out r anyrange, out t text

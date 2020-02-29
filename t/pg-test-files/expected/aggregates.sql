@@ -408,8 +408,7 @@ FROM
     onek;
 
 SELECT
-    sum2 (q1,
-        q2)
+    sum2 (q1, q2)
 FROM
     int8_tbl;
 
@@ -1178,9 +1177,7 @@ FROM (
 
 -- multi-arg aggs, strict/nonstrict, distinct/order by
 SELECT
-    aggfstr (a,
-        b,
-        c)
+    aggfstr (a, b, c)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1188,9 +1185,7 @@ FROM (
         (3, 1, 'baz')) v (a, b, c);
 
 SELECT
-    aggfns (a,
-        b,
-        c)
+    aggfns (a, b, c)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1198,9 +1193,7 @@ FROM (
         (3, 1, 'baz')) v (a, b, c);
 
 SELECT
-    aggfstr (DISTINCT a,
-        b,
-        c)
+    aggfstr (DISTINCT a, b, c)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1209,9 +1202,7 @@ FROM (
     generate_series(1, 3) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c)
+    aggfns (DISTINCT a, b, c)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1220,11 +1211,7 @@ FROM (
     generate_series(1, 3) i;
 
 SELECT
-    aggfstr (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        b)
+    aggfstr (DISTINCT a, b, c ORDER BY b)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1233,11 +1220,7 @@ FROM (
     generate_series(1, 3) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        b)
+    aggfns (DISTINCT a, b, c ORDER BY b)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1247,12 +1230,7 @@ FROM (
 
 -- test specific code paths
 SELECT
-    aggfns (DISTINCT a,
-        a,
-        c
-    ORDER BY
-        c
-        USING ~<~, a)
+    aggfns (DISTINCT a, a, c ORDER BY c USING ~<~, a)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1261,12 +1239,7 @@ FROM (
     generate_series(1, 2) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        a,
-        c
-    ORDER BY
-        c
-        USING ~<~)
+    aggfns (DISTINCT a, a, c ORDER BY c USING ~<~)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1275,11 +1248,7 @@ FROM (
     generate_series(1, 2) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        a,
-        c
-    ORDER BY
-        a)
+    aggfns (DISTINCT a, a, c ORDER BY a)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1288,13 +1257,7 @@ FROM (
     generate_series(1, 2) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        a,
-        c
-        USING ~<~, b)
+    aggfns (DISTINCT a, b, c ORDER BY a, c USING ~<~, b)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1305,9 +1268,7 @@ FROM (
 -- check node I/O via view creation and usage, also deparsing logic
 CREATE VIEW agg_view1 AS
 SELECT
-    aggfns (a,
-        b,
-        c)
+    aggfns (a, b, c)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1324,9 +1285,7 @@ SELECT
 
 CREATE OR REPLACE VIEW agg_view1 AS
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c)
+    aggfns (DISTINCT a, b, c)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1344,11 +1303,7 @@ SELECT
 
 CREATE OR REPLACE VIEW agg_view1 AS
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        b)
+    aggfns (DISTINCT a, b, c ORDER BY b)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1366,11 +1321,7 @@ SELECT
 
 CREATE OR REPLACE VIEW agg_view1 AS
 SELECT
-    aggfns (a,
-        b,
-        c
-    ORDER BY
-        b + 1)
+    aggfns (a, b, c ORDER BY b + 1)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1387,11 +1338,7 @@ SELECT
 
 CREATE OR REPLACE VIEW agg_view1 AS
 SELECT
-    aggfns (a,
-        a,
-        c
-    ORDER BY
-        b)
+    aggfns (a, a, c ORDER BY b)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1408,12 +1355,7 @@ SELECT
 
 CREATE OR REPLACE VIEW agg_view1 AS
 SELECT
-    aggfns (a,
-        b,
-        c
-    ORDER BY
-        c
-        USING ~<~)
+    aggfns (a, b, c ORDER BY c USING ~<~)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1430,13 +1372,7 @@ SELECT
 
 CREATE OR REPLACE VIEW agg_view1 AS
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        a,
-        c
-        USING ~<~, b)
+    aggfns (DISTINCT a, b, c ORDER BY a, c USING ~<~, b)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -1456,46 +1392,25 @@ DROP VIEW agg_view1;
 
 -- incorrect DISTINCT usage errors
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        i)
+    aggfns (DISTINCT a, b, c ORDER BY i)
 FROM (
     VALUES (1, 1, 'foo')) v (a, b, c),
     generate_series(1, 2) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        a,
-        b + 1)
+    aggfns (DISTINCT a, b, c ORDER BY a, b + 1)
 FROM (
     VALUES (1, 1, 'foo')) v (a, b, c),
     generate_series(1, 2) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        a,
-        b,
-        i,
-        c)
+    aggfns (DISTINCT a, b, c ORDER BY a, b, i, c)
 FROM (
     VALUES (1, 1, 'foo')) v (a, b, c),
     generate_series(1, 2) i;
 
 SELECT
-    aggfns (DISTINCT a,
-        a,
-        c
-    ORDER BY
-        a,
-        b)
+    aggfns (DISTINCT a, a, c ORDER BY a, b)
 FROM (
     VALUES (1, 1, 'foo')) v (a, b, c),
     generate_series(1, 2) i;
@@ -1688,13 +1603,7 @@ FROM
 
 -- exercise lots of aggregate parts with FILTER
 SELECT
-    aggfns (DISTINCT a,
-        b,
-        c
-    ORDER BY
-        a,
-        c
-        USING ~<~, b) FILTER (WHERE a > 1)
+    aggfns (DISTINCT a, b, c ORDER BY a, c USING ~<~, b) FILTER (WHERE a > 1)
 FROM (
     VALUES (1, 3, 'foo'),
         (0, NULL, NULL),
@@ -2000,8 +1909,7 @@ DROP VIEW aggordview1;
 
 -- variadic aggregates
 SELECT
-    least_agg (q1,
-        q2)
+    least_agg (q1, q2)
 FROM
     int8_tbl;
 
@@ -2347,16 +2255,12 @@ ORDER BY
 -- 2a505161-2727-2473-7c46-591ed108ac52@email.cz
 
 SELECT
-    min(x
-    ORDER BY
-        y)
+    min(x ORDER BY y)
 FROM (
     VALUES (1, NULL)) AS d (x, y);
 
 SELECT
-    min(x
-    ORDER BY
-        y)
+    min(x ORDER BY y)
 FROM (
     VALUES (1, 2)) AS d (x, y);
 

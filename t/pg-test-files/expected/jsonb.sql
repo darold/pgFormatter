@@ -260,9 +260,7 @@ FROM (
         generate_series(4, 5) y) q;
 
 SELECT
-    jsonb_agg(q
-    ORDER BY
-        x, y)
+    jsonb_agg(q ORDER BY x, y)
 FROM
     ROWS q;
 
@@ -274,9 +272,7 @@ WHERE
     x = 1;
 
 SELECT
-    jsonb_agg(q
-    ORDER BY
-        x NULLS FIRST, y)
+    jsonb_agg(q ORDER BY x NULLS FIRST, y)
 FROM
     ROWS q;
 
@@ -554,32 +550,25 @@ SELECT
 
 -- containment
 SELECT
-    jsonb_contains ('{"a":"b", "b":1, "c":null}',
-        '{"a":"b"}');
+    jsonb_contains ('{"a":"b", "b":1, "c":null}', '{"a":"b"}');
 
 SELECT
-    jsonb_contains ('{"a":"b", "b":1, "c":null}',
-        '{"a":"b", "c":null}');
+    jsonb_contains ('{"a":"b", "b":1, "c":null}', '{"a":"b", "c":null}');
 
 SELECT
-    jsonb_contains ('{"a":"b", "b":1, "c":null}',
-        '{"a":"b", "g":null}');
+    jsonb_contains ('{"a":"b", "b":1, "c":null}', '{"a":"b", "g":null}');
 
 SELECT
-    jsonb_contains ('{"a":"b", "b":1, "c":null}',
-        '{"g":null}');
+    jsonb_contains ('{"a":"b", "b":1, "c":null}', '{"g":null}');
 
 SELECT
-    jsonb_contains ('{"a":"b", "b":1, "c":null}',
-        '{"a":"c"}');
+    jsonb_contains ('{"a":"b", "b":1, "c":null}', '{"a":"c"}');
 
 SELECT
-    jsonb_contains ('{"a":"b", "b":1, "c":null}',
-        '{"a":"b"}');
+    jsonb_contains ('{"a":"b", "b":1, "c":null}', '{"a":"b"}');
 
 SELECT
-    jsonb_contains ('{"a":"b", "b":1, "c":null}',
-        '{"a":"b", "c":"q"}');
+    jsonb_contains ('{"a":"b", "b":1, "c":null}', '{"a":"b", "c":"q"}');
 
 SELECT
     '{"a":"b", "b":1, "c":null}'::jsonb @> '{"a":"b"}';
@@ -621,32 +610,25 @@ SELECT
     '[[1,2,2]]'::jsonb <@ '[[1,2]]'::jsonb;
 
 SELECT
-    jsonb_contained ('{"a":"b"}',
-        '{"a":"b", "b":1, "c":null}');
+    jsonb_contained ('{"a":"b"}', '{"a":"b", "b":1, "c":null}');
 
 SELECT
-    jsonb_contained ('{"a":"b", "c":null}',
-        '{"a":"b", "b":1, "c":null}');
+    jsonb_contained ('{"a":"b", "c":null}', '{"a":"b", "b":1, "c":null}');
 
 SELECT
-    jsonb_contained ('{"a":"b", "g":null}',
-        '{"a":"b", "b":1, "c":null}');
+    jsonb_contained ('{"a":"b", "g":null}', '{"a":"b", "b":1, "c":null}');
 
 SELECT
-    jsonb_contained ('{"g":null}',
-        '{"a":"b", "b":1, "c":null}');
+    jsonb_contained ('{"g":null}', '{"a":"b", "b":1, "c":null}');
 
 SELECT
-    jsonb_contained ('{"a":"c"}',
-        '{"a":"b", "b":1, "c":null}');
+    jsonb_contained ('{"a":"c"}', '{"a":"b", "b":1, "c":null}');
 
 SELECT
-    jsonb_contained ('{"a":"b"}',
-        '{"a":"b", "b":1, "c":null}');
+    jsonb_contained ('{"a":"b"}', '{"a":"b", "b":1, "c":null}');
 
 SELECT
-    jsonb_contained ('{"a":"b", "c":"q"}',
-        '{"a":"b", "b":1, "c":null}');
+    jsonb_contained ('{"a":"b", "c":"q"}', '{"a":"b", "b":1, "c":null}');
 
 SELECT
     '{"a":"b"}'::jsonb <@ '{"a":"b", "b":1, "c":null}';
@@ -742,20 +724,16 @@ FROM
 
 -- exists
 SELECT
-    jsonb_exists ('{"a":null, "b":"qq"}',
-        'a');
+    jsonb_exists ('{"a":null, "b":"qq"}', 'a');
 
 SELECT
-    jsonb_exists ('{"a":null, "b":"qq"}',
-        'b');
+    jsonb_exists ('{"a":null, "b":"qq"}', 'b');
 
 SELECT
-    jsonb_exists ('{"a":null, "b":"qq"}',
-        'c');
+    jsonb_exists ('{"a":null, "b":"qq"}', 'c');
 
 SELECT
-    jsonb_exists ('{"a":"null", "b":"qq"}',
-        'a');
+    jsonb_exists ('{"a":"null", "b":"qq"}', 'a');
 
 SELECT
     jsonb '{"a":null, "b":"qq"}' ? 'a';
@@ -796,24 +774,19 @@ WHERE
     j -> 'array' @> '5'::jsonb;
 
 SELECT
-    jsonb_exists_any ('{"a":null, "b":"qq"}',
-        ARRAY['a', 'b']);
+    jsonb_exists_any ('{"a":null, "b":"qq"}', ARRAY['a', 'b']);
 
 SELECT
-    jsonb_exists_any ('{"a":null, "b":"qq"}',
-        ARRAY['b', 'a']);
+    jsonb_exists_any ('{"a":null, "b":"qq"}', ARRAY['b', 'a']);
 
 SELECT
-    jsonb_exists_any ('{"a":null, "b":"qq"}',
-        ARRAY['c', 'a']);
+    jsonb_exists_any ('{"a":null, "b":"qq"}', ARRAY['c', 'a']);
 
 SELECT
-    jsonb_exists_any ('{"a":null, "b":"qq"}',
-        ARRAY['c', 'd']);
+    jsonb_exists_any ('{"a":null, "b":"qq"}', ARRAY['c', 'd']);
 
 SELECT
-    jsonb_exists_any ('{"a":null, "b":"qq"}',
-        '{}'::text[]);
+    jsonb_exists_any ('{"a":null, "b":"qq"}', '{}'::text[]);
 
 SELECT
     jsonb '{"a":null, "b":"qq"}' ? | ARRAY['a', 'b'];
@@ -831,24 +804,19 @@ SELECT
     jsonb '{"a":null, "b":"qq"}' ? | '{}'::text[];
 
 SELECT
-    jsonb_exists_all ('{"a":null, "b":"qq"}',
-        ARRAY['a', 'b']);
+    jsonb_exists_all ('{"a":null, "b":"qq"}', ARRAY['a', 'b']);
 
 SELECT
-    jsonb_exists_all ('{"a":null, "b":"qq"}',
-        ARRAY['b', 'a']);
+    jsonb_exists_all ('{"a":null, "b":"qq"}', ARRAY['b', 'a']);
 
 SELECT
-    jsonb_exists_all ('{"a":null, "b":"qq"}',
-        ARRAY['c', 'a']);
+    jsonb_exists_all ('{"a":null, "b":"qq"}', ARRAY['c', 'a']);
 
 SELECT
-    jsonb_exists_all ('{"a":null, "b":"qq"}',
-        ARRAY['c', 'd']);
+    jsonb_exists_all ('{"a":null, "b":"qq"}', ARRAY['c', 'd']);
 
 SELECT
-    jsonb_exists_all ('{"a":null, "b":"qq"}',
-        '{}'::text[]);
+    jsonb_exists_all ('{"a":null, "b":"qq"}', '{}'::text[]);
 
 SELECT
     jsonb '{"a":null, "b":"qq"}' ?& ARRAY['a', 'b'];
@@ -916,48 +884,38 @@ SELECT
 
 -- jsonb_build_array, jsonb_build_object, jsonb_object_agg
 SELECT
-    jsonb_build_array ('a',
-        1,
-        'b',
-        1.2,
-        'c',
-        TRUE,
-        'd',
-        NULL,
-        'e',
-        json '{"x": 3, "y": [1,2,3]}');
+    jsonb_build_array('a', 1, 'b', 1.2, 'c', TRUE, 'd', NULL, 'e', json '{"x": 3, "y": [1,2,3]}');
 
 SELECT
-    jsonb_build_array ('a',
-        NULL);
+    jsonb_build_array('a', NULL);
 
 -- ok
 SELECT
-    jsonb_build_array (VARIADIC NULL::text[]);
+    jsonb_build_array(VARIADIC NULL::text[]);
 
 -- ok
 SELECT
-    jsonb_build_array (VARIADIC '{}'::text[]);
+    jsonb_build_array(VARIADIC '{}'::text[]);
 
 -- ok
 SELECT
-    jsonb_build_array (VARIADIC '{a,b,c}'::text[]);
+    jsonb_build_array(VARIADIC '{a,b,c}'::text[]);
 
 -- ok
 SELECT
-    jsonb_build_array (VARIADIC ARRAY['a', NULL]::text[]);
+    jsonb_build_array(VARIADIC ARRAY['a', NULL]::text[]);
 
 -- ok
 SELECT
-    jsonb_build_array (VARIADIC '{1,2,3,4}'::text[]);
+    jsonb_build_array(VARIADIC '{1,2,3,4}'::text[]);
 
 -- ok
 SELECT
-    jsonb_build_array (VARIADIC '{1,2,3,4}'::int[]);
+    jsonb_build_array(VARIADIC '{1,2,3,4}'::int[]);
 
 -- ok
 SELECT
-    jsonb_build_array (VARIADIC '{{1,4},{2,5},{3,6}}'::int[][]);
+    jsonb_build_array(VARIADIC '{{1,4},{2,5},{3,6}}'::int[][]);
 
 -- ok
 SELECT
@@ -1028,7 +986,7 @@ SELECT
 -- empty objects/arrays
 
 SELECT
-    jsonb_build_array ();
+    jsonb_build_array();
 
 SELECT
     jsonb_build_object();
@@ -1098,65 +1056,58 @@ FROM
 -- empty object, one dimension
 
 SELECT
-    jsonb_object ('{}');
+    jsonb_object('{}');
 
 -- empty object, two dimensions
 SELECT
-    jsonb_object ('{}',
-        '{}');
+    jsonb_object('{}', '{}');
 
 -- one dimension
 SELECT
-    jsonb_object ('{a,1,b,2,3,NULL,"d e f","a b c"}');
+    jsonb_object('{a,1,b,2,3,NULL,"d e f","a b c"}');
 
 -- same but with two dimensions
 SELECT
-    jsonb_object ('{{a,1},{b,2},{3,NULL},{"d e f","a b c"}}');
+    jsonb_object('{{a,1},{b,2},{3,NULL},{"d e f","a b c"}}');
 
 -- odd number error
 SELECT
-    jsonb_object ('{a,b,c}');
+    jsonb_object('{a,b,c}');
 
 -- one column error
 SELECT
-    jsonb_object ('{{a},{b}}');
+    jsonb_object('{{a},{b}}');
 
 -- too many columns error
 SELECT
-    jsonb_object ('{{a,b,c},{b,c,d}}');
+    jsonb_object('{{a,b,c},{b,c,d}}');
 
 -- too many dimensions error
 SELECT
-    jsonb_object ('{{{a,b},{c,d}},{{b,c},{d,e}}}');
+    jsonb_object('{{{a,b},{c,d}},{{b,c},{d,e}}}');
 
 --two argument form of jsonb_object
 SELECT
-    jsonb_object ('{a,b,c,"d e f"}',
-        '{1,2,3,"a b c"}');
+    jsonb_object('{a,b,c,"d e f"}', '{1,2,3,"a b c"}');
 
 -- too many dimensions
 SELECT
-    jsonb_object ('{{a,1},{b,2},{3,NULL},{"d e f","a b c"}}',
-        '{{a,1},{b,2},{3,NULL},{"d e f","a b c"}}');
+    jsonb_object('{{a,1},{b,2},{3,NULL},{"d e f","a b c"}}', '{{a,1},{b,2},{3,NULL},{"d e f","a b c"}}');
 
 -- mismatched dimensions
 SELECT
-    jsonb_object ('{a,b,c,"d e f",g}',
-        '{1,2,3,"a b c"}');
+    jsonb_object('{a,b,c,"d e f",g}', '{1,2,3,"a b c"}');
 
 SELECT
-    jsonb_object ('{a,b,c,"d e f"}',
-        '{1,2,3,"a b c",g}');
+    jsonb_object('{a,b,c,"d e f"}', '{1,2,3,"a b c",g}');
 
 -- null key error
 SELECT
-    jsonb_object ('{a,b,NULL,"d e f"}',
-        '{1,2,3,"a b c"}');
+    jsonb_object('{a,b,NULL,"d e f"}', '{1,2,3,"a b c"}');
 
 -- empty key is allowed
 SELECT
-    jsonb_object ('{a,b,"","d e f"}',
-        '{1,2,3,"a b c"}');
+    jsonb_object('{a,b,"","d e f"}', '{1,2,3,"a b c"}');
 
 -- extract_path, extract_path_as_text
 SELECT
@@ -3205,8 +3156,7 @@ SELECT
     jsonb_pretty('{"a":["b", "c"], "d": {"e":"f"}}');
 
 SELECT
-    jsonb_concat ('{"d": "test", "a": [1, 2]}',
-        '{"g": "test2", "c": {"c1":1, "c2":2}}');
+    jsonb_concat ('{"d": "test", "a": [1, 2]}', '{"g": "test2", "c": {"c1":1, "c2":2}}');
 
 SELECT
     '{"aa":1 , "b":2, "cq":3}'::jsonb || '{"cq":"l", "b":"g", "fg":false}';
@@ -3281,24 +3231,19 @@ SELECT
     pg_column_size('{}'::jsonb || '{"aa":1, "b":2}'::jsonb) = pg_column_size('{"aa":1, "b":2}'::jsonb);
 
 SELECT
-    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb,
-        'a');
+    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb, 'a');
 
 SELECT
-    jsonb_delete ('{"a":null , "b":2, "c":3}'::jsonb,
-        'a');
+    jsonb_delete ('{"a":null , "b":2, "c":3}'::jsonb, 'a');
 
 SELECT
-    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb,
-        'b');
+    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb, 'b');
 
 SELECT
-    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb,
-        'c');
+    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb, 'c');
 
 SELECT
-    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb,
-        'd');
+    jsonb_delete ('{"a":1 , "b":2, "c":3}'::jsonb, 'd');
 
 SELECT
     '{"a":1 , "b":2, "c":3}'::jsonb - 'a';
@@ -3382,16 +3327,13 @@ SELECT
     jsonb_set('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb, '{b,-1}', '{"f": "test"}');
 
 SELECT
-    jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}',
-        '{n}');
+    jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}', '{n}');
 
 SELECT
-    jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}',
-        '{b,-1}');
+    jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}', '{b,-1}');
 
 SELECT
-    jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}',
-        '{d,1,0}');
+    jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}', '{d,1,0}');
 
 SELECT
     '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb # - '{n}';
@@ -3501,125 +3443,72 @@ SELECT
 
 -- jsonb_insert
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 1}',
-        '"new_value"');
+    jsonb_insert('{"a": [0,1,2]}', '{a, 1}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 1}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": [0,1,2]}', '{a, 1}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('{"a": {"b": {"c": [0, 1, "test1", "test2"]}}}',
-        '{a, b, c, 2}',
-        '"new_value"');
+    jsonb_insert('{"a": {"b": {"c": [0, 1, "test1", "test2"]}}}', '{a, b, c, 2}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": {"b": {"c": [0, 1, "test1", "test2"]}}}',
-        '{a, b, c, 2}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": {"b": {"c": [0, 1, "test1", "test2"]}}}', '{a, b, c, 2}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 1}',
-        '{"b": "value"}');
+    jsonb_insert('{"a": [0,1,2]}', '{a, 1}', '{"b": "value"}');
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 1}',
-        '["value1", "value2"]');
+    jsonb_insert('{"a": [0,1,2]}', '{a, 1}', '["value1", "value2"]');
 
 -- edge cases
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 0}',
-        '"new_value"');
+    jsonb_insert('{"a": [0,1,2]}', '{a, 0}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 0}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": [0,1,2]}', '{a, 0}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 2}',
-        '"new_value"');
+    jsonb_insert('{"a": [0,1,2]}', '{a, 2}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 2}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": [0,1,2]}', '{a, 2}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, -1}',
-        '"new_value"');
+    jsonb_insert('{"a": [0,1,2]}', '{a, -1}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, -1}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": [0,1,2]}', '{a, -1}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('[]',
-        '{1}',
-        '"new_value"');
+    jsonb_insert('[]', '{1}', '"new_value"');
 
 SELECT
-    jsonb_insert ('[]',
-        '{1}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('[]', '{1}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('{"a": []}',
-        '{a, 1}',
-        '"new_value"');
+    jsonb_insert('{"a": []}', '{a, 1}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": []}',
-        '{a, 1}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": []}', '{a, 1}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, 10}',
-        '"new_value"');
+    jsonb_insert('{"a": [0,1,2]}', '{a, 10}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": [0,1,2]}',
-        '{a, -10}',
-        '"new_value"');
+    jsonb_insert('{"a": [0,1,2]}', '{a, -10}', '"new_value"');
 
 -- jsonb_insert should be able to insert new value for objects, but not to replace
 SELECT
-    jsonb_insert ('{"a": {"b": "value"}}',
-        '{a, c}',
-        '"new_value"');
+    jsonb_insert('{"a": {"b": "value"}}', '{a, c}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": {"b": "value"}}',
-        '{a, c}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": {"b": "value"}}', '{a, c}', '"new_value"', TRUE);
 
 SELECT
-    jsonb_insert ('{"a": {"b": "value"}}',
-        '{a, b}',
-        '"new_value"');
+    jsonb_insert('{"a": {"b": "value"}}', '{a, b}', '"new_value"');
 
 SELECT
-    jsonb_insert ('{"a": {"b": "value"}}',
-        '{a, b}',
-        '"new_value"',
-        TRUE);
+    jsonb_insert('{"a": {"b": "value"}}', '{a, b}', '"new_value"', TRUE);
 
 -- jsonb to tsvector
 SELECT
@@ -3639,64 +3528,40 @@ SELECT
 
 -- jsonb_to_tsvector
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"all"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"all"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"key"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"key"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"string"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"string"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"numeric"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"numeric"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"boolean"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"boolean"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '["string", "numeric"]');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '["string", "numeric"]');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"all"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"all"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"key"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"key"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"string"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"string"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"numeric"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"numeric"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '"boolean"');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"boolean"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '["string", "numeric"]');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '["string", "numeric"]');
 
 -- to_tsvector corner cases
 SELECT
@@ -3713,45 +3578,31 @@ SELECT
 
 -- jsonb_to_tsvector corner cases
 SELECT
-    jsonb_to_tsvector ('""'::jsonb,
-        '"all"');
+    jsonb_to_tsvector ('""'::jsonb, '"all"');
 
 SELECT
-    jsonb_to_tsvector ('{}'::jsonb,
-        '"all"');
+    jsonb_to_tsvector ('{}'::jsonb, '"all"');
 
 SELECT
-    jsonb_to_tsvector ('[]'::jsonb,
-        '"all"');
+    jsonb_to_tsvector ('[]'::jsonb, '"all"');
 
 SELECT
-    jsonb_to_tsvector ('null'::jsonb,
-        '"all"');
+    jsonb_to_tsvector ('null'::jsonb, '"all"');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '""');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '""');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '{}');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '{}');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '[]');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '[]');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        'null');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, 'null');
 
 SELECT
-    jsonb_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb,
-        '["all", null]');
+    jsonb_to_tsvector ('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '["all", null]');
 
 -- ts_headline for jsonb
 SELECT

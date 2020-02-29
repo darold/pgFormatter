@@ -334,9 +334,7 @@ DECLARE
     dummy integer;
 BEGIN
     IF tg_op = 'INSERT' THEN
-        dummy := tg_hub_adjustslots (new.name,
-            0,
-            new.nslots);
+        dummy := tg_hub_adjustslots (new.name, 0, new.nslots);
         RETURN new;
     END IF;
     IF tg_op = 'UPDATE' THEN
@@ -348,15 +346,11 @@ BEGIN
             WHERE
                 hubname = old.name;
         END IF;
-        dummy := tg_hub_adjustslots (new.name,
-            old.nslots,
-            new.nslots);
+        dummy := tg_hub_adjustslots (new.name, old.nslots, new.nslots);
         RETURN new;
     END IF;
     IF tg_op = 'DELETE' THEN
-        dummy := tg_hub_adjustslots (old.name,
-            old.nslots,
-            0);
+        dummy := tg_hub_adjustslots (old.name, old.nslots, 0);
         RETURN old;
     END IF;
 END;
@@ -749,33 +743,28 @@ DECLARE
 BEGIN
     IF tg_op = 'INSERT' THEN
         IF new.backlink != '' THEN
-            dummy := tg_backlink_set (new.backlink,
-                new.slotname);
+            dummy := tg_backlink_set (new.backlink, new.slotname);
         END IF;
         RETURN new;
     END IF;
     IF tg_op = 'UPDATE' THEN
         IF new.backlink != old.backlink THEN
             IF old.backlink != '' THEN
-                dummy := tg_backlink_unset (old.backlink,
-                    old.slotname);
+                dummy := tg_backlink_unset (old.backlink, old.slotname);
             END IF;
             IF new.backlink != '' THEN
-                dummy := tg_backlink_set (new.backlink,
-                    new.slotname);
+                dummy := tg_backlink_set (new.backlink, new.slotname);
             END IF;
         ELSE
             IF new.slotname != old.slotname AND new.backlink != '' THEN
-                dummy := tg_slotlink_set (new.backlink,
-                    new.slotname);
+                dummy := tg_slotlink_set (new.backlink, new.slotname);
             END IF;
         END IF;
         RETURN new;
     END IF;
     IF tg_op = 'DELETE' THEN
         IF old.backlink != '' THEN
-            dummy := tg_backlink_unset (old.backlink,
-                old.slotname);
+            dummy := tg_backlink_unset (old.backlink, old.slotname);
         END IF;
         RETURN old;
     END IF;
@@ -973,33 +962,28 @@ DECLARE
 BEGIN
     IF tg_op = 'INSERT' THEN
         IF new.slotlink != '' THEN
-            dummy := tg_slotlink_set (new.slotlink,
-                new.slotname);
+            dummy := tg_slotlink_set (new.slotlink, new.slotname);
         END IF;
         RETURN new;
     END IF;
     IF tg_op = 'UPDATE' THEN
         IF new.slotlink != old.slotlink THEN
             IF old.slotlink != '' THEN
-                dummy := tg_slotlink_unset (old.slotlink,
-                    old.slotname);
+                dummy := tg_slotlink_unset (old.slotlink, old.slotname);
             END IF;
             IF new.slotlink != '' THEN
-                dummy := tg_slotlink_set (new.slotlink,
-                    new.slotname);
+                dummy := tg_slotlink_set (new.slotlink, new.slotname);
             END IF;
         ELSE
             IF new.slotname != old.slotname AND new.slotlink != '' THEN
-                dummy := tg_slotlink_set (new.slotlink,
-                    new.slotname);
+                dummy := tg_slotlink_set (new.slotlink, new.slotname);
             END IF;
         END IF;
         RETURN new;
     END IF;
     IF tg_op = 'DELETE' THEN
         IF old.slotlink != '' THEN
-            dummy := tg_slotlink_unset (old.slotlink,
-                old.slotname);
+            dummy := tg_slotlink_unset (old.slotlink, old.slotname);
         END IF;
         RETURN old;
     END IF;
@@ -2289,8 +2273,7 @@ BEGIN
     IF $1 <= 0 THEN
         rslt = CAST($2 AS text);
     ELSE
-        rslt = CAST($1 AS text) || ',' || recursion_test ($1 - 1,
-            $2);
+        rslt = CAST($1 AS text) || ',' || recursion_test ($1 - 1, $2);
     END IF;
     RETURN rslt;
 END;
@@ -2298,8 +2281,7 @@ $$
 LANGUAGE plpgsql;
 
 SELECT
-    recursion_test (4,
-        3);
+    recursion_test (4, 3);
 
 --
 -- Test the FOUND magic variable
@@ -2432,8 +2414,7 @@ LANGUAGE plpgsql;
 SELECT
     *
 FROM
-    test_ret_set_scalar (1,
-        10);
+    test_ret_set_scalar (1, 10);
 
 CREATE FUNCTION test_ret_set_rec_dyn (int)
     RETURNS SETOF record
@@ -2896,8 +2877,7 @@ $$
 LANGUAGE plpgsql;
 
 SELECT
-    refcursor_test2 (20000,
-        20000) AS "Should be false",
+    refcursor_test2 (20000, 20000) AS "Should be false",
     refcursor_test2 (20, 20) AS "Should be true";
 
 --
@@ -2934,8 +2914,7 @@ $$
 LANGUAGE plpgsql;
 
 SELECT
-    namedparmcursor_test1 (20000,
-        20000) AS "Should be false",
+    namedparmcursor_test1 (20000, 20000) AS "Should be false",
     namedparmcursor_test1 (20, 20) AS "Should be true";
 
 -- mixing named and positional argument notations
@@ -2969,8 +2948,7 @@ $$
 LANGUAGE plpgsql;
 
 SELECT
-    namedparmcursor_test2 (20,
-        20);
+    namedparmcursor_test2 (20, 20);
 
 -- mixing named and positional: param2 is given twice, once in named notation
 -- and second time in positional notation. Should throw an error at parse time
@@ -4450,8 +4428,7 @@ $$
 LANGUAGE plpgsql;
 
 SELECT
-    exc_using (5,
-        'foobar');
+    exc_using (5, 'foobar');
 
 DROP FUNCTION exc_using (int, text);
 
@@ -4501,15 +4478,15 @@ DECLARE
 BEGIN
     FOR r IN c (5,
         7)
-    LOOP
-        RAISE notice '% from %', r.i, c;
-    END LOOP;
+        LOOP
+            RAISE notice '% from %', r.i, c;
+        END LOOP;
     -- again, to test if cursor was closed properly
     FOR r IN c (9,
         10)
-    LOOP
-        RAISE notice '% from %', r.i, c;
-    END LOOP;
+        LOOP
+            RAISE notice '% from %', r.i, c;
+        END LOOP;
     -- and test a parameterless cursor
     FOR r IN c2 LOOP
         RAISE notice '% from %', r.i, c2;
@@ -5270,16 +5247,10 @@ $$
 LANGUAGE plpgsql;
 
 SELECT
-    vari (1,
-        2,
-        3,
-        4,
-        5);
+    vari (1, 2, 3, 4, 5);
 
 SELECT
-    vari (3,
-        4,
-        5);
+    vari (3, 4, 5);
 
 SELECT
     vari (VARIADIC ARRAY[5, 6, 7]);
@@ -5306,26 +5277,16 @@ LANGUAGE plpgsql
 IMMUTABLE STRICT;
 
 SELECT
-    pleast (10,
-        1,
-        2,
-        3,
-        - 16);
+    pleast (10, 1, 2, 3, - 16);
 
 SELECT
-    pleast (10.2,
-        2.2,
-        - 1.1);
+    pleast (10.2, 2.2, - 1.1);
 
 SELECT
-    pleast (10.2,
-        10,
-        - 20);
+    pleast (10.2, 10, - 20);
 
 SELECT
-    pleast (10,
-        20,
-        - 1.0);
+    pleast (10, 20, - 1.0);
 
 -- in case of conflict, non-variadic version is preferred
 CREATE OR REPLACE FUNCTION pleast (numeric)
@@ -6075,23 +6036,15 @@ BEGIN
     RETURN res;
 END $$;
     SELECT
-        testoa (1,
-            2,
-            3);
+        testoa (1, 2, 3);
     SELECT
-        testoa (1,
-            2,
-            3);
+        testoa (1, 2, 3);
     -- try again to exercise internal caching
     SELECT
-        testoa (2,
-            1,
-            3);
+        testoa (2, 1, 3);
     -- fail at initial assign
     SELECT
-        testoa (1,
-            2,
-            1);
+        testoa (1, 2, 1);
     -- fail at update
     DROP FUNCTION arrayassign1 ();
     DROP FUNCTION testoa (x1 int, x2 int, x3 int);

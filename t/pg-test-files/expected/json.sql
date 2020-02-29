@@ -336,9 +336,7 @@ FROM (
         generate_series(4, 5) y) q;
 
 SELECT
-    json_agg(q
-    ORDER BY
-        x, y)
+    json_agg(q ORDER BY x, y)
 FROM
     ROWS q;
 
@@ -350,9 +348,7 @@ WHERE
     x = 1;
 
 SELECT
-    json_agg(q
-    ORDER BY
-        x NULLS FIRST, y)
+    json_agg(q ORDER BY x NULLS FIRST, y)
 FROM
     ROWS q;
 
@@ -1841,64 +1837,40 @@ SELECT
 
 -- json_to_tsvector
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"all"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"all"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"key"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"key"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"string"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"string"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"numeric"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"numeric"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"boolean"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"boolean"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '["string", "numeric"]');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '["string", "numeric"]');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"all"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"all"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"key"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"key"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"string"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"string"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"numeric"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"numeric"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '"boolean"');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '"boolean"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '["string", "numeric"]');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '["string", "numeric"]');
 
 -- to_tsvector corner cases
 SELECT
@@ -1915,45 +1887,31 @@ SELECT
 
 -- json_to_tsvector corner cases
 SELECT
-    json_to_tsvector ('""'::json,
-        '"all"');
+    json_to_tsvector('""'::json, '"all"');
 
 SELECT
-    json_to_tsvector ('{}'::json,
-        '"all"');
+    json_to_tsvector('{}'::json, '"all"');
 
 SELECT
-    json_to_tsvector ('[]'::json,
-        '"all"');
+    json_to_tsvector('[]'::json, '"all"');
 
 SELECT
-    json_to_tsvector ('null'::json,
-        '"all"');
+    json_to_tsvector('null'::json, '"all"');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '""');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '""');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '{}');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '{}');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '[]');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '[]');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        'null');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, 'null');
 
 SELECT
-    json_to_tsvector ('english',
-        '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json,
-        '["all", null]');
+    json_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::json, '["all", null]');
 
 -- ts_headline for json
 SELECT

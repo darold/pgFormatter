@@ -21,15 +21,13 @@ CREATE FUNCTION rngfunct (int)
 SELECT
     *
 FROM
-    rngfunct (1
-)
+    rngfunct (1)
     WITH ORDINALITY AS z (a, b, ord);
 
 SELECT
     *
 FROM
-    rngfunct (1
-)
+    rngfunct (1)
     WITH ORDINALITY AS z (a, b, ord)
 WHERE
     b > 100;
@@ -42,8 +40,7 @@ SELECT
     b,
     ord
 FROM
-    rngfunct (1
-)
+    rngfunct (1)
     WITH ORDINALITY AS z (a, b, ord);
 
 SELECT
@@ -75,8 +72,7 @@ FROM
 SELECT
     row_to_json(s.*)
 FROM
-    generate_series(11, 14
-)
+    generate_series(11, 14)
     WITH ORDINALITY s;
 
 -- ordinality vs. views
@@ -85,8 +81,7 @@ SELECT
     *
 FROM (
     VALUES (1)) v (n)
-    JOIN rngfunct (1
-)
+    JOIN rngfunct (1)
     WITH ORDINALITY AS z (a, b, ord) ON (n = ord);
 
 SELECT
@@ -118,7 +113,8 @@ SELECT
 FROM (
     VALUES (1)) v (n)
     JOIN ROWS
-FROM (rngfunct (1), rngfunct (2))
+FROM (rngfunct (1),
+    rngfunct (2))
     WITH ORDINALITY AS z (a, b, c, d, ord) ON (n = ord);
 
 SELECT
@@ -270,8 +266,7 @@ SELECT
     *
 FROM
     rngfunc2,
-    rngfunct (rngfunc2.rngfuncid
-)
+    rngfunct (rngfunc2.rngfuncid)
     WITH ORDINALITY AS z (rngfuncid, f2, ord)
 WHERE
     rngfunc2.f2 = z.f2;
@@ -367,8 +362,7 @@ FROM
 SELECT
     *
 FROM
-    getrngfunc1 (1
-)
+    getrngfunc1 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 CREATE VIEW vw_getrngfunc AS
@@ -388,8 +382,7 @@ CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
-    getrngfunc1 (1
-)
+    getrngfunc1 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 SELECT
@@ -413,8 +406,7 @@ FROM
 SELECT
     *
 FROM
-    getrngfunc2 (1
-)
+    getrngfunc2 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 CREATE VIEW vw_getrngfunc AS
@@ -434,8 +426,7 @@ CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
-    getrngfunc2 (1
-)
+    getrngfunc2 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 SELECT
@@ -459,8 +450,7 @@ FROM
 SELECT
     *
 FROM
-    getrngfunc3 (1
-)
+    getrngfunc3 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 CREATE VIEW vw_getrngfunc AS
@@ -480,8 +470,7 @@ CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
-    getrngfunc3 (1
-)
+    getrngfunc3 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 SELECT
@@ -505,8 +494,7 @@ FROM
 SELECT
     *
 FROM
-    getrngfunc4 (1
-)
+    getrngfunc4 (1)
     WITH ORDINALITY AS t1 (a, b, c, o);
 
 CREATE VIEW vw_getrngfunc AS
@@ -526,8 +514,7 @@ CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
-    getrngfunc4 (1
-)
+    getrngfunc4 (1)
     WITH ORDINALITY AS t1 (a, b, c, o);
 
 SELECT
@@ -551,8 +538,7 @@ FROM
 SELECT
     *
 FROM
-    getrngfunc5 (1
-)
+    getrngfunc5 (1)
     WITH ORDINALITY AS t1 (a, b, c, o);
 
 CREATE VIEW vw_getrngfunc AS
@@ -572,8 +558,7 @@ CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
-    getrngfunc5 (1
-)
+    getrngfunc5 (1)
     WITH ORDINALITY AS t1 (a, b, c, o);
 
 SELECT
@@ -695,8 +680,7 @@ FROM
 SELECT
     *
 FROM
-    getrngfunc8 (1
-)
+    getrngfunc8 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 CREATE VIEW vw_getrngfunc AS
@@ -716,8 +700,7 @@ CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
-    getrngfunc8 (1
-)
+    getrngfunc8 (1)
     WITH ORDINALITY AS t1 (v, o);
 
 SELECT
@@ -741,8 +724,7 @@ FROM
 SELECT
     *
 FROM
-    getrngfunc9 (1
-)
+    getrngfunc9 (1)
     WITH ORDINALITY AS t1 (a, b, c, o);
 
 CREATE VIEW vw_getrngfunc AS
@@ -762,8 +744,7 @@ CREATE VIEW vw_getrngfunc AS
 SELECT
     *
 FROM
-    getrngfunc9 (1
-)
+    getrngfunc9 (1)
     WITH ORDINALITY AS t1 (a, b, c, o);
 
 SELECT
@@ -902,8 +883,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r)
-    LEFT JOIN rngfunc_sql (11, 13
-)
+    LEFT JOIN rngfunc_sql (11, 13)
     WITH ORDINALITY AS f (i, s, o) ON (r + i) < 100;
 
 SELECT
@@ -928,8 +908,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r)
-    LEFT JOIN rngfunc_mat (11, 13
-)
+    LEFT JOIN rngfunc_mat (11, 13)
     WITH ORDINALITY AS f (i, s, o) ON (r + i) < 100;
 
 SELECT
@@ -943,7 +922,8 @@ FROM (
         (2),
         (3)) v (r)
     LEFT JOIN ROWS
-FROM (rngfunc_sql (11, 13), rngfunc_mat (11, 13))
+FROM (rngfunc_sql (11, 13),
+    rngfunc_mat (11, 13))
     WITH ORDINALITY AS f (i1, s1, i2, s2, o) ON (r + i1 + i2) < 100;
 
 SELECT
@@ -960,8 +940,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r)
-    LEFT JOIN generate_series(11, 13
-)
+    LEFT JOIN generate_series(11, 13)
     WITH ORDINALITY AS f (i, o) ON (r + i) < 100;
 
 SELECT
@@ -1004,8 +983,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r),
-    rngfunc_sql (10 + r, 13
-)
+    rngfunc_sql (10 + r, 13)
     WITH ORDINALITY AS f (i, s, o);
 
 SELECT
@@ -1030,8 +1008,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r),
-    rngfunc_sql (11, 10 + r
-)
+    rngfunc_sql (11, 10 + r)
     WITH ORDINALITY AS f (i, s, o);
 
 SELECT
@@ -1056,8 +1033,7 @@ FROM (
     VALUES (11, 12),
         (13, 15),
         (16, 20)) v (r1, r2),
-    rngfunc_sql (r1, r2
-)
+    rngfunc_sql (r1, r2)
     WITH ORDINALITY AS f (i, s, o);
 
 SELECT
@@ -1082,8 +1058,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r),
-    rngfunc_mat (10 + r, 13
-)
+    rngfunc_mat (10 + r, 13)
     WITH ORDINALITY AS f (i, s, o);
 
 SELECT
@@ -1108,8 +1083,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r),
-    rngfunc_mat (11, 10 + r
-)
+    rngfunc_mat (11, 10 + r)
     WITH ORDINALITY AS f (i, s, o);
 
 SELECT
@@ -1134,8 +1108,7 @@ FROM (
     VALUES (11, 12),
         (13, 15),
         (16, 20)) v (r1, r2),
-    rngfunc_mat (r1, r2
-)
+    rngfunc_mat (r1, r2)
     WITH ORDINALITY AS f (i, s, o);
 
 -- selective rescan of multiple functions:
@@ -1150,7 +1123,8 @@ FROM (
         (2),
         (3)) v (r),
     ROWS
-FROM (rngfunc_sql (11, 11), rngfunc_mat (10 + r, 13));
+FROM (rngfunc_sql (11, 11),
+    rngfunc_mat (10 + r, 13));
 
 SELECT
     setval('rngfunc_rescan_seq1', 1, FALSE),
@@ -1163,7 +1137,8 @@ FROM (
         (2),
         (3)) v (r),
     ROWS
-FROM (rngfunc_sql (10 + r, 13), rngfunc_mat (11, 11));
+FROM (rngfunc_sql (10 + r, 13),
+    rngfunc_mat (11, 11));
 
 SELECT
     setval('rngfunc_rescan_seq1', 1, FALSE),
@@ -1176,7 +1151,8 @@ FROM (
         (2),
         (3)) v (r),
     ROWS
-FROM (rngfunc_sql (10 + r, 13), rngfunc_mat (10 + r, 13));
+FROM (rngfunc_sql (10 + r, 13),
+    rngfunc_mat (10 + r, 13));
 
 SELECT
     setval('rngfunc_rescan_seq1', 1, FALSE),
@@ -1188,8 +1164,7 @@ FROM
     generate_series(1, 2) r1,
     generate_series(r1, 3) r2,
     ROWS
-FROM (rngfunc_sql (10 + r1,
-        13),
+FROM (rngfunc_sql (10 + r1, 13),
     rngfunc_mat (10 + r2, 13));
 
 SELECT
@@ -1206,8 +1181,7 @@ FROM (
     VALUES (1),
         (2),
         (3)) v (r),
-    generate_series(10 + r, 20 - r
-)
+    generate_series(10 + r, 20 - r)
     WITH ORDINALITY AS f (i, o);
 
 SELECT
@@ -1396,14 +1370,12 @@ FROM
 SELECT
     *
 FROM
-    rngfuncb (42,
-        99);
+    rngfuncb (42, 99);
 
 SELECT
     *
 FROM
-    rngfuncb (42,
-        99) AS p (a,
+    rngfuncb (42, 99) AS p (a,
         b);
 
 -- Can reference function with or without OUT params for DROP, etc
@@ -1589,14 +1561,12 @@ $$
 LANGUAGE sql;
 
 SELECT
-    insert_tt2 ('foolish',
-        'barrish');
+    insert_tt2 ('foolish', 'barrish');
 
 SELECT
     *
 FROM
-    insert_tt2 ('baz',
-        'quux');
+    insert_tt2 ('baz', 'quux');
 
 SELECT
     *
@@ -1605,8 +1575,7 @@ FROM
 
 -- limit doesn't prevent execution to completion
 SELECT
-    insert_tt2 ('foolish',
-        'barrish')
+    insert_tt2 ('foolish', 'barrish')
 LIMIT 1;
 
 SELECT
@@ -1630,8 +1599,7 @@ CREATE TRIGGER tnoticetrigger
     EXECUTE PROCEDURE noticetrigger ();
 
 SELECT
-    insert_tt2 ('foolme',
-        'barme')
+    insert_tt2 ('foolme', 'barme')
 LIMIT 1;
 
 SELECT
@@ -1650,8 +1618,7 @@ CREATE RULE insert_tt_rule AS ON INSERT TO tt
     INSERT INTO tt_log VALUES (new.*);
 
 SELECT
-    insert_tt2 ('foollog',
-        'barlog')
+    insert_tt2 ('foollog', 'barlog')
 LIMIT 1;
 
 SELECT
@@ -1864,8 +1831,7 @@ FROM
 SELECT
     *
 FROM
-    get_users (
-)
+    get_users ()
     WITH ORDINALITY;
 
 -- make sure ordinality copes
@@ -1884,7 +1850,7 @@ SELECT
 FROM
     ROWS
 FROM (get_users (),
-generate_series(10, 11))
+    generate_series(10, 11))
     WITH ORDINALITY;
 
 -- check that we can cope with post-parsing changes in rowtypes
@@ -1894,7 +1860,7 @@ SELECT
 FROM
     ROWS
 FROM (get_users (),
-generate_series(10, 11))
+    generate_series(10, 11))
     WITH ORDINALITY;
 
 SELECT

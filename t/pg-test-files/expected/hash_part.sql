@@ -17,108 +17,61 @@ FOR VALUES WITH (MODULUS 4, REMAINDER 0);
 
 -- invalid OID, no such table
 SELECT
-    satisfies_hash_partition (0,
-        4,
-        0,
-        NULL);
+    satisfies_hash_partition (0, 4, 0, NULL);
 
 -- not partitioned
 SELECT
-    satisfies_hash_partition ('tenk1'::regclass,
-        4,
-        0,
-        NULL);
+    satisfies_hash_partition ('tenk1'::regclass, 4, 0, NULL);
 
 -- partition rather than the parent
 SELECT
-    satisfies_hash_partition ('mchash1'::regclass,
-        4,
-        0,
-        NULL);
+    satisfies_hash_partition ('mchash1'::regclass, 4, 0, NULL);
 
 -- invalid modulus
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        0,
-        0,
-        NULL);
+    satisfies_hash_partition ('mchash'::regclass, 0, 0, NULL);
 
 -- remainder too small
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        1,
-        - 1,
-        NULL);
+    satisfies_hash_partition ('mchash'::regclass, 1, - 1, NULL);
 
 -- remainder too large
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        1,
-        1,
-        NULL);
+    satisfies_hash_partition ('mchash'::regclass, 1, 1, NULL);
 
 -- modulus is null
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        NULL,
-        0,
-        NULL);
+    satisfies_hash_partition ('mchash'::regclass, NULL, 0, NULL);
 
 -- remainder is null
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        4,
-        NULL,
-        NULL);
+    satisfies_hash_partition ('mchash'::regclass, 4, NULL, NULL);
 
 -- too many arguments
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        4,
-        0,
-        NULL::int,
-        NULL::text,
-        NULL::json);
+    satisfies_hash_partition ('mchash'::regclass, 4, 0, NULL::int, NULL::text, NULL::json);
 
 -- too few arguments
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        3,
-        1,
-        NULL::int);
+    satisfies_hash_partition ('mchash'::regclass, 3, 1, NULL::int);
 
 -- wrong argument type
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        2,
-        1,
-        NULL::int,
-        NULL::int);
+    satisfies_hash_partition ('mchash'::regclass, 2, 1, NULL::int, NULL::int);
 
 -- ok, should be false
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        4,
-        0,
-        0,
-        ''::text);
+    satisfies_hash_partition ('mchash'::regclass, 4, 0, 0, ''::text);
 
 -- ok, should be true
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        4,
-        0,
-        2,
-        ''::text);
+    satisfies_hash_partition ('mchash'::regclass, 4, 0, 2, ''::text);
 
 -- argument via variadic syntax, should fail because not all partitioning
 -- columns are of the correct type
 
 SELECT
-    satisfies_hash_partition ('mchash'::regclass,
-        2,
-        1,
-        VARIADIC ARRAY[1, 2]::int[]);
+    satisfies_hash_partition ('mchash'::regclass, 2, 1, VARIADIC ARRAY[1, 2]::int[]);
 
 -- multiple partitioning columns of the same type
 CREATE TABLE mcinthash (
@@ -130,31 +83,19 @@ PARTITION BY HASH (a part_test_int4_ops, b part_test_int4_ops);
 
 -- now variadic should work, should be false
 SELECT
-    satisfies_hash_partition ('mcinthash'::regclass,
-        4,
-        0,
-        VARIADIC ARRAY[0, 0]);
+    satisfies_hash_partition ('mcinthash'::regclass, 4, 0, VARIADIC ARRAY[0, 0]);
 
 -- should be true
 SELECT
-    satisfies_hash_partition ('mcinthash'::regclass,
-        4,
-        0,
-        VARIADIC ARRAY[0, 1]);
+    satisfies_hash_partition ('mcinthash'::regclass, 4, 0, VARIADIC ARRAY[0, 1]);
 
 -- wrong length
 SELECT
-    satisfies_hash_partition ('mcinthash'::regclass,
-        4,
-        0,
-        VARIADIC ARRAY[]::int[]);
+    satisfies_hash_partition ('mcinthash'::regclass, 4, 0, VARIADIC ARRAY[]::int[]);
 
 -- wrong type
 SELECT
-    satisfies_hash_partition ('mcinthash'::regclass,
-        4,
-        0,
-        VARIADIC ARRAY[now(), now()]);
+    satisfies_hash_partition ('mcinthash'::regclass, 4, 0, VARIADIC ARRAY[now(), now()]);
 
 -- check satisfies_hash_partition passes correct collation
 CREATE TABLE text_hashp (
@@ -172,14 +113,8 @@ FOR VALUES WITH (MODULUS 2, REMAINDER 1);
 -- one of the two defined partitions
 
 SELECT
-    satisfies_hash_partition ('text_hashp'::regclass,
-        2,
-        0,
-        'xxx'::text)
-    OR satisfies_hash_partition ('text_hashp'::regclass,
-        2,
-        1,
-        'xxx'::text) AS satisfies;
+    satisfies_hash_partition ('text_hashp'::regclass, 2, 0, 'xxx'::text)
+    OR satisfies_hash_partition ('text_hashp'::regclass, 2, 1, 'xxx'::text) AS satisfies;
 
 -- cleanup
 DROP TABLE mchash;

@@ -135,8 +135,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN simple s USING (id);
 $$);
 ROLLBACK TO settings;
@@ -172,8 +171,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN simple s USING (id);
 
 $$);
@@ -211,8 +209,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN simple s USING (id);
 
 $$);
@@ -252,8 +249,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN simple s USING (id);
 
 $$);
@@ -291,8 +287,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN simple s USING (id);
 
 $$);
@@ -330,8 +325,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN simple s USING (id);
 
 $$);
@@ -372,8 +366,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN bigger_than_it_looks s USING (id);
 
 $$);
@@ -411,8 +404,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN bigger_than_it_looks s USING (id);
 
 $$);
@@ -450,8 +442,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN bigger_than_it_looks s USING (id);
 
 $$);
@@ -492,8 +483,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN extremely_skewed s USING (id);
 
 $$);
@@ -530,8 +520,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN extremely_skewed s USING (id);
 
 $$);
@@ -568,8 +557,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN extremely_skewed s USING (id);
 
 $$);
@@ -593,8 +581,7 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            simple r
+            FROM simple r
             JOIN simple s USING (id);
 
 $$);
@@ -674,16 +661,12 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            join_foo
+            FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id,
-                b1.t
-            FROM
-                join_bar b1
+                b1.id, b1.t FROM join_bar b1
                 JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
-                AND join_foo.id > ss.id - 1;
+        AND join_foo.id > ss.id - 1;
 
 $$);
 
@@ -745,16 +728,12 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            join_foo
+            FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id,
-                b1.t
-            FROM
-                join_bar b1
+                b1.id, b1.t FROM join_bar b1
                 JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
-                AND join_foo.id > ss.id - 1;
+        AND join_foo.id > ss.id - 1;
 
 $$);
 
@@ -816,16 +795,12 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            join_foo
+            FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id,
-                b1.t
-            FROM
-                join_bar b1
+                b1.id, b1.t FROM join_bar b1
                 JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
-                AND join_foo.id > ss.id - 1;
+        AND join_foo.id > ss.id - 1;
 
 $$);
 
@@ -887,16 +862,12 @@ FROM
     hash_join_batches ($$
         SELECT
             count(*)
-        FROM
-            join_foo
+            FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id,
-                b1.t
-            FROM
-                join_bar b1
+                b1.id, b1.t FROM join_bar b1
                 JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
-                AND join_foo.id > ss.id - 1;
+        AND join_foo.id > ss.id - 1;
 
 $$);
 
@@ -1039,14 +1010,10 @@ FROM
     hash_join_batches ($$
         SELECT
             length(max(s.t))
-        FROM
-            wide
+            FROM wide
         LEFT JOIN (
             SELECT
-                id,
-                coalesce(t, '') || '' AS t
-            FROM
-                wide) s USING (id);
+                id, coalesce(t, '') || '' AS t FROM wide) s USING (id);
 
 $$);
 

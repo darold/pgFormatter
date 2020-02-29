@@ -603,15 +603,13 @@ INSERT INTO INET_TBL (c, i)
 
 -- now, this one should fail
 SELECT
-    inet_merge (c,
-        i)
+    inet_merge (c, i)
 FROM
     INET_TBL;
 
 -- fix it by inet_same_family() condition
 SELECT
-    inet_merge (c,
-        i)
+    inet_merge (c, i)
 FROM
     INET_TBL
 WHERE

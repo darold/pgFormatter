@@ -2250,7 +2250,7 @@ SELECT
     lo_create(2002);
 
 SELECT
-    loread(lo_open(1001, x '20000'::int), 32);
+    loread (lo_open(1001, x '20000'::int), 32);
 
 -- allowed, for now
 SELECT
@@ -2258,17 +2258,17 @@ SELECT
 
 -- fail, wrong mode
 SELECT
-    loread(lo_open(1001, x '40000'::int), 32);
+    loread (lo_open(1001, x '40000'::int), 32);
 
 SELECT
-    loread(lo_open(1002, x '40000'::int), 32);
+    loread (lo_open(1002, x '40000'::int), 32);
 
 -- to be denied
 SELECT
-    loread(lo_open(1003, x '40000'::int), 32);
+    loread (lo_open(1003, x '40000'::int), 32);
 
 SELECT
-    loread(lo_open(1004, x '40000'::int), 32);
+    loread (lo_open(1004, x '40000'::int), 32);
 
 SELECT
     lowrite(lo_open(1001, x '20000'::int), 'abcd');
@@ -2317,14 +2317,14 @@ ORDER BY
 SET SESSION AUTHORIZATION regress_priv_user3;
 
 SELECT
-    loread(lo_open(1001, x '40000'::int), 32);
+    loread (lo_open(1001, x '40000'::int), 32);
 
 SELECT
-    loread(lo_open(1003, x '40000'::int), 32);
+    loread (lo_open(1003, x '40000'::int), 32);
 
 -- to be denied
 SELECT
-    loread(lo_open(1005, x '40000'::int), 32);
+    loread (lo_open(1005, x '40000'::int), 32);
 
 SELECT
     lo_truncate(lo_open(1005, x '20000'::int), 10);
@@ -2341,7 +2341,7 @@ SET lo_compat_privileges = FALSE;
 SET SESSION AUTHORIZATION regress_priv_user4;
 
 SELECT
-    loread(lo_open(1002, x '40000'::int), 32);
+    loread (lo_open(1002, x '40000'::int), 32);
 
 -- to be denied
 SELECT
@@ -2353,9 +2353,7 @@ SELECT
 
 -- to be denied
 SELECT
-    lo_put (1002,
-        1,
-        'abcd');
+    lo_put(1002, 1, 'abcd');
 
 -- to be denied
 SELECT
@@ -2381,7 +2379,7 @@ SET lo_compat_privileges = TRUE;
 SET SESSION AUTHORIZATION regress_priv_user4;
 
 SELECT
-    loread(lo_open(1002, x '40000'::int), 32);
+    loread (lo_open(1002, x '40000'::int), 32);
 
 SELECT
     lowrite(lo_open(1002, x '20000'::int), 'abcd');

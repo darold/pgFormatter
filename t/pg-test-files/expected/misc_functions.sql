@@ -12,17 +12,10 @@ SELECT
     num_nonnulls (NULL::text);
 
 SELECT
-    num_nonnulls (NULL::text,
-        NULL::int);
+    num_nonnulls (NULL::text, NULL::int);
 
 SELECT
-    num_nonnulls (1,
-        2,
-        NULL::text,
-        NULL::point,
-        '',
-        int8 '9',
-        1.0 / NULL);
+    num_nonnulls (1, 2, NULL::text, NULL::point, '', int8 '9', 1.0 / NULL);
 
 SELECT
     num_nonnulls (VARIADIC '{1,2,NULL,3}'::int[]);
@@ -35,9 +28,7 @@ SELECT
             SELECT
                 CASE WHEN i <> 40 THEN
                     i
-                END
-            FROM
-                generate_series(1, 100) i));
+                END FROM generate_series(1, 100) i));
 
 SELECT
     num_nulls (NULL);
@@ -49,17 +40,10 @@ SELECT
     num_nulls (NULL::text);
 
 SELECT
-    num_nulls (NULL::text,
-        NULL::int);
+    num_nulls (NULL::text, NULL::int);
 
 SELECT
-    num_nulls (1,
-        2,
-        NULL::text,
-        NULL::point,
-        '',
-        int8 '9',
-        1.0 / NULL);
+    num_nulls (1, 2, NULL::text, NULL::point, '', int8 '9', 1.0 / NULL);
 
 SELECT
     num_nulls (VARIADIC '{1,2,NULL,3}'::int[]);
@@ -72,9 +56,7 @@ SELECT
             SELECT
                 CASE WHEN i <> 40 THEN
                     i
-                END
-            FROM
-                generate_series(1, 100) i));
+                END FROM generate_series(1, 100) i));
 
 -- special cases
 SELECT
@@ -147,8 +129,7 @@ SELECT
     *
 FROM
     tenk1 a
-    JOIN my_gen_series (1,
-        1000) g ON a.unique1 = g;
+    JOIN my_gen_series (1, 1000) g ON a.unique1 = g;
 
 EXPLAIN (
     COSTS OFF
@@ -157,6 +138,5 @@ SELECT
     *
 FROM
     tenk1 a
-    JOIN my_gen_series (1,
-        10) g ON a.unique1 = g;
+    JOIN my_gen_series (1, 10) g ON a.unique1 = g;
 

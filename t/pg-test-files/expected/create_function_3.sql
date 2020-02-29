@@ -400,8 +400,7 @@ CREATE FUNCTION voidtest2 (a int, b int)
 $$;
 
 SELECT
-    voidtest2 (11,
-        22);
+    voidtest2 (11, 22);
 
 -- currently, we can inline voidtest2 but not voidtest1
 EXPLAIN (
@@ -409,8 +408,7 @@ EXPLAIN (
     COSTS OFF
 )
 SELECT
-    voidtest2 (11,
-        22);
+    voidtest2 (11, 22);
 
 CREATE TEMP TABLE sometable (
     f1 int

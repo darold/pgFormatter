@@ -951,8 +951,7 @@ ORDER BY
     f3;
 
 SELECT
-    mysum2 (f1,
-        f1 + 1)
+    mysum2 (f1, f1 + 1)
 FROM
     t;
 
@@ -1036,8 +1035,7 @@ CREATE AGGREGATE build_group (anyelement, integer) (
 );
 
 SELECT
-    build_group (q1,
-        3)
+    build_group (q1, 3)
 FROM
     int8_tbl;
 
@@ -1123,15 +1121,10 @@ LANGUAGE sql
 IMMUTABLE STRICT;
 
 SELECT
-    myleast (10,
-        1,
-        20,
-        33);
+    myleast (10, 1, 20, 33);
 
 SELECT
-    myleast (1.1,
-        0.22,
-        0.55);
+    myleast (1.1, 0.22, 0.55);
 
 SELECT
     myleast ('z'::text);
@@ -1189,29 +1182,21 @@ LANGUAGE sql
 IMMUTABLE STRICT;
 
 SELECT
-    formarray (1,
-        2,
-        3,
-        4,
-        5);
+    formarray (1, 2, 3, 4, 5);
 
 SELECT
-    formarray (1.1,
-        VARIADIC ARRAY[1.2, 55.5]);
+    formarray (1.1, VARIADIC ARRAY[1.2, 55.5]);
 
 SELECT
-    formarray (1.1,
-        ARRAY[1.2, 55.5]);
+    formarray (1.1, ARRAY[1.2, 55.5]);
 
 -- fail without variadic
 SELECT
-    formarray (1,
-        'x'::text);
+    formarray (1, 'x'::text);
 
 -- fail, type mismatch
 SELECT
-    formarray (1,
-        VARIADIC ARRAY['x'::text]);
+    formarray (1, VARIADIC ARRAY['x'::text]);
 
 -- fail, type mismatch
 DROP FUNCTION formarray (anyelement, VARIADIC anyarray);
@@ -1272,13 +1257,10 @@ SELECT
     dfunc (10);
 
 SELECT
-    dfunc (10,
-        20);
+    dfunc (10, 20);
 
 SELECT
-    dfunc (10,
-        20,
-        30);
+    dfunc (10, 20, 30);
 
 -- fail
 DROP FUNCTION dfunc ();
@@ -1349,8 +1331,7 @@ SELECT
 
 -- ok
 SELECT
-    dfunc ('Hi',
-        'City');
+    dfunc ('Hi', 'City');
 
 -- ok
 SELECT
@@ -1358,8 +1339,7 @@ SELECT
 
 -- ok
 SELECT
-    dfunc (10,
-        20);
+    dfunc (10, 20);
 
 -- ok
 DROP FUNCTION dfunc (int, int);
@@ -1396,21 +1376,15 @@ SELECT
 
 -- fail
 SELECT
-    dfunc (1,
-        2);
+    dfunc (1, 2);
 
 -- fail
 SELECT
-    dfunc (1,
-        2,
-        3);
+    dfunc (1, 2, 3);
 
 -- ok
 SELECT
-    dfunc (1,
-        2,
-        3,
-        4);
+    dfunc (1, 2, 3, 4);
 
 -- ok
 DROP FUNCTION dfunc (int, int);
@@ -1468,8 +1442,7 @@ SELECT
     dfunc (10);
 
 SELECT
-    dfunc (10,
-        20);
+    dfunc (10, 20);
 
 CREATE OR REPLACE FUNCTION dfunc (a VARIADIC int[] DEFAULT ARRAY[] ::int[])
     RETURNS int
@@ -1487,8 +1460,7 @@ SELECT
     dfunc (10);
 
 SELECT
-    dfunc (10,
-        20);
+    dfunc (10, 20);
 
 -- can't remove the default once it exists
 CREATE OR REPLACE FUNCTION dfunc (a VARIADIC int[])
@@ -1568,26 +1540,20 @@ $$
 LANGUAGE sql;
 
 SELECT
-    (dfunc (10,
-            20,
-            30)).*;
+    (dfunc (10, 20, 30)).*;
 
 SELECT
-    (dfunc (a := 10,
-            b := 20,
-            c := 30)).*;
+    (dfunc (a := 10, b := 20, c := 30)).*;
 
 SELECT
     *
 FROM
-    dfunc (a := 10,
-        b := 20);
+    dfunc (a := 10, b := 20);
 
 SELECT
     *
 FROM
-    dfunc (b := 10,
-        a := 20);
+    dfunc (b := 10, a := 20);
 
 SELECT
     *
@@ -1598,61 +1564,46 @@ FROM
 SELECT
     *
 FROM
-    dfunc (1,
-        2);
+    dfunc (1, 2);
 
 SELECT
     *
 FROM
-    dfunc (1,
-        2,
-        c := 3);
+    dfunc (1, 2, c := 3);
 
 SELECT
     *
 FROM
-    dfunc (1,
-        2,
-        d := 3);
+    dfunc (1, 2, d := 3);
 
 SELECT
     *
 FROM
-    dfunc (x := 20,
-        b := 10,
-        x := 30);
+    dfunc (x := 20, b := 10, x := 30);
 
 -- fail, duplicate name
 SELECT
     *
 FROM
-    dfunc (10,
-        b := 20,
-        30);
+    dfunc (10, b := 20, 30);
 
 -- fail, named args must be last
 SELECT
     *
 FROM
-    dfunc (x := 10,
-        b := 20,
-        c := 30);
+    dfunc (x := 10, b := 20, c := 30);
 
 -- fail, unknown param
 SELECT
     *
 FROM
-    dfunc (10,
-        10,
-        a := 20);
+    dfunc (10, 10, a := 20);
 
 -- fail, a overlaps positional parameter
 SELECT
     *
 FROM
-    dfunc (1,
-        c := 2,
-        d := 3);
+    dfunc (1, c := 2, d := 3);
 
 -- fail, no value for b
 DROP FUNCTION dfunc (int, int, int, int);
@@ -1674,44 +1625,32 @@ $$
 LANGUAGE sql;
 
 SELECT
-    (dfunc ('Hello World',
-            20,
-            '2009-07-25'::date)).*;
+    (dfunc ('Hello World', 20, '2009-07-25'::date)).*;
 
 SELECT
     *
 FROM
-    dfunc ('Hello World',
-        20,
-        '2009-07-25'::date);
+    dfunc ('Hello World', 20, '2009-07-25'::date);
 
 SELECT
     *
 FROM
-    dfunc (c := '2009-07-25'::date,
-        a := 'Hello World',
-        b := 20);
+    dfunc (c := '2009-07-25'::date, a := 'Hello World', b := 20);
 
 SELECT
     *
 FROM
-    dfunc ('Hello World',
-        b := 20,
-        c := '2009-07-25'::date);
+    dfunc ('Hello World', b := 20, c := '2009-07-25'::date);
 
 SELECT
     *
 FROM
-    dfunc ('Hello World',
-        c := '2009-07-25'::date,
-        b := 20);
+    dfunc ('Hello World', c := '2009-07-25'::date, b := 20);
 
 SELECT
     *
 FROM
-    dfunc ('Hello World',
-        c := 20,
-        b := '2009-07-25'::date);
+    dfunc ('Hello World', c := 20, b := '2009-07-25'::date);
 
 -- fail
 DROP FUNCTION dfunc (varchar, numeric, date);
@@ -1738,20 +1677,17 @@ FROM
 SELECT
     *
 FROM
-    dfunc ('Hello',
-        100);
+    dfunc ('Hello', 100);
 
 SELECT
     *
 FROM
-    dfunc (a := 'Hello',
-        c := 100);
+    dfunc (a := 'Hello', c := 100);
 
 SELECT
     *
 FROM
-    dfunc (c := 100,
-        a := 'Hello');
+    dfunc (c := 100, a := 'Hello');
 
 SELECT
     *
@@ -1761,8 +1697,7 @@ FROM
 SELECT
     *
 FROM
-    dfunc ('Hello',
-        c := 100);
+    dfunc ('Hello', c := 100);
 
 SELECT
     *
@@ -1877,132 +1812,96 @@ $$
 LANGUAGE sql;
 
 SELECT
-    dfunc (1,
-        2);
+    dfunc (1, 2);
 
 SELECT
-    dfunc ('a'::text,
-        'b');
+    dfunc ('a'::text, 'b');
 
 -- positional notation with default
 SELECT
-    dfunc (a := 1,
-        b := 2);
+    dfunc (a := 1, b := 2);
 
 SELECT
-    dfunc (a := 'a'::text,
-        b := 'b');
+    dfunc (a := 'a'::text, b := 'b');
 
 SELECT
-    dfunc (a := 'a'::text,
-        b := 'b',
-        flag := FALSE);
+    dfunc (a := 'a'::text, b := 'b', flag := FALSE);
 
 -- named notation
 SELECT
-    dfunc (b := 'b'::text,
-        a := 'a');
+    dfunc (b := 'b'::text, a := 'a');
 
 -- named notation with default
 SELECT
-    dfunc (a := 'a'::text,
-        flag := TRUE);
+    dfunc (a := 'a'::text, flag := TRUE);
 
 -- named notation with default
 SELECT
-    dfunc (a := 'a'::text,
-        flag := FALSE);
+    dfunc (a := 'a'::text, flag := FALSE);
 
 -- named notation with default
 SELECT
-    dfunc (b := 'b'::text,
-        a := 'a',
-        flag := TRUE);
+    dfunc (b := 'b'::text, a := 'a', flag := TRUE);
 
 -- named notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        FALSE);
+    dfunc ('a'::text, 'b', FALSE);
 
 -- full positional notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        flag := FALSE);
+    dfunc ('a'::text, 'b', flag := FALSE);
 
 -- mixed notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        TRUE);
+    dfunc ('a'::text, 'b', TRUE);
 
 -- full positional notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        flag := TRUE);
+    dfunc ('a'::text, 'b', flag := TRUE);
 
 -- mixed notation
 -- ansi/sql syntax
 
 SELECT
-    dfunc (a => 1,
-        b => 2);
+    dfunc (a => 1, b => 2);
 
 SELECT
-    dfunc (a => 'a'::text,
-        b => 'b');
+    dfunc (a => 'a'::text, b => 'b');
 
 SELECT
-    dfunc (a => 'a'::text,
-        b => 'b',
-        flag => FALSE);
+    dfunc (a => 'a'::text, b => 'b', flag => FALSE);
 
 -- named notation
 SELECT
-    dfunc (b => 'b'::text,
-        a => 'a');
+    dfunc (b => 'b'::text, a => 'a');
 
 -- named notation with default
 SELECT
-    dfunc (a => 'a'::text,
-        flag => TRUE);
+    dfunc (a => 'a'::text, flag => TRUE);
 
 -- named notation with default
 SELECT
-    dfunc (a => 'a'::text,
-        flag => FALSE);
+    dfunc (a => 'a'::text, flag => FALSE);
 
 -- named notation with default
 SELECT
-    dfunc (b => 'b'::text,
-        a => 'a',
-        flag => TRUE);
+    dfunc (b => 'b'::text, a => 'a', flag => TRUE);
 
 -- named notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        FALSE);
+    dfunc ('a'::text, 'b', FALSE);
 
 -- full positional notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        flag => FALSE);
+    dfunc ('a'::text, 'b', flag => FALSE);
 
 -- mixed notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        TRUE);
+    dfunc ('a'::text, 'b', TRUE);
 
 -- full positional notation
 SELECT
-    dfunc ('a'::text,
-        'b',
-        flag => TRUE);
+    dfunc ('a'::text, 'b', flag => TRUE);
 
 -- mixed notation
 -- this tests lexer edge cases around =>

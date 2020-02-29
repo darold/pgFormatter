@@ -2056,8 +2056,7 @@ SELECT
     events & 8 != 0 AS ins,
     events & 16 != 0 AS del
 FROM
-    pg_catalog.pg_relation_is_updatable ('rw_view3'::regclass,
-        FALSE) t (events);
+    pg_catalog.pg_relation_is_updatable ('rw_view3'::regclass, FALSE) t (events);
 
 DROP TABLE base_tbl CASCADE;
 
@@ -2529,17 +2528,14 @@ WHERE
     a = 1;
 
 -- should fail
-PREPARE ins (int,
-    int[]) AS
+PREPARE ins (int, int[]) AS
 INSERT INTO rw_view1
     VALUES ($1, $2);
 
-EXECUTE ins (2,
-    ARRAY[1, 2, 3]);
+EXECUTE ins (2, ARRAY[1, 2, 3]);
 
 -- ok
-EXECUTE ins (10,
-    ARRAY[4, 5]);
+EXECUTE ins (10, ARRAY[4, 5]);
 
 -- should fail
 DEALLOCATE PREPARE ins;
@@ -3655,18 +3651,13 @@ SELECT
     events & 8 != 0 AS ins,
     events & 16 != 0 AS del
 FROM
-    pg_catalog.pg_relation_is_updatable ('uv_pt'::regclass,
-        FALSE) t (events);
+    pg_catalog.pg_relation_is_updatable ('uv_pt'::regclass, FALSE) t (events);
 
 SELECT
-    pg_catalog.pg_column_is_updatable ('uv_pt'::regclass,
-        1::smallint,
-        FALSE);
+    pg_catalog.pg_column_is_updatable ('uv_pt'::regclass, 1::smallint, FALSE);
 
 SELECT
-    pg_catalog.pg_column_is_updatable ('uv_pt'::regclass,
-        2::smallint,
-        FALSE);
+    pg_catalog.pg_column_is_updatable ('uv_pt'::regclass, 2::smallint, FALSE);
 
 SELECT
     table_name,

@@ -1491,8 +1491,7 @@ WITH RECURSIVE foo (
     i
 ) AS (
     SELECT
-        i::numeric(3,
-            0)
+        i::numeric(3, 0)
     FROM (
         VALUES (1),
             (2)) t (i)

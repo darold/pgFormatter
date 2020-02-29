@@ -324,7 +324,7 @@ BEGIN
         *
     FROM
         pg_event_trigger_dropped_objects ()
-    JOIN undroppable_objs USING (object_type, object_identity)
+        JOIN undroppable_objs USING (object_type, object_identity)
     LOOP
         RAISE EXCEPTION 'object % of type % cannot be dropped', obj.object_identity, obj.object_type;
     END LOOP;
@@ -346,13 +346,13 @@ BEGIN
         *
     FROM
         pg_event_trigger_dropped_objects ()
-    LOOP
-        IF obj.object_type = 'table' THEN
-            EXECUTE format('DROP TABLE IF EXISTS audit_tbls.%I', format('%s_%s', obj.schema_name, obj.object_name));
-        END IF;
-        INSERT INTO dropped_objects (TYPE, SCHEMA, object)
-            VALUES (obj.object_type, obj.schema_name, obj.object_identity);
-    END LOOP;
+        LOOP
+            IF obj.object_type = 'table' THEN
+                EXECUTE format('DROP TABLE IF EXISTS audit_tbls.%I', format('%s_%s', obj.schema_name, obj.object_name));
+            END IF;
+            INSERT INTO dropped_objects (TYPE, SCHEMA, object)
+                VALUES (obj.object_type, obj.schema_name, obj.object_identity);
+        END LOOP;
 END
 $$;
 
@@ -410,12 +410,12 @@ BEGIN
         *
     FROM
         pg_event_trigger_dropped_objects ()
-    LOOP
-        IF NOT r.normal AND NOT r.original THEN
-            CONTINUE;
-        END IF;
-        RAISE NOTICE 'NORMAL: orig=% normal=% istemp=% type=% identity=% name=% args=%', r.original, r.normal, r.is_temporary, r.object_type, r.object_identity, r.address_names, r.address_args;
-    END LOOP;
+        LOOP
+            IF NOT r.normal AND NOT r.original THEN
+                CONTINUE;
+            END IF;
+            RAISE NOTICE 'NORMAL: orig=% normal=% istemp=% type=% identity=% name=% args=%', r.original, r.normal, r.is_temporary, r.object_type, r.object_identity, r.address_names, r.address_args;
+        END LOOP;
 END;
 $$;
 

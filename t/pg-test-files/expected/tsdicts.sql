@@ -290,8 +290,7 @@ SELECT
     to_tsquery('hunspell_tst', 'footballyklubber:b <-> sky');
 
 SELECT
-    phraseto_tsquery ('hunspell_tst',
-        'footballyklubber sky');
+    phraseto_tsquery('hunspell_tst', 'footballyklubber sky');
 
 -- Test ispell dictionary with hunspell affix with FLAG long in configuration
 ALTER TEXT SEARCH CONFIGURATION hunspell_tst

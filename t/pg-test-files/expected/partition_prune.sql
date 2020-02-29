@@ -1749,9 +1749,7 @@ FOR VALUES IN (3);
 
 SET enable_indexonlyscan = OFF;
 
-PREPARE ab_q1 (int,
-    int,
-    int) AS
+PREPARE ab_q1 (int, int, int) AS
 SELECT
     *
 FROM
@@ -1764,49 +1762,34 @@ WHERE
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
 
-EXECUTE ab_q1 (1,
-    8,
-    3);
+EXECUTE ab_q1 (1, 8, 3);
 
-EXECUTE ab_q1 (1,
-    8,
-    3);
+EXECUTE ab_q1 (1, 8, 3);
 
-EXECUTE ab_q1 (1,
-    8,
-    3);
+EXECUTE ab_q1 (1, 8, 3);
 
-EXECUTE ab_q1 (1,
-    8,
-    3);
+EXECUTE ab_q1 (1, 8, 3);
 
-EXECUTE ab_q1 (1,
-    8,
-    3);
+EXECUTE ab_q1 (1, 8, 3);
 
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
     summary OFF,
     timing OFF
-) EXECUTE ab_q1 (2,
-    2,
-    3);
+) EXECUTE ab_q1 (2, 2, 3);
 
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
     summary OFF,
     timing OFF
-) EXECUTE ab_q1 (1,
-    2,
-    3);
+) EXECUTE ab_q1 (1, 2, 3);
 
 DEALLOCATE ab_q1;
 
 -- Runtime pruning after optimizer pruning
-PREPARE ab_q1 (int,
-    int) AS
+PREPARE ab_q1 (int, int) AS
 SELECT
     a
 FROM
@@ -1819,42 +1802,34 @@ WHERE
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
 
-EXECUTE ab_q1 (1,
-    8);
+EXECUTE ab_q1 (1, 8);
 
-EXECUTE ab_q1 (1,
-    8);
+EXECUTE ab_q1 (1, 8);
 
-EXECUTE ab_q1 (1,
-    8);
+EXECUTE ab_q1 (1, 8);
 
-EXECUTE ab_q1 (1,
-    8);
+EXECUTE ab_q1 (1, 8);
 
-EXECUTE ab_q1 (1,
-    8);
+EXECUTE ab_q1 (1, 8);
 
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
     summary OFF,
     timing OFF
-) EXECUTE ab_q1 (2,
-    2);
+) EXECUTE ab_q1 (2, 2);
 
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
     summary OFF,
     timing OFF
-) EXECUTE ab_q1 (2,
-    4);
+) EXECUTE ab_q1 (2, 4);
 
 -- Ensure a mix of PARAM_EXTERN and PARAM_EXEC Params work together at
 -- different levels of partitioning.
 
-PREPARE ab_q2 (int,
-    int) AS
+PREPARE ab_q2 (int, int) AS
 SELECT
     a
 FROM
@@ -1866,32 +1841,25 @@ WHERE
         SELECT
             3);
 
-EXECUTE ab_q2 (1,
-    8);
+EXECUTE ab_q2 (1, 8);
 
-EXECUTE ab_q2 (1,
-    8);
+EXECUTE ab_q2 (1, 8);
 
-EXECUTE ab_q2 (1,
-    8);
+EXECUTE ab_q2 (1, 8);
 
-EXECUTE ab_q2 (1,
-    8);
+EXECUTE ab_q2 (1, 8);
 
-EXECUTE ab_q2 (1,
-    8);
+EXECUTE ab_q2 (1, 8);
 
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
     summary OFF,
     timing OFF
-) EXECUTE ab_q2 (2,
-    2);
+) EXECUTE ab_q2 (2, 2);
 
 -- As above, but swap the PARAM_EXEC Param to the first partition level
-PREPARE ab_q3 (int,
-    int) AS
+PREPARE ab_q3 (int, int) AS
 SELECT
     a
 FROM
@@ -1903,28 +1871,22 @@ WHERE
         SELECT
             3);
 
-EXECUTE ab_q3 (1,
-    8);
+EXECUTE ab_q3 (1, 8);
 
-EXECUTE ab_q3 (1,
-    8);
+EXECUTE ab_q3 (1, 8);
 
-EXECUTE ab_q3 (1,
-    8);
+EXECUTE ab_q3 (1, 8);
 
-EXECUTE ab_q3 (1,
-    8);
+EXECUTE ab_q3 (1, 8);
 
-EXECUTE ab_q3 (1,
-    8);
+EXECUTE ab_q3 (1, 8);
 
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
     summary OFF,
     timing OFF
-) EXECUTE ab_q3 (2,
-    2);
+) EXECUTE ab_q3 (2, 2);
 
 -- Test a backwards Append scan
 CREATE TABLE list_part (
@@ -2050,8 +2012,7 @@ BEGIN
 END;
 $$;
 
-PREPARE ab_q4 (int,
-    int) AS
+PREPARE ab_q4 (int, int) AS
 SELECT
     avg(a)
 FROM
@@ -2073,28 +2034,21 @@ SET max_parallel_workers_per_gather = 2;
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
 
-EXECUTE ab_q4 (1,
-    8);
+EXECUTE ab_q4 (1, 8);
 
-EXECUTE ab_q4 (1,
-    8);
+EXECUTE ab_q4 (1, 8);
 
-EXECUTE ab_q4 (1,
-    8);
+EXECUTE ab_q4 (1, 8);
 
-EXECUTE ab_q4 (1,
-    8);
+EXECUTE ab_q4 (1, 8);
 
-EXECUTE ab_q4 (1,
-    8);
+EXECUTE ab_q4 (1, 8);
 
 SELECT
     explain_parallel_append ('execute ab_q4 (2, 2)');
 
 -- Test run-time pruning with IN lists.
-PREPARE ab_q5 (int,
-    int,
-    int) AS
+PREPARE ab_q5 (int, int, int) AS
 SELECT
     avg(a)
 FROM
@@ -2106,25 +2060,15 @@ WHERE
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
 
-EXECUTE ab_q5 (1,
-    2,
-    3);
+EXECUTE ab_q5 (1, 2, 3);
 
-EXECUTE ab_q5 (1,
-    2,
-    3);
+EXECUTE ab_q5 (1, 2, 3);
 
-EXECUTE ab_q5 (1,
-    2,
-    3);
+EXECUTE ab_q5 (1, 2, 3);
 
-EXECUTE ab_q5 (1,
-    2,
-    3);
+EXECUTE ab_q5 (1, 2, 3);
 
-EXECUTE ab_q5 (1,
-    2,
-    3);
+EXECUTE ab_q5 (1, 2, 3);
 
 SELECT
     explain_parallel_append ('execute ab_q5 (1, 1, 1)');
@@ -2658,9 +2602,7 @@ FOR VALUES IN (2);
 ALTER TABLE part_cab ATTACH PARTITION part_abc_p1
 FOR VALUES IN (3);
 
-PREPARE part_abc_q1 (int,
-    int,
-    int) AS
+PREPARE part_abc_q1 (int, int, int) AS
 SELECT
     *
 FROM
@@ -2673,25 +2615,15 @@ WHERE
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
 
-EXECUTE part_abc_q1 (1,
-    2,
-    3);
+EXECUTE part_abc_q1 (1, 2, 3);
 
-EXECUTE part_abc_q1 (1,
-    2,
-    3);
+EXECUTE part_abc_q1 (1, 2, 3);
 
-EXECUTE part_abc_q1 (1,
-    2,
-    3);
+EXECUTE part_abc_q1 (1, 2, 3);
 
-EXECUTE part_abc_q1 (1,
-    2,
-    3);
+EXECUTE part_abc_q1 (1, 2, 3);
 
-EXECUTE part_abc_q1 (1,
-    2,
-    3);
+EXECUTE part_abc_q1 (1, 2, 3);
 
 -- Single partition should be scanned.
 EXPLAIN (
@@ -2699,9 +2631,7 @@ EXPLAIN (
     COSTS OFF,
     summary OFF,
     timing OFF
-) EXECUTE part_abc_q1 (1,
-    2,
-    3);
+) EXECUTE part_abc_q1 (1, 2, 3);
 
 DEALLOCATE part_abc_q1;
 

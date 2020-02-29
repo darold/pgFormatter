@@ -129,13 +129,9 @@ CREATE AGGREGATE my_rank (VARIADIC "any" ORDER BY VARIADIC "any") (
     hypothetical
 );
 
-ALTER AGGREGATE my_percentile_disc (float8
-ORDER BY
-    anyelement) RENAME TO test_percentile_disc;
+ALTER AGGREGATE my_percentile_disc (float8 ORDER BY anyelement) RENAME TO test_percentile_disc;
 
-ALTER AGGREGATE my_rank (VARIADIC "any"
-ORDER BY
-    VARIADIC "any") RENAME TO test_rank;
+ALTER AGGREGATE my_rank (VARIADIC "any" ORDER BY VARIADIC "any") RENAME TO test_rank;
 
 \da test_*
 -- moving-aggregate options

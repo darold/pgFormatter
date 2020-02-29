@@ -131,69 +131,68 @@ DO $$
 DECLARE
     r text[];
 BEGIN
-    r := parse_ident ('Schemax.Tabley');
+    r := parse_ident('Schemax.Tabley');
     RAISE NOTICE '%', format('%I.%I', r[1], r[2]);
-    r := parse_ident ('"SchemaX"."TableY"');
+    r := parse_ident('"SchemaX"."TableY"');
     RAISE NOTICE '%', format('%I.%I', r[1], r[2]);
 END;
 $$;
 
 SELECT
-    parse_ident ('foo.boo');
+    parse_ident('foo.boo');
 
 SELECT
-    parse_ident ('foo.boo[]');
+    parse_ident('foo.boo[]');
 
 -- should fail
 SELECT
-    parse_ident ('foo.boo[]',
-        STRICT => FALSE);
+    parse_ident('foo.boo[]', STRICT => FALSE);
 
 -- ok
 -- should fail
 
 SELECT
-    parse_ident (' ');
+    parse_ident(' ');
 
 SELECT
-    parse_ident (' .aaa');
+    parse_ident(' .aaa');
 
 SELECT
-    parse_ident (' aaa . ');
+    parse_ident(' aaa . ');
 
 SELECT
-    parse_ident ('aaa.a%b');
+    parse_ident('aaa.a%b');
 
 SELECT
-    parse_ident (E'X\rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    parse_ident(E'X\rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
 
 SELECT
     length(a[1]),
     length(a[2])
 FROM
-    parse_ident ('"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx".yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy') AS a;
+    parse_ident('"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx".yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy') AS a;
 
 SELECT
-    parse_ident (' first . "  second  " ."   third   ". "  ' || repeat('x', 66) || '"');
+    parse_ident(' first . "  second  " ."   third   ". "  ' || repeat('x', 66) || '"');
 
 SELECT
-    parse_ident (' first . "  second  " ."   third   ". "  ' || repeat('x', 66) || '"')::name[];
+    parse_ident(' first . "  second  " ."   third   ". "  ' || repeat('x', 66) || '"')::name[];
 
 SELECT
-    parse_ident (E'"c".X XXXX\002XXXXXX');
+    parse_ident(E'"c".X XXXX\002XXXXXX');
 
 SELECT
-    parse_ident ('1020');
+    parse_ident('1020');
 
 SELECT
-    parse_ident ('10.20');
+    parse_ident('10.20');
 
 SELECT
-    parse_ident ('.');
+    parse_ident('.');
 
 SELECT
-    parse_ident ('.1020');
+    parse_ident('.1020');
 
 SELECT
-    parse_ident ('xxx.1020');
+    parse_ident('xxx.1020');
 

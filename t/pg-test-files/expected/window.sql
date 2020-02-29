@@ -1946,8 +1946,7 @@ WINDOW IMMUTABLE STRICT
 AS 'window_nth_value';
 
 SELECT
-    nth_value_def (n := 2,
-        val := ten) OVER (PARTITION BY four),
+    nth_value_def (n := 2, val := ten) OVER (PARTITION BY four),
     ten,
     four
 FROM (

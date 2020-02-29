@@ -379,8 +379,7 @@ CREATE OPERATOR = (
     RIGHTARG = arrdomain
 );
 SELECT
-    CASE make_ad (1,
-        2)
+    CASE make_ad (1, 2)
     WHEN ARRAY[2, 4]::arrdomain THEN
         'wrong'
     WHEN ARRAY[2, 5]::arrdomain THEN

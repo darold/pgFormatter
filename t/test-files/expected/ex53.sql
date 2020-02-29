@@ -139,9 +139,7 @@ DECLARE
     dummy integer;
 BEGIN
     IF tg_op = 'INSERT' THEN
-        dummy := tg_hub_adjustslots (new.name,
-            0,
-            new.nslots);
+        dummy := tg_hub_adjustslots (new.name, 0, new.nslots);
         RETURN new;
     END IF;
     IF tg_op = 'UPDATE' THEN
@@ -153,15 +151,11 @@ BEGIN
             WHERE
                 hubname = old.name;
         END IF;
-        dummy := tg_hub_adjustslots (new.name,
-            old.nslots,
-            new.nslots);
+        dummy := tg_hub_adjustslots (new.name, old.nslots, new.nslots);
         RETURN new;
     END IF;
     IF tg_op = 'DELETE' THEN
-        dummy := tg_hub_adjustslots (old.name,
-            old.nslots,
-            0);
+        dummy := tg_hub_adjustslots (old.name, old.nslots, 0);
         RETURN old;
     END IF;
 END;
@@ -203,33 +197,28 @@ DECLARE
 BEGIN
     IF tg_op = 'INSERT' THEN
         IF new.backlink != '' THEN
-            dummy := tg_backlink_set (new.backlink,
-                new.slotname);
+            dummy := tg_backlink_set (new.backlink, new.slotname);
         END IF;
         RETURN new;
     END IF;
     IF tg_op = 'UPDATE' THEN
         IF new.backlink != old.backlink THEN
             IF old.backlink != '' THEN
-                dummy := tg_backlink_unset (old.backlink,
-                    old.slotname);
+                dummy := tg_backlink_unset (old.backlink, old.slotname);
             END IF;
             IF new.backlink != '' THEN
-                dummy := tg_backlink_set (new.backlink,
-                    new.slotname);
+                dummy := tg_backlink_set (new.backlink, new.slotname);
             END IF;
         ELSE
             IF new.slotname != old.slotname AND new.backlink != '' THEN
-                dummy := tg_slotlink_set (new.backlink,
-                    new.slotname);
+                dummy := tg_slotlink_set (new.backlink, new.slotname);
             END IF;
         END IF;
         RETURN new;
     END IF;
     IF tg_op = 'DELETE' THEN
         IF old.backlink != '' THEN
-            dummy := tg_backlink_unset (old.backlink,
-                old.slotname);
+            dummy := tg_backlink_unset (old.backlink, old.slotname);
         END IF;
         RETURN old;
     END IF;

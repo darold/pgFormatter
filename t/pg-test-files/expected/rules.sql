@@ -2769,12 +2769,10 @@ SELECT
     pg_get_function_result(0);
 
 SELECT
-    pg_get_function_arg_default (0,
-        0);
+    pg_get_function_arg_default (0, 0);
 
 SELECT
-    pg_get_function_arg_default ('pg_class'::regclass,
-        0);
+    pg_get_function_arg_default ('pg_class'::regclass, 0);
 
 SELECT
     pg_get_partkeydef (0);

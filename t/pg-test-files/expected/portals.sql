@@ -339,7 +339,7 @@ INSERT INTO tt1
 DECLARE c1 CURSOR FOR
     SELECT
         count_tt1_v (),
-    count_tt1_s ();
+        count_tt1_s ();
 INSERT INTO tt1
     VALUES (2);
 FETCH ALL FROM c1;
@@ -352,7 +352,7 @@ DECLARE c2 CURSOR WITH hold FOR
     SELECT
         count_tt1_v (
 ),
-    count_tt1_s ();
+        count_tt1_s ();
 INSERT INTO tt1
     VALUES (2);
 COMMIT;

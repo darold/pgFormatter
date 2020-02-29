@@ -918,43 +918,27 @@ SELECT
 -- test constructors
 
 SELECT
-    make_date (2013,
-        7,
-        15);
+    make_date(2013, 7, 15);
 
 SELECT
-    make_date (- 44,
-        3,
-        15);
+    make_date(- 44, 3, 15);
 
 SELECT
-    make_time (8,
-        20,
-        0.0);
+    make_time(8, 20, 0.0);
 
 -- should fail
 SELECT
-    make_date (2013,
-        2,
-        30);
+    make_date(2013, 2, 30);
 
 SELECT
-    make_date (2013,
-        13,
-        1);
+    make_date(2013, 13, 1);
 
 SELECT
-    make_date (2013,
-        11,
-        - 1);
+    make_date(2013, 11, - 1);
 
 SELECT
-    make_time (10,
-        55,
-        100.1);
+    make_time(10, 55, 100.1);
 
 SELECT
-    make_time (24,
-        0,
-        2.1);
+    make_time(24, 0, 2.1);
 

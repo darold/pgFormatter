@@ -52,26 +52,19 @@ SELECT
 
 -- Test regexp_match()
 SELECT
-    regexp_match ('abc',
-        '');
+    regexp_match('abc', '');
 
 SELECT
-    regexp_match ('abc',
-        'bc');
+    regexp_match('abc', 'bc');
 
 SELECT
-    regexp_match ('abc',
-        'd') IS NULL;
+    regexp_match('abc', 'd') IS NULL;
 
 SELECT
-    regexp_match ('abc',
-        '(B)(c)',
-        'i');
+    regexp_match('abc', '(B)(c)', 'i');
 
 SELECT
-    regexp_match ('abc',
-        'Bd',
-        'ig');
+    regexp_match('abc', 'Bd', 'ig');
 
 -- error
 -- Test lookahead constraints

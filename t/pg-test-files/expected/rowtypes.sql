@@ -936,16 +936,13 @@ $$
 LANGUAGE sql;
 
 SELECT
-    fcompos1 (ROW (1,
-            'one'));
+    fcompos1 (ROW (1, 'one'));
 
 SELECT
-    fcompos2 (ROW (2,
-            'two'));
+    fcompos2 (ROW (2, 'two'));
 
 SELECT
-    fcompos3 (ROW (3,
-            'three'));
+    fcompos3 (ROW (3, 'three'));
 
 SELECT
     *

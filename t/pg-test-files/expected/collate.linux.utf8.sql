@@ -979,8 +979,7 @@ END
 $$;
 
 SELECT
-    mylt2 ('a',
-        'B' COLLATE "en_US") AS t,
+    mylt2 ('a', 'B' COLLATE "en_US") AS t,
     mylt2 ('a', 'B' COLLATE "C") AS f;
 
 CREATE OR REPLACE FUNCTION mylt2 (x text, y text)
@@ -996,17 +995,14 @@ END
 $$;
 
 SELECT
-    mylt2 ('a',
-        'B') AS f;
+    mylt2 ('a', 'B') AS f;
 
 SELECT
-    mylt2 ('a',
-        'B' COLLATE "C") AS fail;
+    mylt2 ('a', 'B' COLLATE "C") AS fail;
 
 -- conflicting collations
 SELECT
-    mylt2 ('a',
-        'B' COLLATE "POSIX") AS f;
+    mylt2 ('a', 'B' COLLATE "POSIX") AS f;
 
 -- polymorphism
 SELECT
@@ -1260,12 +1256,10 @@ CREATE TYPE textrange_en_us AS RANGE (
 );
 
 SELECT
-    textrange_c ('A',
-        'Z') @> 'b'::text;
+    textrange_c ('A', 'Z') @> 'b'::text;
 
 SELECT
-    textrange_en_us ('A',
-        'Z') @> 'b'::text;
+    textrange_en_us ('A', 'Z') @> 'b'::text;
 
 DROP TYPE textrange_c;
 

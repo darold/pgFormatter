@@ -509,7 +509,7 @@ BEGIN
         VALUES (1),
             (2),
             (3)) v (x) ON TRUE LOOP
-        ln := regexp_replace(ln, 'Memory: \S*', 'Memory: xxx');
+    ln := regexp_replace(ln, 'Memory: \S*', 'Memory: xxx');
         RETURN NEXT ln;
     END LOOP;
 END;
@@ -979,8 +979,7 @@ CREATE TABLE fooarr (
 INSERT INTO fooarr
     VALUES ('1', ARRAY[1, 2], 'one');
 
-PREPARE pstmt (text,
-    int[]) AS
+PREPARE pstmt (text, int[]) AS
 SELECT
     *
 FROM
@@ -991,11 +990,9 @@ WHERE
 
 EXPLAIN (
     COSTS OFF
-) EXECUTE pstmt ('1',
-    make_some_array (1, 2));
+) EXECUTE pstmt ('1', make_some_array (1, 2));
 
-EXECUTE pstmt ('1',
-    make_some_array (1, 2));
+EXECUTE pstmt ('1', make_some_array (1, 2));
 
 DEALLOCATE pstmt;
 
