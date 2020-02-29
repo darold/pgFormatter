@@ -813,8 +813,7 @@ BEGIN
     IF link = 'PLPL' THEN
         RAISE exception 'backlink between two phone lines does not make sense';
     END IF;
-    IF link IN ('PLWS',
-        'WSPL') THEN
+    IF link IN ('PLWS', 'WSPL') THEN
         RAISE exception 'direct link of phone line to wall slot not permitted';
     END IF;
     IF mytype = 'PS' THEN
@@ -1048,16 +1047,13 @@ BEGIN
     IF link = 'PHPH' THEN
         RAISE exception 'slotlink between two phones does not make sense';
     END IF;
-    IF link IN ('PHHS',
-        'HSPH') THEN
+    IF link IN ('PHHS', 'HSPH') THEN
         RAISE exception 'link of phone to hub does not make sense';
     END IF;
-    IF link IN ('PHIF',
-        'IFPH') THEN
+    IF link IN ('PHIF', 'IFPH') THEN
         RAISE exception 'link of phone to hub does not make sense';
     END IF;
-    IF link IN ('PSWS',
-        'WSPS') THEN
+    IF link IN ('PSWS', 'WSPS') THEN
         RAISE exception 'slotlink from patchslot to wallslot not permitted';
     END IF;
     IF mytype = 'PS' THEN

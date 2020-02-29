@@ -1957,11 +1957,7 @@ SELECT
     *
 FROM
     tenk1
-WHERE (thousand, tenthous)
-IN ((1,
-        1001),
-    (NULL,
-        NULL));
+WHERE (thousand, tenthous) IN ((1, 1001), (NULL, NULL));
 
 --
 -- Check matching of boolean index columns to WHERE conditions and sort keys

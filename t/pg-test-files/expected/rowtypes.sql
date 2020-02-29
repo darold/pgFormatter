@@ -259,19 +259,11 @@ SELECT
 
 SELECT
     ROW (1,
-        2)
-    IN (ROW (3,
-            4),
-        ROW (1,
-            2));
+        2) IN (ROW (3, 4), ROW (1, 2));
 
 SELECT
     ROW (1,
-        2)
-    IN (ROW (3,
-            4),
-        ROW (1,
-            2::int8));
+        2) IN (ROW (3, 4), ROW (1, 2::int8));
 
 -- Check row comparison with a subselect
 SELECT

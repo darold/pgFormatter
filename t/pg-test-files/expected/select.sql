@@ -279,8 +279,7 @@ SELECT
     *
 FROM
     onek
-WHERE (unique1, ten)
-IN (
+WHERE (unique1, ten) IN (
     VALUES (1, 1),
         (20, 0),
         (99, 9),

@@ -24,21 +24,10 @@ WHERE
     OR (p1.typlen <= 0
         AND p1.typlen != - 1
         AND p1.typlen != - 2)
-    OR (p1.typtype NOT IN ('b',
-            'c',
-            'd',
-            'e',
-            'p',
-            'r'))
+    OR (p1.typtype NOT IN ('b', 'c', 'd', 'e', 'p', 'r'))
     OR NOT p1.typisdefined
-    OR (p1.typalign NOT IN ('c',
-            's',
-            'i',
-            'd'))
-    OR (p1.typstorage NOT IN ('p',
-            'x',
-            'e',
-            'm'));
+    OR (p1.typalign NOT IN ('c', 's', 'i', 'd'))
+    OR (p1.typstorage NOT IN ('p', 'x', 'e', 'm'));
 
 -- Look for "pass by value" types that can't be passed by value.
 SELECT
@@ -716,13 +705,8 @@ FROM
     pg_class AS p1
 WHERE
     relkind NOT IN ('r', 'i', 'S', 't', 'v', 'm', 'c', 'f', 'p')
-    OR relpersistence NOT IN ('p',
-        'u',
-        't')
-    OR relreplident NOT IN ('d',
-        'n',
-        'f',
-        'i');
+    OR relpersistence NOT IN ('p', 'u', 't')
+    OR relreplident NOT IN ('d', 'n', 'f', 'i');
 
 -- All tables and indexes should have an access method.
 SELECT

@@ -226,8 +226,7 @@ SELECT
     f1 AS "Correlated Field"
 FROM
     SUBSELECT_TBL
-WHERE (f1, f2)
-IN (
+WHERE (f1, f2) IN (
     SELECT
         f2,
         CAST(f3 AS int4)
@@ -1375,8 +1374,7 @@ WHERE (
         f1
     ELSE
         NULL
-    END)
-    IN (
+    END) IN (
         SELECT
             ten
         FROM
@@ -1395,8 +1393,7 @@ WHERE (
         f1
     ELSE
         NULL
-    END)
-    IN (
+    END) IN (
         SELECT
             ten
         FROM
@@ -1414,8 +1411,7 @@ SELECT
     *
 FROM
     int4_tbl o
-WHERE (f1, f1)
-IN (
+WHERE (f1, f1) IN (
     SELECT
         f1,
         generate_series(1, 50) / 10 g
@@ -1428,8 +1424,7 @@ SELECT
     *
 FROM
     int4_tbl o
-WHERE (f1, f1)
-IN (
+WHERE (f1, f1) IN (
     SELECT
         f1,
         generate_series(1, 50) / 10 g

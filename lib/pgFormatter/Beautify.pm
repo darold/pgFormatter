@@ -701,6 +701,8 @@ sub beautify
 	    )
 	    {
                 $self->{ '_is_in_function' }++;
+	    } elsif (uc($token) eq 'IN' and $self->{ '_tokens' }[1] !~ /^(SELECT|WITH|VALUES)$/i) {
+                $self->{ '_is_in_function' }++;
 	    }
         }
 
@@ -1419,20 +1421,21 @@ sub beautify
             }
 
             # When closing CTE statement go back again
-            if ($self->_next_token =~ /^SELECT|INSERT|UPDATE|DELETE$/i && !$self->{ '_is_in_policy' }) {
+            if ($self->_next_token =~ /^(?:SELECT|INSERT|UPDATE|DELETE)$/i && !$self->{ '_is_in_policy' }) {
                 $self->_back($token, $last) if ($self->{ '_current_sql_stmt' } ne 'INSERT');
             }
             if ($self->{ '_is_in_create' } <= 1) {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line($token,$last)
                     if (defined $self->_next_token
-                    and $self->_next_token !~ /^AS|IS|THEN|INTO|BETWEEN|ON|FILTER|WITHIN|DESC|ASC|WITHOUT$/i
+                    and $self->_next_token !~ /^(?:AS|IS|THEN|INTO|BETWEEN|ON|IN|FILTER|WITHIN|DESC|ASC|WITHOUT|CASCADE)$/i
                     and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
                     and $self->_next_token ne ';'
                     and $self->_next_token ne ','
                     and $self->_next_token ne '||'
+                    and uc($self->_next_token) ne 'CONCAT'
                     and ($self->_is_keyword($self->_next_token) or $self->_is_function($self->_next_token))
 		    and $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
@@ -1499,7 +1502,6 @@ sub beautify
 	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
 	    $add_newline = 0 if ($self->{ '_is_in_function' } or $self->{ '_is_in_statistics' });
 	    $add_newline = 0 if (defined $self->_next_token and $self->_is_comment($self->_next_token));
-
 	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT'));
         }
 

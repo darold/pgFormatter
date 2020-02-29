@@ -457,9 +457,7 @@ RESET enable_bitmapscan;
 -- Domains over enums
 --
 
-CREATE DOMAIN rgb AS rainbow CHECK (VALUE IN ('red',
-        'green',
-        'blue'));
+CREATE DOMAIN rgb AS rainbow CHECK (VALUE IN ('red', 'green', 'blue'));
 
 SELECT
     'red'::rgb;

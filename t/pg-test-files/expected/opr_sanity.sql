@@ -153,16 +153,9 @@ WHERE
     ELSE
         prorows != 0
     END
-    OR prokind NOT IN ('f',
-        'a',
-        'w',
-        'p')
-    OR provolatile NOT IN ('i',
-        's',
-        'v')
-    OR proparallel NOT IN ('s',
-        'r',
-        'u');
+    OR prokind NOT IN ('f', 'a', 'w', 'p')
+    OR provolatile NOT IN ('i', 's', 'v')
+    OR proparallel NOT IN ('s', 'r', 'u');
 
 -- prosrc should never be null or empty
 SELECT
@@ -731,9 +724,7 @@ WHERE
     castsource = 0
     OR casttarget = 0
     OR castcontext NOT IN ('e', 'a', 'i')
-    OR castmethod NOT IN ('f',
-        'b',
-        'i');
+    OR castmethod NOT IN ('f', 'b', 'i');
 
 -- Check that castfunc is nonzero only for cast methods that need a function,
 -- and zero otherwise
@@ -744,8 +735,7 @@ FROM
     pg_cast c
 WHERE (castmethod = 'f'
     AND castfunc = 0)
-    OR (castmethod IN ('b',
-            'i')
+    OR (castmethod IN ('b', 'i')
         AND castfunc <> 0);
 
 -- Look for casts to/from the same type that aren't length coercion functions.
@@ -1428,12 +1418,8 @@ WHERE
     OR aggnumdirectargs < 0
     OR (aggkind = 'n'
         AND aggnumdirectargs > 0)
-    OR aggfinalmodify NOT IN ('r',
-        's',
-        'w')
-    OR aggmfinalmodify NOT IN ('r',
-        's',
-        'w')
+    OR aggfinalmodify NOT IN ('r', 's', 'w')
+    OR aggmfinalmodify NOT IN ('r', 's', 'w')
     OR aggtranstype = 0
     OR aggtransspace < 0
     OR aggmtransspace < 0;

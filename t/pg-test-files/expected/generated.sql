@@ -916,12 +916,10 @@ CREATE FUNCTION gtest_trigger_func ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    IF tg_op IN ('DELETE',
-        'UPDATE') THEN
+    IF tg_op IN ('DELETE', 'UPDATE') THEN
         RAISE INFO '%: %: old = %', TG_NAME, TG_WHEN, OLD;
     END IF;
-    IF tg_op IN ('INSERT',
-        'UPDATE') THEN
+    IF tg_op IN ('INSERT', 'UPDATE') THEN
         RAISE INFO '%: %: new = %', TG_NAME, TG_WHEN, NEW;
     END IF;
     IF tg_op = 'DELETE' THEN

@@ -46,11 +46,7 @@ CREATE OR REPLACE FUNCTION chksetconfig ()
     LEFT JOIN (
         VALUES (CURRENT_USER, 'current_user'),
             (SESSION_USER, 'session_user')) AS v (uname, keyword) ON (r.rolname = v.uname)
-WHERE (r.rolname)
-IN ('Public',
-    'current_user',
-    'regress_testrol1',
-    'regress_testrol2')
+WHERE (r.rolname) IN ('Public', 'current_user', 'regress_testrol1', 'regress_testrol2')
 ORDER BY
     1,
     2;

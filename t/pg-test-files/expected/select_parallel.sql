@@ -828,8 +828,7 @@ SELECT
     count(*)
 FROM
     tenk1 a
-WHERE (unique1, two)
-IN (
+WHERE (unique1, two) IN (
     SELECT
         unique1,
         row_number() OVER ()

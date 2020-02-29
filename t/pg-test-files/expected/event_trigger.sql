@@ -46,42 +46,42 @@ CREATE EVENT TRIGGER regress_event_trigger_end ON ddl_command_end
 -- should fail, food is not a valid filter variable
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN food IN ('sandwich')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, sandwich is not a valid command tag
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('sandwich')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, create skunkcabbage is not a valid command tag
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('create table', 'create skunkcabbage')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on event triggers
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('DROP EVENT TRIGGER')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on global objects
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('CREATE ROLE')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on global objects
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('CREATE DATABASE')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have event triggers on global objects
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('CREATE TABLESPACE')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have same filter variable twice
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('create table') AND tag IN ('CREATE FUNCTION')
-    EXECUTE PROCEDURE test_event_trigger ();
+            EXECUTE PROCEDURE test_event_trigger ();
 
 -- should fail, can't have arguments
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
@@ -90,7 +90,7 @@ CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
 -- OK
 CREATE EVENT TRIGGER regress_event_trigger2 ON ddl_command_start
     WHEN tag IN ('create table', 'CREATE FUNCTION')
-    EXECUTE PROCEDURE test_event_trigger ();
+        EXECUTE PROCEDURE test_event_trigger ();
 
 -- OK
 COMMENT ON EVENT TRIGGER regress_event_trigger IS 'test comment';
@@ -358,7 +358,7 @@ $$;
 
 CREATE EVENT TRIGGER regress_event_trigger_drop_objects ON sql_drop
     WHEN TAG IN ('drop table', 'drop function', 'drop view', 'drop owned', 'drop schema', 'alter table')
-    EXECUTE PROCEDURE test_evtrig_dropped_objects ();
+        EXECUTE PROCEDURE test_evtrig_dropped_objects ();
 
 ALTER TABLE schema_one.table_one
     DROP COLUMN a;
@@ -608,15 +608,15 @@ LANGUAGE plpgsql;
 
 CREATE EVENT TRIGGER start_rls_command ON ddl_command_start
     WHEN TAG IN ('CREATE POLICY', 'ALTER POLICY', 'DROP POLICY')
-    EXECUTE PROCEDURE start_command ();
+        EXECUTE PROCEDURE start_command ();
 
 CREATE EVENT TRIGGER end_rls_command ON ddl_command_end
     WHEN TAG IN ('CREATE POLICY', 'ALTER POLICY', 'DROP POLICY')
-    EXECUTE PROCEDURE end_command ();
+        EXECUTE PROCEDURE end_command ();
 
 CREATE EVENT TRIGGER sql_drop_command ON sql_drop
     WHEN TAG IN ('DROP POLICY')
-    EXECUTE PROCEDURE drop_sql_command ();
+        EXECUTE PROCEDURE drop_sql_command ();
 
 CREATE POLICY p1 ON event_trigger_test USING (FALSE);
 
