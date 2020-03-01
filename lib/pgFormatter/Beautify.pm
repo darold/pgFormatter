@@ -2453,7 +2453,7 @@ sub _add_token
         }
 	else
 	{
-            $token =~ s/\n/\n$sp/gs;
+	    $token =~ s/\n/\n$sp/gs if ($self->{ '_is_in_function' } and $self->{ '_fct_code_delimiter' } eq "'");
         }
     }
 

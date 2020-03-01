@@ -5677,7 +5677,7 @@ END;
         RETURNS text AS $$
         BEGIN
             RAISE notice 'foo\\bar\041baz\';
-   return ' foo bar '041baz\';
+  return ' foo bar '041baz\';
         END $$
         LANGUAGE plpgsql;
     SELECT

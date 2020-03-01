@@ -502,8 +502,8 @@ SELECT
     x,
     y,
     jsonb_path_query('[true, false, null]', '$[*] ? (@ == true  &&  ($x == true && $y == true) ||
- 				 @ == false && !($x == true && $y == true) ||
- 				 @ == null  &&  ($x == true && $y == true) is unknown)', jsonb_build_object('x', x, 'y', y)) AS "x && y"
+				 @ == false && !($x == true && $y == true) ||
+				 @ == null  &&  ($x == true && $y == true) is unknown)', jsonb_build_object('x', x, 'y', y)) AS "x && y"
 FROM (
     VALUES (jsonb 'true'),
         ('false'),
@@ -515,8 +515,8 @@ SELECT
     x,
     y,
     jsonb_path_query('[true, false, null]', '$[*] ? (@ == true  &&  ($x == true || $y == true) ||
- 				 @ == false && !($x == true || $y == true) ||
- 				 @ == null  &&  ($x == true || $y == true) is unknown)', jsonb_build_object('x', x, 'y', y)) AS "x || y"
+				 @ == false && !($x == true || $y == true) ||
+				 @ == null  &&  ($x == true || $y == true) is unknown)', jsonb_build_object('x', x, 'y', y)) AS "x || y"
 FROM (
     VALUES (jsonb 'true'),
         ('false'),

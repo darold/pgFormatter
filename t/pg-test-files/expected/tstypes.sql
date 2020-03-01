@@ -22,11 +22,11 @@ SELECT
 
 SELECT
     E'''1 \\'' 2 '''::tsvector;
- SELECT E''' 1 '\' '2''3'::tsvector;
+SELECT E''' 1 '\' '2''3'::tsvector;
 
 SELECT
     E'''1 \\'' 2 '' 3 '::tsvector;
- SELECT E''' 1 '\' '2'' '' 3'' 4 '::tsvector;
+SELECT E''' 1 '\' '2'' '' 3'' 4 '::tsvector;
 
 SELECT
     $$ '\\as' ab \c ab
@@ -64,39 +64,39 @@ SELECT
 
 SELECT
     E'''1 \\'' 2 '''::tsquery;
- SELECT ' ! 1 '::tsquery;
- SELECT ' 1 | 2 '::tsquery;
- SELECT ' 1 | ! 2 '::tsquery;
- SELECT ' ! 1 | 2 '::tsquery;
- SELECT ' ! 1 | ! 2 '::tsquery;
- SELECT ' ! (! 1 | ! 2) '::tsquery;
- SELECT ' ! (! 1 | 2) '::tsquery;
- SELECT ' ! (1 | ! 2) '::tsquery;
- SELECT ' ! (1 | 2) '::tsquery;
- SELECT ' 1 & 2 '::tsquery;
- SELECT ' ! 1 & 2 '::tsquery;
- SELECT ' 1 & ! 2 '::tsquery;
- SELECT ' ! 1 & ! 2 '::tsquery;
- SELECT ' (1 & 2) '::tsquery;
- SELECT ' 1 & (2) '::tsquery;
- SELECT ' ! (1) & 2 '::tsquery;
- SELECT ' ! (1 & 2) '::tsquery;
- SELECT ' 1 | 2 & 3 '::tsquery;
- SELECT ' 1 | (2 & 3) '::tsquery;
- SELECT ' (1 | 2) & 3 '::tsquery;
- SELECT ' 1 | 2 & ! 3 '::tsquery;
- SELECT ' 1 | ! 2 & 3 '::tsquery;
- SELECT ' ! 1 | 2 & 3 '::tsquery;
- SELECT ' ! 1 | (2 & 3) '::tsquery;
- SELECT ' ! (1 | 2) & 3 '::tsquery;
- SELECT ' (! 1 | 2) & 3 '::tsquery;
- SELECT ' 1 | (2 | (4 | (5 | 6))) '::tsquery;
- SELECT ' 1 | 2 | 4 | 5 | 6 '::tsquery;
- SELECT ' 1 & (2 & (4 & (5 & 6))) '::tsquery;
- SELECT ' 1 & 2 & 4 & 5 & 6 '::tsquery;
- SELECT ' 1 & (2 & (4 & (5 | 6))) '::tsquery;
- SELECT ' 1 & (2 & (4 & (5 | ! 6))) '::tsquery;
- SELECT E' 1 & ('' 2 '' & ('' 4 '' & (| 5 | '' 6 '\' ' !|&'')))'::tsquery;
+SELECT ' ! 1 '::tsquery;
+SELECT ' 1 | 2 '::tsquery;
+SELECT ' 1 | ! 2 '::tsquery;
+SELECT ' ! 1 | 2 '::tsquery;
+SELECT ' ! 1 | ! 2 '::tsquery;
+SELECT ' ! (! 1 | ! 2) '::tsquery;
+SELECT ' ! (! 1 | 2) '::tsquery;
+SELECT ' ! (1 | ! 2) '::tsquery;
+SELECT ' ! (1 | 2) '::tsquery;
+SELECT ' 1 & 2 '::tsquery;
+SELECT ' ! 1 & 2 '::tsquery;
+SELECT ' 1 & ! 2 '::tsquery;
+SELECT ' ! 1 & ! 2 '::tsquery;
+SELECT ' (1 & 2) '::tsquery;
+SELECT ' 1 & (2) '::tsquery;
+SELECT ' ! (1) & 2 '::tsquery;
+SELECT ' ! (1 & 2) '::tsquery;
+SELECT ' 1 | 2 & 3 '::tsquery;
+SELECT ' 1 | (2 & 3) '::tsquery;
+SELECT ' (1 | 2) & 3 '::tsquery;
+SELECT ' 1 | 2 & ! 3 '::tsquery;
+SELECT ' 1 | ! 2 & 3 '::tsquery;
+SELECT ' ! 1 | 2 & 3 '::tsquery;
+SELECT ' ! 1 | (2 & 3) '::tsquery;
+SELECT ' ! (1 | 2) & 3 '::tsquery;
+SELECT ' (! 1 | 2) & 3 '::tsquery;
+SELECT ' 1 | (2 | (4 | (5 | 6))) '::tsquery;
+SELECT ' 1 | 2 | 4 | 5 | 6 '::tsquery;
+SELECT ' 1 & (2 & (4 & (5 & 6))) '::tsquery;
+SELECT ' 1 & 2 & 4 & 5 & 6 '::tsquery;
+SELECT ' 1 & (2 & (4 & (5 | 6))) '::tsquery;
+SELECT ' 1 & (2 & (4 & (5 | ! 6))) '::tsquery;
+SELECT E' 1 & ('' 2 '' & ('' 4 '' & (| 5 | '' 6 '\' ' !|&'')))'::tsquery;
 
 SELECT
     $$ '\\as' $$::tsquery;

@@ -364,10 +364,10 @@ CREATE DOMAIN arrdomain AS int[];
 CREATE FUNCTION make_ad (int, int)
     RETURNS arrdomain
     AS 'declare x arrdomain;
-    begin
-      x := array[$1,$2];
-      return x;
-    end'
+   begin
+     x := array[$1,$2];
+     return x;
+   end'
     LANGUAGE plpgsql
     VOLATILE;
 CREATE FUNCTION ad_eq (arrdomain, arrdomain)

@@ -209,10 +209,10 @@ SELECT
 PREPARE q AS
 SELECT
     array_to_string(array_agg(repeat('x', 2 * n)), E'\n') AS "ab
- 
- c",
+
+c",
     array_to_string(array_agg(repeat('y', 20 - 2 * n)), E'\n') AS "a
- bc"
+bc"
 FROM
     generate_series(1, 10) AS n (n)
 GROUP BY
@@ -698,499 +698,499 @@ SELECT
 \pset csv_fieldsep '.'
 SELECT
     '\' as d1, '' as d2;
-    
-    -- illegal csv separators
-    \pset csv_fieldsep ''
-    \pset csv_fieldsep ' 0 '
- \pset csv_fieldsep ' n '
- \pset csv_fieldsep ' r '
- \pset csv_fieldsep ' "'
- \pset csv_fieldsep ',,'
- 
- \pset csv_fieldsep ','
- 
- -- test html output format
- 
- \pset format html
- 
- \pset border 1
- \pset expanded off
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- \pset expanded on
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- 
- prepare q as
-   select 'some" text ' as "a&title", E' < foo > n < bar > ' as "junk",
-          ' ' as "empty", n as int
-   from generate_series(1,2) as n;
- 
- \pset expanded off
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset tableattr foobar
- execute q;
- \pset tableattr
- 
- \pset expanded on
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset tableattr foobar
- execute q;
- \pset tableattr
- 
- deallocate q;
- 
- -- test latex output format
- 
- \pset format latex
- 
- \pset border 1
- \pset expanded off
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- \pset expanded on
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- 
- prepare q as
-   select ' SOME more_text ' as "a$title", E' #< foo > % & ^ ~ | n bar ' as "junk",
-          ' ' as "empty", n as int
-   from generate_series(1,2) as n;
- 
- \pset expanded off
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset border 2
- execute q;
- 
- \pset border 3
- execute q;
- 
- \pset expanded on
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset border 2
- execute q;
- 
- \pset border 3
- execute q;
- 
- deallocate q;
- 
- -- test latex-longtable output format
- 
- \pset format latex-longtable
- 
- \pset border 1
- \pset expanded off
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- \pset expanded on
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- 
- prepare q as
-   select ' SOME more_text ' as "a$title", E' #< foo > % & ^ ~ | n bar ' as "junk",
-          ' ' as "empty", n as int
-   from generate_series(1,2) as n;
- 
- \pset expanded off
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset border 2
- execute q;
- 
- \pset border 3
- execute q;
- 
- \pset tableattr lr
- execute q;
- \pset tableattr
- 
- \pset expanded on
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset border 2
- execute q;
- 
- \pset border 3
- execute q;
- 
- \pset tableattr lr
- execute q;
- \pset tableattr
- 
- deallocate q;
- 
- -- test troff-ms output format
- 
- \pset format troff-ms
- 
- \pset border 1
- \pset expanded off
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- \pset expanded on
- \d psql_serial_tab_id_seq
- \pset tuples_only true
- \df exp
- \pset tuples_only false
- 
- prepare q as
-   select ' SOME text ' as "a\title", E' < foo > n < bar > ' as "junk",
-          ' ' as "empty", n as int
-   from generate_series(1,2) as n;
- 
- \pset expanded off
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset border 2
- execute q;
- 
- \pset expanded on
- \pset border 0
- execute q;
- 
- \pset border 1
- execute q;
- 
- \pset border 2
- execute q;
- 
- deallocate q;
- 
- -- check ambiguous format requests
- 
- \pset format a
- \pset format l
- 
- -- clean up after output format tests
- 
- drop table psql_serial_tab;
- 
- \pset format aligned
- \pset expanded off
- \pset border 1
- 
- -- tests for \if ... \endif
- 
- \if true
-   select ' okay ';
-   select ' still okay ';
- \else
-   not okay;
-   still not okay
- \endif
- 
- -- at this point query buffer should still have last valid line
- \g
- 
- -- \if should work okay on part of a query
- select
-   \if true
-     42
-   \else
-     (bogus
-   \endif
-   forty_two;
- 
- select \if false \\ (bogus \else \\ 42 \endif \\ forty_two;
- 
- -- test a large nested if using a variety of true-equivalents
- \if true
- 	\if 1
- 		\if yes
- 			\if on
- 				\echo ' ALL TRUE '
- 			\else
- 				\echo ' should NOT print # 1 - 1 '
- 			\endif
- 		\else
- 			\echo ' should NOT print # 1 - 2 '
- 		\endif
- 	\else
- 		\echo ' should NOT print # 1 - 3 '
- 	\endif
- \else
- 	\echo ' should NOT print # 1 - 4 '
- \endif
- 
- -- test a variety of false-equivalents in an if/elif/else structure
- \if false
- 	\echo ' should NOT print # 2 - 1 '
- \elif 0
- 	\echo ' should NOT print # 2 - 2 '
- \elif no
- 	\echo ' should NOT print # 2 - 3 '
- \elif off
- 	\echo ' should NOT print # 2 - 4 '
- \else
- 	\echo ' ALL FALSE '
- \endif
- 
- -- test simple true-then-else
- \if true
- 	\echo ' FIRST thing TRUE '
- \else
- 	\echo ' should NOT print # 3 - 1 '
- \endif
- 
- -- test simple false-true-else
- \if false
- 	\echo ' should NOT print # 4 - 1 '
- \elif true
- 	\echo ' second thing TRUE '
- \else
- 	\echo ' should NOT print # 5 - 1 '
- \endif
- 
- -- invalid boolean expressions are false
- \if invalid boolean expression
- 	\echo ' will NOT print # 6 - 1 '
- \else
- 	\echo ' will print anyway # 6 - 2 '
- \endif
- 
- -- test un-matched endif
- \endif
- 
- -- test un-matched else
- \else
- 
- -- test un-matched elif
- \elif
- 
- -- test double-else error
- \if true
- \else
- \else
- \endif
- 
- -- test elif out-of-order
- \if false
- \else
- \elif
- \endif
- 
- -- test if-endif matching in a false branch
- \if false
-     \if false
-         \echo ' should NOT print # 7 - 1 '
-     \else
-         \echo ' should NOT print # 7 - 2 '
-     \endif
-     \echo ' should NOT print # 7 - 3 '
- \else
-     \echo ' should print # 7 - 4 '
- \endif
- 
- -- show that vars and backticks are not expanded when ignoring extra args
- \set foo bar
- \echo :foo :' foo ' :"foo"
- \pset fieldsep | `nosuchcommand` :foo :' foo ' :"foo"
- 
- -- show that vars and backticks are not expanded and commands are ignored
- -- when in a false if-branch
- \set try_to_quit ' q '
- \if false
- 	:try_to_quit
- 	\echo `nosuchcommand` :foo :' foo ' :"foo"
- 	\pset fieldsep | `nosuchcommand` :foo :' foo ' :"foo"
- 	\a \C arg1 \c arg1 arg2 arg3 arg4 \cd arg1 \conninfo
- 	\copy arg1 arg2 arg3 arg4 arg5 arg6
- 	\copyright \dt arg1 \e arg1 arg2
- 	\ef whole_line
- 	\ev whole_line
- 	\echo arg1 arg2 arg3 arg4 arg5 \echo arg1 \encoding arg1 \errverbose
- 	\g arg1 \gx arg1 \gexec \h \html \i arg1 \ir arg1 \l arg1 \lo arg1 arg2
- 	\o arg1 \p \password arg1 \prompt arg1 arg2 \pset arg1 arg2 \q
- 	\reset \s arg1 \set arg1 arg2 arg3 arg4 arg5 arg6 arg7 \setenv arg1 arg2
- 	\sf whole_line
- 	\sv whole_line
- 	\t arg1 \T arg1 \timing arg1 \unset arg1 \w arg1 \watch arg1 \x arg1
- 	-- \else here is eaten as part of OT_FILEPIPE argument
- 	\w |/no/such/file \else
- 	-- \endif here is eaten as part of whole-line argument
- 	\! whole_line \endif
- \else
- 	\echo ' should print # 8 - 1 '
- \endif
- 
- -- :{?...} defined variable test
- \set i 1
- \if :{?i}
-   \echo ' # 9 - 1 ok,
+
+-- illegal csv separators
+\pset csv_fieldsep ''
+\pset csv_fieldsep ' 0 '
+\pset csv_fieldsep ' n '
+\pset csv_fieldsep ' r '
+\pset csv_fieldsep ' "'
+\pset csv_fieldsep ',,'
+
+\pset csv_fieldsep ','
+
+-- test html output format
+
+\pset format html
+
+\pset border 1
+\pset expanded off
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+\pset expanded on
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+
+prepare q as
+  select 'some" text ' as "a&title", E' < foo > n < bar > ' as "junk",
+         ' ' as "empty", n as int
+  from generate_series(1,2) as n;
+
+\pset expanded off
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset tableattr foobar
+execute q;
+\pset tableattr
+
+\pset expanded on
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset tableattr foobar
+execute q;
+\pset tableattr
+
+deallocate q;
+
+-- test latex output format
+
+\pset format latex
+
+\pset border 1
+\pset expanded off
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+\pset expanded on
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+
+prepare q as
+  select ' SOME more_text ' as "a$title", E' #< foo > % & ^ ~ | n bar ' as "junk",
+         ' ' as "empty", n as int
+  from generate_series(1,2) as n;
+
+\pset expanded off
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset border 2
+execute q;
+
+\pset border 3
+execute q;
+
+\pset expanded on
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset border 2
+execute q;
+
+\pset border 3
+execute q;
+
+deallocate q;
+
+-- test latex-longtable output format
+
+\pset format latex-longtable
+
+\pset border 1
+\pset expanded off
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+\pset expanded on
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+
+prepare q as
+  select ' SOME more_text ' as "a$title", E' #< foo > % & ^ ~ | n bar ' as "junk",
+         ' ' as "empty", n as int
+  from generate_series(1,2) as n;
+
+\pset expanded off
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset border 2
+execute q;
+
+\pset border 3
+execute q;
+
+\pset tableattr lr
+execute q;
+\pset tableattr
+
+\pset expanded on
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset border 2
+execute q;
+
+\pset border 3
+execute q;
+
+\pset tableattr lr
+execute q;
+\pset tableattr
+
+deallocate q;
+
+-- test troff-ms output format
+
+\pset format troff-ms
+
+\pset border 1
+\pset expanded off
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+\pset expanded on
+\d psql_serial_tab_id_seq
+\pset tuples_only true
+\df exp
+\pset tuples_only false
+
+prepare q as
+  select ' SOME text ' as "a\title", E' < foo > n < bar > ' as "junk",
+         ' ' as "empty", n as int
+  from generate_series(1,2) as n;
+
+\pset expanded off
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset border 2
+execute q;
+
+\pset expanded on
+\pset border 0
+execute q;
+
+\pset border 1
+execute q;
+
+\pset border 2
+execute q;
+
+deallocate q;
+
+-- check ambiguous format requests
+
+\pset format a
+\pset format l
+
+-- clean up after output format tests
+
+drop table psql_serial_tab;
+
+\pset format aligned
+\pset expanded off
+\pset border 1
+
+-- tests for \if ... \endif
+
+\if true
+  select ' okay ';
+  select ' still okay ';
+\else
+  not okay;
+  still not okay
+\endif
+
+-- at this point query buffer should still have last valid line
+\g
+
+-- \if should work okay on part of a query
+select
+  \if true
+    42
+  \else
+    (bogus
+  \endif
+  forty_two;
+
+select \if false \\ (bogus \else \\ 42 \endif \\ forty_two;
+
+-- test a large nested if using a variety of true-equivalents
+\if true
+	\if 1
+		\if yes
+			\if on
+				\echo ' ALL TRUE '
+			\else
+				\echo ' should NOT print # 1 - 1 '
+			\endif
+		\else
+			\echo ' should NOT print # 1 - 2 '
+		\endif
+	\else
+		\echo ' should NOT print # 1 - 3 '
+	\endif
+\else
+	\echo ' should NOT print # 1 - 4 '
+\endif
+
+-- test a variety of false-equivalents in an if/elif/else structure
+\if false
+	\echo ' should NOT print # 2 - 1 '
+\elif 0
+	\echo ' should NOT print # 2 - 2 '
+\elif no
+	\echo ' should NOT print # 2 - 3 '
+\elif off
+	\echo ' should NOT print # 2 - 4 '
+\else
+	\echo ' ALL FALSE '
+\endif
+
+-- test simple true-then-else
+\if true
+	\echo ' FIRST thing TRUE '
+\else
+	\echo ' should NOT print # 3 - 1 '
+\endif
+
+-- test simple false-true-else
+\if false
+	\echo ' should NOT print # 4 - 1 '
+\elif true
+	\echo ' second thing TRUE '
+\else
+	\echo ' should NOT print # 5 - 1 '
+\endif
+
+-- invalid boolean expressions are false
+\if invalid boolean expression
+	\echo ' will NOT print # 6 - 1 '
+\else
+	\echo ' will print anyway # 6 - 2 '
+\endif
+
+-- test un-matched endif
+\endif
+
+-- test un-matched else
+\else
+
+-- test un-matched elif
+\elif
+
+-- test double-else error
+\if true
+\else
+\else
+\endif
+
+-- test elif out-of-order
+\if false
+\else
+\elif
+\endif
+
+-- test if-endif matching in a false branch
+\if false
+    \if false
+        \echo ' should NOT print # 7 - 1 '
+    \else
+        \echo ' should NOT print # 7 - 2 '
+    \endif
+    \echo ' should NOT print # 7 - 3 '
+\else
+    \echo ' should print # 7 - 4 '
+\endif
+
+-- show that vars and backticks are not expanded when ignoring extra args
+\set foo bar
+\echo :foo :' foo ' :"foo"
+\pset fieldsep | `nosuchcommand` :foo :' foo ' :"foo"
+
+-- show that vars and backticks are not expanded and commands are ignored
+-- when in a false if-branch
+\set try_to_quit ' q '
+\if false
+	:try_to_quit
+	\echo `nosuchcommand` :foo :' foo ' :"foo"
+	\pset fieldsep | `nosuchcommand` :foo :' foo ' :"foo"
+	\a \C arg1 \c arg1 arg2 arg3 arg4 \cd arg1 \conninfo
+	\copy arg1 arg2 arg3 arg4 arg5 arg6
+	\copyright \dt arg1 \e arg1 arg2
+	\ef whole_line
+	\ev whole_line
+	\echo arg1 arg2 arg3 arg4 arg5 \echo arg1 \encoding arg1 \errverbose
+	\g arg1 \gx arg1 \gexec \h \html \i arg1 \ir arg1 \l arg1 \lo arg1 arg2
+	\o arg1 \p \password arg1 \prompt arg1 arg2 \pset arg1 arg2 \q
+	\reset \s arg1 \set arg1 arg2 arg3 arg4 arg5 arg6 arg7 \setenv arg1 arg2
+	\sf whole_line
+	\sv whole_line
+	\t arg1 \T arg1 \timing arg1 \unset arg1 \w arg1 \watch arg1 \x arg1
+	-- \else here is eaten as part of OT_FILEPIPE argument
+	\w |/no/such/file \else
+	-- \endif here is eaten as part of whole-line argument
+	\! whole_line \endif
+\else
+	\echo ' should print # 8 - 1 '
+\endif
+
+-- :{?...} defined variable test
+\set i 1
+\if :{?i}
+  \echo ' # 9 - 1 ok,
     variable i IS defined '
- \else
-   \echo ' should NOT print # 9 - 2 '
- \endif
- 
- \if :{?no_such_variable}
-   \echo ' should NOT print # 10 - 1 '
- \else
-   \echo ' # 10 - 2 ok,
+\else
+  \echo ' should NOT print # 9 - 2 '
+\endif
+
+\if :{?no_such_variable}
+  \echo ' should NOT print # 10 - 1 '
+\else
+  \echo ' # 10 - 2 ok,
     variable no_such_variable IS NOT defined '
- \endif
- 
- SELECT :{?i} AS i_is_defined;
- 
- SELECT NOT :{?no_such_var} AS no_such_var_is_not_defined;
- 
- -- SHOW_CONTEXT
- 
- \set SHOW_CONTEXT never
- do $$
- begin
-   raise notice ' foo ';
-   raise exception ' bar ';
- end $$;
- 
- \set SHOW_CONTEXT errors
- do $$
- begin
-   raise notice ' foo ';
-   raise exception ' bar ';
- end $$;
- 
- \set SHOW_CONTEXT always
- do $$
- begin
-   raise notice ' foo ';
-   raise exception ' bar ';
- end $$;
- 
- -- test printing and clearing the query buffer
- SELECT 1;
- \p
- SELECT 2 \r
- \p
- SELECT 3 \p
- UNION SELECT 4 \p
- UNION SELECT 5
- ORDER BY 1;
- \r
- \p
- 
- -- tests for special result variables
- 
- -- working query, 2 rows selected
- SELECT 1 AS stuff UNION SELECT 2;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- 
- -- syntax error
- SELECT 1 UNION;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- \echo ' LAST error message: ' :LAST_ERROR_MESSAGE
- \echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
- 
- -- empty query
- ;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- -- must have kept previous values
- \echo ' LAST error message: ' :LAST_ERROR_MESSAGE
- \echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
- 
- -- other query error
- DROP TABLE this_table_does_not_exist;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- \echo ' LAST error message: ' :LAST_ERROR_MESSAGE
- \echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
- 
- -- nondefault verbosity error settings (except verbose, which is too unstable)
- \set VERBOSITY terse
- SELECT 1 UNION;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' LAST error message: ' :LAST_ERROR_MESSAGE
- 
- \set VERBOSITY sqlstate
- SELECT 1/0;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' LAST error message: ' :LAST_ERROR_MESSAGE
- 
- \set VERBOSITY default
- 
- -- working \gdesc
- SELECT 3 AS three, 4 AS four \gdesc
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- 
- -- \gdesc with an error
- SELECT 4 AS \gdesc
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- \echo ' LAST error message: ' :LAST_ERROR_MESSAGE
- \echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
- 
- -- check row count for a cursor-fetched query
- \set FETCH_COUNT 10
- select unique2 from tenk1 order by unique2 limit 19;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- 
- -- cursor-fetched query with an error after the first group
- select 1/(15-unique2) from tenk1 order by unique2 limit 19;
- \echo ' error: ' :ERROR
- \echo ' error code: ' :SQLSTATE
- \echo ' number OF rows: ' :ROW_COUNT
- \echo ' LAST error message: ' :LAST_ERROR_MESSAGE
- \echo ' LAST error code: :LAST_ERROR_SQLSTATE \unset FETCH_COUNT
+\endif
+
+SELECT :{?i} AS i_is_defined;
+
+SELECT NOT :{?no_such_var} AS no_such_var_is_not_defined;
+
+-- SHOW_CONTEXT
+
+\set SHOW_CONTEXT never
+do $$
+begin
+  raise notice ' foo ';
+  raise exception ' bar ';
+end $$;
+
+\set SHOW_CONTEXT errors
+do $$
+begin
+  raise notice ' foo ';
+  raise exception ' bar ';
+end $$;
+
+\set SHOW_CONTEXT always
+do $$
+begin
+  raise notice ' foo ';
+  raise exception ' bar ';
+end $$;
+
+-- test printing and clearing the query buffer
+SELECT 1;
+\p
+SELECT 2 \r
+\p
+SELECT 3 \p
+UNION SELECT 4 \p
+UNION SELECT 5
+ORDER BY 1;
+\r
+\p
+
+-- tests for special result variables
+
+-- working query, 2 rows selected
+SELECT 1 AS stuff UNION SELECT 2;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+
+-- syntax error
+SELECT 1 UNION;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+\echo ' LAST error message: ' :LAST_ERROR_MESSAGE
+\echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
+
+-- empty query
+;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+-- must have kept previous values
+\echo ' LAST error message: ' :LAST_ERROR_MESSAGE
+\echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
+
+-- other query error
+DROP TABLE this_table_does_not_exist;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+\echo ' LAST error message: ' :LAST_ERROR_MESSAGE
+\echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
+
+-- nondefault verbosity error settings (except verbose, which is too unstable)
+\set VERBOSITY terse
+SELECT 1 UNION;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' LAST error message: ' :LAST_ERROR_MESSAGE
+
+\set VERBOSITY sqlstate
+SELECT 1/0;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' LAST error message: ' :LAST_ERROR_MESSAGE
+
+\set VERBOSITY default
+
+-- working \gdesc
+SELECT 3 AS three, 4 AS four \gdesc
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+
+-- \gdesc with an error
+SELECT 4 AS \gdesc
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+\echo ' LAST error message: ' :LAST_ERROR_MESSAGE
+\echo ' LAST error code: ' :LAST_ERROR_SQLSTATE
+
+-- check row count for a cursor-fetched query
+\set FETCH_COUNT 10
+select unique2 from tenk1 order by unique2 limit 19;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+
+-- cursor-fetched query with an error after the first group
+select 1/(15-unique2) from tenk1 order by unique2 limit 19;
+\echo ' error: ' :ERROR
+\echo ' error code: ' :SQLSTATE
+\echo ' number OF rows: ' :ROW_COUNT
+\echo ' LAST error message: ' :LAST_ERROR_MESSAGE
+\echo ' LAST error code: :LAST_ERROR_SQLSTATE \unset FETCH_COUNT
     CREATE SCHEMA testpart;
 
 CREATE ROLE testrole_partitioning;

@@ -1257,9 +1257,9 @@ SELECT
 
 SELECT
     '{
-               0 second,
-               @ 1 hour @ 42 minutes @ 20 seconds
-             }'::interval[];
+           0 second,
+           @ 1 hour @ 42 minutes @ 20 seconds
+         }'::interval[];
 
 SELECT
     ARRAY[]::text[];
