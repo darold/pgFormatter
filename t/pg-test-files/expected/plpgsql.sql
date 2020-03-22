@@ -120,13 +120,13 @@ CREATE FUNCTION tg_room_au ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.roomno != old.roomno THEN
+    IF NEW.roomno != OLD.roomno THEN
         UPDATE
             WSlot
         SET
-            roomno = new.roomno
+            roomno = NEW.roomno
         WHERE
-            roomno = old.roomno;
+            roomno = OLD.roomno;
     END IF;
     RETURN new;
 END;
@@ -147,7 +147,7 @@ CREATE FUNCTION tg_room_ad ()
     AS '
 BEGIN
     DELETE FROM WSlot
-    WHERE roomno = old.roomno;
+    WHERE roomno = OLD.roomno;
     RETURN old;
 END;
 '
@@ -170,8 +170,8 @@ BEGIN
     FROM
         Room
     WHERE
-        roomno = new.roomno THEN
-        RAISE exception 'Room % does not exist', new.roomno;
+        roomno = NEW.roomno THEN
+        RAISE exception 'Room % does not exist', NEW.roomno;
     END IF;
     RETURN new;
 END;
@@ -191,13 +191,13 @@ CREATE FUNCTION tg_pfield_au ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.name != old.name THEN
+    IF NEW.name != OLD.name THEN
         UPDATE
             PSlot
         SET
-            pfname = new.name
+            pfname = NEW.name
         WHERE
-            pfname = old.name;
+            pfname = OLD.name;
     END IF;
     RETURN new;
 END;
@@ -218,7 +218,7 @@ CREATE FUNCTION tg_pfield_ad ()
     AS '
 BEGIN
     DELETE FROM PSlot
-    WHERE pfname = old.name;
+    WHERE pfname = OLD.name;
     RETURN old;
 END;
 '
@@ -267,13 +267,13 @@ CREATE FUNCTION tg_system_au ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.name != old.name THEN
+    IF NEW.name != OLD.name THEN
         UPDATE
             IFace
         SET
-            sysname = new.name
+            sysname = NEW.name
         WHERE
-            sysname = old.name;
+            sysname = OLD.name;
     END IF;
     RETURN new;
 END;
@@ -486,7 +486,7 @@ CREATE FUNCTION tg_chkslotname ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF substr(new.slotname, 1, 2) != tg_argv[0] THEN
+    IF substr(NEW.slotname, 1, 2) != tg_argv[0] THEN
         RAISE exception ''slotname must
             BEGIN
                 WITH % '',
@@ -526,8 +526,8 @@ CREATE FUNCTION tg_chkslotlink ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.slotlink ISNULL THEN
-        new.slotlink := '''';
+    IF NEW.slotlink ISNULL THEN
+        NEW.slotlink := '''';
     END IF;
     RETURN new;
 END;
@@ -563,8 +563,8 @@ CREATE FUNCTION tg_chkbacklink ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.backlink ISNULL THEN
-        new.backlink := '''';
+    IF NEW.backlink ISNULL THEN
+        NEW.backlink := '''';
     END IF;
     RETURN new;
 END;
@@ -592,11 +592,11 @@ CREATE FUNCTION tg_pslot_bu ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.slotname != old.slotname THEN
+    IF NEW.slotname != OLD.slotname THEN
         DELETE FROM PSlot
-        WHERE slotname = old.slotname;
+        WHERE slotname = OLD.slotname;
         INSERT INTO PSlot (slotname, pfname, slotlink, backlink)
-            VALUES (new.slotname, new.pfname, new.slotlink, new.backlink);
+            VALUES (NEW.slotname, NEW.pfname, NEW.slotlink, NEW.backlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -617,11 +617,11 @@ CREATE FUNCTION tg_wslot_bu ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.slotname != old.slotname THEN
+    IF NEW.slotname != OLD.slotname THEN
         DELETE FROM WSlot
-        WHERE slotname = old.slotname;
+        WHERE slotname = OLD.slotname;
         INSERT INTO WSlot (slotname, roomno, slotlink, backlink)
-            VALUES (new.slotname, new.roomno, new.slotlink, new.backlink);
+            VALUES (NEW.slotname, NEW.roomno, NEW.slotlink, NEW.backlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -642,11 +642,11 @@ CREATE FUNCTION tg_pline_bu ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.slotname != old.slotname THEN
+    IF NEW.slotname != OLD.slotname THEN
         DELETE FROM PLine
-        WHERE slotname = old.slotname;
+        WHERE slotname = OLD.slotname;
         INSERT INTO PLine (slotname, phonenumber, comment, backlink)
-            VALUES (new.slotname, new.phonenumber, new.comment, new.backlink);
+            VALUES (NEW.slotname, NEW.phonenumber, NEW.comment, NEW.backlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -667,11 +667,11 @@ CREATE FUNCTION tg_iface_bu ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.slotname != old.slotname THEN
+    IF NEW.slotname != OLD.slotname THEN
         DELETE FROM IFace
-        WHERE slotname = old.slotname;
+        WHERE slotname = OLD.slotname;
         INSERT INTO IFace (slotname, sysname, ifname, slotlink)
-            VALUES (new.slotname, new.sysname, new.ifname, new.slotlink);
+            VALUES (NEW.slotname, NEW.sysname, NEW.ifname, NEW.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -692,11 +692,11 @@ CREATE FUNCTION tg_hslot_bu ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.slotname != old.slotname OR new.hubname != old.hubname THEN
+    IF NEW.slotname != OLD.slotname OR NEW.hubname != OLD.hubname THEN
         DELETE FROM HSlot
-        WHERE slotname = old.slotname;
+        WHERE slotname = OLD.slotname;
         INSERT INTO HSlot (slotname, hubname, slotno, slotlink)
-            VALUES (new.slotname, new.hubname, new.slotno, new.slotlink);
+            VALUES (NEW.slotname, NEW.hubname, NEW.slotno, NEW.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;
@@ -717,11 +717,11 @@ CREATE FUNCTION tg_phone_bu ()
     RETURNS TRIGGER
     AS '
 BEGIN
-    IF new.slotname != old.slotname THEN
+    IF NEW.slotname != OLD.slotname THEN
         DELETE FROM PHone
-        WHERE slotname = old.slotname;
+        WHERE slotname = OLD.slotname;
         INSERT INTO PHone (slotname, comment, slotlink)
-            VALUES (new.slotname, new.comment, new.slotlink);
+            VALUES (NEW.slotname, NEW.comment, NEW.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;

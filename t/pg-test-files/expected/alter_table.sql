@@ -1848,7 +1848,7 @@ CREATE RULE def_view_test_ins AS ON INSERT TO def_view_test
     DO INSTEAD
     INSERT INTO def_test
     SELECT
-        new.*;
+        NEW.*;
 
 INSERT INTO def_view_test DEFAULT VALUES; ALTER TABLE def_view_test
     ALTER COLUMN c1 SET DEFAULT 45;

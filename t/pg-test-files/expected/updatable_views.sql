@@ -3058,20 +3058,20 @@ CREATE RULE base_tbl_ins_rule AS ON INSERT TO base_tbl WHERE
         SELECT
             1 FROM
             base_tbl t WHERE
-            t.id = new.id)
+            t.id = NEW.id)
         DO INSTEAD
         UPDATE
             base_tbl SET
-            data = new.data,
+            data = NEW.data,
             deleted = FALSE WHERE
-            id = new.id;
+            id = NEW.id;
 
 CREATE RULE base_tbl_del_rule AS ON DELETE TO base_tbl
     DO INSTEAD
     UPDATE
         base_tbl SET
         deleted = TRUE WHERE
-        id = old.id;
+        id = OLD.id;
 
 CREATE VIEW rw_view1 WITH ( security_barrier = TRUE
 ) AS
@@ -4196,7 +4196,7 @@ CREATE FUNCTION base_tab_def_view_instrig_func ()
     AS $$
 BEGIN
     INSERT INTO base_tab_def
-        VALUES (new.a, new.b, new.c, new.d, new.e);
+        VALUES (NEW.a, NEW.b, NEW.c, NEW.d, NEW.e);
     RETURN new;
 END;
 $$
@@ -4251,7 +4251,7 @@ DROP FUNCTION base_tab_def_view_instrig_func;
 
 CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view
     DO INSTEAD
-    INSERT INTO base_tab_def VALUES (new.a, new.b, new.c, new.d, new.e);
+    INSERT INTO base_tab_def VALUES (NEW.a, NEW.b, NEW.c, NEW.d, NEW.e);
 
 TRUNCATE base_tab_def;
 
@@ -4299,7 +4299,7 @@ DROP RULE base_tab_def_view_ins_rule ON base_tab_def_view;
 
 CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view
     DO ALSO
-    INSERT INTO base_tab_def VALUES (new.a, new.b, new.c, new.d, new.e);
+    INSERT INTO base_tab_def VALUES (NEW.a, NEW.b, NEW.c, NEW.d, NEW.e);
 
 TRUNCATE base_tab_def;
 

@@ -49,11 +49,11 @@ CREATE FUNCTION tg_phone_bu ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    IF new.slotname != old.slotname THEN
+    IF NEW.slotname != OLD.slotname THEN
         DELETE FROM PHone
-        WHERE slotname = old.slotname;
+        WHERE slotname = OLD.slotname;
         INSERT INTO PHone (slotname, comment, slotlink)
-            VALUES (new.slotname, new.comment, new.slotlink);
+            VALUES (NEW.slotname, NEW.comment, NEW.slotlink);
         RETURN NULL;
     END IF;
     RETURN new;

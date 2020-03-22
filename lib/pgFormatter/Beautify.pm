@@ -142,6 +142,8 @@ Takes options as hash. Following options are recognized:
 
 =item * numbering - statement numbering as a comment before each query
 
+=item * redshift - add Redshift keywords
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -156,7 +158,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after numbering) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after numbering redshift) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -3202,7 +3204,7 @@ sub set_dicts
 
     my @pg_types = qw(
         BIGINT BIGSERIAL BIT BOOLEAN BOOL BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INTEGER INTERVAL
-        JSONB JSON LINE LSEG MACADDR8 MACADDR MONEY NUMERIC PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
+        JSONB JSON LINE LSEG MACADDR8 MACADDR MONEY NUMERIC OID PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
        	SERIAL TEXT TIME TIMESTAMPTZ TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 INT VARYING
 	VARCHAR ZONE FLOAT4 FLOAT8 FLOAT
 	);
@@ -3226,14 +3228,17 @@ sub set_dicts
     my @redshift_keywords =  map { uc } qw(
 	AES128 AES256 ALLOWOVERWRITE BACKUP BLANKSASNULL BYTEDICT BZIP2 CREDENTIALS CURRENT_USER_ID DEFLATE DEFRAG
 	DELTA DELTA32K DISABLE DISTKEY EMPTYASNULL ENABLE ENCODE ENCRYPT ENCRYPTION ESCAPE EXPLICIT GLOBALDICT256
-	GLOBALDICT64K GZIP INTERLEAVED LUN LUNS LZO LZOP MINUS MOSTLY13 MOSTLY32 MOSTLY8 NEW OFFLINE OFFSET OID OLD
+	GLOBALDICT64K GZIP INTERLEAVED LUN LUNS LZO LZOP MINUS MOSTLY13 MOSTLY32 MOSTLY8 NEW OFFLINE OFFSET OLD OID
 	PARALLEL PERCENT PERMISSIONS RAW READRATIO RECOVER REJECTLOG RESORT RESPECT RESTORE SORTKEY SYSDATE TAG TDES
 	TEXT255 TEXT32K TIMESTAMP TOP TRUNCATECOLUMNS UNLOAD WALLET ADDQUOTES
         );
 
-    for my $k ( @redshift_keywords ) {
-        next if grep { $k eq $_ } @pg_keywords;
-        push @pg_keywords, $k;
+    if ($self->{ 'redshift' })
+    {
+        for my $k ( @redshift_keywords ) {
+            next if grep { $k eq $_ } @pg_keywords;
+            push @pg_keywords, $k;
+        }
     }
 
     for my $k ( @pg_keywords ) {

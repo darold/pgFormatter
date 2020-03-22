@@ -835,7 +835,7 @@ CREATE FUNCTION mlparted5abrtrig_func ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    new.c = 'b';
+    NEW.c = 'b';
     RETURN new;
 END;
 $$
@@ -1183,7 +1183,7 @@ CREATE OR REPLACE FUNCTION brtrigpartcon1trigf ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    new.a := 2;
+    NEW.a := 2;
     RETURN new;
 END
 $$
@@ -1272,7 +1272,7 @@ CREATE OR REPLACE FUNCTION donothingbrtrig_func ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice 'b: %', new.b;
+    RAISE notice 'b: %', NEW.b;
     RETURN NULL;
 END
 $$

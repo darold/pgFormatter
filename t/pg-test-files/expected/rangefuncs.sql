@@ -1588,7 +1588,7 @@ CREATE FUNCTION noticetrigger ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice 'noticetrigger % %', new.f1, new.data;
+    RAISE notice 'noticetrigger % %', NEW.f1, NEW.data;
     RETURN NULL;
 END
 $$
@@ -1615,7 +1615,7 @@ CREATE temp TABLE tt_log (
 
 CREATE RULE insert_tt_rule AS ON INSERT TO tt
     DO ALSO
-    INSERT INTO tt_log VALUES (new.*);
+    INSERT INTO tt_log VALUES (NEW.*);
 
 SELECT
     insert_tt2 ('foollog', 'barlog')

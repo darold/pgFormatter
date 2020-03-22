@@ -101,6 +101,7 @@ sub beautify {
     $args{ 'space' }        = $self->{ 'cfg' }->{ 'space' };
     $args{ 'no_grouping' }  = $self->{ 'cfg' }->{ 'nogrouping' };
     $args{ 'numbering' }    = $self->{ 'cfg' }->{ 'numbering' };
+    $args{ 'redshift' }     = $self->{ 'cfg' }->{ 'redshift' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -207,6 +208,7 @@ Options:
     -N | --numbering      : statement numbering as a comment before each query.
     -o | --output file    : define the filename for the output. Default: stdout.
     -p | --placeholder re : set regex to find code that must not be changed.
+    -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
     -t | --format-type    : try another formatting type for some statements.
@@ -284,6 +286,7 @@ sub get_command_line_args {
         'numbering|N!',
         'output|o=s',
         'placeholder|p=s',
+        'redshift|r!',
         'separator|S=s',
         'spaces|s=i',
         'format-type|t!',
@@ -318,6 +321,7 @@ sub get_command_line_args {
     $cfg{ 'wrap-after' }    //= 0;
     $cfg{ 'space' }         //= ' ';
     $cfg{ 'numbering' }     //= 0;
+    $cfg{ 'redshift' }      //= 0;
 
     if ($cfg{ 'tabs' }) {
         $cfg{ 'spaces' } = 1;

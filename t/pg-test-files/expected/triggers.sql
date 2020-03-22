@@ -604,7 +604,7 @@ INSERT INTO table_with_oids
 
 CREATE TRIGGER oid_unchanged_trig
     AFTER UPDATE ON table_with_oids FOR EACH ROW
-    WHEN (new.tableoid = old.tableoid AND new.tableoid <> 0)
+    WHEN (NEW.tableoid = OLD.tableoid AND NEW.tableoid <> 0)
     EXECUTE PROCEDURE trigger_func ('after_upd_oid_unchanged');
 
 UPDATE
@@ -944,10 +944,10 @@ CREATE FUNCTION mytrigger ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    IF ROW (old.*) = ROW (new.*) THEN
-        RAISE notice 'row % not changed', new.f1;
+    IF ROW (OLD.*) = ROW (NEW.*) THEN
+        RAISE notice 'row % not changed', NEW.f1;
     ELSE
-        RAISE notice 'row % changed', new.f1;
+        RAISE notice 'row % changed', NEW.f1;
     END IF;
     RETURN new;
 END
@@ -986,10 +986,10 @@ CREATE OR REPLACE FUNCTION mytrigger ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    IF ROW (old.*) IS DISTINCT FROM ROW (new.*) THEN
-        RAISE notice 'row % changed', new.f1;
+    IF ROW (OLD.*) IS DISTINCT FROM ROW (NEW.*) THEN
+        RAISE notice 'row % changed', NEW.f1;
     ELSE
-        RAISE notice 'row % not changed', new.f1;
+        RAISE notice 'row % not changed', NEW.f1;
     END IF;
     RETURN new;
 END
@@ -1777,7 +1777,7 @@ CREATE FUNCTION depth_a_tf ()
 BEGIN
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     INSERT INTO depth_b
-        VALUES (new.id);
+        VALUES (NEW.id);
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     RETURN new;
 END;
@@ -1794,14 +1794,14 @@ CREATE FUNCTION depth_b_tf ()
 BEGIN
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
     BEGIN
-        EXECUTE 'insert into depth_c values (' || new.id::text || ')';
+        EXECUTE 'insert into depth_c values (' || NEW.id::text || ')';
         exception
         WHEN sqlstate 'U9999' THEN
             RAISE notice 'SQLSTATE = U9999: depth = %', pg_trigger_depth();
         END;
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
-    IF new.id = 1 THEN
-        EXECUTE 'insert into depth_c values (' || new.id::text || ')';
+    IF NEW.id = 1 THEN
+        EXECUTE 'insert into depth_c values (' || NEW.id::text || ')';
     END IF;
     RETURN new;
 END;
@@ -1818,7 +1818,7 @@ CREATE FUNCTION depth_c_tf ()
     AS $$
 BEGIN
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
-    IF new.id = 1 THEN
+    IF NEW.id = 1 THEN
         RAISE exception sqlstate 'U9999';
     END IF;
     RAISE notice '%: depth = %', tg_name, pg_trigger_depth();
@@ -1878,11 +1878,11 @@ CREATE FUNCTION parent_upd_func ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    IF old.val1 <> new.val1 THEN
-        new.val2 = new.val1;
+    IF OLD.val1 <> NEW.val1 THEN
+        NEW.val2 = NEW.val1;
         DELETE FROM child
-        WHERE child.aid = new.aid
-            AND child.val1 = new.val1;
+        WHERE child.aid = NEW.aid
+            AND child.val1 = NEW.val1;
     END IF;
     RETURN new;
 END;
@@ -1898,7 +1898,7 @@ CREATE FUNCTION parent_del_func ()
     AS $$
 BEGIN
     DELETE FROM child
-    WHERE aid = old.aid;
+    WHERE aid = OLD.aid;
     RETURN old;
 END;
 $$;
@@ -1917,7 +1917,7 @@ BEGIN
     SET
         bcnt = bcnt + 1
     WHERE
-        aid = new.aid;
+        aid = NEW.aid;
     RETURN new;
 END;
 $$;
@@ -1936,7 +1936,7 @@ BEGIN
     SET
         bcnt = bcnt - 1
     WHERE
-        aid = old.aid;
+        aid = OLD.aid;
     RETURN old;
 END;
 $$;
@@ -2002,10 +2002,10 @@ CREATE OR REPLACE FUNCTION parent_del_func ()
     AS $$
 BEGIN
     DELETE FROM child
-    WHERE aid = old.aid;
+    WHERE aid = OLD.aid;
     IF found THEN
         DELETE FROM parent
-        WHERE aid = old.aid;
+        WHERE aid = OLD.aid;
         RETURN NULL;
         -- cancel outer deletion
     END IF;
@@ -2051,13 +2051,13 @@ CREATE FUNCTION self_ref_trigger_ins_func ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    IF new.parent IS NOT NULL THEN
+    IF NEW.parent IS NOT NULL THEN
         UPDATE
             self_ref_trigger
         SET
             nchildren = nchildren + 1
         WHERE
-            id = new.parent;
+            id = NEW.parent;
     END IF;
     RETURN new;
 END;
@@ -2072,13 +2072,13 @@ CREATE FUNCTION self_ref_trigger_del_func ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    IF old.parent IS NOT NULL THEN
+    IF OLD.parent IS NOT NULL THEN
         UPDATE
             self_ref_trigger
         SET
             nchildren = nchildren - 1
         WHERE
-            id = old.parent;
+            id = OLD.parent;
     END IF;
     RETURN old;
 END;
@@ -2245,14 +2245,14 @@ CREATE FUNCTION upsert_before_func ()
     AS $$
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
-        RAISE warning 'before update (old): %', old.*::text;
-        RAISE warning 'before update (new): %', new.*::text;
+        RAISE warning 'before update (old): %', OLD.*::text;
+        RAISE warning 'before update (new): %', NEW.*::text;
     elsif (TG_OP = 'INSERT') THEN
-        RAISE warning 'before insert (new): %', new.*::text;
-        IF new.key % 2 = 0 THEN
-            new.key := new.key + 1;
-            new.color := new.color || ' trig modified';
-            RAISE warning 'before insert (new, modified): %', new.*::text;
+        RAISE warning 'before insert (new): %', NEW.*::text;
+        IF NEW.key % 2 = 0 THEN
+            NEW.key := NEW.key + 1;
+            NEW.color := NEW.color || ' trig modified';
+            RAISE warning 'before insert (new, modified): %', NEW.*::text;
         END IF;
     END IF;
     RETURN new;
@@ -2269,10 +2269,10 @@ CREATE FUNCTION upsert_after_func ()
     AS $$
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
-        RAISE warning 'after update (old): %', old.*::text;
-        RAISE warning 'after update (new): %', new.*::text;
+        RAISE warning 'after update (old): %', OLD.*::text;
+        RAISE warning 'after update (new): %', NEW.*::text;
     elsif (TG_OP = 'INSERT') THEN
-        RAISE warning 'after insert (new): %', new.*::text;
+        RAISE warning 'after insert (new): %', NEW.*::text;
     END IF;
     RETURN NULL;
 END;
@@ -2767,7 +2767,7 @@ CREATE TRIGGER parted_trig
 
 CREATE TRIGGER parted_trig_odd
     AFTER INSERT ON parted_irreg FOR EACH ROW
-    WHEN (bark (new.b) AND new.a % 2 = 1)
+    WHEN (bark (NEW.b) AND NEW.a % 2 = 1)
     EXECUTE PROCEDURE trigger_notice_ab ();
 
 -- we should hear barking for every insert, but parted_trig_odd only emits
@@ -2816,7 +2816,7 @@ CREATE CONSTRAINT TRIGGER parted_trig
 
 CREATE CONSTRAINT TRIGGER parted_trig_two
     AFTER INSERT ON parted_constr DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
-    WHEN (bark (new.b) AND new.a % 2 = 1)
+    WHEN (bark (NEW.b) AND NEW.a % 2 = 1)
     EXECUTE PROCEDURE trigger_notice_ab ();
 
 -- The immediate constraint is fired immediately; the WHEN clause of the
@@ -2871,7 +2871,7 @@ FOR VALUES FROM (1000) TO (2000);
 
 CREATE TRIGGER parted_trigger
     AFTER UPDATE ON parted_trigger FOR EACH ROW
-    WHEN (new.a % 2 = 1 AND length(old.b) >= 2)
+    WHEN (NEW.a % 2 = 1 AND length(OLD.b) >= 2)
     EXECUTE PROCEDURE trigger_notice_ab ();
 
 CREATE TABLE parted_trigger_3 (
@@ -3301,7 +3301,7 @@ CREATE OR REPLACE FUNCTION intercept_insert ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    new.b = new.b + 1000;
+    NEW.b = NEW.b + 1000;
     RETURN new;
 END;
 $$;

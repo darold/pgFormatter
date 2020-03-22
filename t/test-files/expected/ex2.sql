@@ -36,7 +36,7 @@ CREATE OR REPLACE FUNCTION task_job_maint_after ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    CASE new.state
+    CASE NEW.state
     WHEN 'final' THEN
         NOTIFY task_job_final;
     ELSE

@@ -7,11 +7,11 @@ SET search_path = fast_default;
 CREATE SCHEMA fast_default;
 
 CREATE TABLE m (
-    id OID
+    id oid
 );
 
 INSERT INTO m
-    VALUES (NULL::OID);
+    VALUES (NULL::oid);
 
 CREATE FUNCTION
 SET (tabname name)
