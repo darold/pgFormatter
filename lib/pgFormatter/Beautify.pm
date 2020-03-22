@@ -2491,6 +2491,14 @@ sub _add_token
             $fct = ucfirst( lc( $fct ) );
             $token =~ s/$fct/$fct/i if ( $self->{ 'uc_functions' } == 3 );
         }
+	# case of (NEW|OLD).colname keyword that need to formatted too
+	if ($self->{ '_is_in_create_function' } && $token =~ /^(NEW|OLD)\./i)
+	{
+            $token =~ s/^(OLD|NEW)\./\L$1\E\./i if ( $self->{ 'uc_keywords' } == 1 );
+            $token =~ s/^(OLD|NEW)\./\U$1\E\./i if ( $self->{ 'uc_keywords' } == 2 );
+            $token =~ s/^OLD\./\UOld\E\./i if ( $self->{ 'uc_keywords' } == 3 );
+            $token =~ s/^NEW\./\UNew\E\./i if ( $self->{ 'uc_keywords' } == 3 );
+	}
     }
 
     my $tk_is_type = $self->_is_type($token, $last_token, $next_token);
