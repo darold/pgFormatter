@@ -2095,7 +2095,7 @@ sub beautify
             if ( $token =~ /(?:LEFT|RIGHT|FULL|CROSS|NATURAL)$/i )
 	    {
                 $self->_new_line($token,$last);
-                $self->_over($token,$last) if ( $self->{ '_level' } == 0 );
+                $self->_over($token,$last) if ( $self->{ '_level' } == 0 || ($self->{ '_is_in_with' } > 1 and $self->{ '_level' } == 1));
             }
             if ( ($token =~ /(?:INNER|OUTER)$/i) && ($last !~ /(?:LEFT|RIGHT|CROSS|NATURAL|FULL)$/i) )
 	    {

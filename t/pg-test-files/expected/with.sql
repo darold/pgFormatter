@@ -1146,7 +1146,7 @@ WITH RECURSIVE x (
         x.n + 1
     FROM
         y
-    LEFT JOIN x ON x.n = y.a
+        LEFT JOIN x ON x.n = y.a
     WHERE
         n < 10
 )
@@ -1170,7 +1170,7 @@ WITH RECURSIVE x (
         x.n + 1
     FROM
         x
-    RIGHT JOIN y ON x.n = y.a
+        RIGHT JOIN y ON x.n = y.a
     WHERE
         n < 10
 )
@@ -1194,7 +1194,7 @@ WITH RECURSIVE x (
         x.n + 1
     FROM
         x
-    FULL JOIN y ON x.n = y.a
+        FULL JOIN y ON x.n = y.a
     WHERE
         n < 10
 )
