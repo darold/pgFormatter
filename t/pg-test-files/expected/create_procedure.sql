@@ -31,7 +31,7 @@ SELECT
 -- show only normal functions
 \dfn public.*test*1
 -- show only procedures
-dfp public.* test * 1
+\dfp public.*test*1
 SELECT
     ptest1 ('x');
 

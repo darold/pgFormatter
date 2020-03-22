@@ -1,10 +1,7 @@
 SELECT
     1 AS a \gset 
 
-\echo :a 
-SELECT
-    :a;
-
+\echo :a \\ SELECT :a; 
 \unset a
 SELECT
     'test' \g testfile.txt

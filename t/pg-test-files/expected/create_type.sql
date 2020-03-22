@@ -122,13 +122,13 @@ CREATE TYPE default_test_row AS (
 
 CREATE FUNCTION get_default_test ()
     RETURNS SETOF default_test_row
-    AS $$
+    AS '
     SELECT
         *
     FROM
         default_test;
 
-$$
+'
 LANGUAGE SQL;
 
 SELECT

@@ -36,7 +36,7 @@ SET standard_conforming_strings TO off;
 SELECT U&' d 0061t + 000061 ' AS U&"d\0061t\+000061";
 SELECT U&' d ! 0061t + 000061 ' UESCAPE ' ! ' AS U&"d*0061t\+000061" UESCAPE ' * ';
 
-SELECT U&' '\' UESCAPE '!' AS "tricky";
+SELECT U&' \' UESCAPE '!' AS "tricky";
 
 SELECT
     'tricky' AS U & "\" UESCAPE '!';
@@ -526,7 +526,7 @@ select md5('abcdefghijklmnopqrstuvwxyz'::bytea) = 'c3fcd3d76192e4007dfb496cca67e
 
 select md5('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'::bytea) = 'd174ab98d277d9f5a5611c2c9f419d9f' AS " TRUE ";
 
-select md5('12345678901234567890123456789012345678901234567890123456789012345678901234567890'::bytea) = '57edf4a22be3c955ac49da2e2107b67a' AS " TRUE;
+select md5('12345678901234567890123456789012345678901234567890123456789012345678901234567890'::bytea) = '57edf4a22be3c955ac49da2e2107b67a' AS " TRUE ";
 
 --
 -- SHA-2
@@ -582,20 +582,8 @@ SELECT
     'a\bcd' AS f1,
     'a\b''cd' AS f2,
     'a\b''''cd' AS f3,
-    'abcd\'   as f4, ' 'ab\' 'cd' AS f5,
-    '\\' as f6;
-
-set standard_conforming_strings = off;
-
-select ' a bcd ' as f1, ' a b\'cd ' as f2, ' a 'b\' '' cd ' as f3, ' abcd '\' AS f4,
-    'ab\\\'cd' AS f5,
-    '\\\\' as f6;
-
-set escape_string_warning = off;
-set standard_conforming_strings = on;
-
-select ' a bcd ' as f1, ' a b '' cd ' as f2, ' a b '''' cd ' as f3, ' 'abcd\' AS f4,
-    'ab\'' cd ' as f5, ' '\' AS f6;
+    'abcd\'   as f4, ' ab\' 'cd' AS f5,
+    '\\' AS f6;
 
 SET standard_conforming_strings = OFF;
 
@@ -603,7 +591,30 @@ SELECT
     'a\\bcd' AS f1,
     'a\\b\'cd' AS f2,
     'a\\b\'''cd' AS f3,
-    'abcd\\'   as f4, ' ab \'cd ' as f5, ' '\' AS f6;
+    'abcd\\' AS f4,
+    'ab\\\'cd' AS f5,
+    '\\\\' AS f6;
+
+SET escape_string_warning = OFF;
+
+SET standard_conforming_strings = ON;
+
+SELECT
+    'a\bcd' AS f1,
+    'a\b''cd' AS f2,
+    'a\b''''cd' AS f3,
+    'abcd\'   as f4, ' ab\' 'cd' AS f5,
+    '\\' AS f6;
+
+SET standard_conforming_strings = OFF;
+
+SELECT
+    'a\\bcd' AS f1,
+    'a\\b\'cd' AS f2,
+    'a\\b\'''cd' AS f3,
+    'abcd\\' AS f4,
+    'ab\\\'cd' AS f5,
+    '\\\\' AS f6;
 
 --
 -- Additional string functions

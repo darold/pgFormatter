@@ -392,12 +392,12 @@ CREATE TABLE main_table (
 CREATE FUNCTION trigger_func ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
-    AS $$
+    AS '
 BEGIN
-    RAISE NOTICE 'trigger_func(%) called: action = %, when = %, level = %', TG_ARGV[0], TG_OP, TG_WHEN, TG_LEVEL;
+    RAISE NOTICE ''trigger_func (%) called: action = %, WHEN = %, level = % '', TG_ARGV[0], TG_OP, TG_WHEN, TG_LEVEL;
     RETURN NULL;
 END;
-$$;
+';
 
 CREATE TRIGGER before_ins_stmt_trig
     BEFORE INSERT ON main_table

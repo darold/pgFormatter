@@ -2055,8 +2055,7 @@ CREATE TABLE reindex_verbose (
     id integer PRIMARY KEY
 );
 
-\set VERBOSITY terse 
--- suppress machine-dependent details
+\set VERBOSITY terse \\ -- suppress machine-dependent details
 REINDEX (VERBOSE)
 TABLE reindex_verbose;
 

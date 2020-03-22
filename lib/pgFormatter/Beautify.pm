@@ -210,21 +210,25 @@ sub query
 
     $self->{ 'query' } = $new_value if defined $new_value;
 
+    # Replace any \\ by BSLHPGF
+    $self->{ 'query' } =~ s/\\\\/BSLHPGF/sg;
+    # Replace any \' by PGFBSLHQ
+    $self->{ 'query' } =~ s/\\'/PGFBSLHQ/sg;
+    # Replace any '''...''' by 'PGFESCQ...PGFESCQ'
+    $self->{ 'query' } =~ s/([^'])'''([^']*)'''([^']|$)/$1'PGFESCQ$2PGFESCQ'$3/sg;
+    # Replace any '' by PGFESCQ
+    $self->{ 'query' } =~ s/''/PGFESCQ/sg;
+
     my $i = 0;
     my %temp_placeholder = ();
     my @temp_content = split(/(CREATE(?:\s+OR\s+REPLACE)?\s+(?:FUNCTION|PROCEDURE)\s+)/i, $self->{ 'query' });
     if ($#temp_content > 0) {
         for (my $j = 0; $j <= $#temp_content; $j++) {
             next if ($temp_content[$j] =~ /^CREATE/i or $temp_content[$j] eq '');
-	    # Rewrite single quote code delimiter into $$
-	    if ($temp_content[$j] =~ s/(\s+AS\s+)'(\s+.*?;\s*)'/$1\$\$$2\$\$/is ||
-		    $temp_content[$j] =~ s/(\s+AS\s+)'(\s+.*?END[;]*\s*)'/$1\$\$$2\$\$/is
-	    ) {
-		# Fix some double quote use, this might not cover all cases
-            	$temp_content[$j] =~ s/''''/EMPTYSTRDBLQT/isg;
-            	$temp_content[$j] =~ s/''([^']+)''/'$1'/isg;
-            	$temp_content[$j] =~ s/''''/''/isg;
-            	$temp_content[$j] =~ s/EMPTYSTRDBLQT/''/isg;
+	    # Replace single quote code delimiter into $PGFDLM$
+	    if ($temp_content[$j] !~ s/(\s+AS\s+)'(\s+.*?;\s*)'/$1\$PGFDLM\$$2\$PGFDLM\$/is)
+	    {
+		    $temp_content[$j] =~ s/(\s+AS\s+)'(\s+.*?END[;]*\s*)'/$1\$PGFDLM\$$2\$PGFDLM\$/is;
 	    }
 	    # Remove any call too CREATE/DROP LANGUAGE to not break search of function code separator
 	    $temp_content[$j] =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
@@ -270,9 +274,6 @@ sub query
         }
     }
     $self->{ 'query' } = join('', @temp_content);
-
-    # Replace any \' by %BSLH%
-    $self->{ 'query' } =~ s/\\'/PGFBSLHQ/ig;
 
     # Store values of code that must not be changed following the given placeholder
     if ($self->{ 'placeholder' }) {
@@ -327,8 +328,14 @@ sub content
         $self->{ 'content' } =~ s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
     }
 
-    # Replace any %BSLH% by \'
-    $self->{ 'content' } =~ s/PGFBSLHQ/\\'/ig;
+    # Replace any BSLHPGF by \\
+    $self->{ 'content' } =~ s/BSLHPGF/\\\\/g;
+    # Replace any PGFBSLHQ by \'
+    $self->{ 'content' } =~ s/PGFBSLHQ/\\'/g;
+    # Replace any '' by PGFESCQ
+    $self->{ 'content' } =~ s/PGFESCQ/''/g;
+    # Replace any $PGFDLM$ by code delimiter ' 
+    $self->{ 'content' } =~ s/\$PGFDLM\$/'/g;
 
     return $self->{ 'content' };
 }
@@ -437,73 +444,63 @@ sub tokenize_sql
 
     my $re = qr{
         (
-                (?:\\(?:copyright|errverbose|g|gx|gexec|gset|q|crosstabview|watch|\?|h|e|ef|ev|p|r|s|w|copy|echo|i|ir|o|qecho|if|elif|else|endif|d(?:[aAbcCdDfFgilLmnoOpstTuvExy]|dp|et|es|eu|ew|fa|fn|ft|fw|Fd|Fp|Ft|rds|Rp|Rs)?S?\+?|l\+?|sf\+?|sv\+?|z|a|C|f|H|pset|t|T|x|c|connect|encoding|password|conninfo|cd|setenv|timing|\!|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink))(?:$|[\n]|[\ \t](?:(?!\\\\)[\ \t\S])*)        # psql meta-command
-                |
-                (?:\s*--)[\ \t\S]*      # single line comments
-                |
-                (?:\-\|\-) # range operator "is adjacent to"
-                |
-                (?:\->>|\->|\#>>|\#>|\?\&|\?)  # Json Operators
-                |
-                (?:\#<=|\#>=|\#<>|\#<|\#=) # compares tinterval and reltime
-                |
-                (?:>>=|<<=) # inet operators
-                |
-                (?:!!|\@\@\@) # deprecated factorial and full text search  operators
-                |
-                (?:\|\|\/|\|\/) # square root and cube root
-                |
-                (?:\@\-\@|\@\@|\#\#|<\->|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
+		(?:\\(?:copyright|errverbose|gx|gexec|gset|gdesc|q|crosstabview|watch|\?|copy|qecho|echo|if|elif|else|endif|edit|ir|include_relative|include|warn|write|html|print|out|ef|ev|h|H|i|p|r|s|w|o|e|g|q|d(?:[aAbcCdDeEfFgilLmnoOpPrRstTuvwxy+]{0,3})?|l\+?|sf\+?|sv\+?|z|a|C|f|H|t|T|x|c|pset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|reset|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!))(?:$|[\n]|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
+		|
+		(?:\s*--)[\ \t\S]*      # single line comments
+		|
+		(?:\-\|\-) # range operator "is adjacent to"
+		|
+		(?:\->>|\->|\#>>|\#>|\?\&|\?)  # Json Operators
+		|
+		(?:\#<=|\#>=|\#<>|\#<|\#=) # compares tinterval and reltime
+		|
+		(?:>>=|<<=) # inet operators
+		|
+		(?:!!|\@\@\@) # deprecated factorial and full text search  operators
+		|
+		(?:\|\|\/|\|\/) # square root and cube root
+		|
+		(?:\@\-\@|\@\@|\#\#|<\->|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
                                  # Geometric Operators
-                |
-                (?:~<=~|~>=~|~>~|~<~) # string comparison for pattern matching operator families
-                |
-                (?:!~~|!~~\*|~~\*|~~) # LIKE operators
-                |
-                (?:!~\*|!~|~\*) # regular expression operators
-                |
-                (?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
-                |
-                (?:<>|<=>|>=|<=|=>|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
-                |
-                [\[\]\(\),;.]            # punctuation (parenthesis, comma)
-                |
-                E\'\'(?!\')              # empty single escaped quoted string
-                |
-                \'\'(?!\')              # empty single quoted string
-                |
-                \"\"(?!\"")             # empty double quoted string
-                |
-                '[^']+'(?!')            # anyhing into single quoted string
-                |
-                "(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
-                |
-                `(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
-                |
-                E'(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything escaped inside single quotes, ungreedy.
-                |
-                '(?>(?:(?>[^'\\]+)|''|\\.)*)+' # anything inside single quotes, ungreedy.
-                |
-                /\*[\ \t\r\n\S]*?\*/      # C style comments
-                |
-                (?:[\w:\@]+[\$]*[\w:\@]*(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
-                |
-                (?:\$\w+\$)
+		|
+		(?:~<=~|~>=~|~>~|~<~) # string comparison for pattern matching operator families
+		|
+		(?:!~~|!~~\*|~~\*|~~) # LIKE operators
+		|
+		(?:!~\*|!~|~\*) # regular expression operators
+		|
+		(?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
+		|
+		(?:<>|<=>|>=|<=|=>|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
+		|
+		[\[\]\(\),;.]            # punctuation (parenthesis, comma)
+		|
+		\"\"(?!\"")             # empty double quoted string
+		|
+		"(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
+		|
+		`(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
+		|
+		[EB]*'[^']+' # anything inside single quotes, ungreedy.
+		|
+		/\*[\ \t\r\n\S]*?\*/      # C style comments
+		|
+		(?:[\w:\@]+[\$]*[\w:\@]*(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
+		|
+		(?:\$\w+\$)
                 |
                 (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$ ) # dollar expressions - eg $_$ $3 $$ $BODY$
                 |
                 \n                      # newline
                 |
                 [\t\ ]+                 # any kind of white spaces
+		|
+		[^\s\*\/\-\\;:,]+                 # anything else
         )
     }smx;
 
-    my @query = ();
-    @query = grep { /\S/ } $query =~ m{$re}smxg;
-    map { s/(.*PGFBSLHQ)$/'$1/i; } @query;
+    my @query = grep { /\S/ } $query =~ m{$re}smxg;
     $self->{ '_tokens' } = \@query;
-
-    return @query;
 }
 
 sub _pop_level
@@ -663,7 +660,7 @@ sub beautify
     $self->{ 'stmt_number' } = 1;
 
     my $last = '';
-    my @token_array = $self->tokenize_sql();
+    $self->tokenize_sql();
 
     $self->{ 'content' } .= "-- Statement # $self->{ 'stmt_number' }\n" if ($self->{ 'numbering' } and $#{ $self->{ '_tokens' } } > 0);
     while ( defined( my $token = $self->_token ) )
@@ -1827,9 +1824,9 @@ sub beautify
             }
 	    elsif (!$self->{ '_is_in_policy' } && $token !~ /^DELETE|UPDATE$/i && (!defined $self->_next_token || $self->_next_token !~ /^DISTINCT$/i))
 	    {
-                $self->_new_line($token,$last);
+                $self->_new_line($token,$last) if (!defined $last or $last ne "\\\\");
                 $self->_add_token( $token );
-                $self->_new_line($token,$last) if (!$self->{ 'wrap_after' });
+                $self->_new_line($token,$last) if (!$self->{ 'wrap_after' } and (!defined $last or $last ne "\\\\"));
                 $self->_over($token,$last);
             }
 	    else
@@ -2198,7 +2195,7 @@ sub beautify
 	{
 	    # treat everything starting with a \ and at least one character as psql meta command. 
             $self->_add_token( $token );
-            $self->_new_line($token,$last);
+            $self->_new_line($token,$last) if ($token ne "\\\\" and defined $self->_next_token and $self->_next_token ne "\\\\");
         }
 
         elsif ($token =~ /^ADD|DROP$/i && ($self->{ '_current_sql_stmt' } eq 'SEQUENCE'
@@ -2376,7 +2373,6 @@ sub _add_token
     my $last_is_dot = defined( $last_token ) && $last_token eq '.';
 
     my $sp = $self->_indent;
-
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot)
     {
         if ( (!defined($last_token) || $last_token ne '(') && $token ne ')' && $token !~ /^::/ )

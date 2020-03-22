@@ -133,16 +133,16 @@ COMMIT;
 
 CREATE FUNCTION tg_hub_a ()
     RETURNS TRIGGER
-    AS $$
+    AS '
 DECLARE
     hname text;
     dummy integer;
 BEGIN
-    IF tg_op = 'INSERT' THEN
+    IF tg_op = ''INSERT'' THEN
         dummy := tg_hub_adjustslots (new.name, 0, new.nslots);
         RETURN new;
     END IF;
-    IF tg_op = 'UPDATE' THEN
+    IF tg_op = ''UPDATE'' THEN
         IF new.name != old.name THEN
             UPDATE
                 HSlot
@@ -154,12 +154,12 @@ BEGIN
         dummy := tg_hub_adjustslots (new.name, old.nslots, new.nslots);
         RETURN new;
     END IF;
-    IF tg_op = 'DELETE' THEN
+    IF tg_op = ''DELETE'' THEN
         dummy := tg_hub_adjustslots (old.name, old.nslots, 0);
         RETURN old;
     END IF;
 END;
-$$
+'
 LANGUAGE plpgsql;
 
 EXPLAIN (
@@ -169,7 +169,7 @@ EXECUTE prep_stmt;
 
 CREATE FUNCTION tg_hub_adjustslots (hname bpchar, oldnslots integer, newnslots integer)
     RETURNS integer
-    AS $$
+    AS '
 BEGIN
     IF newnslots = oldnslots THEN
         RETURN 0;
@@ -182,48 +182,48 @@ BEGIN
     END IF;
     FOR i IN oldnslots + 1..newnslots LOOP
         INSERT INTO HSlot (slotname, hubname, slotno, slotlink)
-            VALUES ('HS.dummy', hname, i, '');
+            VALUES (''HS.dummy'', hname, i, '''');
     END LOOP;
     RETURN 0;
 END
-$$
+'
 LANGUAGE plpgsql;
 
 CREATE FUNCTION tg_backlink_a ()
     RETURNS TRIGGER
-    AS $$
+    AS '
 DECLARE
     dummy integer;
 BEGIN
-    IF tg_op = 'INSERT' THEN
-        IF new.backlink != '' THEN
+    IF tg_op = ''INSERT'' THEN
+        IF new.backlink != '''' THEN
             dummy := tg_backlink_set (new.backlink, new.slotname);
         END IF;
         RETURN new;
     END IF;
-    IF tg_op = 'UPDATE' THEN
+    IF tg_op = ''UPDATE'' THEN
         IF new.backlink != old.backlink THEN
-            IF old.backlink != '' THEN
+            IF old.backlink != '''' THEN
                 dummy := tg_backlink_unset (old.backlink, old.slotname);
             END IF;
-            IF new.backlink != '' THEN
+            IF new.backlink != '''' THEN
                 dummy := tg_backlink_set (new.backlink, new.slotname);
             END IF;
         ELSE
-            IF new.slotname != old.slotname AND new.backlink != '' THEN
+            IF new.slotname != old.slotname AND new.backlink != '''' THEN
                 dummy := tg_slotlink_set (new.backlink, new.slotname);
             END IF;
         END IF;
         RETURN new;
     END IF;
-    IF tg_op = 'DELETE' THEN
-        IF old.backlink != '' THEN
+    IF tg_op = ''DELETE'' THEN
+        IF old.backlink != '''' THEN
             dummy := tg_backlink_unset (old.backlink, old.slotname);
         END IF;
         RETURN old;
     END IF;
 END;
-$$
+'
 LANGUAGE plpgsql;
 
 CREATE VIEW v AS

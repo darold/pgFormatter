@@ -2926,15 +2926,12 @@ FOR VALUES IN (2);
 ALTER TABLE fkpart0.fk_part
     ADD FOREIGN KEY (a) REFERENCES fkpart0.pkey;
 
-\d fkpart0.fk_part_1	
--- should have only one FK
+\d fkpart0.fk_part_1	\\ -- should have only one FK
 ALTER TABLE fkpart0.fk_part_1
     DROP CONSTRAINT fk_part_1_a_fkey;
 
-\d fkpart0.fk_part_23	
--- should have only one FK
-\d fkpart0.fk_part_23_2	
--- should have only one FK
+\d fkpart0.fk_part_23	\\ -- should have only one FK
+\d fkpart0.fk_part_23_2	\\ -- should have only one FK
 ALTER TABLE fkpart0.fk_part_23
     DROP CONSTRAINT fk_part_23_a_fkey;
 

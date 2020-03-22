@@ -4,7 +4,7 @@ SELECT
 
 -- OK.
 SELECT
-    $$ '' $$::json;
+    $$ ''$$::json;
 
 -- ERROR, single quotes are not allowed
 SELECT
