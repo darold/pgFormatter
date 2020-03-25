@@ -45,6 +45,7 @@ DESCRIPTION
         -N | --numbering      : statement numbering as a comment before each query.
         -o | --output file    : define the filename for the output. Default: stdout.
         -p | --placeholder re : set regex to find code that must not be changed.
+        -r | --redshift       : Amazon Redshift mode
         -s | --spaces size    : change space indent, default 4 spaces.
         -S | --separator STR  : dynamic code separator, default to single quote.
         -t | --format-type    : try another formatting type for some statements.
