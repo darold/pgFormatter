@@ -4121,7 +4121,8 @@ FROM
                 q1 < f1) ss1 ON a.q2 = ss1.q1
         CROSS JOIN LATERAL (
             SELECT
-                q1, coalesce(ss1.x, q2) AS y
+                q1,
+                coalesce(ss1.x, q2) AS y
             FROM
                 int8_tbl d) ss2) ON c.q2 = ss2.q1,
     LATERAL (

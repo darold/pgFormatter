@@ -768,7 +768,8 @@ FROM ((
             prt1.b = 0) t1
     FULL JOIN (
         SELECT
-            75 phv, *
+            75 phv,
+            *
         FROM
             prt2
         WHERE
@@ -807,7 +808,8 @@ FROM ((
             prt1.b = 0) t1
     FULL JOIN (
         SELECT
-            75 phv, *
+            75 phv,
+            *
         FROM
             prt2
         WHERE

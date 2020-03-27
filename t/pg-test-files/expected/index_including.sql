@@ -288,17 +288,13 @@ SELECT
     *
 FROM
     tbl
-WHERE (c1, c2, c3) < (2,
-    5,
-    1);
+WHERE (c1, c2, c3) < (2, 5, 1);
 
 SELECT
     *
 FROM
     tbl
-WHERE (c1, c2, c3) < (2,
-    5,
-    1);
+WHERE (c1, c2, c3) < (2, 5, 1);
 
 -- row comparison that compares high key at page boundary
 SET enable_seqscan = OFF;
@@ -310,18 +306,14 @@ SELECT
     *
 FROM
     tbl
-WHERE (c1, c2, c3) < (262,
-    1,
-    1)
+WHERE (c1, c2, c3) < (262, 1, 1)
 LIMIT 1;
 
 SELECT
     *
 FROM
     tbl
-WHERE (c1, c2, c3) < (262,
-    1,
-    1)
+WHERE (c1, c2, c3) < (262, 1, 1)
 LIMIT 1;
 
 DROP TABLE tbl;

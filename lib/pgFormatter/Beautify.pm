@@ -871,6 +871,7 @@ sub beautify
         if ($token =~ /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP|RULE|COMMENT|LOCK)$/i) {
             my $k_stmt = uc($1);
 	    $self->{ '_is_in_explain' }  = 0;
+	    $self->{ '_is_in_where' } = 0;
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE
 	    # statement and ON CONFLICT DO UPDATE.
             if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')' and (not defined $last or $last !~ /^DO|SHARE$/i))) {
@@ -1292,8 +1293,8 @@ sub beautify
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
 	    if (defined $self->_next_token and $self->_next_token eq ')' and !$self->{ '_is_in_create' }) {
-		 $last = $self->_set_last($token, $last);
-		 next;
+		$last = $self->_set_last($token, $last);
+		next;
 	    }
             if ( !$self->{ '_is_in_index' } && !$self->{ '_is_in_publication' }
 		    && !$self->{ '_is_in_distinct' } && !$self->{ '_is_in_filter' }
@@ -1344,6 +1345,15 @@ sub beautify
 
         elsif ( $token eq ')' )
 	{
+	    my $next = quotemeta($self->_next_token) || 'SELECT';
+            if (!$self->{ '_parenthesis_level' } and defined $self->_next_token
+			    and $self->_is_keyword($self->_next_token) or (
+				!grep(/^$next$/, %{$self->{ 'dict' }->{ 'symbols' }})
+			)
+		)
+	    {
+		$self->{ '_is_in_where' } = 0;
+	    }
 	    if ($self->{ '_is_in_constraint' } and defined $self->_next_token
 			    and ($self->_next_token eq ',' or $self->_next_token eq ')')) {
 		$self->{ '_is_in_constraint' } = 0;
@@ -1418,7 +1428,6 @@ sub beautify
                 $self->{ '_is_in_over' } = 0;
                 $self->{ '_has_order_by' } = 0;
                 $self->{ '_is_in_policy' } = 0;
-                $self->{ '_is_in_where' } = 0;
                 $self->{ '_is_in_aggregate' } = 0;
             } 
             $self->_add_token( $token );
@@ -2120,6 +2129,8 @@ sub beautify
 
         elsif ( $token =~ /^(?:AND|OR)$/i )
 	{
+            $self->{ '_is_in_where' } = 0;
+
             # Try to detect AND in BETWEEN clause to prevent newline insert
             if (uc($token) eq 'AND' and ($self->_next_token() =~ /^\d+$/ || (defined $last && $last =~ /^(PRECEDING|FOLLOWING|ROW)$/i)))
 	    {

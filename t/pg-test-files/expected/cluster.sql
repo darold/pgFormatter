@@ -553,9 +553,7 @@ FROM (
     FROM
         clstr_4) ss
 WHERE
-    ROW (hundred, thousand, tenthous) <= ROW (lhundred,
-        lthousand,
-        ltenthous);
+    ROW (hundred, thousand, tenthous) <= ROW (lhundred, lthousand, ltenthous);
 
 RESET enable_indexscan;
 

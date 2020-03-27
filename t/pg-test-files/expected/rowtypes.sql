@@ -292,8 +292,7 @@ SELECT
     tenthous
 FROM
     tenk1
-WHERE (thousand, tenthous) >= (997,
-    5000)
+WHERE (thousand, tenthous) >= (997, 5000)
 ORDER BY
     thousand,
     tenthous;
@@ -303,8 +302,7 @@ SELECT
     tenthous
 FROM
     tenk1
-WHERE (thousand, tenthous) >= (997,
-    5000)
+WHERE (thousand, tenthous) >= (997, 5000)
 ORDER BY
     thousand,
     tenthous;
@@ -318,9 +316,7 @@ SELECT
     four
 FROM
     tenk1
-WHERE (thousand, tenthous, four) > (998,
-    5000,
-    3)
+WHERE (thousand, tenthous, four) > (998, 5000, 3)
 ORDER BY
     thousand,
     tenthous;
@@ -331,9 +327,7 @@ SELECT
     four
 FROM
     tenk1
-WHERE (thousand, tenthous, four) > (998,
-    5000,
-    3)
+WHERE (thousand, tenthous, four) > (998, 5000, 3)
 ORDER BY
     thousand,
     tenthous;
@@ -346,8 +340,7 @@ SELECT
     tenthous
 FROM
     tenk1
-WHERE (998, 5000) < (thousand,
-    tenthous)
+WHERE (998, 5000) < (thousand, tenthous)
 ORDER BY
     thousand,
     tenthous;
@@ -357,8 +350,7 @@ SELECT
     tenthous
 FROM
     tenk1
-WHERE (998, 5000) < (thousand,
-    tenthous)
+WHERE (998, 5000) < (thousand, tenthous)
 ORDER BY
     thousand,
     tenthous;
@@ -371,8 +363,7 @@ SELECT
     hundred
 FROM
     tenk1
-WHERE (998, 5000) < (thousand,
-    hundred)
+WHERE (998, 5000) < (thousand, hundred)
 ORDER BY
     thousand,
     hundred;
@@ -382,8 +373,7 @@ SELECT
     hundred
 FROM
     tenk1
-WHERE (998, 5000) < (thousand,
-    hundred)
+WHERE (998, 5000) < (thousand, hundred)
 ORDER BY
     thousand,
     hundred;
@@ -419,8 +409,7 @@ SELECT
     b
 FROM
     test_table
-WHERE (a, b) > ('a',
-    'a')
+WHERE (a, b) > ('a', 'a')
 ORDER BY
     a,
     b;
@@ -430,8 +419,7 @@ SELECT
     b
 FROM
     test_table
-WHERE (a, b) > ('a',
-    'a')
+WHERE (a, b) > ('a', 'a')
 ORDER BY
     a,
     b;

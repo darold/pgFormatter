@@ -1047,7 +1047,8 @@ FROM (
             FROM
                 int4_tbl
             WHERE
-                f1 = q2) AS sq1, 42 AS dummy
+                f1 = q2) AS sq1,
+            42 AS dummy
         FROM
             int8_tbl) sq0
     JOIN int4_tbl i4 ON dummy = i4.f1;
