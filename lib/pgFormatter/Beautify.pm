@@ -660,6 +660,7 @@ sub beautify
     $self->{ '_has_limit' }  = 0;
     $self->{ '_not_a_type' } = 0;
     $self->{ 'stmt_number' } = 1;
+    $self->{ '_is_subquery' } = 0;
 
     my $last = '';
     $self->tokenize_sql();
@@ -767,7 +768,7 @@ sub beautify
         # Control case where we have to add a newline, go back and
         # reset indentation after the last ) in the WITH statement
         ####
-        if ($token =~ /^WITH$/i && (!defined $last || $last ne ')')
+        if ($token =~ /^WITH$/i && (!defined $last or $last ne ')')
 		&& !$self->{ '_is_in_partition' } && !$self->{ '_is_in_publication' }
 		&& !$self->{ '_is_in_policy' } && uc($self->_next_token) ne 'TIME')
 	{
@@ -1292,6 +1293,7 @@ sub beautify
             $self->{ '_is_in_create' }++ if ($self->{ '_is_in_create' });
             $self->{ '_is_in_constraint' }++ if ($self->{ '_is_in_constraint' });
             $self->_add_token( $token, $last );
+	    $self->{ '_is_subquery' }++ if (defined $self->_next_token and uc($self->_next_token) eq 'SELECT');
 	    if (defined $self->_next_token and $self->_next_token eq ')' and !$self->{ '_is_in_create' }) {
 		$last = $self->_set_last($token, $last);
 		next;
@@ -1388,7 +1390,6 @@ sub beautify
             }
 	    if (defined $self->_next_token && $self->_next_token !~ /FILTER/i)
 	    {
-
                 my $add_nl = 0;
                 $add_nl = 1 if ($self->{ '_is_in_create' } > 1
 		    and defined $last and $last ne '('
@@ -1438,9 +1439,17 @@ sub beautify
             }
 
             # When closing CTE statement go back again
-            if ($self->_next_token =~ /^(?:SELECT|INSERT|UPDATE|DELETE)$/i && !$self->{ '_is_in_policy' }) {
-                $self->_back($token, $last) if ($self->{ '_current_sql_stmt' } ne 'INSERT');
+            if ( ($self->_next_token =~ /^(?:SELECT|INSERT|UPDATE|DELETE)$/i and !$self->{ '_is_in_policy' })
+			    or ($self->{ '_is_in_with' } and $self->{ '_is_subquery' }
+				    and $self->{ '_is_subquery' } % 2 == 0) )  {
+                $self->_back($token, $last) if ($self->{ '_current_sql_stmt' } ne 'INSERT'
+				and (!$self->{ '_parenthesis_level' } or !defined $self->_next_token
+					or uc($self->_next_token) eq 'AS'
+					or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }->[ 1 ] eq ',')));
             }
+	    $self->{ '_is_subquery' }-- if ($self->{ '_is_subquery' }
+			    and defined $self->_next_token and $#{$self->{ '_tokens' }} >= 1
+			    and (uc($self->_next_token) eq 'AS' or $self->{ '_tokens' }->[ 1 ] eq ','));
             if ($self->{ '_is_in_create' } <= 1) {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line($token,$last)
@@ -1585,6 +1594,7 @@ sub beautify
             $self->{ '_is_in_returns_table' } = 0;
 	    $self->{ '_has_limit' } = 0;
 	    $self->{ '_not_a_type' } = 0;
+            $self->{ '_is_subquery' } = 0;
 
 	    if ( $self->{ '_insert_values' } )
 	    {

@@ -1821,13 +1821,13 @@ AS ((
             FROM
                 x
 )
-        SELECT
-            z.a || z1.a AS a
-        FROM
-            z
-        CROSS JOIN z AS z1
-    WHERE
-        length(z.a || z1.a) < 5))
+            SELECT
+                z.a || z1.a AS a
+            FROM
+                z
+            CROSS JOIN z AS z1
+        WHERE
+            length(z.a || z1.a) < 5))
 SELECT
     *
 FROM
@@ -1872,12 +1872,12 @@ AS ((
             FROM
                 x
 )
-        SELECT
-            z.a || z.a AS a
-        FROM
-            z
-        WHERE
-            length(z.a || z.a) < 5))
+            SELECT
+                z.a || z.a AS a
+            FROM
+                z
+            WHERE
+                length(z.a || z.a) < 5))
 SELECT
     *
 FROM
@@ -1926,10 +1926,10 @@ FROM ( WITH y AS (
         FROM
             x
 )
-    SELECT
-        *
-    FROM
-        y) ss;
+        SELECT
+            *
+        FROM
+            y) ss;
 
 EXPLAIN (
     VERBOSE,
@@ -1948,10 +1948,10 @@ FROM ( WITH y AS (
         FROM
             x
 )
-    SELECT
-        *
-    FROM
-        y) ss;
+        SELECT
+            *
+        FROM
+            y) ss;
 
 -- Ensure that we inline the currect CTE when there are
 -- multiple CTEs with the same name
@@ -1969,10 +1969,10 @@ FROM ( WITH x AS (
         SELECT
             2 AS y
 )
-    SELECT
-        *
-    FROM
-        x) ss;
+        SELECT
+            *
+        FROM
+            x) ss;
 
 -- Row marks are not pushed into CTEs
 EXPLAIN (

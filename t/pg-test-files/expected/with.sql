@@ -27,15 +27,15 @@ FROM ( WITH q1 (
             random()
         FROM
             generate_series(1, 5))
-    SELECT
-        *
-    FROM
-        q1
-    UNION
-    SELECT
-        *
-    FROM
-        q1) ss;
+        SELECT
+            *
+        FROM
+            q1
+        UNION
+        SELECT
+            *
+        FROM
+            q1) ss;
 
 -- WITH RECURSIVE
 -- sum of 1..100
@@ -382,10 +382,10 @@ FROM ( WITH RECURSIVE t (
         WHERE
             n < 500
 )
-    SELECT
-        *
-    FROM
-        t) AS t
+        SELECT
+            *
+        FROM
+            t) AS t
 WHERE
     n < (
         SELECT
@@ -403,14 +403,14 @@ WHERE
                 WHERE
                     n < 100
 )
-            SELECT
-                *
-            FROM
-                t
+                SELECT
+                    *
+                FROM
+                    t
+                WHERE
+                    n < 50000) AS t
             WHERE
-                n < 50000) AS t
-        WHERE
-            n < 100);
+                n < 100);
 
 -- use same CTE twice at different subquery levels
 WITH q1 (
@@ -507,10 +507,10 @@ WITH RECURSIVE q AS (
             FROM
                 q
 )
-        SELECT
-            *
-        FROM
-            x))
+            SELECT
+                *
+            FROM
+                x))
 SELECT
     *
 FROM
@@ -537,10 +537,10 @@ WITH RECURSIVE q AS (
                     *
                 FROM
                     x))
-        SELECT
-            *
-        FROM
-            x))
+            SELECT
+                *
+            FROM
+                x))
 SELECT
     *
 FROM
@@ -1560,14 +1560,14 @@ SELECT
             foo
 ) AS (
             VALUES (f1))
-        SELECT
-            (
-                SELECT
-                    foo
-                FROM
-                    cte))
-    FROM
-        int4_tbl;
+            SELECT
+                (
+                    SELECT
+                        foo
+                    FROM
+                        cte))
+        FROM
+            int4_tbl;
 
 SELECT
     ( WITH cte (
@@ -1601,22 +1601,22 @@ WITH RECURSIVE t (
         WHERE
             i < 10
 )
-    SELECT
-        i
-    FROM
-        s
-    UNION ALL
-    SELECT
-        j + 1
-    FROM
-        t
-    WHERE
-        j < 10
+        SELECT
+            i
+        FROM
+            s
+        UNION ALL
+        SELECT
+            j + 1
+        FROM
+            t
+        WHERE
+            j < 10
 )
-SELECT
-    *
-FROM
-    t;
+    SELECT
+        *
+    FROM
+        t;
 
 --
 -- test WITH attached to intermediate-level set operation
@@ -1631,13 +1631,13 @@ WITH outermost (
             SELECT
                 2
 )
-        SELECT
-            *
-        FROM
-            innermost
-        UNION
-        SELECT
-            3))
+            SELECT
+                *
+            FROM
+                innermost
+            UNION
+            SELECT
+                3))
 SELECT
     *
 FROM
@@ -1654,15 +1654,15 @@ WITH outermost (
             SELECT
                 2
 )
-        SELECT
-            *
-        FROM
-            outermost -- fail
-        UNION
-        SELECT
-            *
-        FROM
-            innermost))
+            SELECT
+                *
+            FROM
+                outermost -- fail
+            UNION
+            SELECT
+                *
+            FROM
+                innermost))
 SELECT
     *
 FROM
@@ -1679,15 +1679,15 @@ WITH RECURSIVE outermost (
             SELECT
                 2
 )
-        SELECT
-            *
-        FROM
-            outermost
-        UNION
-        SELECT
-            *
-        FROM
-            innermost))
+            SELECT
+                *
+            FROM
+                outermost
+            UNION
+            SELECT
+                *
+            FROM
+                innermost))
 SELECT
     *
 FROM
@@ -1734,15 +1734,15 @@ WITH A AS (
         (
             SELECT
                 q1) AS x
-        FROM
-            int8_tbl
+    FROM
+        int8_tbl
 ),
 B AS (
     SELECT
         id,
         row_number() OVER (PARTITION BY id) AS r
-    FROM
-        A
+FROM
+    A
 ),
 C AS (
     SELECT
@@ -1809,15 +1809,15 @@ iter (
             WHERE
                 e.row_type = 'false'
 )
-        SELECT
-            *
-        FROM
-            first_remaining
-        UNION ALL
-        SELECT
-            *
-        FROM
-            effect))
+            SELECT
+                *
+            FROM
+                first_remaining
+            UNION ALL
+            SELECT
+                *
+            FROM
+                effect))
 SELECT
     *
 FROM
@@ -1866,15 +1866,15 @@ iter (
             WHERE
                 e.row_type = 'false'
 )
-        SELECT
-            *
-        FROM
-            first_remaining
-        UNION ALL
-        SELECT
-            *
-        FROM
-            effect))
+            SELECT
+                *
+            FROM
+                first_remaining
+            UNION ALL
+            SELECT
+                *
+            FROM
+                effect))
 SELECT
     *
 FROM
@@ -2621,10 +2621,10 @@ FROM ( WITH t AS (
         RETURNING
             *
 )
-    SELECT
-        *
-    FROM
-        t) ss;
+        SELECT
+            *
+        FROM
+            t) ss;
 
 -- most variants of rules aren't allowed
 CREATE RULE y_rule AS ON INSERT TO y WHERE
