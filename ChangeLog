@@ -1,3 +1,68 @@
+Mars 29 2020 - v4.3
+
+This is a maintenance release to fix issues reported by users since
+the last two months. As usual there is also some improvements and
+more formatting supported.
+
+New option:
+
+  * Add command line option -r | --redshift to add RedShift specific
+    keywords to the list of SQL keywords to format.
+  * Add command line option -N | --numbering to include statement
+    numbering. All formatted statements or block of code are prefixed
+    by a line with comment: /* Statement # n */.
+    Also available in CGI mode as a select box option.
+
+Backward compatibility:
+
+  * Keep simple quote as function code delimiter, previous behavior
+    was to replace them by $$ and replace all double simple quote in
+    the code by a single one. Now they are kept unchanged.
+  * Restore formatting of --comma-break option with INSERT statement, a
+    regression was introduced in version 4.2.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Better indentation of sub queries inside a "WITH" clause. Thanks
+    to Cyril Chaboisseau for the report.
+  - Fix WHERE tuple indentation. Thanks to Sergey Shepelev for the
+    report.
+  - Add more information to the -r | --redshift option
+  - Document --redshift option. Thanks to Elliott Shugerman for the
+    patch.
+  - Fix indentation of join clause in CTE. Thanks to ejabu for the
+    report.
+  - Format (NEW|OLD).colname keyword in trigger function.
+  - Fix formatting of scripts using psql command. Thanks to phiresky
+    for the report.
+  - Fix several cases of string literal corrupted by the formatting
+  - Fix formatting of B'...' string.
+  - Fix case where column aliases was lost. Thanks to YunheXu for
+    the report.
+  - Add AWS RedShift keywords to formatting.
+  - Fix unwanted formatting of multi-line text.
+  - Prevent newline between parameters of custom functions.
+  - Remove newline with an ORDER BY and USING clause in a function.
+  - Prevent newline in parameters of PREPARE and EXECUTE statement.
+  - Remove newline in columns list in ANALYZE statement.
+  - Add several builtin functions to the list of PostgreSQL functions.
+  - Prevent newline in FOREIGN SERVER OPTIONS list.
+  - Remove newline inside IN (...) values
+  - Fix data type formatting after IN, OUT and INOUT in functions
+    parameters. Thanks to prichardson211 for the report.
+  - Add new command line option to add statement numbering. Thanks to
+    Gajus Kuizinas for the feature request.
+  - Fix wrong indentation of WHERE clause after a JOIN in a CTE.
+    Thanks to Ejabu for the report.
+  - Update regression test for --comma-break
+  - Fix a case sensitive condition and update regression tests.
+  - Restore formatting of --comma-break option with INSERT statement.
+    Thanks to Brady Holt for the report.
+  - Add WITHOUT in the list of keywords and fix formatting of CAST
+    keyword that was formatted as a function.
+  - Apply data type formatting after RETURNS and CAST AS clauses.
+  - Fix formatting of DO ALSO rules.
+
 January 26 2020 - v4.2
 
 This is a maintenance release to fix issues reported by users since
