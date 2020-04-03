@@ -1925,7 +1925,7 @@ sub beautify
 	    }
         }
 
-        elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(?:INCREMENT|OWNED|PARTITION)$/i)
+        elsif ( $token =~ /^(?:BY)$/i and $last !~ /^(?:INCREMENT|OWNED|PARTITION|GENERATED)$/i)
 	{
             $self->_add_token( $token );
 	    $self->{ '_col_count' } = 0 if (defined $last && $last =~ /^(?:GROUP|ORDER)/i);
