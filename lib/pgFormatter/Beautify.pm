@@ -222,6 +222,12 @@ sub query
     $self->{ 'query' } =~ s/''/PGFESCQ/sg;
 
     my $i = 0;
+
+    # Hide content of format() function when the code separator is not a single quote */
+    while ($self->{ 'query' } =~ s/\bformat\((\$(?:.*)?\$\s*)([,\)])/format\(CODEPARTB${i}CODEPARTB$2/i) {
+        push(@{ $self->{ 'placeholder_values' } }, $1);
+        $i++;
+    }
     my %temp_placeholder = ();
     my @temp_content = split(/(CREATE(?:\s+OR\s+REPLACE)?\s+(?:FUNCTION|PROCEDURE)\s+)/i, $self->{ 'query' });
     if ($#temp_content > 0) {

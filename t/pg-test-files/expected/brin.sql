@@ -128,12 +128,7 @@ BEGIN
         SET enable_seqscan = 0;
         SET enable_bitmapscan = 1;
         plan_ok := FALSE;
-        FOR plan_line IN EXECUTE format($y$ EXPLAIN
-            SELECT
-                array_agg(ctid)
-                FROM brintest
-            WHERE
-                % s $y$, cond)
+        FOR plan_line IN EXECUTE format($y$EXPLAIN SELECT array_agg(ctid) FROM brintest WHERE %s $y$, cond)
         LOOP
             IF plan_line LIKE '%Bitmap Heap Scan on brintest%' THEN
                 plan_ok := TRUE;
@@ -142,22 +137,12 @@ BEGIN
         IF NOT plan_ok THEN
             RAISE WARNING 'did not get bitmap indexscan plan for %', r;
         END IF;
-        EXECUTE format($y$
-            SELECT
-                array_agg(ctid)
-                FROM brintest
-            WHERE
-                % s $y$, cond) INTO idx_ctids;
+        EXECUTE format($y$SELECT array_agg(ctid) FROM brintest WHERE %s $y$, cond) INTO idx_ctids;
         -- run the query using a seqscan
         SET enable_seqscan = 1;
         SET enable_bitmapscan = 0;
         plan_ok := FALSE;
-        FOR plan_line IN EXECUTE format($y$ EXPLAIN
-            SELECT
-                array_agg(ctid)
-                FROM brintest
-            WHERE
-                % s $y$, cond)
+        FOR plan_line IN EXECUTE format($y$EXPLAIN SELECT array_agg(ctid) FROM brintest WHERE %s $y$, cond)
         LOOP
             IF plan_line LIKE '%Seq Scan on brintest%' THEN
                 plan_ok := TRUE;
@@ -166,12 +151,7 @@ BEGIN
         IF NOT plan_ok THEN
             RAISE WARNING 'did not get seqscan plan for %', r;
         END IF;
-        EXECUTE format($y$
-            SELECT
-                array_agg(ctid)
-                FROM brintest
-            WHERE
-                % s $y$, cond) INTO ss_ctids;
+        EXECUTE format($y$SELECT array_agg(ctid) FROM brintest WHERE %s $y$, cond) INTO ss_ctids;
         -- make sure both return the same results
         count := array_length(idx_ctids, 1);
         IF NOT (count = array_length(ss_ctids, 1) AND idx_ctids @> ss_ctids AND idx_ctids <@ ss_ctids) THEN
