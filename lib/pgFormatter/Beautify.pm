@@ -1908,7 +1908,10 @@ sub beautify
 	    if (uc($token) ne 'EXCEPTION' or not defined $last or uc($last) ne 'RAISE')
 	    {
 		# Excluding CREATE/DROP GROUP
-                $self->_new_line($token,$last) if (!$self->{ '_is_in_function' } and (not defined $last or $last !~ /^(CREATE|DROP)$/));
+	        if (uc($token) ne 'LIMIT' or !$self->{ '_is_in_create' })
+		{
+                    $self->_new_line($token,$last) if (!$self->{ '_is_in_function' } and (not defined $last or $last !~ /^(CREATE|DROP)$/));
+		}
             }
             # Store current indent position to print END at the right level
             if (uc($last) ne 'RAISE' and $token =~ /^EXCEPTION$/i)
