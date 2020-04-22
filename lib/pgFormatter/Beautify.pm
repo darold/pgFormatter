@@ -1353,14 +1353,17 @@ sub beautify
 
         elsif ( $token eq ')' )
 	{
-	    my $next = quotemeta($self->_next_token) || 'SELECT';
-            if (!$self->{ '_parenthesis_level' } and defined $self->_next_token
+            if (defined $self->_next_token)
+	    {
+		my $next = quotemeta($self->_next_token) || 'SELECT';
+		if (!$self->{ '_parenthesis_level' } and defined $self->_next_token
 			    and $self->_is_keyword($self->_next_token) or (
 				!grep(/^$next$/, %{$self->{ 'dict' }->{ 'symbols' }})
 			)
 		)
-	    {
-		$self->{ '_is_in_where' } = 0;
+		{
+		    $self->{ '_is_in_where' } = 0;
+		}
 	    }
 	    if ($self->{ '_is_in_constraint' } and defined $self->_next_token
 			    and ($self->_next_token eq ',' or $self->_next_token eq ')')) {
