@@ -5595,7 +5595,7 @@ $$
 LANGUAGE sql
 IMMUTABLE STRICT;
 
-CREATE CAST( integer AS date
+CREATE CAST (integer AS date
 )
 WITH FUNCTION sql_to_date (integer
 )

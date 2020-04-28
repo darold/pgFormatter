@@ -1146,7 +1146,7 @@ SELECT
     myleast (VARIADIC ARRAY[]::int[]);
 
 -- an example with some ordinary arguments too
-CREATE FUNCTION concat(text, VARIADIC anyarray)
+CREATE FUNCTION concat (text, VARIADIC anyarray)
     RETURNS text
     AS $$
     SELECT

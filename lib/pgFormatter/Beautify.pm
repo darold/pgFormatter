@@ -699,7 +699,7 @@ sub beautify
             if (uc($last) eq 'FUNCTION' and $token =~ /^\d+$/) {
                 $self->{ '_is_in_function' }++;
 	    } elsif ($word && exists $self->{ 'dict' }->{ 'pg_functions' }{$word}) {
-                $self->{ '_is_in_function' }++;
+                $self->{ '_is_in_function' }++ if ($self->{ '_is_in_create' } != 1 or $token =~ /^CAST$/i);
             # Try to detect user defined functions
 	    } elsif ($last ne '*' and !$self->_is_keyword($token, $self->_next_token(), $last)
 			    and (exists $self->{ 'dict' }->{ 'symbols' }{ $last }
@@ -2427,6 +2427,11 @@ sub _add_token
                 print STDERR "DEBUG_SPC: 2) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
 	        $self->{ 'content' } .= $sp;
 	    }
+            if ($token eq '(' and $self->{ '_is_in_create' } == 2 and $self->{ 'content' } !~ /$sp$/)
+	    {
+                print STDERR "DEBUG_SPC: 2b) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+	        $self->{ 'content' } .= $sp;
+	    }
         }
 	elsif ( defined $last_token && $last_token eq '(' && $token ne ')'
 		&& $token !~ /^::/ && !$self->{'wrap_after'} && $self->{ '_is_in_with' } == 1)
@@ -2443,7 +2448,7 @@ sub _add_token
 						and ($last_token ne '(' || !$self->{ '_is_in_index' }))
 		{
                     print STDERR "DEBUG_SPC: 4) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
-                    $self->{ 'content' } .= $sp;
+                    $self->{ 'content' } .= $sp if ($last_token ne '(' or !$self->{ '_is_in_function' });
 		}
         }
 	elsif (defined $last_token and (!$self->{ '_is_in_operator' } or !$self->{ '_is_in_alter' }))
