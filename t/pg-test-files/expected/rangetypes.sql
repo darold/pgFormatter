@@ -109,7 +109,7 @@ SELECT
 --
 
 CREATE TABLE numrange_test (
-    nr NUMRANGE
+    nr numrange
 );
 
 CREATE INDEX numrange_test_btree ON numrange_test (nr);

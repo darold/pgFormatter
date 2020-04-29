@@ -356,13 +356,13 @@ CREATE TYPE xfloat4 (
     LIKE = float4
 );
 
-CREATE CAST (xfloat4 AS float4) WITHOUT FUNCTION;
+CREATE cast (xfloat4 AS float4) WITHOUT FUNCTION;
 
-CREATE CAST (float4 AS xfloat4) WITHOUT FUNCTION;
+CREATE cast (float4 AS xfloat4) WITHOUT FUNCTION;
 
-CREATE CAST (xfloat4 AS integer) WITHOUT FUNCTION;
+CREATE cast (xfloat4 AS integer) WITHOUT FUNCTION;
 
-CREATE CAST (integer AS xfloat4) WITHOUT FUNCTION;
+CREATE cast (integer AS xfloat4) WITHOUT FUNCTION;
 
 -- float4: seeeeeee emmmmmmm mmmmmmmm mmmmmmmm
 -- we don't care to assume the platform's strtod() handles subnormals

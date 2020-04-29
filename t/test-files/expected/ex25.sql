@@ -1,6 +1,6 @@
 CREATE TABLE demo.test (
     foo text,
-    bar timestamp WITH time zone,
+    bar timestamp with time zone,
     baz text
 )
 WITH (

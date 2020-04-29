@@ -944,7 +944,7 @@ FROM
 --
 
 SELECT
-    CAST(fullname AS text)
+    cast(fullname AS text)
 FROM
     fullname;
 
@@ -968,7 +968,7 @@ FROM
 -- same, but RECORD instead of named composite type:
 
 SELECT
-    CAST(ROW ('Jim', 'Beam') AS text);
+    cast(ROW ('Jim', 'Beam') AS text);
 
 SELECT
     (ROW ('Jim',

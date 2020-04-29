@@ -3,8 +3,7 @@
 --
 
 CREATE TABLE TIMESTAMPTZ_TBL (
-    d1 timestamp(2
-) with time zone
+    d1 timestamp(2) with time zone
 );
 
 -- Test shorthand input values
@@ -40,27 +39,26 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 = timestamp WITH time zone 'today';
+    d1 = timestamp with time zone 'today';
 SELECT
     count(*) AS One
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 = timestamp WITH time zone 'tomorrow';
+    d1 = timestamp with time zone 'tomorrow';
 SELECT
     count(*) AS One
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 = timestamp WITH time zone 'yesterday';
+    d1 = timestamp with time zone 'yesterday';
 SELECT
     count(*) AS One
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 = timestamp(2
-)
-    WITH time zone 'now';
+    d1 = timestamp(2)
+    with time zone 'now';
 COMMIT;
 
 DELETE FROM TIMESTAMPTZ_TBL;
@@ -80,9 +78,8 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 = timestamp(2
-)
-    WITH time zone 'now';
+    d1 = timestamp(2)
+    with time zone 'now';
 COMMIT;
 
 DELETE FROM TIMESTAMPTZ_TBL;
@@ -394,7 +391,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 > timestamp WITH time zone '1997-01-02';
+    d1 > timestamp with time zone '1997-01-02';
 
 SELECT
     '' AS "15",
@@ -402,7 +399,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 < timestamp WITH time zone '1997-01-02';
+    d1 < timestamp with time zone '1997-01-02';
 
 SELECT
     '' AS one,
@@ -410,7 +407,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 = timestamp WITH time zone '1997-01-02';
+    d1 = timestamp with time zone '1997-01-02';
 
 SELECT
     '' AS "63",
@@ -418,7 +415,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 != timestamp WITH time zone '1997-01-02';
+    d1 != timestamp with time zone '1997-01-02';
 
 SELECT
     '' AS "16",
@@ -426,7 +423,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 <= timestamp WITH time zone '1997-01-02';
+    d1 <= timestamp with time zone '1997-01-02';
 
 SELECT
     '' AS "49",
@@ -434,11 +431,11 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 >= timestamp WITH time zone '1997-01-02';
+    d1 >= timestamp with time zone '1997-01-02';
 
 SELECT
     '' AS "54",
-    d1 - timestamp WITH time zone '1997-01-02' AS diff
+    d1 - timestamp with time zone '1997-01-02' AS diff
 FROM
     TIMESTAMPTZ_TBL
 WHERE
@@ -447,33 +444,33 @@ WHERE
 
 SELECT
     '' AS date_trunc_week,
-    date_trunc('week', timestamp WITH time zone '2004-02-29 15:44:17.71393') AS week_trunc;
+    date_trunc('week', timestamp with time zone '2004-02-29 15:44:17.71393') AS week_trunc;
 
 SELECT
     '' AS date_trunc_at_tz,
-    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00', 'Australia/Sydney') AS sydney_trunc;
+    date_trunc('day', timestamp with time zone '2001-02-16 20:38:40+00', 'Australia/Sydney') AS sydney_trunc;
 
 -- zone name
 SELECT
     '' AS date_trunc_at_tz,
-    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00', 'GMT') AS gmt_trunc;
+    date_trunc('day', timestamp with time zone '2001-02-16 20:38:40+00', 'GMT') AS gmt_trunc;
 
 -- fixed-offset abbreviation
 SELECT
     '' AS date_trunc_at_tz,
-    date_trunc('day', timestamp WITH time zone '2001-02-16 20:38:40+00', 'VET') AS vet_trunc;
+    date_trunc('day', timestamp with time zone '2001-02-16 20:38:40+00', 'VET') AS vet_trunc;
 
 -- variable-offset abbreviation
 -- Test casting within a BETWEEN qualifier
 
 SELECT
     '' AS "54",
-    d1 - timestamp WITH time zone '1997-01-02' AS diff
+    d1 - timestamp with time zone '1997-01-02' AS diff
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 BETWEEN timestamp WITH time zone '1902-01-01'
-    AND timestamp WITH time zone '2038-01-01';
+    d1 BETWEEN timestamp with time zone '1902-01-01'
+    AND timestamp with time zone '2038-01-01';
 
 SELECT
     '' AS "54",

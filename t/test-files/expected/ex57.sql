@@ -5,13 +5,13 @@ CREATE FUNCTION fn_opf12 (INT4, INT2)
 
 SELECT
     1::NUMERIC,
-    CAST(2 AS VARCHAR(10));
+    cast(2 AS VARCHAR(10));
 
 SELECT
     1::NUMERIC,
     '1.2'::FLOAT8,
     (12)::FLOAT4,
-    CAST(2 AS VARCHAR(10));
+    cast(2 AS VARCHAR(10));
 
 INSERT INTO (
     field_one,
@@ -39,7 +39,7 @@ VALUES (
     8,
     9);
 
-CREATE CAST (INT8 AS int8alias1) WITHOUT FUNCTION;
+CREATE cast (INT8 AS int8alias1) WITHOUT FUNCTION;
 
 CREATE TABLE test11a AS (
     SELECT

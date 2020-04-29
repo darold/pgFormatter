@@ -101,7 +101,7 @@ SET TIME ZONE 'CST7CDT';
 SELECT
     f1,
     f1::interval DAY TO MINUTE AS "minutes",
-    (f1 + interval '1 month')::interval MONTH::interval YEAR AS "years"
+    (f1 + INTERVAL '1 month')::interval MONTH::interval YEAR AS "years"
 FROM
     interval_tbl;
 

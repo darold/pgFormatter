@@ -3,8 +3,7 @@
 --
 
 CREATE TABLE TIMETZ_TBL (
-    f1 time(2
-) with time zone
+    f1 time(2) with time zone
 );
 
 INSERT INTO TIMETZ_TBL
@@ -90,7 +89,7 @@ WHERE
 -- where we do mixed-type arithmetic. - thomas 2000-12-02
 
 SELECT
-    f1 + time WITH time zone '00:01' AS "Illegal"
+    f1 + time with time zone '00:01' AS "Illegal"
 FROM
     TIMETZ_TBL;
 
