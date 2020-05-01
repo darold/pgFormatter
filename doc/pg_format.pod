@@ -187,6 +187,22 @@ This might add readability to not DML transactions.
 
 =head1 HINTS
 
+=head2 Formatting from stdin
+
+You can execute pg_format without any argument or - to give the SQL code to
+format through stdin.
+
+If you use the interactive mode you have to type `ctrl+d` after typing your
+SQL statement to format to end the typing.
+
+	$ pg_format 
+	select * from customers;
+	< ctrl+d >
+
+You can use stdin in a one liner as follow:
+
+	echo "select * from customers;" | pg_format
+
 =head2 Formatting from VI
 
 With pgFormatter, you can just add the following line to your ~/.vimrc file:
