@@ -119,29 +119,29 @@ INSERT INTO T
     VALUES (3), (4);
 
 ALTER TABLE T
-    ADD COLUMN c_text text DEFAULT 'world',
+    ADD COLUMN c_text TEXT DEFAULT 'world',
     ALTER COLUMN c_bpchar SET DEFAULT 'dog';
 
 INSERT INTO T
     VALUES (5), (6);
 
 ALTER TABLE T
-    ADD COLUMN c_date date DEFAULT '2016-06-02',
+    ADD COLUMN c_date DATE DEFAULT '2016-06-02',
     ALTER COLUMN c_text SET DEFAULT 'cat';
 
 INSERT INTO T
     VALUES (7), (8);
 
 ALTER TABLE T
-    ADD COLUMN c_timestamp timestamp DEFAULT '2016-09-01 12:00:00',
-    ADD COLUMN c_timestamp_null timestamp,
+    ADD COLUMN c_timestamp TIMESTAMP DEFAULT '2016-09-01 12:00:00',
+    ADD COLUMN c_timestamp_null TIMESTAMP,
     ALTER COLUMN c_date SET DEFAULT '2010-01-01';
 
 INSERT INTO T
     VALUES (9), (10);
 
 ALTER TABLE T
-    ADD COLUMN c_array text[] DEFAULT '{"This", "is", "the", "real", "world"}',
+    ADD COLUMN c_array TEXT[] DEFAULT '{"This", "is", "the", "real", "world"}',
     ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31 11:12:13',
     ALTER COLUMN c_timestamp_null SET DEFAULT '2016-09-29 12:00:00';
 
@@ -149,15 +149,15 @@ INSERT INTO T
     VALUES (11), (12);
 
 ALTER TABLE T
-    ADD COLUMN c_small smallint DEFAULT - 5,
-    ADD COLUMN c_small_null smallint,
+    ADD COLUMN c_small SMALLINT DEFAULT - 5,
+    ADD COLUMN c_small_null SMALLINT,
     ALTER COLUMN c_array SET DEFAULT '{"This", "is", "no", "fantasy"}';
 
 INSERT INTO T
     VALUES (13), (14);
 
 ALTER TABLE T
-    ADD COLUMN c_big bigint DEFAULT 180000000000018,
+    ADD COLUMN c_big BIGINT DEFAULT 180000000000018,
     ALTER COLUMN c_small SET DEFAULT 9,
     ALTER COLUMN c_small_null SET DEFAULT 13;
 
@@ -165,28 +165,28 @@ INSERT INTO T
     VALUES (15), (16);
 
 ALTER TABLE T
-    ADD COLUMN c_num numeric DEFAULT 1.00000000001,
+    ADD COLUMN c_num NUMERIC DEFAULT 1.00000000001,
     ALTER COLUMN c_big SET DEFAULT - 9999999999999999;
 
 INSERT INTO T
     VALUES (17), (18);
 
 ALTER TABLE T
-    ADD COLUMN c_time time DEFAULT '12:00:00',
+    ADD COLUMN c_time TIME DEFAULT '12:00:00',
     ALTER COLUMN c_num SET DEFAULT 2.000000000000002;
 
 INSERT INTO T
     VALUES (19), (20);
 
 ALTER TABLE T
-    ADD COLUMN c_interval interval DEFAULT '1 day',
+    ADD COLUMN c_interval INTERVAL DEFAULT '1 day',
     ALTER COLUMN c_time SET DEFAULT '23:59:59';
 
 INSERT INTO T
     VALUES (21), (22);
 
 ALTER TABLE T
-    ADD COLUMN c_hugetext text DEFAULT repeat('abcdefg', 1000),
+    ADD COLUMN c_hugetext TEXT DEFAULT repeat('abcdefg', 1000),
     ALTER COLUMN c_interval SET DEFAULT '3 hours';
 
 INSERT INTO T
@@ -280,28 +280,28 @@ INSERT INTO T
     VALUES (3), (4);
 
 ALTER TABLE T
-    ADD COLUMN c_text text DEFAULT foo (6),
+    ADD COLUMN c_text TEXT DEFAULT foo (6),
     ALTER COLUMN c_bpchar SET DEFAULT foo (3);
 
 INSERT INTO T
     VALUES (5), (6);
 
 ALTER TABLE T
-    ADD COLUMN c_date date DEFAULT '2016-06-02'::date + LENGTH(foo (10)),
+    ADD COLUMN c_date DATE DEFAULT '2016-06-02'::date + LENGTH(foo (10)),
     ALTER COLUMN c_text SET DEFAULT foo (12);
 
 INSERT INTO T
     VALUES (7), (8);
 
 ALTER TABLE T
-    ADD COLUMN c_timestamp timestamp DEFAULT '2016-09-01'::date + LENGTH(foo (10)),
+    ADD COLUMN c_timestamp TIMESTAMP DEFAULT '2016-09-01'::date + LENGTH(foo (10)),
     ALTER COLUMN c_date SET DEFAULT '2010-01-01'::date - LENGTH(foo (4));
 
 INSERT INTO T
     VALUES (9), (10);
 
 ALTER TABLE T
-    ADD COLUMN c_array text[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::text[],
+    ADD COLUMN c_array TEXT[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::text[],
     ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31'::date + LENGTH(foo (30));
 
 INSERT INTO T
@@ -334,7 +334,7 @@ SELECT
 
 DROP TABLE T;
 
-DROP FUNCTION foo (int);
+DROP FUNCTION foo (INT);
 
 -- Fall back to full rewrite for volatile expressions
 CREATE TABLE T (
@@ -349,14 +349,14 @@ SELECT
 
 -- now() is stable, because it returns the transaction timestamp
 ALTER TABLE T
-    ADD COLUMN c1 timestamp DEFAULT now();
+    ADD COLUMN c1 TIMESTAMP DEFAULT now();
 
 SELECT
     comp ();
 
 -- clock_timestamp() is volatile
 ALTER TABLE T
-    ADD COLUMN c2 timestamp DEFAULT clock_timestamp();
+    ADD COLUMN c2 TIMESTAMP DEFAULT clock_timestamp();
 
 SELECT
     comp ();
@@ -378,7 +378,7 @@ FROM
     generate_series(1, 10) a;
 
 ALTER TABLE T
-    ADD COLUMN c_bigint bigint NOT NULL DEFAULT - 1;
+    ADD COLUMN c_bigint BIGINT NOT NULL DEFAULT - 1;
 
 INSERT INTO T
 SELECT
@@ -388,7 +388,7 @@ FROM
     generate_series(11, 20) a (b);
 
 ALTER TABLE T
-    ADD COLUMN c_text text DEFAULT 'hello';
+    ADD COLUMN c_text TEXT DEFAULT 'hello';
 
 INSERT INTO T
 SELECT
@@ -562,13 +562,13 @@ INSERT INTO T
     VALUES (1), (2);
 
 ALTER TABLE T
-    ADD COLUMN c_int int NOT NULL DEFAULT - 1;
+    ADD COLUMN c_int INT NOT NULL DEFAULT - 1;
 
 INSERT INTO T
     VALUES (3), (4);
 
 ALTER TABLE T
-    ADD COLUMN c_text text DEFAULT 'Hello';
+    ADD COLUMN c_text TEXT DEFAULT 'Hello';
 
 INSERT INTO T
     VALUES (5), (6);
@@ -613,7 +613,7 @@ ALTER TABLE t1
 
 SELECT
     a,
-    stddev(CAST((
+    stddev(cast((
             SELECT
                 sum(1)
             FROM generate_series(1, 20) x) AS float4)) OVER (PARTITION BY a, b, c ORDER BY b) AS z
@@ -986,10 +986,10 @@ INSERT INTO vtype
     VALUES (1);
 
 ALTER TABLE vtype
-    ADD COLUMN b double PRECISION DEFAULT 0.2;
+    ADD COLUMN b DOUBLE PRECISION DEFAULT 0.2;
 
 ALTER TABLE vtype
-    ADD COLUMN c boolean DEFAULT TRUE;
+    ADD COLUMN c BOOLEAN DEFAULT TRUE;
 
 SELECT
     *

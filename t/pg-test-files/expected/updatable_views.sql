@@ -3823,7 +3823,7 @@ INSERT INTO uv_iocu_view (a, b)
     VALUES ('xyxyxy', 3)
 ON CONFLICT (a)
     DO UPDATE SET
-        b = CAST(excluded.two AS float);
+        b = cast(excluded.two AS float);
 
 SELECT
     *

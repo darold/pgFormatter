@@ -1480,7 +1480,7 @@ CREATE FUNCTION castfunc (int)
 $$
 LANGUAGE SQL;
 
-CREATE CAST( priv_testdomain1 AS priv_testdomain3a
+CREATE CAST (priv_testdomain1 AS priv_testdomain3a
 )
 WITH FUNCTION castfunc (int);
 
@@ -1576,7 +1576,7 @@ CREATE FUNCTION castfunc (int)
 $$
 LANGUAGE SQL;
 
-CREATE CAST( priv_testdomain1 AS priv_testdomain3b
+CREATE CAST (priv_testdomain1 AS priv_testdomain3b
 )
 WITH FUNCTION castfunc (int);
 

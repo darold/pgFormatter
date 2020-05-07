@@ -1510,8 +1510,8 @@ FROM
     COLLATION FOR ('x'::text) col,
     CURRENT_DATE AS d,
     localtimestamp(3) AS t,
-    CAST(1 + 2 AS int4) AS i4,
-    CAST(1 + 2 AS int8) AS i8;
+    cast(1 + 2 AS int4) AS i4,
+    cast(1 + 2 AS int8) AS i8;
 
 SELECT
     pg_get_viewdef('tt20v', TRUE);

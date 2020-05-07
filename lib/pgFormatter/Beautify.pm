@@ -632,6 +632,7 @@ sub beautify
     $self->{ '_is_in_work' } = 0;
     $self->{ '_is_in_function' } = 0;
     $self->{ '_is_in_statistics' } = 0;
+    $self->{ '_is_in_cast' } = 0;
     $self->{ '_is_in_procedure' } = 0;
     $self->{ '_is_in_index' } = 0;
     $self->{ '_is_in_with' }  = 0;
@@ -701,7 +702,7 @@ sub beautify
             if (uc($last) eq 'FUNCTION' and $token =~ /^\d+$/) {
                 $self->{ '_is_in_function' }++;
 	    } elsif ($word && exists $self->{ 'dict' }->{ 'pg_functions' }{$word}) {
-                $self->{ '_is_in_function' }++;
+                $self->{ '_is_in_function' }++ if ($self->{ '_is_in_create' } != 1 or $token =~ /^CAST$/i);
             # Try to detect user defined functions
 	    } elsif ($last ne '*' and !$self->_is_keyword($token, $self->_next_token(), $last)
 			    and (exists $self->{ 'dict' }->{ 'symbols' }{ $last }
@@ -930,6 +931,8 @@ sub beautify
         } elsif ($token =~ /^STATISTICS$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_statistics' } = 1;
             $self->{ '_is_in_create' } = 0;
+        } elsif ($token =~ /^CAST$/i and defined $self->_next_token and $self->_next_token eq '(') {
+            $self->{ '_is_in_cast' } = 1;
         } elsif ($token =~ /^AGGREGATE$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_aggregate' } = 1;
             $self->{ '_has_order_by' } = 1;
@@ -1416,6 +1419,7 @@ sub beautify
 				    and $self->_next_token =~ /^(SELECT|WITH)$/i)
 		    		    and uc($self->{ '_tokens' }[1]) ne 'ORDINALITY'
 			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
+			    and (uc($self->_next_token) ne 'WITH' or uc($self->{ '_tokens' }->[ 1 ]) ne 'TIME')
 	        );
 		$self->_new_line($token,$last) if ($add_nl);
                 if (!$self->{ '_is_in_grouping' } and !$self->{ '_is_in_trigger' }
@@ -1573,6 +1577,7 @@ sub beautify
             $self->{ '_is_in_prodedure' } = 0;
             $self->{ '_is_in_index' } = 0;
 	    $self->{ '_is_in_statistics' } = 0;
+	    $self->{ '_is_in_cast' } = 0;
             $self->{ '_is_in_if' } = 0;
             $self->{ '_is_in_with' } = 0;
             $self->{ '_is_in_overlaps' } = 0;
@@ -2429,6 +2434,11 @@ sub _add_token
                 print STDERR "DEBUG_SPC: 2) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
 	        $self->{ 'content' } .= $sp;
 	    }
+            if ($token eq '(' and $self->{ '_is_in_create' } == 2 and $self->{ 'content' } !~ /$sp$/)
+	    {
+                print STDERR "DEBUG_SPC: 2b) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
+	        $self->{ 'content' } .= $sp;
+	    }
         }
 	elsif ( defined $last_token && $last_token eq '(' && $token ne ')'
 		&& $token !~ /^::/ && !$self->{'wrap_after'} && $self->{ '_is_in_with' } == 1)
@@ -2445,7 +2455,7 @@ sub _add_token
 						and ($last_token ne '(' || !$self->{ '_is_in_index' }))
 		{
                     print STDERR "DEBUG_SPC: 4) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
-                    $self->{ 'content' } .= $sp;
+                    $self->{ 'content' } .= $sp if ($last_token ne '(' or !$self->{ '_is_in_function' });
 		}
         }
 	elsif (defined $last_token and (!$self->{ '_is_in_operator' } or !$self->{ '_is_in_alter' }))
@@ -2502,26 +2512,31 @@ sub _add_token
 	    @next_cast = split(/::/, $next_token);
 	    $next_token = shift(@next_cast) if ($#next_cast >= 0);
     }
-
     # lowercase/uppercase keywords taking care of function with same name
     if ($self->_is_keyword( $token, $next_token, $last_token ) and
-	    (!$self->_is_type($next_token) or $self->{ '_is_in_create' } < 2
+	    (!$self->_is_type($next_token) or $self->{ '_is_in_create' } < 2 or $self->{ '_is_in_cast' }
+			    or ($self->{ '_is_in_create' } == 2 and $token =~ /^(WITH|WITHOUT)$/i)
 		   or $self->{ '_is_in_create_function' } or uc($token) eq 'AS')
-		   and (!$self->_is_function( $token ) || $next_token ne '(' || uc($token) eq 'CAST')
+		   and (!$self->_is_function( $token ) or $next_token ne '(')
     )
     {
-        $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
-        $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );
-        $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_keywords' } == 3 );
+	# Be sure that we are not formating WITH keyword from with time zone
+	if (uc($token) ne 'WITH' or not defined $next_token
+			or $next_token !~ /^(time|timestamp)$/i)
+	{
+            $token = lc( $token )            if ( $self->{ 'uc_keywords' } == 1 );
+            $token = uc( $token )            if ( $self->{ 'uc_keywords' } == 2 );
+            $token = ucfirst( lc( $token ) ) if ( $self->{ 'uc_keywords' } == 3 );
+        }
     }
     else
     {
         # lowercase/uppercase known functions or words followed by an open parenthesis
         # if the token is not a keyword, an open parenthesis or a comment
         my $fct = $self->_is_function( $token ) || '';
-        if (($fct && $next_token eq '(')
-		    || (!$self->_is_keyword( $token, $next_token, $last_token ) && !$next_token eq '('
-			    && $token ne '(' && !$self->_is_comment( $token )) )
+        if (($fct and $next_token eq '(' and uc($last_token) ne 'CREATE')
+		or (!$self->_is_keyword( $token, $next_token, $last_token ) and !$next_token eq '('
+				    and $token ne '(' and !$self->_is_comment( $token )) )
 	{
             $token =~ s/$fct/\L$fct\E/i if ( $self->{ 'uc_functions' } == 1 );
             $token =~ s/$fct/\U$fct\E/i if ( $self->{ 'uc_functions' } == 2 );
@@ -2550,12 +2565,15 @@ sub _add_token
     }
 
     # Type are always lowercase
-    if (!$self->{ '_not_a_type' })
+    if (!$self->{ '_not_a_type' } and ($self->{ '_is_in_create' } or $self->{ '_is_in_declare' }
+			    or $self->{ '_is_in_cast' } or $self->{ '_is_in_type' }))
     {
-	    if ($tk_is_type and defined $last_token)
+	    if ($tk_is_type and defined $last_token
+			or ($token =~ /^(WITH|WITHOUT)$/i and $next_token =~ /^(time|timestamp)$/i)
+	    )
 	    {
 		if ($last_token =~ /^(AS|RETURNS|INOUT|IN|OUT)$/i or !$self->_is_keyword($last_token)
-				or $self->_is_type($last_token) or $self->_is_type($next_token))
+			or $self->_is_type($last_token) or $self->_is_type($next_token))
 		{
 		    $token = lc( $token )            if ( $self->{ 'uc_types' } == 1 );
 		    $token = uc( $token )            if ( $self->{ 'uc_types' } == 2 );
@@ -2591,7 +2609,7 @@ sub _add_token
 
     # Format cast in function code
     my $reg = join('|', @{$self->{ 'types' }});
-    $reg = '(?:TIMESTAMP WITH TIME ZONE|TIMESTAMP WITHOUT TIME ZONE|CHARACTER VARYING|' . $reg . ')';
+    $reg = '(?:TIMESTAMP(\s*\(\s*\d+\s*\))? WITH TIME ZONE|TIMESTAMP(\s*\(\s*\d+\s*\))? WITHOUT TIME ZONE|CHARACTER VARYING|' . $reg . ')';
     if ($token =~ /::/)
     {
         $token =~ s/::($reg)/'::' . lc($1)/igse if ( $self->{ 'uc_types' } == 1 );
@@ -2775,6 +2793,9 @@ sub _is_type
         my ($package, $filename, $line) = caller;
         print STDERR "DEBUG_TYPE: line: $line => token=[$token], last=", ($last_token||''), ", next=", ($next_token||''), ", type=", (grep { uc($_) eq uc( $token ) } @{ $self->{ 'types' } }), "\n";
     }
+
+    return 0 if ($token =~ /^(int4|int8|num|tstz|ts|date)range$/i
+		    and (not defined $next_token or $next_token eq '('));
 
     $token =~ s/\s*\(.*//; # remove any parameter to the type
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'types' } };
@@ -3155,7 +3176,7 @@ sub set_defaults
     $self->{ 'rules' }        = {};
     $self->{ 'uc_keywords' }  = 2;
     $self->{ 'uc_functions' } = 0;
-    $self->{ 'uc_types' }  = 1;
+    $self->{ 'uc_types' }     = 1;
     $self->{ 'no_comments' }  = 0;
     $self->{ 'no_grouping' }  = 0;
     $self->{ 'placeholder' }  = '';
@@ -3240,8 +3261,8 @@ sub set_dicts
     my @pg_types = qw(
         BIGINT BIGSERIAL BIT BOOLEAN BOOL BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INTEGER INTERVAL
         JSONB JSON LINE LSEG MACADDR8 MACADDR MONEY NUMERIC OID PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
-       	SERIAL TEXT TIME TIMESTAMPTZ TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML INT2 INT4 INT8 INT VARYING
-	VARCHAR ZONE FLOAT4 FLOAT8 FLOAT
+       	SERIAL TEXT TIMESTAMPTZ TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML VARYING VARCHAR ZONE FLOAT4
+	FLOAT8 FLOAT NAME TID INT4RANGE INT8RANGE NUMRANGE TSRANGE TSTZRANGE DATERANGE INT2 INT4 INT8 INT TIME
 	);
 
     my @sql_keywords = map { uc } qw(
