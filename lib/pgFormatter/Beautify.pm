@@ -829,7 +829,12 @@ sub beautify
 	    }
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
-	    $self->{ '_is_in_with' } = 0 if (defined $self->_next_token and $self->_next_token !~ /^AS|WITH|,$/i and !$self->{ '_parenthesis_with_level' });
+	    if (defined $self->_next_token and $self->_next_token !~ /^AS|WITH|,$/i
+			    and (!$self->_is_comment($self->_next_token) or $self->{ '_tokens' }[1] ne ',')
+			    and !$self->{ '_parenthesis_with_level' })
+	    {
+		$self->{ '_is_in_with' } = 0;
+	    }
 
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token && uc($self->_next_token) eq 'AS' && !$self->{ '_is_in_with'}) {
                 $self->_new_line($token,$last) if ($last ne '(');
@@ -850,7 +855,9 @@ sub beautify
 	    {
                 $self->_new_line($token,$last) if (!$self->{ '_is_in_operator' } ||
 			(!$self->{ '_is_in_drop' } and $self->_next_token eq ';'));
-		if (!$self->{ '_is_in_operator' }) {
+
+		if (!$self->{ '_is_in_operator' })
+		{
                     $self->_set_level($self->_pop_level($token, $last), $token, $last);
                     $self->_back($token, $last);
 	        }
