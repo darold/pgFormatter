@@ -53,8 +53,7 @@ FROM (
             -- SQL statement   --
             ---------------------
             library.column2,
-            library.column3 -- inline comment
-,
+            library.column3, -- inline comment
             CASE library.column4
             WHEN cheap THEN
                 digits (library.column27) || library.column28

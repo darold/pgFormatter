@@ -64,3 +64,32 @@ SELECT isempty(numrange(1, 5));
 
 SELECT '(3,7)'::int4range;
 
+-- Example 1: comment in CTE AFTER comma works as expected when formatting
+WITH table_A AS (
+	SELECT a
+		, b + 3 AS c
+	FROM table_1
+) ,
+-- comment 1
+table_B AS (
+	SELECT a
+		, c
+	FROM table_2
+)
+SELECT *
+FROM table_B;
+
+-- Example 2: comment in CTE BEFORE comma breaks indentation when formatting
+WITH table_A AS (
+	SELECT a
+		, b + 3 AS c
+	FROM table_1)
+	-- comment 1
+	, table_B AS (
+		SELECT a
+			, c
+		FROM table_2
+)
+	SELECT *
+	FROM table_B;
+

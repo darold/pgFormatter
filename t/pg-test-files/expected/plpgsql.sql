@@ -3096,8 +3096,7 @@ DECLARE
             AND tenthous = p2;
     n int4;
 BEGIN
-    OPEN c1 (77 -- test
-,
+    OPEN c1 (77, -- test
         42);
     FETCH c1 INTO n;
     RETURN n;

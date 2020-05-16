@@ -508,6 +508,19 @@ sub tokenize_sql
     }smx;
 
     my @query = grep { /\S/ } $query =~ m{$re}smxg;
+
+    # Revert position when a comment is before a comma
+    if ($self->{ 'comma' } eq 'end')
+    {
+	    for (my $i = 0; $i < ($#query - 1); $i++)
+	    {
+		if ($query[$i+1] eq ',' and $self->_is_comment($query[$i]))
+		{
+			$query[$i+1] = $query[$i];
+			$query[$i] = ',';
+		}
+	    }
+    }
     $self->{ '_tokens' } = \@query;
 }
 
@@ -833,7 +846,8 @@ sub beautify
 	    }
             if (($self->{ '_is_in_with' } > 1 || $self->{ '_is_in_operator' })
 		    && !$self->{ '_parenthesis_level' } && !$self->{ '_parenthesis_with_level' }
-		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' }) {
+		    && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_policy' })
+	    {
                 $self->_new_line($token,$last) if (!$self->{ '_is_in_operator' } ||
 			(!$self->{ '_is_in_drop' } and $self->_next_token eq ';'));
 		if (!$self->{ '_is_in_operator' }) {
