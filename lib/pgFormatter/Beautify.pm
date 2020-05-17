@@ -2227,7 +2227,13 @@ sub beautify
 		}
                 $self->_add_token( $token );
                 $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
-                $self->_new_line($token,$last) if (!$self->_is_comment($token) or !defined $self->_next_token or $self->_next_token ne ')');
+                if (!$self->{ '_is_in_function' } and !$self->{ '_is_in_over' }
+				and (!$self->_is_comment($token) or !defined $self->_next_token
+					or $self->_next_token ne ')')
+		)
+		{
+		    $self->_new_line($token,$last);
+	        }
                 $self->{ 'break' } = " " unless ( $self->{ 'spaces' } != 0 );
             }
         }
@@ -3900,6 +3906,28 @@ that was removed by the _remove_comments() method.
 sub _restore_comments
 {
     my $self = shift;
+
+    if ($self->{'wrap_limit'})
+    {
+	foreach my $k (keys %{$self->{'comments'}})
+	{
+	    if ($self->{'comments'}{$k} =~ s/^(\s*)--//)
+	    {
+		my $indent = $1 || '';
+	        if (length($self->{'comments'}{$k}) > $self->{'wrap_limit'} + ($self->{'wrap_limit'}*10/100))
+	        {
+		    $Text::Wrap::columns = $self->{'wrap_limit'};
+		    my $t = wrap($indent, " "x$self->{ 'spaces' } . $indent . "-- ", $self->{'comments'}{$k});
+		    $t =~ s/\n --/\n--/gs if (!$indent);
+		    $t =~ s/^(\s*)/$1-- /;
+		    $t =~ s/ --/--/;
+	 	    $self->{'comments'}{$k} = $t;
+	        } else {
+			$self->{'comments'}{$k} .= $indent . "-- $self->{'comments'}{$k}\n";
+	        }
+	    }
+	}
+    }
 
     while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A)/$self->{'comments'}{$1}/s) { delete $self->{'comments'}{$1}; };
 }

@@ -1913,9 +1913,7 @@ SELECT
     dfunc (a => + 1);
 
 SELECT
-    dfunc (a =>
-        /**/
-        1);
+    dfunc (a => /**/ 1);
 
 SELECT
     dfunc (a => --comment to be removed by psql 1);
