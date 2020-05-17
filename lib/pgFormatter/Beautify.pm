@@ -2642,6 +2642,9 @@ sub _add_token
         $token =~ s/::($reg)/'::' . ucfirst(lc($1))/igse if ( $self->{ 'uc_types' } == 3 );
     }
 
+    # special case for MySQL
+    $self->{ 'content' } .=  ' ' if ($token eq ';' and $self->{ 'content' } =~ /DELIMITER$/);
+
     $self->{ 'content' } .= $token;
 
     # This can't be the beginning of a new line anymore.
