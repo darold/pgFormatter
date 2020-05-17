@@ -1443,6 +1443,7 @@ sub beautify
 			    and (uc($self->_next_token) ne 'WITH' or uc($self->{ '_tokens' }->[ 1 ]) ne 'TIME')
 	        );
 		$self->_new_line($token,$last) if ($add_nl);
+
                 if (!$self->{ '_is_in_grouping' } and !$self->{ '_is_in_trigger' }
 				and !$self->{ 'no_break' }
 				and $self->{ '_is_in_create' } <= 2
@@ -2219,8 +2220,11 @@ sub beautify
             if ( !$self->{ 'no_comments' } )
 	    {
                 $token =~ s/\n[\s\t]+\*/\n\*/gs;
-		$self->_new_line($token,$last), $self->_add_token('') if (defined $last and $last eq ';');
-                $self->_new_line($token,$last);
+		if (!$self->{ '_is_in_over' } and !$self->{ '_is_in_function' })
+		{
+		    $self->_new_line($token,$last), $self->_add_token('') if (defined $last and $last eq ';');
+		    $self->_new_line($token,$last);
+		}
                 $self->_add_token( $token );
                 $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
                 $self->_new_line($token,$last) if (!$self->_is_comment($token) or !defined $self->_next_token or $self->_next_token ne ')');
@@ -3858,6 +3862,7 @@ sub _remove_comments
         if ($lines[$j] =~ s/(\s*\-\-.*)$/PGF_COMMENT${idx}A/) {
             $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
             chomp($self->{'comments'}{"PGF_COMMENT${idx}A"});
+	    $self->{'comments'}{"PGF_COMMENT${idx}A"} .= "\n" if ($lines[$j] =~ /PGF_COMMENT${idx}A$/);
             $idx++;
         }
 
@@ -3869,6 +3874,7 @@ sub _remove_comments
             # Normalize start of comment
             $self->{'comments'}{"PGF_COMMENT${idx}A"} =~ s/^(\s*)COMMENT/$1\-\- /;
             $self->{'comments'}{"PGF_COMMENT${idx}A"} =~ s/^(\s*)\#/$1\-\- /;
+	    $self->{'comments'}{"PGF_COMMENT${idx}A"} .= "\n" if ($lines[$j] =~ /PGF_COMMENT${idx}A$/);
             $idx++;
         }
     }
@@ -3892,7 +3898,7 @@ sub _restore_comments
 {
     my $self = shift;
 
-    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A)[\n]*/$self->{'comments'}{$1}\n/s) { delete $self->{'comments'}{$1}; };
+    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A)/$self->{'comments'}{$1}/s) { delete $self->{'comments'}{$1}; };
 }
 
 =head2 wrap_lines
