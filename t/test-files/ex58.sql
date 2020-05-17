@@ -93,3 +93,24 @@ WITH table_A AS (
 	SELECT *
 	FROM table_B;
 
+--
+-- Example 1: two blank lines are added after this comment
+--
+WITH test AS (
+	SELECT 1 AS val FROM dual
+),
+--
+-- Unexpected indentation starts with next CTE segment
+--
+test2 AS (
+	SELECT 2 AS val
+	FROM dual
+)
+-- Test comment 2
+, test3 AS (
+	SELECT 4 AS val
+	FROM dual
+)
+-- Test comment
+SELECT *
+FROM test;

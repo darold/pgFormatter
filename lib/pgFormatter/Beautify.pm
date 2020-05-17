@@ -3848,55 +3848,61 @@ sub _remove_comments
         $idx++;
     }
     my @lines = split(/\n/, $self->{ 'content' });
-    for (my $j = 0; $j <= $#lines; $j++) {
+    for (my $j = 0; $j <= $#lines; $j++)
+    {
         $lines[$j] //= '';
         # Extract multiline comments as a single placeholder
         my $old_j = $j;
         my $cmt = '';
-        while ($j <= $#lines && $lines[$j] =~ /^(\s*\-\-.*)$/) {
+        while ($j <= $#lines && $lines[$j] =~ /^(\s*\-\-.*)$/)
+	{
             $cmt .= "$1\n";
             $j++;
         }
-        if ( $j > $old_j ) {
+        if ( $j > $old_j )
+	{
             chomp($cmt);
             $lines[$old_j] =~ s/^(\s*\-\-.*)$/PGF_COMMENT${idx}A/;
             $self->{'comments'}{"PGF_COMMENT${idx}A"} = $cmt;
             $idx++;
             $j--;
-            while ($j > $old_j) {
+            while ($j > $old_j)
+	    {
                 delete $lines[$j];
                 $j--;
             }
         }
-        if ($lines[$j] =~ s/(\s*\-\-.*)$/PGF_COMMENT${idx}A/) {
+        if ($lines[$j] =~ s/(\s*\-\-.*)$/PGF_COMMENT${idx}A/)
+	{
             $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
-            chomp($self->{'comments'}{"PGF_COMMENT${idx}A"});
-	    $self->{'comments'}{"PGF_COMMENT${idx}A"} .= "\n" if ($lines[$j] =~ /PGF_COMMENT${idx}A$/);
             $idx++;
         }
 
         # Mysql supports differents kinds of comment's starter
         if ( ($lines[$j] =~ s/(\s*COMMENT\s+'.*)$/PGF_COMMENT${idx}A/) ||
-        ($lines[$j] =~ s/(\s*\# .*)$/PGF_COMMENT${idx}A/) ) {
+        	($lines[$j] =~ s/(\s*\# .*)$/PGF_COMMENT${idx}A/) )
+	{
             $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
-            chomp($self->{'comments'}{"PGF_COMMENT${idx}A"});
             # Normalize start of comment
             $self->{'comments'}{"PGF_COMMENT${idx}A"} =~ s/^(\s*)COMMENT/$1\-\- /;
             $self->{'comments'}{"PGF_COMMENT${idx}A"} =~ s/^(\s*)\#/$1\-\- /;
-	    $self->{'comments'}{"PGF_COMMENT${idx}A"} .= "\n" if ($lines[$j] =~ /PGF_COMMENT${idx}A$/);
             $idx++;
         }
     }
     $self->{ 'content' } = join("\n", @lines);
 
+    # Remove extra newline after comment
+    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A\s)\s+/$1/s) {};
+
     # Replace subsequent comment by a single one
-    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A\s*PGF_COMMENT\d+A)/PGF_COMMENT${idx}A/s) {
+    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A\s*PGF_COMMENT\d+A)/PGF_COMMENT${idx}A/s)
+    {
         $self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
         $idx++;
     }
 }
 
-=head2 _restore_comments (OBSOLETE)
+=head2 _restore_comments
 
 Internal function used to restore comments in SQL code
 that was removed by the _remove_comments() method.
@@ -3911,10 +3917,14 @@ sub _restore_comments
     {
 	foreach my $k (keys %{$self->{'comments'}})
 	{
-	    if ($self->{'comments'}{$k} =~ s/^(\s*)--//)
+	    if ($self->{'comments'}{$k} =~ /^(\s*)--[\r\n]/s)
+	    {
+		    next;
+	    }
+	    elsif ($self->{'comments'}{$k} =~ s/^(\s*)--//)
 	    {
 		my $indent = $1 || '';
-	        if (length($self->{'comments'}{$k}) > $self->{'wrap_limit'} + ($self->{'wrap_limit'}*10/100))
+		if (length($self->{'comments'}{$k}) > $self->{'wrap_limit'} + ($self->{'wrap_limit'}*10/100))
 	        {
 		    $Text::Wrap::columns = $self->{'wrap_limit'};
 		    my $t = wrap($indent, " "x$self->{ 'spaces' } . $indent . "-- ", $self->{'comments'}{$k});
@@ -3923,7 +3933,7 @@ sub _restore_comments
 		    $t =~ s/ --/--/;
 	 	    $self->{'comments'}{$k} = $t;
 	        } else {
-			$self->{'comments'}{$k} .= $indent . "-- $self->{'comments'}{$k}\n";
+			$self->{'comments'}{$k} = $indent . "-- $self->{'comments'}{$k}";
 	        }
 	    }
 	}

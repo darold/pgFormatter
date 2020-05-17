@@ -17,6 +17,7 @@ foreach my $f (@files)
 	#$opt .= ' -t' if (grep(/^-t/, @ARGV) or $f =~ /float4\.sql/);
 	$opt .= ' -t' if (grep(/^-t/, @ARGV));
 	$opt = "-T -n " if ($f =~ m#/ex51.sql$#);
+	$opt = "--keyword-case 2 --function-case 1 --comma-start --wrap-after 1 --wrap-limit 40 --tabs --spaces 4 " if ($f =~ m#/ex58.sql$#);
 	my $cmd = "./pg_format $opt -u 2 $f >/tmp/output.sql";
 	`$cmd`;
 	$f =~ s/test-files\//test-files\/expected\//;
