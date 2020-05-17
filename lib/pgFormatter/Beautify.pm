@@ -1397,7 +1397,9 @@ sub beautify
             } elsif ($self->{ '_is_in_constraint' }) {
 		$self->{ '_is_in_constraint' }--;
 	    }
-            if ($self->{ '_is_in_with' } == 1 || $self->{ '_is_in_explain' }) {
+	    # Case of CTE and explain
+            if ($self->{ '_is_in_with' } == 1 || $self->{ '_is_in_explain' })
+	    {
                 $self->_back($token, $last);
 	        $self->_new_line($token,$last) if (!$self->{ 'wrap_after' } && !$self->{ '_is_in_overlaps' });
                 $self->_add_token( $token );
@@ -3892,7 +3894,7 @@ sub _remove_comments
     $self->{ 'content' } = join("\n", @lines);
 
     # Remove extra newline after comment
-    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A\s)\s+/$1/s) {};
+    while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A[\n])[\n]+/$1/s) {};
 
     # Replace subsequent comment by a single one
     while ($self->{ 'content' } =~ s/(PGF_COMMENT\d+A\s*PGF_COMMENT\d+A)/PGF_COMMENT${idx}A/s)
@@ -3921,18 +3923,21 @@ sub _restore_comments
 	    {
 		    next;
 	    }
-	    elsif ($self->{'comments'}{$k} =~ s/^(\s*)--//)
+	    elsif ($self->{'comments'}{$k} =~ /^(\s*)--/)
 	    {
 		my $indent = $1 || '';
 		if (length($self->{'comments'}{$k}) > $self->{'wrap_limit'} + ($self->{'wrap_limit'}*10/100))
 	        {
+		    my @data = split(/\n/, $self->{'comments'}{$k});
+		    map { s/^\s*--\s*//; } @data;
+		    $self->{'comments'}{$k} = join("\n", @data);
 		    $Text::Wrap::columns = $self->{'wrap_limit'};
-		    my $t = wrap($indent, " "x$self->{ 'spaces' } . $indent . "-- ", $self->{'comments'}{$k});
-		    $t =~ s/\n --/\n--/gs if (!$indent);
-		    $t =~ s/^(\s*)/$1-- /;
-		    $t =~ s/ --/--/;
-	 	    $self->{'comments'}{$k} = $t;
+		    my $t = wrap('', '', $self->{'comments'}{$k});
+		    @data = split(/\n/, $t);
+		    map { s/^/$indent-- /; } @data;
+		    $self->{'comments'}{$k} = join("\n", @data);
 	        } else {
+			$self->{'comments'}{$k} =~ s/^\s*--\s*//s;
 			$self->{'comments'}{$k} = $indent . "-- $self->{'comments'}{$k}";
 	        }
 	    }
