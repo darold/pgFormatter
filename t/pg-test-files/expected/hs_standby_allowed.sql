@@ -184,3 +184,4 @@ UNLISTEN *;
 CHECKPOINT;
 
 discard ALL;
+

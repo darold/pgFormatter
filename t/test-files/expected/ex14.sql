@@ -44,3 +44,4 @@ CREATE TYPE jwt_token AS (
     token text,
     field: text
 );
+

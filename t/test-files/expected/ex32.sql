@@ -19,3 +19,4 @@ CREATE TABLE sample (
     other integer,
     columns integer
 );
+

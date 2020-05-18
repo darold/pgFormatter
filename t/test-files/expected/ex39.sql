@@ -13,3 +13,4 @@ ALTER TABLE ONLY public.circles
 
 ALTER TABLE truck
     ADD EXCLUDE USING gist (id WITH =, system_period WITH &&);
+

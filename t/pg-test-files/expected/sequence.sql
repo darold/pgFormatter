@@ -751,3 +751,4 @@ SELECT
     nextval('test_seq1');
 
 DROP SEQUENCE test_seq1;
+

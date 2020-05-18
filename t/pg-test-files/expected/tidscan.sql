@@ -313,3 +313,4 @@ FROM
 RESET enable_hashjoin;
 
 DROP TABLE tidscan;
+

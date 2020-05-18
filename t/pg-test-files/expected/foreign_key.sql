@@ -3677,3 +3677,4 @@ CREATE TABLE fkpart7.fk (
 );
 
 DROP SCHEMA fkpart7 CASCADE;
+

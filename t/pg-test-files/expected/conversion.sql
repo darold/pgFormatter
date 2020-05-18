@@ -56,3 +56,4 @@ DROP CONVERSION mydef;
 RESET SESSION AUTHORIZATION;
 
 DROP USER regress_conversion_user;
+

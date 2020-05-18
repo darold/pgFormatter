@@ -537,3 +537,4 @@ FOR VALUES FROM ('2016-07-01') TO ('2016-08-01');
 
 -- error
 DROP TABLE itest_parent;
+

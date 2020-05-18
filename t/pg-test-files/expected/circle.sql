@@ -105,3 +105,4 @@ ORDER BY
     distance,
     area(c1.f1),
     area(c2.f1);
+

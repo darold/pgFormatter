@@ -513,3 +513,4 @@ DROP TABLE vacowned;
 DROP TABLE vacowned_parted;
 
 DROP ROLE regress_vacuum;
+

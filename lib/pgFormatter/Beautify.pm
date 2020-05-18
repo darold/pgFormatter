@@ -2424,9 +2424,7 @@ sub beautify
         $pos++;
     }
 
-    $self->_new_line() if ($self->{ 'content' } !~ /;$/s);
-
-    $self->{ 'content' } =~ s/\s+$/\n/s;
+    $self->_new_line();
 
     return;
 }

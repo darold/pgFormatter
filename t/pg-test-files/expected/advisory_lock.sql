@@ -282,3 +282,4 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory';
+

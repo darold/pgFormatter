@@ -406,3 +406,4 @@ CREATE FUNCTION infinite_recurse ()
 \set VERBOSITY terse
 SELECT
     infinite_recurse ();
+

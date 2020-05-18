@@ -2689,3 +2689,4 @@ FROM
     test;
 
 DROP TABLE test;
+

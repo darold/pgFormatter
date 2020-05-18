@@ -459,3 +459,4 @@ DROP SCHEMA temp_func_test CASCADE;
 DROP USER regress_unpriv_user;
 
 RESET search_path;
+

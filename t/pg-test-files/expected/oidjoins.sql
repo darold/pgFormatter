@@ -2556,3 +2556,4 @@ WHERE
             pg_catalog.pg_type pk
         WHERE
             pk.oid = fk.proallargtypes);
+

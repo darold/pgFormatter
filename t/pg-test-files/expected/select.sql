@@ -729,3 +729,4 @@ FROM
     list_parted_tbl;
 
 DROP TABLE list_parted_tbl;
+

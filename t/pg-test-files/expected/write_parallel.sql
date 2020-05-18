@@ -80,3 +80,4 @@ CREATE TABLE parallel_write AS
 EXECUTE prep_stmt;
 DROP TABLE parallel_write;
 ROLLBACK;
+

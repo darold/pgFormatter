@@ -29,3 +29,4 @@ FROM
     items_sold
 GROUP BY
     ROLLUP (make, model);
+

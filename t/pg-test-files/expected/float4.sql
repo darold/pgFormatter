@@ -713,3 +713,4 @@ FROM (
 
 -- clean up, lest opr_sanity complain
 DROP TYPE xfloat4 CASCADE;
+

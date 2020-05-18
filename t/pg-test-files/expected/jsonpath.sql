@@ -489,3 +489,4 @@ SELECT
 
 SELECT
     '(1.).e3'::jsonpath;
+

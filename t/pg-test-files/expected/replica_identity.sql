@@ -174,3 +174,4 @@ WHERE
 DROP TABLE test_replica_identity;
 
 DROP TABLE test_replica_identity_othertable;
+

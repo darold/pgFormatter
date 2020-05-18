@@ -49,3 +49,4 @@ SELECT
     current_schema;
 
 RESET search_path;
+

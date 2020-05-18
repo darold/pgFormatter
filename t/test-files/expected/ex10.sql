@@ -18,3 +18,4 @@ SELECT
     *
 FROM
     b;
+

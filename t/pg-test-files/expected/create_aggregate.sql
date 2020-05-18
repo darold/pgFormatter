@@ -340,3 +340,4 @@ CREATE AGGREGATE case_agg (float8) (
     "Finalfunc_modify" = READ_WRITE,
     "Parallel" = safe
 );
+

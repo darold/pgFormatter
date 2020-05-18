@@ -164,3 +164,4 @@ GROUP BY
     price.column5,
     price.column6,
     price.column7;
+

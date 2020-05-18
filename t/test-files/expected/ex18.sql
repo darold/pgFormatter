@@ -14,3 +14,4 @@ BEGIN;
 GRANT USAGE ON SCHEMA custom TO authenticated;
 GRANT USAGE ON SCHEMA custom TO authenticated;
 COMMIT;
+

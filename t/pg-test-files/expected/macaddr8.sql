@@ -318,3 +318,4 @@ FROM
     macaddr8_data;
 
 DROP TABLE macaddr8_data;
+

@@ -126,3 +126,4 @@ SELECT
     *
 FROM
     CHAR_TBL;
+

@@ -8,3 +8,4 @@ FROM
 WHERE
     id > 10
     AND id <= 20;
+

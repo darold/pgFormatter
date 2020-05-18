@@ -702,3 +702,4 @@ SELECT
 
 SELECT
     encode(overlay(E'Th\\000omas'::bytea PLACING E'\\002\\003'::bytea FROM 5 FOR 3), 'escape');
+

@@ -191,3 +191,4 @@ CREATE TRIGGER base_tab_def_view_instrig
     INSTEAD OF INSERT ON base_tab_def_view
     FOR EACH ROW
     EXECUTE FUNCTION base_tab_def_view_instrig_func ();
+

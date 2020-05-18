@@ -2430,3 +2430,4 @@ RESET search_path;
 CREATE COLLATION coll_icu_upgrade
 FROM
     "und-x-icu";
+

@@ -249,3 +249,4 @@ RESET enable_bitmapscan;
 RESET enable_indexonlyscan;
 
 DROP TABLE gist_tbl;
+

@@ -825,3 +825,4 @@ ALTER TABLE tbl
 
 \d tbl
 DROP TABLE tbl;
+

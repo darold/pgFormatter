@@ -312,3 +312,4 @@ FROM
     ctv_data \crosstabview
 
 DROP TABLE ctv_data;
+

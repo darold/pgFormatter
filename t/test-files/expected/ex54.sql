@@ -299,3 +299,4 @@ AS $$
     INSERT INTO tbl
         VALUES (b);
 $$;
+

@@ -941,3 +941,4 @@ SELECT
 
 SELECT
     make_time(24, 0, 2.1);
+

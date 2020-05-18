@@ -379,3 +379,4 @@ EXPLAIN (
 ) EXECUTE test_mode_pp (2);
 
 DROP TABLE test_mode;
+

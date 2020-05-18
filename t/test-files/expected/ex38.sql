@@ -13,3 +13,4 @@ CREATE TRIGGER check_update
     FOR EACH ROW
     WHEN (OLD.balance IS DISTINCT FROM NEW.balance)
     EXECUTE PROCEDURE check_account_update ();
+

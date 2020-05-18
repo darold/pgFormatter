@@ -37,3 +37,4 @@ FROM (
             1 i) ON (c.i = a.i)
 WHERE
     a.i = 1;
+

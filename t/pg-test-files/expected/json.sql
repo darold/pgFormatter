@@ -1935,3 +1935,4 @@ SELECT
 
 SELECT
     ts_headline('[]'::json, tsquery ('aaa & bbb'));
+

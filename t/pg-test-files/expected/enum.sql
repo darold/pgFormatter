@@ -757,3 +757,4 @@ WHERE
             pg_type
         WHERE
             pg_type.oid = enumtypid);
+

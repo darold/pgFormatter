@@ -6,3 +6,4 @@ SELECT
     '',
     count(*),
     'that\'s the position you\'re in now no matter where you select it';
+

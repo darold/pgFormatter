@@ -88,3 +88,4 @@ FROM
 HAVING
     AVG(random)
     NOT BETWEEN 80 AND 120;
+

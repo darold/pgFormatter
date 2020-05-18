@@ -80,3 +80,4 @@ INSERT INTO tt_tmp_wrk1 (
         BIP
     WHERE
         BIP = (MAR)::int);
+

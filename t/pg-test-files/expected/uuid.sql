@@ -165,3 +165,4 @@ WHERE
 
 -- clean up
 DROP TABLE guid1, guid2 CASCADE;
+

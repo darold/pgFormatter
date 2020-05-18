@@ -21,3 +21,4 @@ WHERE
 PREPARE demo AS
 DELETE FROM demo
 WHERE id IN (1, 2, 3, 4);
+

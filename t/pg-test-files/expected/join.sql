@@ -4966,3 +4966,4 @@ WHERE
     AND t1.unique1 < 1;
 
 DROP TABLE j3;
+

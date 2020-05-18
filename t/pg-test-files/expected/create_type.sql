@@ -230,3 +230,4 @@ SELECT
 -- this behavior difference is intentional
 SELECT
     format_type('bpchar'::regtype, - 1);
+

@@ -85,3 +85,4 @@ DROP TABLE seclabel_tbl2;
 DROP USER regress_seclabel_user1;
 
 DROP USER regress_seclabel_user2;
+

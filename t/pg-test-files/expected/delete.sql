@@ -42,3 +42,4 @@ FROM
     delete_test;
 
 DROP TABLE delete_test;
+

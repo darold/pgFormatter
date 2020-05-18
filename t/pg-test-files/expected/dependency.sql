@@ -192,3 +192,4 @@ DROP OWNED BY regress_dep_user2, regress_dep_user0;
 DROP USER regress_dep_user2;
 
 DROP USER regress_dep_user0;
+

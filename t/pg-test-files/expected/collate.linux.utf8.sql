@@ -1282,3 +1282,4 @@ CREATE COLLATION ctest_nondet (
 SET client_min_messages TO warning;
 
 DROP SCHEMA collate_tests CASCADE;
+

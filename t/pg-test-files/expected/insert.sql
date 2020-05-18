@@ -1408,3 +1408,4 @@ RETURNING
     returningwrtest;
 
 DROP TABLE returningwrtest;
+

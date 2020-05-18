@@ -620,3 +620,4 @@ SELECT
 DROP TABLE few;
 
 DROP TABLE fewmore;
+

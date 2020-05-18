@@ -33,3 +33,4 @@ ORDER BY
     (current_database())::information_schema.sql_identifier,
     (nt.nspname)::information_schema.sql_identifier,
     (t.relname)::information_schema.sql_identifier;
+

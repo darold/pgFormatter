@@ -631,3 +631,4 @@ DROP EVENT TRIGGER start_rls_command;
 DROP EVENT TRIGGER end_rls_command;
 
 DROP EVENT TRIGGER sql_drop_command;
+

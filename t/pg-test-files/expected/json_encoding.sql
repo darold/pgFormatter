@@ -157,3 +157,4 @@ SELECT
 
 SELECT
     jsonb '{ "a":  "null \\u0000 escape" }' ->> 'a' AS not_an_escape;
+

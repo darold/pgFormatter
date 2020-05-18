@@ -14,3 +14,4 @@ SELECT
         END) AS looks_wrong
 FROM
     test;
+

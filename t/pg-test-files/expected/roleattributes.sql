@@ -646,3 +646,4 @@ DROP ROLE regress_test_replication;
 DROP ROLE regress_test_def_bypassrls;
 
 DROP ROLE regress_test_bypassrls;
+

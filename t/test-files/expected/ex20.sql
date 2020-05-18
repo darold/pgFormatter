@@ -11,3 +11,4 @@ WHERE
 GROUP BY
     t.table_schema,
     t.table_name;
+

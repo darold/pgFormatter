@@ -1565,3 +1565,4 @@ WHERE
 DROP SCHEMA temp_view_test CASCADE;
 
 DROP SCHEMA testviewschm2 CASCADE;
+

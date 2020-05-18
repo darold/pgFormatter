@@ -5871,3 +5871,4 @@ DROP OPERATOR class at_test_sql_partop
     USING btree;
 
 DROP FUNCTION at_test_sql_partop;
+

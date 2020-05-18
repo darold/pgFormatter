@@ -366,3 +366,4 @@ CREATE TEXT SEARCH DICTIONARY tsdict_case (
     "DictFile" = ispell_sample,
     "AffFile" = ispell_sample
 );
+

@@ -17,3 +17,4 @@ GROUP BY
 ORDER BY
     tablea.a,
     tablec.c;
+

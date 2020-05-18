@@ -3038,3 +3038,4 @@ REVOKE TRUNCATE ON lock_table FROM regress_locktable_user;
 DROP TABLE lock_table;
 
 DROP USER regress_locktable_user;
+

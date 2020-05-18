@@ -355,3 +355,4 @@ RESET enable_seqscan;
 RESET enable_indexscan;
 
 RESET enable_bitmapscan;
+

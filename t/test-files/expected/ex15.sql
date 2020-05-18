@@ -30,3 +30,4 @@ FROM ( -- Get the first time each user viewed the homepage.
         ORDER BY
             time
         LIMIT 1) e2 ON TRUE;
+
