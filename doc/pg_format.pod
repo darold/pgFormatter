@@ -31,7 +31,8 @@ Options:
     -a | --anonymize      : obscure all literals in queries, useful to hide
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
-    -B | --comma-break    : in insert statement, add a newline after each comma
+    -B | --comma-break    : in insert statement, add a newline after each comma.
+    -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
     -f | --function-case N: Change the case of the reserved keyword. Default is
@@ -149,6 +150,12 @@ of the query at the limit unless it is a comment. For example if
 the limit is reach in a text constant the text will be wrapped.
 Indentation is not included in the character count. This option
 is applied in all cases even if other options are used.
+
+=head2 Option -C, --wrap-comment
+
+This option wraps comments at the length defined by -w, --wrap-limit
+whatever is the part of the comment. Indentation is not included in
+the character count.
 
 =head2 Option -t, --format-type
 

@@ -140,6 +140,8 @@ Takes options as hash. Following options are recognized:
 
 =item * wrap_after - number of column after which lists must be wrapped
 
+=item * wrap_comment - apply wrapping to comments starting with --
+
 =item * numbering - statement numbering as a comment before each query
 
 =item * redshift - add Redshift keywords
@@ -158,7 +160,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after numbering redshift) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -183,12 +185,12 @@ sub new
         $self->{ 'comma' } = lc($self->{ 'comma' });
     }
 
-    $self->{ 'format' } //= 'text';
-    $self->{ 'colorize' } //= 1;
-
-    $self->{ 'format_type' } //= 0;
-    $self->{ 'wrap_limit' } //= 0;
-    $self->{ 'wrap_after' } //= 0;
+    $self->{ 'format' }       //= 'text';
+    $self->{ 'colorize' }     //= 1;
+    $self->{ 'format_type' }  //= 0;
+    $self->{ 'wrap_limit' }   //= 0;
+    $self->{ 'wrap_after' }   //= 0;
+    $self->{ 'wrap_comment' } //= 0;
 
     return $self;
 }
@@ -3194,6 +3196,8 @@ Currently defined defaults:
 
 =item wrap_after => 0
 
+=item wrap_comment => 0
+
 =back
 
 =cut
@@ -3228,6 +3232,7 @@ sub set_defaults
     $self->{ 'format_type' }  = 0;
     $self->{ 'wrap_limit' }   = 0;
     $self->{ 'wrap_after' }   = 0;
+    $self->{ 'wrap_comment' } = 0;
 
     return;
 }
@@ -3913,9 +3918,9 @@ that was removed by the _remove_comments() method.
 
 sub _restore_comments
 {
-    my $self = shift;
+    my ($self, $wrap_comment) = @_;
 
-    if ($self->{'wrap_limit'})
+    if ($self->{'wrap_limit'} && $wrap_comment)
     {
 	foreach my $k (keys %{$self->{'comments'}})
 	{
@@ -3929,16 +3934,16 @@ sub _restore_comments
 		if (length($self->{'comments'}{$k}) > $self->{'wrap_limit'} + ($self->{'wrap_limit'}*10/100))
 	        {
 		    my @data = split(/\n/, $self->{'comments'}{$k});
-		    map { s/^\s*--\s*//; } @data;
+		    map { s/^\s*--//; } @data;
 		    $self->{'comments'}{$k} = join("\n", @data);
 		    $Text::Wrap::columns = $self->{'wrap_limit'};
-		    my $t = wrap('', '', $self->{'comments'}{$k});
+		    my $t = wrap('', ' ', $self->{'comments'}{$k});
 		    @data = split(/\n/, $t);
-		    map { s/^/$indent-- /; } @data;
+		    map { s/^/$indent--/; } @data;
 		    $self->{'comments'}{$k} = join("\n", @data);
 	        } else {
-			$self->{'comments'}{$k} =~ s/^\s*--\s*//s;
-			$self->{'comments'}{$k} = $indent . "-- $self->{'comments'}{$k}";
+			$self->{'comments'}{$k} =~ s/^\s*--//s;
+			$self->{'comments'}{$k} = $indent . "--$self->{'comments'}{$k}";
 	        }
 	    }
 	}
@@ -3955,7 +3960,7 @@ Internal function used to wrap line at a certain length.
 
 sub wrap_lines
 {
-    my $self = shift;
+    my ($self, $wrap_comment) = @_;
 
     return if (!$self->{'wrap_limit'} || !$self->{ 'content' });
 
@@ -3981,7 +3986,7 @@ sub wrap_lines
 	}
     }
 
-    $self->_restore_comments() if ($self->{ 'content' });
+    $self->_restore_comments($wrap_comment || $self->{ 'wrap_comment' }) if ($self->{ 'content' });
 
     return;
 }

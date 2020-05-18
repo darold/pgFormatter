@@ -114,3 +114,73 @@ test2 AS (
 -- Test comment
 SELECT *
 FROM test;
+
+
+-- Example 1: BEFORE formatting
+-- test comment
+WITH
+--
+-- CTE1 comment
+--
+test1 AS (
+	SELECT
+		/* comment X */
+		trunc(sysdate) - 1 AS col_a --  test
+		, test_c.*
+		-- Test aa b pppppppppp zzzzzzzzz xxxxxxx zzzzzzzzzzzz - TODO aa bbbbbbb cccccccccc ddddddddddd
+		-- , mid comment 2 - TODO - 2
+		-- , mid comment 3
+		, 2 AS col_b
+		-- comment a1
+		-- comment a2
+		, trunc(sysdate) AS col_c
+		-- Spaces after at line start are added into comments
+		, coalesce(1 , 0) AS col_d
+		, coalesce(2 , 0) AS col_e
+		--
+		-- Column group comment:
+		-- col_f - x1
+		-- col_g - x2
+		--
+		, 1 AS col_f
+		, 3 AS col_g
+		--   , 1 AS PARD
+		, 4 AS col_h
+		, 5 AS col_i
+		, 6 AS col_j
+		--
+		--, 4 as col_h
+		--, 5 as col_i
+		--, 6 as col_j
+	FROM
+	--  join comment
+	(
+		SELECT *
+		FROM (
+			SELECT /* subquery comment a */ max(1) test_a
+			FROM dual
+			) test_1a
+			CROSS JOIN 
+			(
+			SELECT /* subquery comment b */ max(2) AS test_b
+			FROM dual) test_1b
+	) test_c
+)
+--  CTE2 comment
+--
+, test2 AS (
+	SELECT 1 AS test2_col_a
+	FROM dual
+)
+SELECT *
+FROM test2;
+
+-- Example 1: BEFORE formatting
+SELECT '
+--- 	VAL_1	VAL_2
+long text multi line
+end of text
+--- 
+' as text_col_value
+from dual;
+

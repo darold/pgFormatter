@@ -67,7 +67,7 @@ sub run {
     $self->beautify();
     if ($self->{'wrap_limit'}) {
 	    $self->logmsg( 'DEBUG', 'Wrap query' );
-	    $self->wrap_lines();
+	    $self->wrap_lines($self->{'wrap_comment'});
     }
     $self->logmsg( 'DEBUG', 'Writing output' );
     $self->save_output();
@@ -102,6 +102,7 @@ sub beautify {
     $args{ 'no_grouping' }  = $self->{ 'cfg' }->{ 'nogrouping' };
     $args{ 'numbering' }    = $self->{ 'cfg' }->{ 'numbering' };
     $args{ 'redshift' }     = $self->{ 'cfg' }->{ 'redshift' };
+    $args{ 'wrap_comment' } = $self->{ 'cfg' }->{ 'wrap-comment' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -113,7 +114,7 @@ sub beautify {
     $beautifier->beautify();
     if ($self->{ 'cfg' }->{ 'wrap-limit' }) {
 	    $self->logmsg( 'DEBUG', 'Wrap query' );
-	    $beautifier->wrap_lines();
+	    $beautifier->wrap_lines($self->{ 'cfg' }->{ 'wrap-comment' });
     }
 
     $self->{ 'ready' } = $beautifier->content();
@@ -192,7 +193,8 @@ Options:
     -a | --anonymize      : obscure all literals in queries, useful to hide
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
-    -B | --comma-break    : in insert statement, add a newline after each comma
+    -B | --comma-break    : in insert statement, add a newline after each comma.
+    -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
     -f | --function-case N: Change the case of the reserved keyword. Default is
@@ -296,6 +298,7 @@ sub get_command_line_args {
         'version|v!',
         'wrap-limit|w=i',
         'wrap-after|W=i',
+        'wrap-comment|C!',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -319,6 +322,7 @@ sub get_command_line_args {
     $cfg{ 'format-type' }   //= 0;
     $cfg{ 'wrap-limit' }    //= 0;
     $cfg{ 'wrap-after' }    //= 0;
+    $cfg{ 'wrap-comment' }  //= 0;
     $cfg{ 'space' }         //= ' ';
     $cfg{ 'numbering' }     //= 0;
     $cfg{ 'redshift' }      //= 0;
