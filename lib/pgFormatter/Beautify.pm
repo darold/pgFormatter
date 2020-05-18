@@ -456,6 +456,8 @@ sub tokenize_sql
         (
 		(?:\\(?:copyright|errverbose|gx|gexec|gset|gdesc|q|crosstabview|watch|\?|copy|qecho|echo|if|elif|else|endif|edit|ir|include_relative|include|warn|write|html|print|out|ef|ev|h|H|i|p|r|s|w|o|e|g|q|d(?:[aAbcCdDeEfFgilLmnoOpPrRstTuvwxy+]{0,3})?|l\+?|sf\+?|sv\+?|z|a|C|f|H|t|T|x|c|pset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|reset|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!))(?:$|[\n]|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
 		|
+		\/\/			# mysql delimiter ( $$ is handled later with PG code delimiters )
+		|
 		(?:\s*--)[\ \t\S]*      # single line comments
 		|
 		(?:\-\|\-) # range operator "is adjacent to"
@@ -499,7 +501,7 @@ sub tokenize_sql
 		|
 		(?:\$\w+\$)
                 |
-                (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$ ) # dollar expressions - eg $_$ $3 $$ $BODY$
+                (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$) # dollar expressions - eg $_$ $3 $$ $BODY$
                 |
                 \n                      # newline
                 |
@@ -685,6 +687,7 @@ sub beautify
     $self->{ '_not_a_type' } = 0;
     $self->{ 'stmt_number' } = 1;
     $self->{ '_is_subquery' } = 0;
+    $self->{ '_mysql_delimiter' } = '';
 
     my $last = '';
     $self->tokenize_sql();
@@ -710,7 +713,8 @@ sub beautify
         ####
         # Find if the current keyword is a known function name
         ####
-        if (defined $last && $last && defined $self->_next_token and $self->_next_token eq '(') {
+        if (defined $last && $last && defined $self->_next_token and $self->_next_token eq '(')
+	{
             my $word = lc($token);
             $word =~ s/^[^\.]+\.//;
             $word =~ s/^:://;
@@ -975,6 +979,27 @@ sub beautify
             $last = $self->_set_last($token, $last);
             next;
         }
+
+	# Special case for MySQL delimiter
+        if ( uc($token) eq 'DELIMITER' && defined $self->_next_token &&
+		($self->_next_token eq '//' or $self->_next_token eq '$$'))
+        {
+		$self->{ '_mysql_delimiter' } = $self->_next_token;
+	}
+	elsif (uc($token) eq 'DELIMITER' && defined $self->_next_token &&
+		$self->_next_token eq ';')
+	{
+		$self->{ '_mysql_delimiter' } = '';
+	}
+	# case of the delimiter alone
+	if ($self->{ '_mysql_delimiter' } && $token eq $self->{ '_mysql_delimiter' })
+	{
+	    $self->{ 'content' } =~ s/\n\n$/\n/s;
+            $self->_add_token( $token );
+	    $self->_new_line($token,$last);
+            $last = $self->_set_last(';', $last);
+	    next
+	}
 
 	####
 	# Mark that we are in a CALL statement to remove any new line
@@ -2653,8 +2678,10 @@ sub _add_token
     }
 
     # special case for MySQL
-    $self->{ 'content' } .=  ' ' if ($token eq ';' and $self->{ 'content' } =~ /DELIMITER$/);
-
+    if ($token =~ /^(;|\$\$|\/\/)$/ and $self->{ 'content' } =~ /DELIMITER\s*$/)
+    {
+        $self->{ 'content' } .=  ' ' if ($self->{ 'content' } !~ /DELIMITER\s$/);
+    }
     $self->{ 'content' } .= $token;
 
     # This can't be the beginning of a new line anymore.
