@@ -126,7 +126,7 @@ Takes options as hash. Following options are recognized:
 
 =back
 
-=item * separator - string used as dynamic code separator, default is single quote.
+=item * separator - string used as dynamic code separator, default is single quote
 
 =item * uc_keywords - what to do with keywords - meaning of value like with uc_functions
 
@@ -146,6 +146,8 @@ Takes options as hash. Following options are recognized:
 
 =item * redshift - add Redshift keywords
 
+=item * no_extra_line - do not add an extra empty line at end of the output
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -160,7 +162,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -185,12 +187,13 @@ sub new
         $self->{ 'comma' } = lc($self->{ 'comma' });
     }
 
-    $self->{ 'format' }       //= 'text';
-    $self->{ 'colorize' }     //= 1;
-    $self->{ 'format_type' }  //= 0;
-    $self->{ 'wrap_limit' }   //= 0;
-    $self->{ 'wrap_after' }   //= 0;
-    $self->{ 'wrap_comment' } //= 0;
+    $self->{ 'format' }        //= 'text';
+    $self->{ 'colorize' }      //= 1;
+    $self->{ 'format_type' }   //= 0;
+    $self->{ 'wrap_limit' }    //= 0;
+    $self->{ 'wrap_after' }    //= 0;
+    $self->{ 'wrap_comment' }  //= 0;
+    $self->{ 'no_extra_line' } //= 0;
 
     return $self;
 }
@@ -2424,7 +2427,15 @@ sub beautify
         $pos++;
     }
 
-    $self->_new_line();
+    if ($self->{ 'no_extra_line' })
+    {
+        $self->_new_line() if ($self->{ 'content' } !~ /;$/s);
+        $self->{ 'content' } =~ s/\s+$/\n/s;
+    }
+    else
+    {
+        $self->_new_line();
+    }
 
     return;
 }
@@ -3225,6 +3236,8 @@ Currently defined defaults:
 
 =item wrap_comment => 0
 
+=item no_extra_line => 0
+
 =back
 
 =cut
@@ -3252,14 +3265,15 @@ sub set_defaults
     $self->{ 'functions' }    = ();
     push(@{ $self->{ 'functions' } }, keys %{ $self->{ 'dict' }->{ 'pg_functions' } });
     $self->_refresh_functions_re();
-    $self->{ 'separator' }    = '';
-    $self->{ 'comma' }        = 'end';
-    $self->{ 'format' }       = 'text';
-    $self->{ 'colorize' }     = 1;
-    $self->{ 'format_type' }  = 0;
-    $self->{ 'wrap_limit' }   = 0;
-    $self->{ 'wrap_after' }   = 0;
-    $self->{ 'wrap_comment' } = 0;
+    $self->{ 'separator' }     = '';
+    $self->{ 'comma' }         = 'end';
+    $self->{ 'format' }        = 'text';
+    $self->{ 'colorize' }      = 1;
+    $self->{ 'format_type' }   = 0;
+    $self->{ 'wrap_limit' }    = 0;
+    $self->{ 'wrap_after' }    = 0;
+    $self->{ 'wrap_comment' }  = 0;
+    $self->{ 'no_extra_line' } = 0;
 
     return;
 }

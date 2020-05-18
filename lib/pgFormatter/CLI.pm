@@ -103,6 +103,7 @@ sub beautify {
     $args{ 'numbering' }    = $self->{ 'cfg' }->{ 'numbering' };
     $args{ 'redshift' }     = $self->{ 'cfg' }->{ 'redshift' };
     $args{ 'wrap_comment' } = $self->{ 'cfg' }->{ 'wrap-comment' };
+    $args{ 'no_extra_line' }= $self->{ 'cfg' }->{ 'no-extra-line' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -204,6 +205,7 @@ Options:
     -g | --nogrouping     : add a newline between statements in transaction
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
+    -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
@@ -277,12 +279,14 @@ sub get_command_line_args {
         'anonymize|a!',
         'comma-start|b!',
         'comma-break|B!',
-        'comma-end|e!',
+        'wrap-comment|C!',
         'debug|d!',
+        'comma-end|e!',
 	'format|F=s',
-        'function-case|f=i',
         'nogrouping|g!',
         'help|h!',
+        'function-case|f=i',
+	'no-extra-line|L!',
         'maxlength|m=i',
         'nocomment|n!',
         'numbering|N!',
@@ -298,7 +302,6 @@ sub get_command_line_args {
         'version|v!',
         'wrap-limit|w=i',
         'wrap-after|W=i',
-        'wrap-comment|C!',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -326,6 +329,7 @@ sub get_command_line_args {
     $cfg{ 'space' }         //= ' ';
     $cfg{ 'numbering' }     //= 0;
     $cfg{ 'redshift' }      //= 0;
+    $cfg{ 'no-extra-line' } //= 0;
 
     if ($cfg{ 'tabs' }) {
         $cfg{ 'spaces' } = 1;

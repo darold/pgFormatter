@@ -42,6 +42,7 @@ Options:
     -g | --nogrouping     : add a newline between statements in transaction
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
+    -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
@@ -191,6 +192,13 @@ transaction:
     COMMIT;
 
 This might add readability to not DML transactions.
+
+=head2 Option -L, --no-extra-line
+
+By default pgFormatter always adds an empty line after the end of a
+statement when it is terminated by a ; except in a plpgsql code block.
+If the extra empty line at end of the output is useless, you can remove
+it by adding this option to the command line.
 
 =head1 HINTS
 
