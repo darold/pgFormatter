@@ -1519,4 +1519,3 @@ DROP OPERATOR class custom_opclass
     USING HASH;
 
 DROP FUNCTION dummy_hashint4 (a int4, seed int8);
-

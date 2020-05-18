@@ -1051,4 +1051,3 @@ DROP ROLE regress_testrol0, regress_testrol1, regress_testrol2, regress_testrolx
 DROP ROLE "Public", "None", "current_user", "session_user", "user";
 
 DROP ROLE regress_role_haspriv, regress_role_nopriv;
-

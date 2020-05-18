@@ -42,4 +42,3 @@ SET
 WHERE
     KEY = 1;
 ROLLBACK TO s;
-

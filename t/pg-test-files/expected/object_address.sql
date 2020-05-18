@@ -379,4 +379,3 @@ DROP SCHEMA addr_nsp CASCADE;
 DROP OWNED BY regress_addr_user;
 
 DROP USER regress_addr_user;
-

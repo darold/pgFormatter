@@ -81,4 +81,3 @@ EXPLAIN (COSTS OFF, ANALYZE)
 SELECT count(*)
 FROM quad_point_tbl
 WHERE p IS NULL;
-

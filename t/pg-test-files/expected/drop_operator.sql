@@ -94,4 +94,3 @@ WHERE
             pk.oid = fk.oprnegate);
 
 DROP OPERATOR <||<| (bigint, bigint);
-

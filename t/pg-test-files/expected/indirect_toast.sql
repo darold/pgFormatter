@@ -140,4 +140,3 @@ FROM
 DROP TABLE indtoasttest;
 
 DROP FUNCTION update_using_indirect ();
-

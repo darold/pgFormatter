@@ -251,4 +251,3 @@ DROP ROUTINE IF EXISTS test_ambiguous_procname;
 DROP PROCEDURE test_ambiguous_procname (int);
 
 DROP PROCEDURE test_ambiguous_procname (text);
-

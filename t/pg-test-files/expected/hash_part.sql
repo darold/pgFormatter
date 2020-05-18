@@ -122,4 +122,3 @@ DROP TABLE mchash;
 DROP TABLE mcinthash;
 
 DROP TABLE text_hashp;
-

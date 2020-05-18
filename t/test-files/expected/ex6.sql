@@ -13,4 +13,3 @@ CREATE TABLE foobar (
     FOREIGN KEY (prev_id, prev_version) REFERENCES foobar (id, version),
     FOREIGN KEY (id, version) REFERENCES barfoo (next_id, next_version)
 );
-

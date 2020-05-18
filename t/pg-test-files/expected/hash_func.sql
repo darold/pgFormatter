@@ -419,4 +419,3 @@ FROM (
 WHERE
     hash_range(v)::bit(32) != hash_range_extended(v, 0)::bit(32)
         OR hash_range(v)::bit(32) = hash_range_extended(v, 1)::bit(32);
-

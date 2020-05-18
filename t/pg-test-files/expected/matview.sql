@@ -742,4 +742,3 @@ SELECT
 FROM
     mvtest2;
 ROLLBACK;
-

@@ -2000,4 +2000,3 @@ ALTER TABLE parted_uniq_detach_test1
     DROP CONSTRAINT parted_uniq_detach_test1_a_key;
 
 DROP TABLE parted_uniq_detach_test, parted_uniq_detach_test1;
-

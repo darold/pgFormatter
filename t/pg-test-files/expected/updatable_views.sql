@@ -4374,4 +4374,3 @@ ORDER BY
 DROP VIEW base_tab_view;
 
 DROP TABLE base_tab;
-

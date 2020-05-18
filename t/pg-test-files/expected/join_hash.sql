@@ -1020,4 +1020,3 @@ $$);
 ROLLBACK TO settings;
 
 ROLLBACK;
-

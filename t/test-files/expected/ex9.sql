@@ -6,4 +6,3 @@ FROM
 WHERE
     projectnumber IN << internalprojects >>
     AND username = << loginname >>;
-

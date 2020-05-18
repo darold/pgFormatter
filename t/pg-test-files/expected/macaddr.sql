@@ -150,4 +150,3 @@ FROM
     macaddr_data;
 
 DROP TABLE macaddr_data;
-

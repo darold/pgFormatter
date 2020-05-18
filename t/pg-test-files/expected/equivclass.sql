@@ -600,4 +600,3 @@ FROM
 WHERE
     unique1 = unique1
     OR unique2 = unique2;
-

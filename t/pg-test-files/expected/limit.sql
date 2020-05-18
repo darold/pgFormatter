@@ -366,4 +366,3 @@ GROUP BY
 ORDER BY
     thousand
 LIMIT 3;
-

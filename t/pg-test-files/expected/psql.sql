@@ -1341,4 +1341,3 @@ SET search_path TO DEFAULT;
 SET ROLE TO DEFAULT;
 
 DROP ROLE testrole_partitioning;
-

@@ -1498,4 +1498,3 @@ CREATE FUNCTION table_fail (i anyelement)
         '[1,10]'
 $$
 LANGUAGE sql;
-

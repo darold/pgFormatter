@@ -21,4 +21,3 @@ FROM
 WHERE (a = c)
     AND (b = c)
     OR (c = d);
-

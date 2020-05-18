@@ -181,4 +181,3 @@ SELECT
 
 SELECT
     '$."null \\u0000 escape"'::jsonpath AS not_an_escape;
-

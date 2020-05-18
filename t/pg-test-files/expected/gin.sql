@@ -73,4 +73,3 @@ DELETE FROM gin_test_tbl
 WHERE i @> ARRAY[2];
 
 VACUUM gin_test_tbl;
-

@@ -3649,4 +3649,3 @@ RESET constraint_exclusion;
 RESET enable_partition_pruning;
 
 DROP TABLE listp;
-

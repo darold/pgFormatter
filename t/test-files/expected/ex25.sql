@@ -6,4 +6,3 @@ CREATE TABLE demo.test (
 WITH (
     OIDS = FALSE
 );
-

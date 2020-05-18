@@ -101,4 +101,3 @@ SELECT
     count(DISTINCT utc_offset) >= 24 AS ok
 FROM
     pg_timezone_abbrevs;
-

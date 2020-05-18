@@ -2990,4 +2990,3 @@ ORDER BY
     c DESC;
 
 DROP TABLE range_parted;
-

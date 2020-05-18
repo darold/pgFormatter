@@ -233,4 +233,3 @@ DROP PROCEDURE ptest2;
 DROP TABLE cp_test;
 
 DROP USER regress_cp_user1;
-

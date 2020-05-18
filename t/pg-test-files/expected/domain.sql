@@ -1503,4 +1503,3 @@ ALTER DOMAIN testdomain1
     DROP CONSTRAINT unsigned_foo;
 
 DROP DOMAIN testdomain1;
-

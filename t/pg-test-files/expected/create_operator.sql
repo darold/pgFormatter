@@ -314,4 +314,3 @@ CREATE OPERATOR === (
     "Hashes",
     "Merges"
 );
-

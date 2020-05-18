@@ -2088,4 +2088,3 @@ FROM
     unnest(ARRAY[]::rngfunc2[]) u;
 
 DROP TYPE rngfunc2;
-

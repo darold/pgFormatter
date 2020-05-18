@@ -515,4 +515,3 @@ SET default_with_oids TO f;
 
 -- Should not allow to set it to true.
 SET default_with_oids TO t;
-

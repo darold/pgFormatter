@@ -88,4 +88,3 @@ SELECT
 
 SELECT
     'aⒶⓜ⓪' ~ '[a-z][ⓐ-ⓩ][[:alpha:]][[:graph:]]' AS f;
-

@@ -11,4 +11,3 @@ SELECT
     CURRENT_TIMESTAMP;
 
 \watch 3
-

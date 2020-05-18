@@ -2222,4 +2222,3 @@ SELECT
     log(x::numeric) - bc_result AS diff
 FROM
     t;
-

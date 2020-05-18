@@ -46,4 +46,3 @@ CREATE SEQUENCE hsseq;
 
 SELECT
     pg_switch_wal ();
-

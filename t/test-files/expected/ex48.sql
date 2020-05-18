@@ -100,4 +100,3 @@ CREATE TABLE a (
 ) AS
 SELECT
     u;
-

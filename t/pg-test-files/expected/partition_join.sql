@@ -2209,4 +2209,3 @@ WHERE
 ORDER BY
     t1.a,
     t2.b;
-

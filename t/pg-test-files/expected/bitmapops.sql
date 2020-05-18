@@ -57,4 +57,3 @@ WHERE
 
 -- clean up
 DROP TABLE bmscantest;
-

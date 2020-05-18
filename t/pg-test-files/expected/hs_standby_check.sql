@@ -14,4 +14,3 @@ SELECT
     ELSE
         'Tests are running on a standby server during recovery'
     END;
-

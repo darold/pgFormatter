@@ -117,4 +117,3 @@ WHERE
     o.f1 > '1234';
 
 DROP TABLE OID_TBL;
-

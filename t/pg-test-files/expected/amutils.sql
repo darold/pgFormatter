@@ -113,4 +113,3 @@ FROM (
 ORDER BY
     col,
     idx;
-

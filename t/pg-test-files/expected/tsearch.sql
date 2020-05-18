@@ -1490,4 +1490,3 @@ SELECT
 
 SELECT
     websearch_to_tsquery('\');
-

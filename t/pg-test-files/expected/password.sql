@@ -156,4 +156,3 @@ WHERE
 ORDER BY
     rolname,
     rolpassword;
-

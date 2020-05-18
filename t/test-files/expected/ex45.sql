@@ -42,4 +42,3 @@ SELECT
     a.b
 FROM
     a;
-

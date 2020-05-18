@@ -2295,4 +2295,3 @@ GROUP BY
     v || 'a'
 ORDER BY
     1;
-

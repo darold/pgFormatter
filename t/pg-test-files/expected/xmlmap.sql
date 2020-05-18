@@ -142,4 +142,3 @@ FROM
 
 SELECT
     table_to_xml('testxmlschema.test3', TRUE, TRUE, '');
-

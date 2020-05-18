@@ -281,4 +281,3 @@ RESET search_path;
 
 SELECT
     test_atomic_ops ();
-

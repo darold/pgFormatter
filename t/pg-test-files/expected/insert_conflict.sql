@@ -1452,4 +1452,3 @@ ON CONFLICT (a, b)
 DROP TABLE parted_conflict;
 
 DROP FUNCTION parted_conflict_update_func ();
-

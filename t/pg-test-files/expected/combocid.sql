@@ -253,4 +253,3 @@ FOR UPDATE;
 ROLLBACK;
 
 DROP TABLE testcase;
-

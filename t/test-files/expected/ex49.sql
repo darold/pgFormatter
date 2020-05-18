@@ -162,4 +162,3 @@ CREATE AGGREGATE myaggn08a (
     FINALFUNC = ffnp,
     INITCOND = '{}'
 );
-

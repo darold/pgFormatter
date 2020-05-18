@@ -78,4 +78,3 @@ WHERE
     AND j <= 10
 ORDER BY
     f;
-

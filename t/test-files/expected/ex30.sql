@@ -87,4 +87,3 @@ CREATE TABLE IF NOT EXISTS foo (
 ALTER TABLE app_public.users ENABLE ROW LEVEL SECURITY;
 
 COMMENT ON FUNCTION my_function () IS 'Here is my function that has a comment; will this become a sql clause or statement?';
-

@@ -571,4 +571,3 @@ DROP TABLE clstr_3;
 DROP TABLE clstr_4;
 
 DROP USER regress_clstr_user;
-

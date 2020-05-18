@@ -1465,4 +1465,3 @@ FROM
     volatile_partbound_test;
 
 DROP TABLE volatile_partbound_test;
-

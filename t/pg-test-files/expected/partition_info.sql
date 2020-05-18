@@ -331,4 +331,3 @@ DROP VIEW ptif_test_view;
 DROP MATERIALIZED VIEW ptif_test_matview;
 
 DROP TABLE ptif_li_parent, ptif_li_child;
-

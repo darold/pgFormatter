@@ -53,4 +53,3 @@ FROM
     tab t
 WHERE
     t.id = 12;
-

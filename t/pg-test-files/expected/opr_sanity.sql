@@ -2410,4 +2410,3 @@ WHERE
             pg_collation
         WHERE
             collname = 'C');
-

@@ -83,4 +83,3 @@ CREATE AGGREGATE my_rank (VARIADIC "any" ORDER BY VARIADIC "any") (
     FINALFUNC_EXTRA = TRUE,
     hypothetical
 );
-

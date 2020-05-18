@@ -317,4 +317,3 @@ WHERE
 
 \d tbl_gist
 DROP TABLE tbl_gist;
-

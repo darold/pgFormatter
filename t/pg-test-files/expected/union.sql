@@ -1361,4 +1361,3 @@ FROM (
 WHERE (x = 0)
     OR (q1 >= q2
         AND q1 <= q2);
-

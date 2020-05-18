@@ -1948,4 +1948,3 @@ FROM
 DROP VIEW dfview;
 
 DROP FUNCTION dfunc (anyelement, anyelement, bool);
-

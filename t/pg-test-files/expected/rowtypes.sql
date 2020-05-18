@@ -1347,4 +1347,3 @@ SELECT
     (NULL::compositetable).oid;
 
 DROP TABLE compositetable;
-

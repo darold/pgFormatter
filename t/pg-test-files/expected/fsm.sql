@@ -98,4 +98,3 @@ WHERE
     relname = 'fsm_check_size';
 
 DROP TABLE fsm_check_size;
-

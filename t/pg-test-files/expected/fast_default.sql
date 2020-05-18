@@ -1107,4 +1107,3 @@ ALTER TABLE has_fast_default
     ADD COLUMN f2 int DEFAULT 42;
 
 TABLE has_fast_default;
-

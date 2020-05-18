@@ -117,4 +117,3 @@ SELECT
     *
 FROM
     VARCHAR_TBL;
-

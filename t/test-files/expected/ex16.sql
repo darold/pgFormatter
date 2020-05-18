@@ -59,4 +59,3 @@ over multiple lines that should remain untouched
 $comment$;
 
 COMMENT ON TABLE foo2 IS 'Hello world';
-

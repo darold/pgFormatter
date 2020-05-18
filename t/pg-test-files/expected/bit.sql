@@ -463,4 +463,3 @@ CREATE TABLE bit_defaults (
 
 \d bit_defaults
 INSERT INTO bit_defaults DEFAULT VALUES; TABLE bit_defaults;
-

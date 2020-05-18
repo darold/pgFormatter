@@ -155,4 +155,3 @@ HAVING
     1 < 2;
 
 DROP TABLE test_having;
-

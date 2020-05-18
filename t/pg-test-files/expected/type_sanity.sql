@@ -897,4 +897,3 @@ WHERE
     OR proargtypes[0] != rngsubtype
     OR proargtypes[1] != rngsubtype
     OR prorettype != 'pg_catalog.float8'::regtype;
-

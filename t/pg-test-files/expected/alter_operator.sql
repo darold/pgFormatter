@@ -176,4 +176,3 @@ DROP OPERATOR === (boolean, boolean);
 DROP FUNCTION customcontsel (internal, oid, internal, integer);
 
 DROP FUNCTION alter_op_test_fn (boolean, boolean);
-

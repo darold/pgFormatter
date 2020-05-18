@@ -2848,4 +2848,3 @@ FROM
 DROP TABLE ruletest1;
 
 DROP TABLE ruletest2;
-

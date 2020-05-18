@@ -20,4 +20,3 @@ SELECT
     library.column3 -- inline comment
 FROM
     library;
-

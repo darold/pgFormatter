@@ -132,4 +132,3 @@ CREATE INDEX spgist_point_idx2 ON spgist_point_tbl USING spgist (p) WITH (fillfa
 ALTER INDEX spgist_point_idx SET (fillfactor = 90);
 
 REINDEX INDEX spgist_point_idx;
-
