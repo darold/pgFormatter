@@ -376,7 +376,7 @@ sub highlight_code
     }
 
     # lowercase/uppercase keywords taking care of function with same name
-    if ( $self->_is_keyword( $token, $next_token, $last_token ) && (!$self->_is_function( $token ) || $next_token ne '(') ) {
+    if ( $self->_is_keyword( $token, $next_token, $last_token ) && (!$self->_is_function( $token, $last_token, $next_token ) || $next_token ne '(') ) {
         if ( $self->{ 'uc_keywords' } == 1 ) {
             $token = '<span class="kw1_l">' . $token . '</span>';
         } elsif ( $self->{ 'uc_keywords' } == 2 ) {
@@ -391,7 +391,7 @@ sub highlight_code
 
     # lowercase/uppercase known functions or words followed by an open parenthesis
     # if the token is not a keyword, an open parenthesis or a comment
-    if (($self->_is_function( $token ) && $next_token eq '(')
+    if (($self->_is_function( $token, $last_token, $next_token ) && $next_token eq '(')
 	    || (!$self->_is_keyword( $token, $next_token, $last_token ) && !$next_token eq '('
 		    && $token ne '(' && !$self->_is_comment( $token )) ) {
         if ($self->{ 'uc_functions' } == 1) {
@@ -2604,7 +2604,7 @@ sub _add_token
     {
         # lowercase/uppercase known functions or words followed by an open parenthesis
         # if the token is not a keyword, an open parenthesis or a comment
-        my $fct = $self->_is_function( $token ) || '';
+        my $fct = $self->_is_function( $token, $last_token, $next_token ) || '';
         if (($fct and $next_token eq '(' and uc($last_token) ne 'CREATE')
 		or (!$self->_is_keyword( $token, $next_token, $last_token ) and !$next_token eq '('
 				    and $token ne '(' and !$self->_is_comment( $token )) )
@@ -2912,12 +2912,22 @@ Code lifted from SQL::Beautify and rewritten to check one long regexp instead of
 
 sub _is_function
 {
-    my ( $self, $token ) = @_;
+    my ( $self, $token, $last_token, $next_token ) = @_;
 
     return undef if (!$token);
-    if ( $token =~ $self->{ 'functions_re' } ) {
+
+    if ( $token =~ $self->{ 'functions_re' } )
+    {
+	# Check the context of the function
+        if (defined $last_token and defined $next_token)
+        {
+		return undef if ($next_token ne '(');
+		return undef if ($self->{ '_is_in_create' } == 1);
+        }
         return $1;
-    } else {
+    }
+    else
+    {
         return undef;
     }
 }
@@ -3342,7 +3352,7 @@ sub set_dicts
 
     my @pg_types = qw(
         BIGINT BIGSERIAL BIT BOOLEAN BOOL BOX BYTEA CHARACTER CHAR CIDR CIRCLE DATE DOUBLE INET INTEGER INTERVAL
-        JSONB JSON LINE LSEG MACADDR8 MACADDR MONEY NUMERIC OID PG_LSN POINT POLYGON REAL SMALLINT SMALLSERIAL
+        JSONB JSON LINE LSEG MACADDR8 MACADDR MONEY NUMERIC OID PG_LSN POINT POLYGON PRECISION REAL SMALLINT SMALLSERIAL
        	SERIAL TEXT TIMESTAMPTZ TIMESTAMP TSQUERY TSVECTOR TXID_SNAPSHOT UUID XML VARYING VARCHAR ZONE FLOAT4
 	FLOAT8 FLOAT NAME TID INT4RANGE INT8RANGE NUMRANGE TSRANGE TSTZRANGE DATERANGE INT2 INT4 INT8 INT TIME
 	);
