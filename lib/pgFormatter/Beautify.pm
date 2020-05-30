@@ -2873,6 +2873,22 @@ sub _is_type
     return 0 if ($token =~ /^(int4|int8|num|tstz|ts|date)range$/i
 		    and (not defined $next_token or $next_token eq '('));
 
+    my @composite_types = (
+        'VARYING', 'PRECISION',
+       	'WITH', 'WITHOUT'
+	);
+
+    # Typically case of a data type used as an object name
+    if (defined $next_token)
+    {
+	    if (grep { $_ eq uc( $token ) } @{ $self->{ 'types' } }
+			    and grep { $_ eq uc( $next_token ) } @{ $self->{ 'types' } }
+			    and !grep { $_ eq uc( $next_token ) } @composite_types)
+	    {
+		    return 0;
+	    }
+    }
+
     $token =~ s/\s*\(.*//; # remove any parameter to the type
     return ~~ grep { $_ eq uc( $token ) } @{ $self->{ 'types' } };
 }
