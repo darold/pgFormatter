@@ -2875,7 +2875,7 @@ sub _is_type
 
     my @composite_types = (
         'VARYING', 'PRECISION',
-       	'WITH', 'WITHOUT'
+       	'WITH', 'WITHOUT', 'ZONE'
 	);
 
     # Typically case of a data type used as an object name
