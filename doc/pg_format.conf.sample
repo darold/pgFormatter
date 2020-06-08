@@ -1,0 +1,73 @@
+####
+# Copy this file as ~/.pg_format and adjust the default settings
+# if you want to control the default behavior of pgFormatter.
+####
+
+# Obscure all literals in queries, use to hide confidential data before formatting.
+anonymize=0
+
+# In a parameters list, end or start with the comma. Default: end
+comma=end
+
+# In insert statement, add a newline after each comma.
+comma-break=0
+
+# Output format: text or html. Default: text.
+format=text
+
+# Add a newline between statements in transaction regroupement. Default is to group statements.
+nogrouping=0
+
+# Change the case of the reserved keyword. Default is uppercase: 2.
+# Values: 0=>unchanged, 1=>lowercase, 2=>uppercase, 3=>capitalize.
+keyword-case=2
+
+# Change the case of the data type name. Default is lowercase: 1.
+# Values: 0=>unchanged, 1=>lowercase, 2=>uppercase, 3=>capitalize.
+type-case=1
+
+# Change the case of the reserved keyword. Default is unchanged: 0.
+# Values: 0=>unchanged, 1=>lowercase, 2=>uppercase, 3=>capitalize.
+function-case=0
+
+# Do not add an extra empty line at end of the output.
+no-extra-line=0
+
+# Maximum length of a query, it will be cutted above the given size. Default: no truncate.
+maxlength=0
+
+# Remove any comment from SQL code.
+nocomment=0
+
+# Statement numbering as a comment before each query.
+numbering=0
+
+# Define the filename for the output. Default: stdout.
+output=
+
+# Set regex to find code that must not be changed.
+placeholder=
+
+# Add RedShift keyworks to the list of SQL keyworks.
+redshift=0
+
+# Dynamic code separator, default to single quote.
+separator=
+
+# Change space indent, default 4 spaces.
+spaces=4
+
+# Try another formatting type for some statements.
+format-type=0
+
+# Use tabs instead of space characters, when used spaces is set to 1 whatever is its value
+tabs=0
+
+# Wrap queries at a certain length.
+wrap-limit=0
+
+# Number of column after which lists must be wrapped.
+wrap-after=0
+
+# with --wrap-limit, apply reformatting to comments.
+wrap-comment=0

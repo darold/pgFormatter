@@ -104,6 +104,7 @@ sub beautify {
     $args{ 'redshift' }     = $self->{ 'cfg' }->{ 'redshift' };
     $args{ 'wrap_comment' } = $self->{ 'cfg' }->{ 'wrap-comment' };
     $args{ 'no_extra_line' }= $self->{ 'cfg' }->{ 'no-extra-line' };
+    $args{ 'config' }       = $self->{ 'cfg' }->{ 'config' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -195,6 +196,8 @@ Options:
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -B | --comma-break    : in insert statement, add a newline after each comma.
+    -c | --config FILE    : use a configuration file. Default is to not use
+                            configuration file or ~/.pg_format if it exists.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -272,13 +275,15 @@ Parses command line options into $self->{'cfg'}.
 
 =cut
 
-sub get_command_line_args {
+sub get_command_line_args
+{
     my $self = shift;
     my %cfg;
     my @options = (
         'anonymize|a!',
         'comma-start|b!',
         'comma-break|B!',
+        'config|c=s',
         'wrap-comment|C!',
         'debug|d!',
         'comma-end|e!',
@@ -313,12 +318,36 @@ sub get_command_line_args {
         exit 0;
     }
 
+    $cfg{ 'config' }        //= "$ENV{HOME}/.pg_format";
+
+    if (-f $cfg{ 'config' })
+    {
+	open(my $cfh, '<', $cfg{ 'config' }) or die "ERROR: can not read file $cfg{ 'config' }\n";
+	while (my $line = <$cfh>)
+	{
+	    chomp($line);
+	    next if ($line !~ /^[a-z]/);
+	    if ($line =~ /^([^\s=]+)\s*=\s*([^\s]+)/)
+	    {
+		# do not override command line arguments
+		next if (defined $cfg{ lc($1) });
+
+		if ($1 eq 'comma' || $1 eq 'format') {
+		    $cfg{ lc($1) } = lc($2);
+		} else {
+		    $cfg{ lc($1) } = $2;
+	        }
+	    }
+	}
+    }
+
+    # Set default configuration
     $cfg{ 'spaces' }        //= 4;
     $cfg{ 'output' }        //= '-';
     $cfg{ 'function-case' } //= 0;
     $cfg{ 'keyword-case' }  //= 2;
     $cfg{ 'type-case' }     //= 1;
-    $cfg{ 'comma' }           = 'end';
+    $cfg{ 'comma' }         //= 'end';
     $cfg{ 'format' }        //= 'text';
     $cfg{ 'comma-break' }   //= 0;
     $cfg{ 'maxlength' }     //= 0;
@@ -331,18 +360,28 @@ sub get_command_line_args {
     $cfg{ 'redshift' }      //= 0;
     $cfg{ 'no-extra-line' } //= 0;
 
-    if ($cfg{ 'tabs' }) {
+    if ($cfg{ 'tabs' })
+    {
         $cfg{ 'spaces' } = 1;
         $cfg{ 'space' }  = "\t";
     }
 
-    if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
+    if (!grep(/^$cfg{ 'comma' }$/i, 'end', 'start'))
+    {
+        printf 'FATAL: unknow value for comma: %s', $cfg{ 'comma' } , "\n";
+        exit 0;
+    }
+
+    if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html'))
+    {
         printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
         exit 0;
     }
 
     $cfg{ 'input' } = $ARGV[ 0 ] // '-';
+
     $self->{ 'cfg' } = \%cfg;
+
     return;
 }
 

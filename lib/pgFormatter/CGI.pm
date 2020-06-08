@@ -93,19 +93,16 @@ sub set_config {
 
     $self->{ 'program_name' } = 'pgFormatter';
     $self->{ 'program_name' } =~ s/\.[^\.]+$//;
+    $self->{ 'config' }       = 'pg_format.conf';
 
+    # Maximum code size that can be formatted
     $self->{ 'maxlength' }    = 100000;
-    $self->{ 'spaces' }       = 4;
+
+    # Set default settings
     $self->{ 'outfile' }      = '';
     $self->{ 'outdir' }       = '';
     $self->{ 'help' }         = '';
     $self->{ 'version' }      = '';
-    $self->{ 'nocomment' }    = 0;
-    $self->{ 'nogrouping' }   = 0;
-    $self->{ 'colorize' }     = 1;
-    $self->{ 'uc_keyword' }   = 2;
-    $self->{ 'uc_function' }  = 0;
-    $self->{ 'uc_type' }      = 1;
     $self->{ 'debug' }        = 0;
     $self->{ 'content' }      = '';
     $self->{ 'original_content' }      = '';
@@ -113,15 +110,66 @@ sub set_config {
     $self->{ 'project_url' }  = 'https://github.com/darold/pgFormatter';
     $self->{ 'service_url' }  = '';
     $self->{ 'download_url' } = 'http://sourceforge.net/projects/pgformatter/';
-    $self->{ 'anonymize' }    = 0;
-    $self->{ 'separator' }    = '';
-    $self->{ 'comma' }        = 'end';
-    $self->{ 'format' }       = 'html';
-    $self->{ 'comma_break' }  = 0;
-    $self->{ 'format_type' }  = 0;
-    $self->{ 'wrap_after' }   = 0;
-    $self->{ 'numbering' }    = 0;
-    $self->{ 'redshift' }     = 0;
+
+    if (-f $self->{ 'config' })
+    {
+	open(my $cfh, '<', $self->{ 'config' }) or die "ERROR: can not read file $self->{ 'config' }\n";
+	while (my $line = <$cfh>)
+	{
+	    chomp($line);
+	    next if ($line !~ /^[a-z]/);
+	    if ($line =~ /^([^\s=]+)\s*=\s*([^\s]+)/)
+	    {
+		my $key = lc($1);
+		my $val = $2;
+		$key =~ s/-/_/g;
+		$key = 'uc_keyword'  if ($key eq 'keyword_case');
+		$key = 'uc_function' if ($key eq 'function_case');
+		$key = 'uc_type'     if ($key eq 'type_case');
+		if ($key eq 'comma' || $key eq 'format') {
+		    $self->{$key} = lc($val);
+		} else {
+		    $self->{$key} = $val;
+	        }
+	    }
+	}
+    }
+
+    $self->{ 'spaces' }       //= 4;
+    $self->{ 'nocomment' }    //= 0;
+    $self->{ 'nogrouping' }   //= 0;
+    $self->{ 'uc_keyword' }   //= 2;
+    $self->{ 'uc_function' }  //= 0;
+    $self->{ 'uc_type' }      //= 1;
+    $self->{ 'anonymize' }    //= 0;
+    $self->{ 'separator' }    //= '';
+    $self->{ 'comma' }        //= 'end';
+    $self->{ 'format' }       //= 'html';
+    $self->{ 'comma_break' }  //= 0;
+    $self->{ 'format_type' }  //= 0;
+    $self->{ 'wrap_after' }   //= 0;
+    $self->{ 'numbering' }    //= 0;
+    $self->{ 'redshift' }     //= 0;
+    $self->{ 'colorize' }     //= 1;
+
+    if ($self->{ 'tabs' })
+    {
+        $self->{ 'spaces' } = 1;
+        $self->{ 'space' }  = "\t";
+    }
+
+    if (!grep(/^$self->{ 'comma' }$/i, 'end', 'start'))
+    {
+        printf 'FATAL: unknow value for comma: %s', $self->{ 'comma' } , "\n";
+        exit 0;
+    }
+
+    if (!grep(/^$self->{ 'format' }$/i, 'text', 'html'))
+    {
+        printf 'FATAL: unknow output format: %s%s', $self->{ 'format' } , "\n";
+        exit 0;
+    }
+
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.

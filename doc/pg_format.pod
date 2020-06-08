@@ -32,6 +32,8 @@ Options:
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -B | --comma-break    : in insert statement, add a newline after each comma.
+    -c | --config FILE    : use a configuration file. Default is to not use
+                            configuration file or ~/.pg_format if it exists.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -95,7 +97,6 @@ or
 	apt-get install libcgi-pm-perl
 
 following your distribution.
-
 
 =head1 INSTALLATION
 
@@ -201,6 +202,19 @@ If the extra empty line at end of the output is useless, you can remove
 it by adding this option to the command line.
 
 =head1 HINTS
+
+=head2 Configuration
+
+If the default settings of pg_format doesn't fit all your needs you can
+customize the behavior of pg_format by using a configuration file instead
+of repeating the command line option. By default pgFormatter look for file
+~/.pg_format but you can choose an alternate configuration file using command
+line option -c | --config
+
+To customize the CGI pg_format.cgi look for a configuration file named
+pg_format.conf in the same directory as the CGI script.
+
+For a sample configuration file see doc/pg_format.conf.sample
 
 =head2 Formatting from stdin
 
