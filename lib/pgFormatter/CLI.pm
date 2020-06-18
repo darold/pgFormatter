@@ -105,6 +105,7 @@ sub beautify {
     $args{ 'wrap_comment' } = $self->{ 'cfg' }->{ 'wrap-comment' };
     $args{ 'no_extra_line' }= $self->{ 'cfg' }->{ 'no-extra-line' };
     $args{ 'config' }       = $self->{ 'cfg' }->{ 'config' };
+    $args{ 'inplace' }      = $self->{ 'cfg' }->{ 'inplace' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -208,6 +209,7 @@ Options:
     -g | --nogrouping     : add a newline between statements in transaction
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
+    -i | --inplace        : override input file with formatted content.
     -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
@@ -307,6 +309,7 @@ sub get_command_line_args
         'version|v!',
         'wrap-limit|w=i',
         'wrap-after|W=i',
+        'inplace|i!',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -359,6 +362,7 @@ sub get_command_line_args
     $cfg{ 'numbering' }     //= 0;
     $cfg{ 'redshift' }      //= 0;
     $cfg{ 'no-extra-line' } //= 0;
+    $cfg{ 'inplace' }       //= 0;
 
     if ($cfg{ 'tabs' })
     {
@@ -398,6 +402,7 @@ sub validate_args {
     $self->show_help_and_die( 2, 'function-case can be only one of: 0, 1, 2, or 3.' ) unless $self->{ 'cfg' }->{ 'function-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'keyword-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'keyword-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'type-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'type-case' } =~ m{\A[0123]\z};
+    $self->show_help_and_die( 2, 'can not use -i | --inplace with an output file (-o | --output) .' ) if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'output' } ne '-');
 
     if ($self->{ 'cfg' }->{ 'comma-end' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'end';
@@ -405,6 +410,11 @@ sub validate_args {
     elsif ($self->{ 'cfg' }->{ 'comma-start' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'start';
     }
+
+   if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'input' } ne '-')
+   {
+	$self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
+   }
 
     return;
 }

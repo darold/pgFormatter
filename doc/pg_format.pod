@@ -44,6 +44,7 @@ Options:
     -g | --nogrouping     : add a newline between statements in transaction
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
+    -i | --inplace        : override input file with formatted content.
     -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
