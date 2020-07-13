@@ -838,7 +838,7 @@ sub beautify
 	    }
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
-	    if (defined $self->_next_token and $self->_next_token !~ /^AS|WITH|,$/i
+	    if (defined $self->_next_token and $self->_next_token !~ /^(AS|WITH|,)$/i
 			    and (!$self->_is_comment($self->_next_token) or $self->{ '_tokens' }[1] ne ',')
 			    and !$self->{ '_parenthesis_with_level' })
 	    {
@@ -888,7 +888,7 @@ sub beautify
 	elsif (defined $self->_next_token && $self->_next_token eq '(')
 	{
             $self->{ '_is_in_filter' } = 1 if (uc($token) eq 'FILTER');
-	    $self->{ '_is_in_grouping' } = 1 if ($token =~ /^GROUPING|ROLLUP$/i);
+	    $self->{ '_is_in_grouping' } = 1 if ($token =~ /^(GROUPING|ROLLUP)$/i);
         } 
         elsif ( uc($token) eq 'PASSING' and defined $self->_next_token && uc($self->_next_token) eq 'BY')
 	{
@@ -914,11 +914,11 @@ sub beautify
 	    $self->{ '_is_in_where' } = 0;
             # Set current statement with taking care to exclude of SELECT ... FOR UPDATE
 	    # statement and ON CONFLICT DO UPDATE.
-            if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')' and (not defined $last or $last !~ /^DO|SHARE$/i))) {
-                if ($k_stmt !~ /^UPDATE|DELETE$/i || !$self->{ '_is_in_create' }) {
+            if ($k_stmt ne 'UPDATE' or (defined $self->_next_token and $self->_next_token ne ';' and $self->_next_token ne ')' and (not defined $last or $last !~ /^(DO|SHARE)$/i))) {
+                if ($k_stmt !~ /^(UPDATE|DELETE)$/i || !$self->{ '_is_in_create' }) {
                     if ($self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/i and !$self->{ '_is_in_trigger' } and !$self->{ '_is_in_operator' } and !$self->{ '_is_in_alter' })
 		    {
-			if ($k_stmt ne 'COMMENT' or $self->_next_token =~ /^ON|IS$/i)
+			if ($k_stmt ne 'COMMENT' or $self->_next_token =~ /^(ON|IS)$/i)
 			{
                             $self->{ '_current_sql_stmt' } = $k_stmt;
 		        }
@@ -971,7 +971,7 @@ sub beautify
             $self->{ '_is_in_index' } = 1;
         }
 
-	if ($self->{ '_is_in_using' } and defined $self->_next_token and $self->_next_token =~ /^OPERATOR|AS$/i) {
+	if ($self->{ '_is_in_using' } and defined $self->_next_token and $self->_next_token =~ /^(OPERATOR|AS)$/i) {
 		$self->{ '_is_in_using' } = 0;
 	}
 
@@ -1027,7 +1027,7 @@ sub beautify
             $self->{ '_is_in_index' } = 1;
         } elsif (! $self->{ '_is_in_create' } and uc($token) eq 'SET') {
             $self->{ '_is_in_index' } = 1 if ($self->{ '_current_sql_stmt' } ne 'UPDATE');
-        } elsif ($self->{ '_is_in_create' } and (uc($token) eq 'UNIQUE' or ($token =~ /^PRIMARY|FOREIGN$/i and uc($self->_next_token) eq 'KEY'))) {
+        } elsif ($self->{ '_is_in_create' } and (uc($token) eq 'UNIQUE' or ($token =~ /^(PRIMARY|FOREIGN)$/i and uc($self->_next_token) eq 'KEY'))) {
 		$self->{ '_is_in_constraint' } = 1;
 	}
 
@@ -1057,7 +1057,7 @@ sub beautify
 	    $self->{ '_is_in_block' } = 1 if ($self->{ '_is_in_procedure' });
 	    $self->{ '_is_in_over' } = 0;
         }
-	if ($token =~ /^BEGIN|DECLARE$/i) {
+	if ($token =~ /^(BEGIN|DECLARE)$/i) {
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
 	}
     
@@ -1068,7 +1068,7 @@ sub beautify
         ####
         if ($token =~ /^(string_agg|group_concat|array_agg|percentile_cont)$/i) {
             $self->{ '_has_order_by' } = 1;
-        } elsif ( $token =~ /^(?:GENERATED)$/i and $self->_next_token =~ /^ALWAYS|BY$/i ) {
+        } elsif ( $token =~ /^(?:GENERATED)$/i and $self->_next_token =~ /^(ALWAYS|BY)$/i ) {
             $self->{ 'no_break' } = 1;
         } elsif ( $token =~ /^(?:TRUNCATE)$/i ) {
             $self->{ 'no_break' } = 1;
@@ -1124,14 +1124,14 @@ sub beautify
             $last = $self->_set_last($token, $last);
             next;
         }
-        elsif ($token =~ /^INSTEAD|ALSO$/i and defined $last and uc($last) eq 'DO')
+        elsif ($token =~ /^(INSTEAD|ALSO)$/i and defined $last and uc($last) eq 'DO')
 	{
                 $self->_add_token( $token );
                 $self->_new_line($token,$last);
                 $last = $self->_set_last($token, $last);
                 next;
         }
-        elsif ($token =~ /^DO$/i and defined $self->_next_token and $self->_next_token =~ /^INSTEAD|ALSO|UPDATE|NOTHING$/i)
+        elsif ($token =~ /^DO$/i and defined $self->_next_token and $self->_next_token =~ /^(INSTEAD|ALSO|UPDATE|NOTHING)$/i)
 	{
                 $self->_new_line($token,$last);
 		$self->_over($token,$last);
@@ -1324,7 +1324,7 @@ sub beautify
             $last = $self->_set_last($token, $last);
 	    next;
         }
-        elsif ($token =~ /^TRIGGER$/i and defined $last and $last =~ /CREATE|CONSTRAINT/i)
+        elsif ($token =~ /^TRIGGER$/i and defined $last and $last =~ /^(CREATE|CONSTRAINT)$/i)
 	{
             $self->{ '_is_in_trigger' } = 1;
             $self->_add_token( $token );
@@ -1397,7 +1397,7 @@ sub beautify
                 }
             }
 
-	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
+	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /(FUNCTION|PROCEDURE)/i
 		    && $self->{ '_is_in_create' } == 2
 		    && (not defined $self->_next_token or $self->_next_token ne ')')
 	    ) {
@@ -1437,7 +1437,7 @@ sub beautify
 		$self->{ '_is_in_explain' } = 0;
                 next;
             }
-	    if ( ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i
+	    if ( ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /(FUNCTION|PROCEDURE)/i
 		    && $self->{ '_is_in_create' } == 2) || (defined $self->_next_token and uc($self->_next_token) eq 'INHERITS')
 	    )
 	    {
@@ -1460,7 +1460,7 @@ sub beautify
                 my $add_nl = 0;
                 $add_nl = 1 if ($self->{ '_is_in_create' } > 1
 		    and defined $last and $last ne '('
-                    and (not defined $self->_next_token or $self->_next_token =~ /^PARTITION|;$/i or ($self->_next_token =~ /^ON$/i and !$self->{ '_parenthesis_level' }))
+                    and (not defined $self->_next_token or $self->_next_token =~ /^(PARTITION|;)$/i or ($self->_next_token =~ /^ON$/i and !$self->{ '_parenthesis_level' }))
                 );
                 $add_nl = 1 if ($self->{ '_is_in_type' } == 1
 		    and $self->_next_token !~ /^AS$/i
@@ -1524,7 +1524,7 @@ sub beautify
                 $self->_new_line($token,$last)
                     if (defined $self->_next_token
                     and $self->_next_token !~ /^(?:AS|IS|THEN|INTO|BETWEEN|ON|IN|FILTER|WITHIN|DESC|ASC|WITHOUT|CASCADE)$/i
-                    and ($self->_next_token !~ /^AND|OR$/i or !$self->{ '_is_in_if' })
+                    and ($self->_next_token !~ /^(AND|OR)$/i or !$self->{ '_is_in_if' })
                     and $self->_next_token ne ')'
                     and $self->_next_token !~ /^:/
                     and $self->_next_token ne ';'
@@ -1585,11 +1585,11 @@ sub beautify
             if ($self->{ '_is_in_with' } >= 1 && !$self->{ '_parenthesis_level' }) {
                 $add_newline = 1 if (!$self->{ 'wrap_after' });
             }
-	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /FUNCTION|PROCEDURE/i && $self->{ '_is_in_create' } == 2) {
+	    if ($self->{ 'format_type' } && $self->{ '_current_sql_stmt' } =~ /(FUNCTION|PROCEDURE)/i && $self->{ '_is_in_create' } == 2) {
                 $add_newline = 1;
 	    }
             if ($self->{ '_is_in_alter' } && $self->{ '_is_in_operator' } >= 2) {
-		$add_newline = 1 if (defined $self->_next_token and $self->_next_token =~ /^OPERATOR|FUNCTION$/i);
+		$add_newline = 1 if (defined $self->_next_token and $self->_next_token =~ /^(OPERATOR|FUNCTION)$/i);
 	    }
 	    $add_newline = 1 if ($self->{ '_is_in_returns_table' });
             $self->_new_line($token,$last) if ($add_newline && $self->{ 'comma' } eq 'start');
@@ -1731,7 +1731,7 @@ sub beautify
                 $last = $self->_set_last($token, $last);
                 next;
 	    }
-            if ($self->_next_token =~ /^SELECT|UPDATE|DELETE|INSERT|TABLE|ALL$/i)
+            if ($self->_next_token =~ /^(SELECT|UPDATE|DELETE|INSERT|TABLE|ALL)$/i)
 	    {
 		# cover FOR in cursor and in policy or publication statements
 		$self->_over($token,$last) if (uc($self->_next_token) eq 'SELECT' || $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' });
@@ -1754,7 +1754,7 @@ sub beautify
 	    $self->{ 'no_break' } = 0;
             $self->{ '_col_count' } = 0;
 	    # special cases for create partition statement
-            if ($token =~ /^VALUES$/i && defined $last and $last =~ /^FOR|IN$/i)
+            if ($token =~ /^VALUES$/i && defined $last and $last =~ /^(FOR|IN)$/i)
 	    {
 		$self->_add_token( $token );
 		$self->{ 'no_break' } = 1;
@@ -1800,7 +1800,7 @@ sub beautify
             if ($token =~ /^SET$/i and $self->{ '_is_in_create' })
 	    {
                 # Add newline before SET statement in function header
-                $self->_new_line($token,$last) if (not defined $last or $last !~ /DELETE|UPDATE/i);
+                $self->_new_line($token,$last) if (not defined $last or $last !~ /^(DELETE|UPDATE)$/i);
             }
 	    elsif ($token =~ /^WHERE$/i and $self->{ '_current_sql_stmt' } eq 'DELETE')
 	    {
@@ -1823,7 +1823,7 @@ sub beautify
 		next;
             }
 	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }  and !$self->{ '_is_in_statistics' }
-				    and $self->{ '_current_sql_stmt' } !~ /DELETE|REVOKE/))
+				    and $self->{ '_current_sql_stmt' } !~ /(DELETE|REVOKE)/))
 	    {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
@@ -1898,13 +1898,13 @@ sub beautify
 	{
             $self->{ 'no_break' } = 0;
 
-	    if ($token =~ /^SELECT|UPDATE|DELETE|INSERT$/i && $self->{ '_is_in_policy' } && $self->{ 'format_type' })
+	    if ($token =~ /^(SELECT|UPDATE|DELETE|INSERT)$/i && $self->{ '_is_in_policy' } && $self->{ 'format_type' })
 	    {
 		$self->_over($token,$last);
 	    }
 
             # case of ON DELETE/UPDATE clause in create table statements
-	    if ($token =~ /^UPDATE|DELETE$/i && $self->{ '_is_in_create' }) {
+	    if ($token =~ /^(UPDATE|DELETE)$/i && $self->{ '_is_in_create' }) {
                 $self->_add_token( $token );
                 $last = $self->_set_last($token, $last);
 		next;
@@ -1913,7 +1913,7 @@ sub beautify
 	    {
                 $self->_add_token( $token );
             }
-	    elsif (!$self->{ '_is_in_policy' } && $token !~ /^DELETE|UPDATE$/i && (!defined $self->_next_token || $self->_next_token !~ /^DISTINCT$/i))
+	    elsif (!$self->{ '_is_in_policy' } && $token !~ /^(DELETE|UPDATE)$/i && (!defined $self->_next_token || $self->_next_token !~ /^DISTINCT$/i))
 	    {
                 $self->_new_line($token,$last) if (!defined $last or $last ne "\\\\");
                 $self->_add_token( $token );
@@ -2030,7 +2030,7 @@ sub beautify
 		$self->_set_level($self->{ '_level_stack' }[-1], $token, $last) if ($#{ $self->{ '_level_stack' } } >= 0);
 		$self->{ '_is_in_exception' } = 0;
 	    }
-            $self->_new_line($token,$last) if (not defined $last or $last !~ /^CASE|,|\($/i );
+            $self->_new_line($token,$last) if (not defined $last or $last !~ /^(CASE|,|\()$/i );
             $self->_add_token( $token );
             if (!$self->{ '_is_in_case' } && !$self->{ '_is_in_trigger' }) {
                 $self->_over($token,$last);
@@ -2303,10 +2303,10 @@ sub beautify
             $self->_new_line($token,$last) if ($token ne "\\\\" and defined $self->_next_token and $self->_next_token ne "\\\\");
         }
 
-        elsif ($token =~ /^ADD|DROP$/i && ($self->{ '_current_sql_stmt' } eq 'SEQUENCE'
+        elsif ($token =~ /^(ADD|DROP)$/i && ($self->{ '_current_sql_stmt' } eq 'SEQUENCE'
 			|| $self->{ '_current_sql_stmt' } eq 'ALTER'))
 	{
-	    if ($self->_next_token !~ /^NOT|NULL|DEFAULT$/i and (not defined $last or !$self->{ '_is_in_alter' } or $last ne '(')) {
+	    if ($self->_next_token !~ /^(NOT|NULL|DEFAULT)$/i and (not defined $last or !$self->{ '_is_in_alter' } or $last ne '(')) {
                 $self->_new_line($token,$last);
                 if ($self->{ '_is_in_alter' } < 2) {
                     $self->_over($token,$last);

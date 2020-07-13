@@ -1434,8 +1434,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER parted_conflict_update
-    AFTER UPDATE ON parted_conflict referencing new TABLE AS
-    inserted FOR EACH statement
+    AFTER UPDATE ON parted_conflict referencing new TABLE AS inserted FOR EACH statement
     EXECUTE PROCEDURE parted_conflict_update_func ();
 
 TRUNCATE parted_conflict;

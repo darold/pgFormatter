@@ -1780,8 +1780,7 @@ INSERT INTO users
     VALUES ('id2', 2, 'email2', TRUE, 12, TRUE);
 
 ALTER TABLE users
-    DROP COLUMN
-    todrop;
+    DROP COLUMN todrop;
 
 CREATE OR REPLACE FUNCTION get_first_user ()
     RETURNS users
@@ -1878,8 +1877,7 @@ FROM
 
 BEGIN;
 ALTER TABLE users
-    DROP COLUMN
-    moredrop;
+    DROP COLUMN moredrop;
 SELECT
     *
 FROM
