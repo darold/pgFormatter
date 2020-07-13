@@ -1885,7 +1885,7 @@ sub beautify
         }
 
         # Add newline before INSERT and DELETE if last token was AS (prepared statement)
-        elsif (defined $last and $token =~ /^\bINSERT\b|\bDELETE\b|\bUPDATE\b$/i and uc($last) eq 'AS')
+        elsif (defined $last and $token =~ /^(?:INSERT|DELETE|UPDATE)$/i and uc($last) eq 'AS')
 	{
                 $self->_new_line($token,$last);
                 $self->_add_token( $token );
