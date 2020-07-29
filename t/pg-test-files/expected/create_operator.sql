@@ -34,8 +34,8 @@ CREATE OPERATOR #%# (
 
 -- Test operator created above
 SELECT
-    point '(1,2)' < % widget '(0,0,3)' AS t,
-    point '(1,2)' < % widget '(0,0,1)' AS f;
+    point '(1,2)' <% widget '(0,0,3)' AS t,
+    point '(1,2)' <% widget '(0,0,1)' AS f;
 
 -- Test comments
 COMMENT ON OPERATOR ## ## ## (int4,

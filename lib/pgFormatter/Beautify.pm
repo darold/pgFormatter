@@ -465,6 +465,8 @@ sub tokenize_sql
 		|
 		(?:\-\|\-) # range operator "is adjacent to"
 		|
+		(?:<\%|\%>|<<\->|<\->>|<\->)  # pg_trgm and some geometry operators
+		|
 		(?:\->>|\->|\#>>|\#>|\?\&|\?)  # Json Operators
 		|
 		(?:\#<=|\#>=|\#<>|\#<|\#=) # compares tinterval and reltime
@@ -475,7 +477,7 @@ sub tokenize_sql
 		|
 		(?:\|\|\/|\|\/) # square root and cube root
 		|
-		(?:\@\-\@|\@\@|\#\#|<\->|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
+		(?:\@\-\@|\@\@|\#\#|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
                                  # Geometric Operators
 		|
 		(?:~<=~|~>=~|~>~|~<~) # string comparison for pattern matching operator families

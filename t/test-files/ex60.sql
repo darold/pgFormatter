@@ -70,3 +70,26 @@ create table position (
 	name text
 );
 
+-- pg_trgm operators
+SELECT t, similarity(t, 'word') AS sml
+  FROM test_trgm
+  WHERE t % 'word'
+  ORDER BY sml DESC, t;
+
+SELECT t, t <-> 'word' AS dist
+  FROM test_trgm
+  ORDER BY dist LIMIT 10;
+
+SELECT t, word_similarity('word', t) AS sml
+  FROM test_trgm
+  WHERE 'word' <% t AND 'hello' %> t
+  ORDER BY sml DESC, t;
+
+SELECT t, 'word' <<-> t AS dist
+  FROM test_trgm
+  ORDER BY dist LIMIT 10;
+
+SELECT t, 'word' <->> t AS dist
+  FROM test_trgm
+  ORDER BY dist LIMIT 10;
+
