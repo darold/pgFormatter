@@ -68,6 +68,8 @@ Options:
     -w | --wrap-limit N   : wrap queries at a certain length.
     -W | --wrap-after N   : number of column after which lists must be wrapped.
                             Default: puts every item on its own line.
+    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
+                            --config / -c option overrides it.
 
 Examples:
 
@@ -216,6 +218,10 @@ To customize the CGI pg_format.cgi look for a configuration file named
 pg_format.conf in the same directory as the CGI script.
 
 For a sample configuration file see doc/pg_format.conf.sample
+
+To prevent pg_format to look at ~/.pg_format file you can use the command
+line option -X | --no-rcfile
+
 
 =head2 Formatting from stdin
 

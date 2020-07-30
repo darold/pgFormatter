@@ -200,8 +200,6 @@ Options:
     -B | --comma-break    : in insert statement, add a newline after each comma.
     -c | --config FILE    : use a configuration file. Default is to not use
                             configuration file or ~/.pg_format if it exists.
-    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
-                            --config / -c option overrides it.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -236,6 +234,8 @@ Options:
     -w | --wrap-limit N   : wrap queries at a certain length.
     -W | --wrap-after N   : number of column after which lists must be wrapped.
                             Default: puts every item on its own line.
+    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
+                            --config / -c option overrides it.
 
 Examples:
 
