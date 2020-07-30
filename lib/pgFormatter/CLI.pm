@@ -199,6 +199,7 @@ Options:
     -B | --comma-break    : in insert statement, add a newline after each comma.
     -c | --config FILE    : use a configuration file. Default is to not use
                             configuration file or ~/.pg_format if it exists.
+                            Set to empty string to prevent reading ~/.pg_format.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -323,7 +324,7 @@ sub get_command_line_args
 
     $cfg{ 'config' }        //= "$ENV{HOME}/.pg_format";
 
-    if (-f $cfg{ 'config' })
+    if ( $cfg{ 'config' } ne '' && -f $cfg{ 'config' } )
     {
         open(my $cfh, '<', $cfg{ 'config' }) or die "ERROR: can not read file $cfg{ 'config' }\n";
         while (my $line = <$cfh>)
