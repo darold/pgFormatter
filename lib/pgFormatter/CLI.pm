@@ -105,6 +105,7 @@ sub beautify {
     $args{ 'wrap_comment' } = $self->{ 'cfg' }->{ 'wrap-comment' };
     $args{ 'no_extra_line' }= $self->{ 'cfg' }->{ 'no-extra-line' };
     $args{ 'config' }       = $self->{ 'cfg' }->{ 'config' };
+    $args{ 'no_rcfile' }    = $self->{ 'cfg' }->{ 'no-rcfile' };
     $args{ 'inplace' }      = $self->{ 'cfg' }->{ 'inplace' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
@@ -199,7 +200,8 @@ Options:
     -B | --comma-break    : in insert statement, add a newline after each comma.
     -c | --config FILE    : use a configuration file. Default is to not use
                             configuration file or ~/.pg_format if it exists.
-                            Set to empty string to prevent reading ~/.pg_format.
+    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
+                            --config / -c option overrides it.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -287,6 +289,7 @@ sub get_command_line_args
         'comma-start|b!',
         'comma-break|B!',
         'config|c=s',
+        'no-rcfile|X!',
         'wrap-comment|C!',
         'debug|d!',
         'comma-end|e!',
@@ -322,9 +325,11 @@ sub get_command_line_args
         exit 0;
     }
 
-    $cfg{ 'config' }        //= "$ENV{HOME}/.pg_format";
+    if ( !$cfg{ 'no-rcfile' } ) {
+        $cfg{ 'config' } //= "$ENV{HOME}/.pg_format";
+    }
 
-    if ( $cfg{ 'config' } ne '' && -f $cfg{ 'config' } )
+    if ( defined $cfg{ 'config' } && -f $cfg{ 'config' } )
     {
         open(my $cfh, '<', $cfg{ 'config' }) or die "ERROR: can not read file $cfg{ 'config' }\n";
         while (my $line = <$cfh>)
