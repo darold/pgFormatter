@@ -1,6 +1,6 @@
 use Test::Simple tests => 62;
 
-my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to 'pg_format' to test installed binary in /usr/bin
+my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
 
 my $ret = `perl -I. -wc $pg_format 2>&1`;
 ok( $? == 0, "$pg_format compiles OK" ) or exit $?;
