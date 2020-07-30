@@ -1,6 +1,7 @@
-use Test::Simple tests => 61;
+use Test::Simple tests => 62;
 
-my $ret = `perl -I. -wc pg_format 2>&1`;
+my $ret = `perl -I. -wc ./pg_format 2>&1`;
+ok( $? == 0, "./pg_format compiles OK" ) or exit $?;
 
 my @files = `find t/test-files/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
@@ -18,7 +19,7 @@ foreach my $f (@files)
 	$opt = "-f 2 -u 2 -U 2 " if ($f =~ m#/ex60.sql$#);
 	$opt = "--comma-break -U 2" if ($f =~ m#/ex57.sql$#);
 	$opt = "--keyword-case 2 --function-case 1 --comma-start --wrap-after 1 --wrap-limit 40 --tabs --spaces 4 " if ($f =~ m#/ex58.sql$#);
-	my $cmd = "./pg_format $opt -u 2 $f >/tmp/output.sql";
+	my $cmd = "$pg_format $opt -u 2 -c '' $f >/tmp/output.sql";
 	`$cmd`;
 	$f =~ s/test-files\//test-files\/expected\//;
 	if (lc($ARGV[0]) eq 'update') {

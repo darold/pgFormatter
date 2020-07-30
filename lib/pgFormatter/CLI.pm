@@ -66,8 +66,8 @@ sub run {
     $self->logmsg( 'DEBUG', 'Beautifying' );
     $self->beautify();
     if ($self->{'wrap_limit'}) {
-	    $self->logmsg( 'DEBUG', 'Wrap query' );
-	    $self->wrap_lines($self->{'wrap_comment'});
+            $self->logmsg( 'DEBUG', 'Wrap query' );
+            $self->wrap_lines($self->{'wrap_comment'});
     }
     $self->logmsg( 'DEBUG', 'Writing output' );
     $self->save_output();
@@ -116,8 +116,8 @@ sub beautify {
     $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
     $beautifier->beautify();
     if ($self->{ 'cfg' }->{ 'wrap-limit' }) {
-	    $self->logmsg( 'DEBUG', 'Wrap query' );
-	    $beautifier->wrap_lines($self->{ 'cfg' }->{ 'wrap-comment' });
+            $self->logmsg( 'DEBUG', 'Wrap query' );
+            $beautifier->wrap_lines($self->{ 'cfg' }->{ 'wrap-comment' });
     }
 
     $self->{ 'ready' } = $beautifier->content();
@@ -139,7 +139,7 @@ sub save_output {
         $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
         open $fh, '>', $self->{ 'cfg' }->{ 'output' };
     } else {  
-    	$fh = \*STDOUT;
+        $fh = \*STDOUT;
     }
     print $fh $self->{ 'ready' };
     close $fh;
@@ -199,6 +199,7 @@ Options:
     -B | --comma-break    : in insert statement, add a newline after each comma.
     -c | --config FILE    : use a configuration file. Default is to not use
                             configuration file or ~/.pg_format if it exists.
+                            Set to empty string to prevent reading ~/.pg_format.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -289,11 +290,11 @@ sub get_command_line_args
         'wrap-comment|C!',
         'debug|d!',
         'comma-end|e!',
-	'format|F=s',
+        'format|F=s',
         'nogrouping|g!',
         'help|h!',
         'function-case|f=i',
-	'no-extra-line|L!',
+        'no-extra-line|L!',
         'maxlength|m=i',
         'nocomment|n!',
         'numbering|N!',
@@ -323,25 +324,25 @@ sub get_command_line_args
 
     $cfg{ 'config' }        //= "$ENV{HOME}/.pg_format";
 
-    if (-f $cfg{ 'config' })
+    if ( $cfg{ 'config' } ne '' && -f $cfg{ 'config' } )
     {
-	open(my $cfh, '<', $cfg{ 'config' }) or die "ERROR: can not read file $cfg{ 'config' }\n";
-	while (my $line = <$cfh>)
-	{
-	    chomp($line);
-	    next if ($line !~ /^[a-z]/);
-	    if ($line =~ /^([^\s=]+)\s*=\s*([^\s]+)/)
-	    {
-		# do not override command line arguments
-		next if (defined $cfg{ lc($1) });
+        open(my $cfh, '<', $cfg{ 'config' }) or die "ERROR: can not read file $cfg{ 'config' }\n";
+        while (my $line = <$cfh>)
+        {
+            chomp($line);
+            next if ($line !~ /^[a-z]/);
+            if ($line =~ /^([^\s=]+)\s*=\s*([^\s]+)/)
+            {
+                # do not override command line arguments
+                next if (defined $cfg{ lc($1) });
 
-		if ($1 eq 'comma' || $1 eq 'format') {
-		    $cfg{ lc($1) } = lc($2);
-		} else {
-		    $cfg{ lc($1) } = $2;
-	        }
-	    }
-	}
+                if ($1 eq 'comma' || $1 eq 'format') {
+                    $cfg{ lc($1) } = lc($2);
+                } else {
+                    $cfg{ lc($1) } = $2;
+                }
+            }
+        }
     }
 
     # Set default configuration
@@ -413,7 +414,7 @@ sub validate_args {
 
    if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'input' } ne '-')
    {
-	$self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
+        $self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
    }
 
     return;
