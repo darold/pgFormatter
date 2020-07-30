@@ -1,11 +1,12 @@
 use Test::Simple tests => 62;
 
-my $ret = `perl -I. -wc ./pg_format 2>&1`;
-ok( $? == 0, "./pg_format compiles OK" ) or exit $?;
+my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to 'pg_format' to test installed binary in /usr/bin
+
+my $ret = `perl -I. -wc $pg_format 2>&1`;
+ok( $? == 0, "$pg_format compiles OK" ) or exit $?;
 
 my @files = `find t/test-files/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
-my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to 'pg_format' to test installed binary in /usr/bin
 my $exit = 0;
 
 foreach my $f (@files)
