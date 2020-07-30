@@ -1,6 +1,7 @@
-use Test::Simple tests => 61;
+use Test::Simple tests => 62;
 
 my $ret = `perl -I. -wc pg_format 2>&1`;
+ok( $? == 0, "pg_format compiles OK" ) or exit $?;
 
 my @files = `find t/test-files/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
