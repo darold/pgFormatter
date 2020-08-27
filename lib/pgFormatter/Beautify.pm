@@ -841,7 +841,7 @@ sub beautify
 
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
 	    if (defined $self->_next_token and $self->_next_token !~ /^(AS|WITH|,)$/i
-			    and (!$self->_is_comment($self->_next_token) or $self->{ '_tokens' }[1] ne ',')
+			    and (!$self->_is_comment($self->_next_token) or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }[1] ne ','))
 			    and !$self->{ '_parenthesis_with_level' })
 	    {
 		$self->{ '_is_in_with' } = 0;
