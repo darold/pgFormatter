@@ -49,7 +49,7 @@ DESCRIPTION
         -n | --nocomment      : remove any comment from SQL code.
         -N | --numbering      : statement numbering as a comment before each query.
         -o | --output file    : define the filename for the output. Default: stdout.
-        -p | --placeholder re : set regex to find code that must not be changed.
+        -p | --placeholder RE : set regex to find code that must not be changed.
         -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
         -s | --spaces size    : change space indent, default 4 spaces.
         -S | --separator STR  : dynamic code separator, default to single quote.
@@ -68,6 +68,8 @@ DESCRIPTION
                                 Default: puts every item on its own line.
         -X | --no-rcfile      : do not read ~/.pg_format automatically. The
                                 --config / -c option overrides it.
+        --extra-function FILE : file containing a list of function to use the same
+                                formatting as PostgreSQL internal function.
 
     Examples:
 
@@ -193,6 +195,13 @@ SPECIAL FORMATTING
     statement when it is terminated by a ; except in a plpgsql code block.
     If the extra empty line at end of the output is useless, you can remove
     it by adding this option to the command line.
+
+  Option --extra-function
+    pgFormatter applies some formatting to the PostgreSQL internal functions
+    call but it can not detect user defined function. It is possible to
+    defined a list of functions into a file (one function name per line) and
+    give it to pgFormatter through the --extra-function option that will be
+    formatter as PostgreSQL internal functions.
 
 HINTS
   Configuration

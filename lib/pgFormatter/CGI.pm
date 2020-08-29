@@ -151,6 +151,7 @@ sub set_config {
     $self->{ 'numbering' }    //= 0;
     $self->{ 'redshift' }     //= 0;
     $self->{ 'colorize' }     //= 1;
+    $self->{ 'extra_function' }//= '';
 
     if ($self->{ 'tabs' })
     {
@@ -160,16 +161,20 @@ sub set_config {
 
     if (!grep(/^$self->{ 'comma' }$/i, 'end', 'start'))
     {
-        printf 'FATAL: unknow value for comma: %s', $self->{ 'comma' } , "\n";
+        print STDERR "FATAL: unknow value for comma: $self->{ 'comma' }\n";
         exit 0;
     }
 
     if (!grep(/^$self->{ 'format' }$/i, 'text', 'html'))
     {
-        printf 'FATAL: unknow output format: %s%s', $self->{ 'format' } , "\n";
+        print STDERR "FATAL: unknow output format: $self->{ 'format' }\n";
         exit 0;
     }
 
+    if ( $self->{ 'extra_function' } && !-e $self->{ 'extra_function' }) {
+        print STDERR "FATAL: file for extra function list does not exists: $self->{ 'extra_function' }\n";
+        exit 0;
+    }
 
     # Filename to load tracker and ad to be included respectively in the
     # HTML head and the bottom of the HTML page.
@@ -316,6 +321,21 @@ sub beautify_query {
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
     my $beautifier = pgFormatter::Beautify->new( %args );
+    if ($self->{ 'extra_function' } && -e $self->{ 'extra_function' })
+    {
+	    if (open(my $fh, '<', $self->{ 'extra_function' }))
+	    {
+		    my @fcts = ();
+		    while (my $l = <$fh>) {
+			    chomp($l);
+			    push(@fcts, split(/^[\s,;]+$/, $l));
+		    }
+		    $beautifier->add_functions(@fcts);
+		    close($fh);
+	    } else {
+		    warn("WARNING: can not read file $self->{ 'extra_function' }\n");
+	    }
+    }
     $beautifier->query( $self->{ 'content' } );
     $beautifier->anonymize() if $self->{ 'anonymize' };
     $beautifier->beautify();

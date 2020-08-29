@@ -107,12 +107,28 @@ sub beautify {
     $args{ 'config' }       = $self->{ 'cfg' }->{ 'config' };
     $args{ 'no_rcfile' }    = $self->{ 'cfg' }->{ 'no-rcfile' };
     $args{ 'inplace' }      = $self->{ 'cfg' }->{ 'inplace' };
+    $args{ 'extra_function' } = $self->{ 'cfg' }->{ 'extra-function' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
     }
 
     my $beautifier = pgFormatter::Beautify->new( %args );
+    if ($args{ 'extra_function' } && -e $args{ 'extra_function' })
+    {
+	    if (open(my $fh, '<', $args{ 'extra_function' }))
+	    {
+		    my @fcts = ();
+		    while (my $l = <$fh>) {
+			    chomp($l);
+			    push(@fcts, split(/^[\s,;]+$/, $l));
+		    }
+		    $beautifier->add_functions(@fcts);
+		    close($fh);
+	    } else {
+		    warn("WARNING: can not read file $args{ 'extra_function' }\n");
+	    }
+    }
     $beautifier->query( $self->{ 'query' } );
     $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
     $beautifier->beautify();
@@ -217,7 +233,7 @@ Options:
     -n | --nocomment      : remove any comment from SQL code.
     -N | --numbering      : statement numbering as a comment before each query.
     -o | --output file    : define the filename for the output. Default: stdout.
-    -p | --placeholder re : set regex to find code that must not be changed.
+    -p | --placeholder RE : set regex to find code that must not be changed.
     -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
@@ -236,6 +252,8 @@ Options:
                             Default: puts every item on its own line.
     -X | --no-rcfile      : do not read ~/.pg_format automatically. The
                             --config / -c option overrides it.
+    --extra-function FILE : file containing a list of function to use the same
+                            formatting as PostgreSQL internal function.
 
 Examples:
 
@@ -314,6 +332,7 @@ sub get_command_line_args
         'wrap-limit|w=i',
         'wrap-after|W=i',
         'inplace|i!',
+	'extra-function=s',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -388,6 +407,11 @@ sub get_command_line_args
         exit 0;
     }
 
+    if ( $cfg{ 'extra-function' } && !-e $cfg{ 'extra-function' }) {
+        printf 'FATAL: file for extra function list does not exists: %s', $cfg{ 'extra-function' } , "\n";
+        exit 0;
+    }
+
     $cfg{ 'input' } = $ARGV[ 0 ] // '-';
 
     $self->{ 'cfg' } = \%cfg;
@@ -417,10 +441,10 @@ sub validate_args {
         $self->{ 'cfg' }->{ 'comma' } = 'start';
     }
 
-   if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'input' } ne '-')
-   {
+    if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'input' } ne '-')
+    {
         $self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
-   }
+    }
 
     return;
 }

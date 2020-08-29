@@ -71,3 +71,6 @@ wrap-after=0
 
 # with --wrap-limit, apply reformatting to comments.
 wrap-comment=0
+
+# Add a list of function to be formatted as PG internal functions
+#extra-function=/opt/pgFormatter/functions.lst
