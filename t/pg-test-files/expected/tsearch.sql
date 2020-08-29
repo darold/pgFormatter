@@ -512,7 +512,7 @@ SELECT
     to_tsquery('simple', 'qwe & sKies ');
 
 SELECT
-    to_tsquery('english', '' 'the wether'':dc & ''           sKies '':BC ');
+    to_tsquery('english', '''the wether'':dc & ''           sKies '':BC ');
 
 SELECT
     to_tsquery('english', 'asd&(and|fghj)');
@@ -1483,7 +1483,7 @@ SELECT
     websearch_to_tsquery('''');
 
 SELECT
-    websearch_to_tsquery('' 'abc''''def''');
+    websearch_to_tsquery('''abc''''def''');
 
 SELECT
     websearch_to_tsquery('\abc');

@@ -345,7 +345,7 @@ sub content
     $self->{ 'content' } =~ s/BSLHPGF/\\\\/g;
     # Replace any PGFBSLHQ by \'
     $self->{ 'content' } =~ s/PGFBSLHQ/\\'/g;
-    # Replace any '' by PGFESCQ
+    # Replace any PGFESCQ by ''
     $self->{ 'content' } =~ s/PGFESCQ/''/g;
     # Replace any $PGFDLM$ by code delimiter ' 
     $self->{ 'content' } =~ s/\$PGFDLM\$/'/g;
@@ -2500,7 +2500,10 @@ sub _add_token
                 )
             {
                 print STDERR "DEBUG_SPC: 1) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
-                $self->{ 'content' } .= $sp if ($token !~ /^['"].*['"]$/ || $last_token ne ':');
+		if ( ($token ne 'PGFESCQ' or $last_token !~ /'$/) and ($last_token ne 'PGFESCQ' or $token !~ /^'/) )
+	        {	
+                    $self->{ 'content' } .= $sp if ($token !~ /^['"].*['"]$/ || $last_token ne ':');
+	        }
 	    }
 	    elsif (!defined($last_token) && $token)
 	    {

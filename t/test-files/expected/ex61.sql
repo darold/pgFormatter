@@ -4,6 +4,10 @@ SELECT
 FROM
     mytbl1;
 
+SELECT
+    lives_ok ('INSERT INTO "order".v_order (status, order_id, name)
+    VALUES (''complete'', ''' || get_order_id () || ''', '' caleb ''', 'with all parameters');
+
 INSERT INTO table1 (id, name)
     VALUES
         -- 5 min <= duration < 15 min
