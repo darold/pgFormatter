@@ -129,6 +129,14 @@ INSTALLATION
 
             make test
 
+    If you have docker installed you can build a pgFormatter image using:
+
+            docker build -t darold.net/pgformatter .
+
+    then just use it as
+
+            echo file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
+
 SPECIAL FORMATTING
   Option -W, --wrap-after
     This option can be used to set number of column after which lists must

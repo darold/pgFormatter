@@ -130,6 +130,14 @@ Regression tests can be executed with the following command:
 
 	make test
 
+If you have docker installed you can build a pgFormatter image using:
+
+	docker build -t darold.net/pgformatter .
+
+then just use it as 
+
+	echo file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
+
 
 =head1 SPECIAL FORMATTING
 
