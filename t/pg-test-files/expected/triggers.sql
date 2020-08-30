@@ -1,7 +1,6 @@
 --
 -- TRIGGERS
 --
-
 CREATE TABLE pkeys (
     pkey1 int4 NOT NULL,
     pkey2 text NOT NULL
@@ -50,7 +49,6 @@ CREATE UNIQUE INDEX pkeys_i ON pkeys (pkey1, pkey2);
 -- 	(fkey1, fkey2)	--> pkeys (pkey1, pkey2)
 -- 	(fkey3)		--> fkeys2 (pkey23)
 --
-
 CREATE TRIGGER check_fkeys_pkey_exist
     BEFORE INSERT OR UPDATE ON fkeys FOR EACH ROW
     EXECUTE FUNCTION check_primary_key ('fkey1', 'fkey2', 'pkeys', 'pkey1', 'pkey2');
@@ -63,7 +61,6 @@ CREATE TRIGGER check_fkeys_pkey2_exist
 -- For fkeys2:
 -- 	(fkey21, fkey22)	--> pkeys (pkey1, pkey2)
 --
-
 CREATE TRIGGER check_fkeys2_pkey_exist
     BEFORE INSERT OR UPDATE ON fkeys2 FOR EACH ROW
     EXECUTE PROCEDURE check_primary_key ('fkey21', 'fkey22', 'pkeys', 'pkey1', 'pkey2');
@@ -80,7 +77,6 @@ COMMENT ON TRIGGER check_fkeys2_pkey_exist ON fkeys2 IS NULL;
 -- 	ON DELETE/UPDATE (pkey1, pkey2) CASCADE:
 -- 		fkeys (fkey1, fkey2) and fkeys2 (fkey21, fkey22)
 --
-
 CREATE TRIGGER check_pkeys_fkey_cascade
     BEFORE DELETE OR UPDATE ON pkeys FOR EACH ROW
     EXECUTE PROCEDURE check_foreign_key (2, 'cascade', 'pkey1', 'pkey2', 'fkeys', 'fkey1', 'fkey2', 'fkeys2', 'fkey21', 'fkey22');
@@ -90,7 +86,6 @@ CREATE TRIGGER check_pkeys_fkey_cascade
 -- 	ON DELETE/UPDATE (pkey23) RESTRICT:
 -- 		fkeys (fkey3)
 --
-
 CREATE TRIGGER check_fkeys2_fkey_restrict
     BEFORE DELETE OR UPDATE ON fkeys2 FOR EACH ROW
     EXECUTE PROCEDURE check_foreign_key (1, 'restrict', 'pkey23', 'fkeys', 'fkey3');
@@ -262,7 +257,6 @@ FROM
 
 -- what do we see ?
 -- get current prices
-
 SELECT
     *
 FROM
@@ -285,7 +279,6 @@ FROM
 
 -- now we want to change pric_id in ALL tuples
 -- this gets us not what we need
-
 UPDATE
     tttest
 SET
@@ -344,7 +337,6 @@ WHERE
 
 -- but this doesn't work
 -- try in this way
-
 SELECT
     set_ttdummy (0);
 
@@ -362,7 +354,6 @@ FROM
 
 -- isn't it what we need ?
 -- get price for price_id == 5 as it was @ "date" 35
-
 SELECT
     *
 FROM
@@ -379,7 +370,6 @@ DROP SEQUENCE ttdummy_seq;
 --
 -- tests for per-statement triggers
 --
-
 CREATE TABLE log_table (
     tstamp timestamp DEFAULT timeofday() ::timestamp
 );
@@ -413,7 +403,6 @@ CREATE TRIGGER after_ins_stmt_trig
 -- if neither 'FOR EACH ROW' nor 'FOR EACH STATEMENT' was specified,
 -- CREATE TRIGGER should default to 'FOR EACH STATEMENT'
 --
-
 CREATE TRIGGER after_upd_stmt_trig
     AFTER UPDATE ON main_table
     EXECUTE PROCEDURE trigger_func ('after_upd_stmt');
@@ -421,7 +410,6 @@ CREATE TRIGGER after_upd_stmt_trig
 -- Both insert and update statement level triggers (before and after) should
 -- fire.  Doesn't fire UPDATE before trigger, but only because one isn't
 -- defined.
-
 INSERT INTO main_table (a, b)
     VALUES (5, 10)
 ON CONFLICT (a)
@@ -463,7 +451,6 @@ ORDER BY
 --
 -- test triggers with WHEN clause
 --
-
 CREATE TRIGGER modified_a
     BEFORE UPDATE OF a ON main_table
     FOR EACH ROW
@@ -664,7 +651,6 @@ SET
 --
 -- Test case for bug with BEFORE trigger followed by AFTER trigger with WHEN
 --
-
 CREATE TABLE some_t (
     some_col boolean NOT NULL
 );
@@ -931,7 +917,6 @@ DROP TABLE trigger_test;
 --
 -- Test use of row comparisons on OLD/NEW
 --
-
 CREATE TABLE trigger_test (
     f1 int,
     f2 text,
@@ -1016,7 +1001,6 @@ DROP FUNCTION mytrigger ();
 
 -- Test snapshot management in serializable transactions involving triggers
 -- per bug report in 6bc73d4c0910042358k3d1adff3qa36f8df75198ecea@mail.gmail.com
-
 CREATE FUNCTION serializable_update_trig ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -1112,7 +1096,6 @@ DROP TABLE min_updates_test;
 --
 -- Test triggers on views
 --
-
 CREATE VIEW main_view AS
 SELECT
     a,
@@ -1377,7 +1360,6 @@ DROP VIEW main_view;
 --
 -- Test triggers on a join view
 --
-
 CREATE TABLE country_table (
     country_id serial PRIMARY KEY,
     country_name text UNIQUE NOT NULL,
@@ -1857,7 +1839,6 @@ DROP FUNCTION depth_c_tf ();
 -- Test updates to rows during firing of BEFORE ROW triggers.
 -- As of 9.2, such cases should be rejected (see bug #6123).
 --
-
 CREATE temp TABLE parent (
     aid int NOT NULL PRIMARY KEY,
     val1 text,
@@ -1995,7 +1976,6 @@ FROM
 
 -- replace the trigger function with one that restarts the deletion after
 -- having modified a child
-
 CREATE OR REPLACE FUNCTION parent_del_func ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -2038,7 +2018,6 @@ DROP FUNCTION child_del_func ();
 
 -- similar case, but with a self-referencing FK so that parent and child
 -- rows can be affected by a single operation
-
 CREATE temp TABLE self_ref_trigger (
     id int PRIMARY KEY,
     parent int REFERENCES self_ref_trigger,
@@ -2131,7 +2110,6 @@ DROP FUNCTION self_ref_trigger_del_func ();
 --
 -- Check that statement triggers work correctly even with all children excluded
 --
-
 CREATE TABLE stmt_trig_on_empty_upd (
     a int
 );
@@ -2186,7 +2164,6 @@ DROP FUNCTION update_stmt_notice ();
 --
 -- Check that index creation (or DDL in general) is prohibited in a trigger
 --
-
 CREATE TABLE trigger_ddl_table (
     col1 integer,
     col2 integer
@@ -2233,7 +2210,6 @@ DROP FUNCTION trigger_ddl_func ();
 -- Verify behavior of before and after triggers with INSERT...ON CONFLICT
 -- DO UPDATE
 --
-
 CREATE TABLE upsert (
     KEY int4 PRIMARY KEY,
     color text
@@ -2345,7 +2321,6 @@ DROP FUNCTION upsert_after_func ();
 -- Verify that triggers with transition tables are not allowed on
 -- views
 --
-
 CREATE TABLE my_table (
     i int
 );
@@ -2377,7 +2352,6 @@ DROP TABLE my_table;
 --
 -- Verify cases that are unsupported with partitioned tables
 --
-
 CREATE TABLE parted_trig (
     a int
 )
@@ -2408,7 +2382,6 @@ DROP TABLE parted_trig;
 --
 -- Verify trigger creation for partitioned tables, and drop behavior
 --
-
 CREATE TABLE trigpart (
     a int,
     b int
@@ -2487,7 +2460,6 @@ DROP FUNCTION trigger_nothing ();
 --
 -- Verify that triggers are fired for partitioned tables
 --
-
 CREATE TABLE parted_stmt_trig (
     a int
 )
@@ -2695,7 +2667,6 @@ DROP TABLE parted_trig;
 
 -- test irregular partitions (i.e., different column definitions),
 -- including that the WHEN clause works
-
 CREATE FUNCTION bark (text)
     RETURNS bool
     LANGUAGE plpgsql
@@ -2772,7 +2743,6 @@ CREATE TRIGGER parted_trig_odd
 
 -- we should hear barking for every insert, but parted_trig_odd only emits
 -- noise for odd values of a. parted_trig does it for all inserts.
-
 INSERT INTO parted_irreg
     VALUES (1, 'aardvark'), (2, 'aanimals');
 
@@ -2786,7 +2756,6 @@ DROP TABLE parted_irreg_ancestor;
 
 --
 -- Constraint triggers and partitioned tables
-
 CREATE TABLE parted_constr_ancestor (
     a int,
     b text
@@ -2822,7 +2791,6 @@ CREATE CONSTRAINT TRIGGER parted_trig_two
 -- The immediate constraint is fired immediately; the WHEN clause of the
 -- deferred constraint is also called immediately.  The deferred constraint
 -- is fired at commit time.
-
 BEGIN;
 INSERT INTO parted_constr
     VALUES (1, 'aardvark');
@@ -2834,7 +2802,6 @@ COMMIT;
 
 -- The WHEN clause is immediate, and both constraint triggers are fired at
 -- commit time.
-
 BEGIN;
 SET constraints parted_trig DEFERRED;
 INSERT INTO parted_constr
@@ -3038,7 +3005,6 @@ DROP FUNCTION trigger_notice_ab ();
 
 -- Make sure we don't end up with unnecessary copies of triggers, when
 -- cloning them.
-
 CREATE TABLE trg_clone (
     a int
 )
@@ -3080,7 +3046,6 @@ DROP TABLE trg_clone;
 -- format that shows the attribute order, so that we can distinguish
 -- tuple formats (though not dropped attributes).
 --
-
 CREATE OR REPLACE FUNCTION dump_insert ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -3134,7 +3099,6 @@ $$;
 -- format of the relation the trigger is attached to.
 --
 -- set up a partition hierarchy with some different TupleDescriptors
-
 CREATE TABLE parent (
     a text,
     b int
@@ -3272,7 +3236,6 @@ DELETE FROM child3;
 
 -- DML affecting parent sees tuples collected from children even if
 -- there is no transition table trigger on the children
-
 DROP TRIGGER child1_insert_trig ON child1;
 
 DROP TRIGGER child1_update_trig ON child1;
@@ -3295,7 +3258,6 @@ DELETE FROM parent;
 
 -- insert into parent with a before trigger on a child tuple before
 -- insertion, and we capture the newly modified row in parent format
-
 CREATE OR REPLACE FUNCTION intercept_insert ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -3322,7 +3284,6 @@ DROP FUNCTION intercept_insert ();
 -- Verify prohibition of row triggers with transition triggers on
 -- partitions
 --
-
 CREATE TABLE parent (
     a text,
     b int
@@ -3363,7 +3324,6 @@ DROP TABLE child, parent;
 -- tables can have extra columns
 --
 -- set up inheritance hierarchy with different TupleDescriptors
-
 CREATE TABLE parent (
     a text,
     b int
@@ -3477,12 +3437,10 @@ DELETE FROM child3;
 
 -- same behavior for copy if there is an index (interesting because rows are
 -- captured by a different code path in copy.c if there are indexes)
-
 CREATE INDEX ON parent (b);
 
 -- DML affecting parent sees tuples collected from children even if
 -- there is no transition table trigger on the children
-
 DROP TRIGGER child1_insert_trig ON child1;
 
 DROP TRIGGER child1_update_trig ON child1;
@@ -3509,7 +3467,6 @@ DROP TABLE child1, child2, child3, parent;
 -- Verify prohibition of row triggers with transition triggers on
 -- inheritance children
 --
-
 CREATE TABLE parent (
     a text,
     b int
@@ -3548,7 +3505,6 @@ DROP TABLE child, parent;
 -- multiple DML statements that might fire triggers with transition
 -- tables
 --
-
 CREATE TABLE table1 (
     a int
 );
@@ -3595,7 +3551,6 @@ DROP TABLE table2;
 -- Verify behavior of INSERT ... ON CONFLICT DO UPDATE ... with
 -- transition tables.
 --
-
 CREATE TABLE my_table (
     a int PRIMARY KEY,
     b text
@@ -3633,7 +3588,6 @@ ON CONFLICT (a)
 --
 -- now using a partitioned table
 --
-
 CREATE TABLE iocdu_tt_parted (
     a int PRIMARY KEY,
     b text
@@ -3687,7 +3641,6 @@ DROP TABLE iocdu_tt_parted;
 -- Verify that you can't create a trigger with transition tables for
 -- more than one event.
 --
-
 CREATE TRIGGER my_table_multievent_trig
     AFTER INSERT OR UPDATE ON my_table referencing new TABLE AS new_table FOR EACH statement
     EXECUTE PROCEDURE dump_insert ();
@@ -3696,7 +3649,6 @@ CREATE TRIGGER my_table_multievent_trig
 -- Verify that you can't create a trigger with transition tables with
 -- a column list.
 --
-
 CREATE TRIGGER my_table_col_update_trig
     AFTER UPDATE OF b ON my_table referencing new TABLE AS new_table FOR EACH statement
     EXECUTE PROCEDURE dump_insert ();
@@ -3706,7 +3658,6 @@ DROP TABLE my_table;
 --
 -- Test firing of triggers with transition tables by foreign key cascades
 --
-
 CREATE TABLE refd_table (
     a int PRIMARY KEY,
     b text
@@ -3765,7 +3716,6 @@ DROP TABLE refd_table, trig_table;
 --
 -- self-referential FKs are even more fun
 --
-
 CREATE TABLE self_ref (
     a int PRIMARY KEY,
     b int REFERENCES self_ref (a) ON DELETE CASCADE

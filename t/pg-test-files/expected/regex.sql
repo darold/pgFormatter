@@ -2,7 +2,6 @@
 -- Regular expression tests
 --
 -- Don't want to have to double backslashes in regexes
-
 SET standard_conforming_strings = ON;
 
 -- Test simple quantified backrefs
@@ -68,7 +67,6 @@ SELECT
 
 -- error
 -- Test lookahead constraints
-
 SELECT
     regexp_matches('ab', 'a(?=b)b*');
 
@@ -307,13 +305,11 @@ SELECT
 
 -- This generates O(N) states but O(N^2) arcs, so it causes problems
 -- if arc count is not constrained
-
 SELECT
     'x' ~ repeat('x*y*z*', 1000);
 
 -- Test backref in combination with non-greedy quantifier
 -- https://core.tcl.tk/tcl/tktview/6585b21ca8fa6f3678d442b97241fdd43dba2ec0
-
 SELECT
     'Programmer' ~ '(\w).*?\1' AS t;
 
@@ -326,7 +322,6 @@ SELECT
 
 -- Test for infinite loop in cfindloop with zero-length possible match
 -- but no actual match (can only happen in the presence of backrefs)
-
 SELECT
     'a' ~ '$()|^\1';
 

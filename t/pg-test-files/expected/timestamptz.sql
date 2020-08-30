@@ -1,7 +1,6 @@
 --
 -- TIMESTAMPTZ
 --
-
 CREATE TABLE TIMESTAMPTZ_TBL (
     d1 timestamp(2) with time zone
 );
@@ -14,7 +13,6 @@ CREATE TABLE TIMESTAMPTZ_TBL (
 -- NOTE: it is possible for this part of the test to fail if the transaction
 -- block is entered exactly at local midnight; then 'now' and 'today' have
 -- the same values and the counts will come out different.
-
 INSERT INTO TIMESTAMPTZ_TBL
     VALUES ('now');
 
@@ -240,7 +238,6 @@ SELECT
 
 -- non-DST
 -- Check date conversion and date arithmetic
-
 INSERT INTO TIMESTAMPTZ_TBL
     VALUES ('1997-06-10 18:32:01 PDT');
 
@@ -346,7 +343,6 @@ INSERT INTO TIMESTAMPTZ_TBL
 
 -- Alternative field order that we've historically supported (sort of)
 -- with regular and POSIXy timezone specs
-
 SELECT
     'Wed Jul 11 10:51:14 America/New_York 2001'::timestamptz;
 
@@ -384,7 +380,6 @@ SELECT
 -- out of range
 -- The upper boundary differs between integer and float timestamps, so no check
 -- Demonstrate functions and operators
-
 SELECT
     '' AS "48",
     d1
@@ -462,7 +457,6 @@ SELECT
 
 -- variable-offset abbreviation
 -- Test casting within a BETWEEN qualifier
-
 SELECT
     '' AS "54",
     d1 - timestamp with time zone '1997-01-02' AS diff
@@ -754,7 +748,6 @@ RESET TimeZone;
 -- These tests rely on the knowledge that MSK (Europe/Moscow standard time)
 -- moved forwards in Mar 2011 and backwards again in Oct 2014.
 --
-
 SET TimeZone TO 'UTC';
 
 SELECT
@@ -944,14 +937,12 @@ SELECT
 
 -- 2010-01-01 12:34:56.789012+00
 -- edge cases
-
 SELECT
     to_timestamp(- 210866803200);
 
 --   4714-11-24 00:00:00+00 BC
 -- upper limit varies between integer and float timestamps, so hard to test
 -- nonfinite values
-
 SELECT
     to_timestamp(' Infinity'::float);
 
@@ -1076,7 +1067,6 @@ SELECT
 --
 -- Test that AT TIME ZONE isn't misoptimized when using an index (bug #14504)
 --
-
 CREATE temp TABLE tmptz (
     f1 timestamptz PRIMARY KEY
 );

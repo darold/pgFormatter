@@ -3,7 +3,6 @@
 --
 -- Clean up in case a prior regression run failed
 -- Suppress NOTICE messages when roles don't exist
-
 SET client_min_messages TO 'warning';
 
 DROP ROLE IF EXISTS regress_foreign_data_user, regress_test_role, regress_test_role2, regress_test_role_super, regress_test_indirect, regress_unprivileged_role;
@@ -1245,7 +1244,6 @@ DROP SERVER s9 CASCADE;
 
 -- ERROR
 -- Check visibility of user mapping data
-
 SET ROLE regress_test_role;
 
 CREATE SERVER s10 FOREIGN DATA WRAPPER foo;
@@ -1578,7 +1576,6 @@ FROM
 
 -- ERROR
 -- DROP FOREIGN TABLE
-
 DROP FOREIGN TABLE no_table;
 
 -- ERROR
@@ -1710,7 +1707,6 @@ DROP TABLE fd_pt2;
 
 -- foreign table cannot be part of partition tree made of temporary
 -- relations.
-
 CREATE TEMP TABLE temp_parted (
     a int
 )

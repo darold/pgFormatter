@@ -3,7 +3,6 @@
 -- Test partitionwise aggregation on partitioned tables
 --
 -- Enable partitionwise aggregate, which by default is disabled.
-
 SET enable_partitionwise_aggregate TO TRUE;
 
 -- Enable partitionwise join, which by default is disabled.
@@ -15,7 +14,6 @@ SET max_parallel_workers_per_gather TO 0;
 --
 -- Tests for list partitioned tables.
 --
-
 CREATE TABLE pagg_tab (
     a int,
     b int,
@@ -356,7 +354,6 @@ ORDER BY
 -- Full aggregation; since all the rows that belong to the same group come
 -- from the same partition, having an ORDER BY within the aggregate doesn't
 -- make any difference.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -374,7 +371,6 @@ ORDER BY
 -- Since GROUP BY clause does not match with PARTITION KEY; we need to do
 -- partial aggregation. However, ORDERED SET are not partial safe and thus
 -- partitionwise aggregation plan is not generated.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -532,7 +528,6 @@ ORDER BY
 
 -- When GROUP BY clause does not match; partial aggregation is performed for each partition.
 -- Also test GroupAggregate paths by disabling hash aggregates.
-
 SET enable_hashagg TO FALSE;
 
 EXPLAIN (
@@ -580,7 +575,6 @@ RESET enable_hashagg;
 -- aggregation
 -- LEFT JOIN, should produce partial partitionwise aggregation plan as
 -- GROUP BY is on nullable column
-
 EXPLAIN (
     COSTS OFF
 )
@@ -608,7 +602,6 @@ ORDER BY
 
 -- RIGHT JOIN, should produce full partitionwise aggregation plan as
 -- GROUP BY is on non-nullable column
-
 EXPLAIN (
     COSTS OFF
 )
@@ -636,7 +629,6 @@ ORDER BY
 
 -- FULL JOIN, should produce partial partitionwise aggregation plan as
 -- GROUP BY is on nullable column
-
 EXPLAIN (
     COSTS OFF
 )
@@ -666,7 +658,6 @@ ORDER BY
 -- should produce full partitionwise aggregation plan as GROUP BY is on
 -- non-nullable columns.
 -- But right now we are unable to do partitionwise join in this case.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -730,7 +721,6 @@ ORDER BY
 -- should produce partial partitionwise aggregation plan as GROUP BY is on
 -- nullable columns.
 -- But right now we are unable to do partitionwise join in this case.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1040,7 +1030,6 @@ SET max_parallel_workers_per_gather TO 2;
 -- for level 1 only. For subpartitions, GROUP BY clause does not match with
 -- PARTITION KEY, but still we do not see a partial aggregation as array_agg()
 -- is not partial agg safe.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1095,7 +1084,6 @@ HAVING
 -- Full aggregation at level 1 as GROUP BY clause matches with PARTITION KEY
 -- for level 1 only. For subpartitions, GROUP BY clause does not match with
 -- PARTITION KEY, thus we will have a partial aggregation for them.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1131,7 +1119,6 @@ ORDER BY
 
 -- Partial aggregation at all levels as GROUP BY clause does not match with
 -- PARTITION KEY
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1209,7 +1196,6 @@ SET parallel_setup_cost TO 0;
 -- Full aggregation at level 1 as GROUP BY clause matches with PARTITION KEY
 -- for level 1 only. For subpartitions, GROUP BY clause does not match with
 -- PARTITION KEY, thus we will have a partial aggregation for them.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1245,7 +1231,6 @@ ORDER BY
 
 -- Partial aggregation at all levels as GROUP BY clause does not match with
 -- PARTITION KEY
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1323,7 +1308,6 @@ ORDER BY
 -- for each partition and then Append over it turns out to be same and this
 -- wins as we add it first. This parallel_setup_cost plays a vital role in
 -- costing such plans.
-
 SET parallel_setup_cost TO 10;
 
 CREATE TABLE pagg_tab_para (

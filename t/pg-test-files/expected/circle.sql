@@ -2,7 +2,6 @@
 -- CIRCLE
 --
 -- avoid bit-exact output here because operations may not be bit-exact.
-
 SET extra_float_digits = 0;
 
 CREATE TABLE CIRCLE_TBL (
@@ -36,7 +35,6 @@ INSERT INTO CIRCLE_TBL
 
 -- NaN radius
 -- bad values
-
 INSERT INTO CIRCLE_TBL
     VALUES ('<(-100,0),-100>');
 

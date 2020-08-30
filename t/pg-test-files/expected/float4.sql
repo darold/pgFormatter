@@ -1,7 +1,6 @@
 --
 -- FLOAT4
 --
-
 CREATE TABLE FLOAT4_TBL (
     f1 float4
 );
@@ -273,7 +272,6 @@ SELECT
 -- Test for correct input rounding in edge cases.
 -- These lists are from Paxson 1991, excluding subnormals and
 -- inputs of over 9 sig. digits.
-
 SELECT
     float4send('5e-20'::float4);
 
@@ -326,7 +324,6 @@ SELECT
 -- exact val is             1.1754943508...
 -- shortest val is          1.1754944000
 -- midpoint to next val is  1.1754944208...
-
 SELECT
     float4send('1.17549435e-38'::float4);
 
@@ -337,7 +334,6 @@ SELECT
 -- To ensure we're testing what we think we're testing, start with
 -- float values specified by bit patterns (as a useful side effect,
 -- this means we'll fail on non-IEEE platforms).
-
 CREATE TYPE xfloat4;
 
 CREATE FUNCTION xfloat4in (cstring)
@@ -368,7 +364,6 @@ CREATE cast (integer AS xfloat4) WITHOUT FUNCTION;
 -- we don't care to assume the platform's strtod() handles subnormals
 -- correctly; those are "use at your own risk". However we do test
 -- subnormal outputs, since those are under our control.
-
 WITH testdata (
     bits
 ) AS (
@@ -391,7 +386,6 @@ WITH testdata (
         (x '0041ca76'), -- 60419369e-46
         (x '004b7678'), -- 6930161142e-48
         -- taken from upstream testsuite
-
         (x '00000007'),
         (x '00424fe2'),
         -- borderline between subnormal and normal
@@ -589,7 +583,6 @@ WITH testdata (
         (x '402df854'), -- e
         (x '40490fdb'), -- pi
         --
-
         (x '409fffff'),
         (x '40a00000'),
         (x '40a00001'),
@@ -639,7 +632,6 @@ WITH testdata (
         (x '665ba998'), -- 25933168707e13
         (x '743c3324'), -- 596428896559e20
         -- exercise fixed-point memmoves
-
         (x '47f1205a'),
         (x '4640e6ae'),
         (x '449a5225'),
@@ -648,7 +640,6 @@ WITH testdata (
         (x '3f9e064b'),
         -- these cases come from the upstream's testsuite
         -- BoundaryRoundEven
-
         (x '4c000004'),
         (x '50061c46'),
         (x '510006a8'),

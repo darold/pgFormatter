@@ -17,7 +17,6 @@
 --   held for reindexing doesn't guarantee that no running transaction
 --   performed modifications in the table underlying the index.
 -- Check reindexing of whole tables
-
 REINDEX TABLE pg_class;
 
 -- mapped, non-shared, critical
@@ -36,7 +35,6 @@ REINDEX TABLE pg_shdescription;
 -- Check that individual system indexes can be reindexed. That's a bit
 -- different from the entire-table case because reindex_relation
 -- treats e.g. pg_class special.
-
 REINDEX INDEX pg_class_oid_index;
 
 -- mapped, non-shared, critical

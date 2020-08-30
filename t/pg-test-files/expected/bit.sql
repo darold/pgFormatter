@@ -4,7 +4,6 @@
 --
 -- Build tables for testing
 --
-
 CREATE TABLE BIT_TABLE (
     b bit(11)
 );
@@ -28,7 +27,6 @@ INSERT INTO BIT_TABLE
 -- too long
 --INSERT INTO BIT_TABLE VALUES ('X554');
 --INSERT INTO BIT_TABLE VALUES ('X555');
-
 SELECT
     *
 FROM
@@ -56,7 +54,6 @@ INSERT INTO VARBIT_TABLE
 -- too long
 --INSERT INTO VARBIT_TABLE VALUES ('X554');
 --INSERT INTO VARBIT_TABLE VALUES ('X555');
-
 SELECT
     *
 FROM
@@ -347,7 +344,6 @@ SELECT
 
 -- 0
 -- Shifting
-
 CREATE TABLE BIT_SHIFT_TABLE (
     b bit(16)
 );
@@ -440,7 +436,6 @@ SELECT
 
 -- fail
 -- Overlay
-
 SELECT
     overlay(B'0101011100' PLACING '001' FROM 2 FOR 3);
 

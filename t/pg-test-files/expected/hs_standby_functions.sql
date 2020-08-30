@@ -4,7 +4,6 @@
 -- hs_standby_functions.sql
 --
 -- should fail
-
 SELECT
     txid_current();
 

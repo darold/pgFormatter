@@ -2,7 +2,6 @@
 -- CREATE_CAST
 --
 -- Create some types to test with
-
 CREATE TYPE casttesttype;
 
 CREATE FUNCTION casttesttype_in (cstring)
@@ -39,7 +38,6 @@ SELECT
 
 -- fails, as there's no cast
 -- Try binary coercion cast
-
 CREATE CAST (text AS casttesttype) WITHOUT FUNCTION;
 
 SELECT
@@ -54,7 +52,6 @@ DROP CAST(text AS casttesttype);
 
 -- cleanup
 -- Try IMPLICIT binary coercion cast
-
 CREATE CAST (text AS casttesttype) WITHOUT FUNCTION
 AS IMPLICIT
 ;

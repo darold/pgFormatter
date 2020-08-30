@@ -1,7 +1,6 @@
 --
 -- INT4
 --
-
 CREATE TABLE INT4_TBL (
     f1 int4
 );
@@ -279,7 +278,6 @@ FROM
 -- more complex expressions
 --
 -- variations on unary minus parsing
-
 SELECT
     - 2 + 3 AS one;
 

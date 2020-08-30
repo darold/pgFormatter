@@ -4,7 +4,6 @@
 -- btree index
 -- awk '{if($1<10){print;}else{next;}}' onek.data | sort +0n -1
 --
-
 SELECT
     *
 FROM
@@ -17,7 +16,6 @@ ORDER BY
 --
 -- awk '{if($1<20){print $1,$14;}else{next;}}' onek.data | sort +0nr -1
 --
-
 SELECT
     onek.unique1,
     onek.stringu1
@@ -32,7 +30,6 @@ ORDER BY
 --
 -- awk '{if($1>980){print $1,$14;}else{next;}}' onek.data | sort +1d -2
 --
-
 SELECT
     onek.unique1,
     onek.stringu1
@@ -48,7 +45,6 @@ ORDER BY
 -- awk '{if($1>980){print $1,$16;}else{next;}}' onek.data |
 -- sort +1d -2 +0nr -1
 --
-
 SELECT
     onek.unique1,
     onek.string4
@@ -66,7 +62,6 @@ ORDER BY
 -- awk '{if($1>980){print $1,$16;}else{next;}}' onek.data |
 -- sort +1dr -2 +0n -1
 --
-
 SELECT
     onek.unique1,
     onek.string4
@@ -84,7 +79,6 @@ ORDER BY
 -- awk '{if($1<20){print $1,$16;}else{next;}}' onek.data |
 -- sort +0nr -1 +1d -2
 --
-
 SELECT
     onek.unique1,
     onek.string4
@@ -102,7 +96,6 @@ ORDER BY
 -- awk '{if($1<20){print $1,$16;}else{next;}}' onek.data |
 -- sort +0n -1 +1dr -2
 --
-
 SELECT
     onek.unique1,
     onek.string4
@@ -123,7 +116,6 @@ ORDER BY
 -- so ANALYZE first.  Also, we want to prevent it from picking a bitmapscan
 -- followed by sort, because that could hide index ordering problems.
 --
-
 ANALYZE onek2;
 
 SET enable_seqscan TO OFF;
@@ -135,7 +127,6 @@ SET enable_sort TO OFF;
 --
 -- awk '{if($1<10){print $0;}else{next;}}' onek.data | sort +0n -1
 --
-
 SELECT
     onek2.*
 FROM
@@ -146,7 +137,6 @@ WHERE
 --
 -- awk '{if($1<20){print $1,$14;}else{next;}}' onek.data | sort +0nr -1
 --
-
 SELECT
     onek2.unique1,
     onek2.stringu1
@@ -161,7 +151,6 @@ ORDER BY
 --
 -- awk '{if($1>980){print $1,$14;}else{next;}}' onek.data | sort +1d -2
 --
-
 SELECT
     onek2.unique1,
     onek2.stringu1
@@ -191,7 +180,6 @@ FROM
 -- awk 'BEGIN{FS="      ";}{if(NF!=2){print $4,$5;}else{print;}}' - stud_emp.data
 --
 -- SELECT name, age FROM person*; ??? check if different
-
 SELECT
     p.name,
     p.age
@@ -205,7 +193,6 @@ FROM
 -- awk 'BEGIN{FS="      ";}{if(NF!=1){print $4,$5;}else{print;}}' - stud_emp.data |
 -- sort +1nr -2
 --
-
 SELECT
     p.name,
     p.age
@@ -217,7 +204,6 @@ ORDER BY
 --
 -- Test some cases involving whole-row Var referencing a subquery
 --
-
 SELECT
     foo
 FROM (
@@ -241,7 +227,6 @@ FROM (
 --
 -- Test VALUES lists
 --
-
 SELECT
     *
 FROM
@@ -255,7 +240,6 @@ WHERE
 
 -- a more complex case
 -- looks like we're coding lisp :-)
-
 SELECT
     *
 FROM
@@ -310,7 +294,6 @@ UNION ALL TABLE int8_tbl;
 --
 -- Test ORDER BY options
 --
-
 CREATE TEMP TABLE foo (
     f1 int
 );
@@ -455,7 +438,6 @@ ORDER BY
 -- Test planning of some cases with partial indexes
 --
 -- partial index is usable
-
 EXPLAIN (
     COSTS OFF
 )
@@ -661,7 +643,6 @@ WHERE (unique2 = 11
 -- Test some corner cases that have been known to confuse the planner
 --
 -- ORDER BY on a constant doesn't really need any sorting
-
 SELECT
     1 AS x
 ORDER BY
@@ -686,7 +667,6 @@ DROP FUNCTION sillysrf (int);
 
 -- X = X isn't a no-op, it's effectively X IS NOT NULL assuming = is strict
 -- (see bug #5084)
-
 SELECT
     *
 FROM (
@@ -709,7 +689,6 @@ WHERE
 
 -- Test partitioned tables with no partitions, which should be handled the
 -- same as the non-inheritance case when expanding its RTE.
-
 CREATE TABLE list_parted_tbl (
     a int,
     b int

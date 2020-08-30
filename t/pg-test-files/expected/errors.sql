@@ -2,7 +2,6 @@
 -- ERRORS
 --
 -- bad in postquel, but ok in PostgreSQL
-
 SELECT
     1;
 
@@ -14,7 +13,6 @@ SELECT
 --
 -- SELECT
 -- this used to be a syntax error, but now we allow an empty target list
-
 SELECT
 ;
 
@@ -59,7 +57,6 @@ FROM
 --
 -- DELETE
 -- missing relation name (this had better not wildcard!)
-
 DELETE FROM;
 
 -- no such relation
@@ -68,7 +65,6 @@ DELETE FROM nonesuch;
 --
 -- DROP
 -- missing relation name (this had better not wildcard!)
-
 DROP TABLE;
 
 -- no such relation
@@ -78,7 +74,6 @@ DROP TABLE nonesuch;
 -- ALTER TABLE
 -- relation renaming
 -- missing relation name
-
 ALTER TABLE RENAME;
 
 -- no such relation
@@ -95,7 +90,6 @@ ALTER TABLE stud_emp RENAME TO stud_emp;
 
 -- attribute renaming
 -- no such relation
-
 ALTER TABLE nonesuchrel RENAME COLUMN nonesuchatt TO newnonesuchatt;
 
 -- no such attribute
@@ -110,7 +104,6 @@ ALTER TABLE emp RENAME COLUMN salary TO ctid;
 --
 -- TRANSACTION STUFF
 -- not in a xact
-
 abort;
 
 -- not in a xact
@@ -119,7 +112,6 @@ END;
 --
 -- CREATE AGGREGATE
 -- sfunc/finalfunc type disagreement
-
 CREATE AGGREGATE newavg2 (
     SFUNC = int4pl,
     BASETYPE = int4,
@@ -138,7 +130,6 @@ CREATE AGGREGATE newcnt1 (
 --
 -- DROP INDEX
 -- missing index name
-
 DROP INDEX;
 
 -- bad index name
@@ -150,7 +141,6 @@ DROP INDEX nonesuch;
 --
 -- DROP AGGREGATE
 -- missing aggregate name
-
 DROP AGGREGATE;
 
 -- missing aggregate type
@@ -171,7 +161,6 @@ DROP AGGREGATE newcnt (float4);
 --
 -- DROP FUNCTION
 -- missing function name
-
 DROP FUNCTION ();
 
 -- bad function name
@@ -183,7 +172,6 @@ DROP FUNCTION nonesuch ();
 --
 -- DROP TYPE
 -- missing type name
-
 DROP TYPE;
 
 -- bad type name
@@ -194,7 +182,6 @@ DROP TYPE nonesuch;
 
 --
 -- DROP OPERATOR
-
 --
  missing everything DROP OPERATOR;
 
@@ -240,7 +227,6 @@ DROP OPERATOR = (int4,);
 --
 -- DROP RULE
 -- missing rule name
-
 DROP RULE;
 
 -- bad rule name
@@ -259,7 +245,6 @@ DROP rewrite RULE nonesuch;
 --
 -- Check that division-by-zero is properly caught.
 --
-
 SELECT
     1 / 0;
 
@@ -296,7 +281,6 @@ SELECT
 --
 -- Test psql's reporting of syntax error location
 --
-
 xxx;
 
 CREATE foo;
@@ -397,7 +381,6 @@ CREATE TEMPORARY TABLE foo (
 
 -- Check that stack depth detection mechanism works and
 -- max_stack_depth is not set too high
-
 CREATE FUNCTION infinite_recurse ()
     RETURNS int
     AS 'select infinite_recurse()'

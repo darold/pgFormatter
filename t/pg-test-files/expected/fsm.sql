@@ -1,7 +1,6 @@
 --
 -- Free Space Map test
 --
-
 SELECT
     current_setting('block_size')::integer AS blocksize,
     current_setting('block_size')::integer / 8 AS strsize \gset
@@ -32,7 +31,6 @@ SELECT
 -- in-memory map. In particular, we want to be able to insert into some
 -- other block than the one at the end of the heap, without using a FSM.
 -- Fill most of the last block
-
 ALTER TABLE fsm_check_size SET (fillfactor = 100);
 
 INSERT INTO fsm_check_size

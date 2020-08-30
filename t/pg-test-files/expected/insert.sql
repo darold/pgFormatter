@@ -1,7 +1,6 @@
 --
 -- insert with DEFAULT in the target_list
 --
-
 CREATE TABLE inserttest (
     col1 int4,
     col2 int4 NOT NULL,
@@ -31,7 +30,6 @@ FROM
 --
 -- insert with similar expression / target_list values (all fail)
 --
-
 INSERT INTO inserttest (col1, col2, col3)
     VALUES (DEFAULT, DEFAULT);
 
@@ -52,7 +50,6 @@ FROM
 --
 -- VALUES test
 --
-
 INSERT INTO inserttest
     VALUES (10, 20, '40'), (- 1, 2, DEFAULT), ((
         SELECT
@@ -69,7 +66,6 @@ FROM
 --
 -- TOASTed value test
 --
-
 INSERT INTO inserttest
     VALUES (30, 50, repeat('x', 10000));
 
@@ -87,7 +83,6 @@ DROP TABLE inserttest;
 --
 -- these tests are aware that transformInsertStmt has 3 separate code paths
 --
-
 CREATE TYPE insert_test_type AS (
     if1 int,
     if2 text[]
@@ -288,7 +283,6 @@ CREATE TABLE part_default PARTITION OF list_parted DEFAULT;
 
 -- Negative test: a row, which would fit in other partition, does not fit
 -- default partition, even when inserted directly
-
 INSERT INTO part_default
     VALUES ('aa', 2);
 
@@ -301,7 +295,6 @@ INSERT INTO part_default
 
 -- test if default partition works as expected for multi-level partitioned
 -- table as well as when default partition itself is further partitioned
-
 DROP TABLE part_default;
 
 CREATE TABLE part_xx_yy PARTITION OF list_parted
@@ -365,7 +358,6 @@ FROM
 
 -- Check tuple routing for partitioned tables
 -- fail
-
 INSERT INTO range_parted
     VALUES ('a', 0);
 
@@ -515,7 +507,6 @@ ORDER BY
 -- result on different matchines.  The hash function for int4 simply returns
 -- the sum of the values passed to it and the one for text returns the length
 -- of the non-empty string value passed to it or 0.
-
 CREATE OR REPLACE FUNCTION part_hashint4_noop (value int4, seed int8)
     RETURNS int8
     AS $$
@@ -591,7 +582,6 @@ ORDER BY
 
 -- test \d+ output on a table which has both partitioned and unpartitioned
 -- partitions
-
 \d+ list_parted
 -- cleanup
 DROP TABLE range_parted, list_parted;
@@ -600,7 +590,6 @@ DROP TABLE hash_parted;
 
 -- test that a default partition added as the first partition accepts any value
 -- including null
-
 CREATE TABLE list_parted (
     a int
 )
@@ -714,7 +703,6 @@ CREATE TRIGGER mlparted11_trig
 -- check that the correct row is shown when constraint check_b fails after
 -- "(1, 2)" is routed to mlparted11 (actually "(1, 4)" would be shown due
 -- to the BR trigger mlparted11_trig_fn)
-
 INSERT INTO mlparted
     VALUES (1, 2);
 
@@ -725,7 +713,6 @@ DROP FUNCTION mlparted11_trig_fn ();
 -- check that inserting into an internal partition successfully results in
 -- checking its partition constraint before inserting into the leaf partition
 -- selected by tuple-routing
-
 INSERT INTO mlparted1 (a, b)
     VALUES (2, 3);
 
@@ -895,7 +882,6 @@ FROM
 
 -- Check multi-level tuple routing with attributes dropped from the
 -- top-most parent.  First remove the last attribute.
-
 ALTER TABLE mlparted
     ADD d int,
     ADD e int;
@@ -990,7 +976,6 @@ DROP TABLE mlparted5;
 
 -- check that message shown after failure to find a partition shows the
 -- appropriate key description (or none) in various situations
-
 CREATE TABLE key_desc (
     a int,
     b int
@@ -1063,7 +1048,6 @@ MINVALUE);
 
 -- check multi-column range partitioning expression enforces the same
 -- constraint as what tuple-routing would determine it to be
-
 CREATE TABLE mcrparted0 PARTITION OF mcrparted
 FOR VALUES FROM (MINVALUE,
 MINVALUE,
@@ -1157,7 +1141,6 @@ INSERT INTO mcrparted4
 
 -- error
 -- check rows
-
 SELECT
     tableoid::regclass::text,
     *
@@ -1201,7 +1184,6 @@ INSERT INTO brtrigpartcon1
 
 -- check that the message shows the appropriate column description in a
 -- situation where the partitioned table is not the primary ModifyTable node
-
 CREATE TABLE inserttest3 (
     f1 text DEFAULT 'foo',
     f2 text DEFAULT 'bar',
@@ -1247,7 +1229,6 @@ DROP FUNCTION brtrigpartcon1trigf ();
 -- check that "do nothing" BR triggers work with tuple-routing (this checks
 -- that estate->es_result_relation_info is appropriately set/reset for each
 -- routed tuple)
-
 CREATE TABLE donothingbrtrig_test (
     a int,
     b text

@@ -1,7 +1,6 @@
 --
 -- ALTER TABLE ADD COLUMN DEFAULT test
 --
-
 SET search_path = fast_default;
 
 CREATE SCHEMA fast_default;
@@ -624,7 +623,6 @@ DROP TABLE T;
 
 -- test that we account for missing columns without defaults correctly
 -- in expand_tuple, and that rows are correctly expanded for triggers
-
 CREATE FUNCTION test_trigger ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -797,7 +795,6 @@ DROP TABLE t;
 
 -- same as last 4 tests but here the last original column has a NULL value
 -- 2 new columns, both have defaults
-
 CREATE TABLE t (
     id serial PRIMARY KEY,
     a int,
@@ -955,7 +952,6 @@ DROP TABLE t;
 
 -- make sure expanded tuple has correct self pointer
 -- it will be required by the RI trigger doing the cascading delete
-
 CREATE TABLE leader (
     a int PRIMARY KEY,
     b int
@@ -1036,7 +1032,6 @@ FROM
 -- Ensure that defaults are checked when evaluating whether HOT update
 -- is possible, this was broken for a while:
 -- https://postgr.es/m/20190202133521.ylauh3ckqa7colzj%40alap3.anarazel.de
-
 BEGIN;
 CREATE TABLE t ();
 INSERT INTO t DEFAULT VALUES; ALTER TABLE t
@@ -1044,7 +1039,6 @@ INSERT INTO t DEFAULT VALUES; ALTER TABLE t
 CREATE INDEX ON t (a);
 -- set column with a default 1 to NULL, due to a bug that wasn't
 -- noticed has heap_getattr buggily returned NULL for default columns
-
 UPDATE
     t
 SET

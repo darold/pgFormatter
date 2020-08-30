@@ -86,7 +86,6 @@ TRUNCATE TABLE truncate_a CASCADE;
 
 -- ok
 -- circular references
-
 ALTER TABLE truncate_a
     ADD FOREIGN KEY (col1) REFERENCES trunc_c;
 
@@ -495,7 +494,6 @@ SELECT
 
 -- fail, seq should have been dropped
 -- partitioned table
-
 CREATE TABLE truncparted (
     a int,
     b char
@@ -520,7 +518,6 @@ DROP TABLE truncparted;
 
 -- foreign key on partitioned table: partition key is referencing column.
 -- Make sure truncate did execute on all tables
-
 CREATE FUNCTION tp_ins_data ()
     RETURNS void
     LANGUAGE plpgsql

@@ -8,7 +8,6 @@ CREATE TYPE textrange AS RANGE (
 -- test input parser
 --
 -- negative tests; should fail
-
 SELECT
     ''::textrange;
 
@@ -107,7 +106,6 @@ SELECT
 --
 -- create some test data and test the operators
 --
-
 CREATE TABLE numrange_test (
     nr numrange
 );
@@ -1145,7 +1143,6 @@ DROP TABLE test_range_elem;
 -- constraints with range types, use singleton int ranges for the "="
 -- portion of the constraint.
 --
-
 CREATE TABLE test_range_excl (
     room int4range,
     speaker int4range,
@@ -1189,7 +1186,6 @@ SET timezone TO DEFAULT;
 -- Test user-defined range of floats
 --
 --should fail
-
 CREATE TYPE float8range AS RANGE (
     subtype = float8,
     subtype_diff = float4mi
@@ -1222,7 +1218,6 @@ DROP TABLE float8range_test;
 --
 -- Test range types over domains
 --
-
 CREATE DOMAIN mydomain AS int4;
 
 CREATE TYPE mydomainrange AS RANGE (
@@ -1240,7 +1235,6 @@ DROP DOMAIN mydomain CASCADE;
 --
 -- Test domains over range types
 --
-
 CREATE DOMAIN restrictedrange AS int4range CHECK (upper(value) < 10);
 
 SELECT
@@ -1255,7 +1249,6 @@ DROP DOMAIN restrictedrange;
 --
 -- Test multiple range types over the same subtype
 --
-
 CREATE TYPE textrange1 AS RANGE (
     subtype = text,
     COLLATION = "C"
@@ -1279,7 +1272,6 @@ DROP TYPE textrange2;
 --
 -- Test polymorphic type system
 --
-
 CREATE FUNCTION anyarray_anyrange_func (a anyarray, r anyrange)
     RETURNS anyelement
     AS 'select $1[1] + lower($2);'
@@ -1335,7 +1327,6 @@ SELECT
 --
 -- Arrays of ranges
 --
-
 SELECT
     ARRAY[numrange(1.1, 1.2), numrange(12.3, 155.5)];
 
@@ -1357,7 +1348,6 @@ DROP TABLE i8r_array;
 --
 -- Ranges of arrays
 --
-
 CREATE TYPE arrayrange AS RANGE (
     subtype = int4[]
 );
@@ -1378,7 +1368,6 @@ SELECT
 --
 -- Ranges of composites
 --
-
 CREATE TYPE two_ints AS (
     a int,
     b int
@@ -1401,7 +1390,6 @@ DROP TYPE two_ints CASCADE;
 --
 -- Check behavior when subtype lacks a hash function
 --
-
 CREATE TYPE cashrange AS RANGE (
     subtype = money
 );
@@ -1420,7 +1408,6 @@ RESET enable_sort;
 --
 -- OUT/INOUT/TABLE functions
 --
-
 CREATE FUNCTION outparam_succeed (i anyrange, out r anyrange, out t text
 )
 AS $$

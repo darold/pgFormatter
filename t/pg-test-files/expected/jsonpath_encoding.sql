@@ -1,7 +1,6 @@
 -- encoding-sensitive tests for jsonpath
 -- checks for double-quoted values
 -- basic unicode input
-
 SELECT
     '"\u"'::jsonpath;
 
@@ -23,7 +22,6 @@ SELECT
 
 -- OK, uppercase and lower case both OK
 -- handling of unicode surrogate pairs
-
 SELECT
     '"\ud83d\ude04\ud83d\udc36"'::jsonpath AS correct_in_utf8;
 
@@ -44,7 +42,6 @@ SELECT
 
 -- orphan low surrogate
 --handling of simple unicode escapes
-
 SELECT
     '"the Copyright \u00a9 sign"'::jsonpath AS correct_in_utf8;
 
@@ -62,7 +59,6 @@ SELECT
 
 -- checks for single-quoted values
 -- basic unicode input
-
 SELECT
     E'\'\u\''::jsonpath;
 
@@ -84,7 +80,6 @@ SELECT
 
 -- OK, uppercase and lower case both OK
 -- handling of unicode surrogate pairs
-
 SELECT
     E'\'\ud83d\ude04\ud83d\udc36\''::jsonpath AS correct_in_utf8;
 
@@ -105,7 +100,6 @@ SELECT
 
 -- orphan low surrogate
 --handling of simple unicode escapes
-
 SELECT
     E'\'the Copyright \u00a9 sign\''::jsonpath AS correct_in_utf8;
 
@@ -123,7 +117,6 @@ SELECT
 
 -- checks for quoted key names
 -- basic unicode input
-
 SELECT
     '$."\u"'::jsonpath;
 
@@ -145,7 +138,6 @@ SELECT
 
 -- OK, uppercase and lower case both OK
 -- handling of unicode surrogate pairs
-
 SELECT
     '$."\ud83d\ude04\ud83d\udc36"'::jsonpath AS correct_in_utf8;
 
@@ -166,7 +158,6 @@ SELECT
 
 -- orphan low surrogate
 --handling of simple unicode escapes
-
 SELECT
     '$."the Copyright \u00a9 sign"'::jsonpath AS correct_in_utf8;
 

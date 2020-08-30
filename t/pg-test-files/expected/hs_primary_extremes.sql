@@ -3,7 +3,6 @@
 --
 -- hs_primary_extremes.sql
 --
-
 DROP TABLE IF EXISTS hs_extreme;
 
 CREATE TABLE hs_extreme (

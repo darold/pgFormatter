@@ -2,7 +2,6 @@
 -- SELECT_VIEWS
 -- test the views defined in CREATE_VIEWS
 --
-
 SELECT
     *
 FROM
@@ -27,7 +26,6 @@ WHERE
 --
 -- Test for Leaky view scenario
 --
-
 CREATE ROLE regress_alice;
 
 CREATE FUNCTION f_leak (text)
@@ -131,14 +129,12 @@ GRANT SELECT ON my_credit_card_usage_secure TO public;
 --
 -- Run leaky view scenarios
 --
-
 SET SESSION AUTHORIZATION regress_alice;
 
 --
 -- scenario: if a qualifier with tiny-cost is given, it shall be launched
 --           prior to the security policy of the view.
 --
-
 SELECT
     *
 FROM
@@ -177,7 +173,6 @@ WHERE
 -- scenario: qualifiers can be pushed down if they contain leaky functions,
 --           provided they aren't passed data from inside the view.
 --
-
 SELECT
     *
 FROM
@@ -221,7 +216,6 @@ WHERE
 --           tree, it shall be distributed to the most deep scan plan as
 --           possible as we can.
 --
-
 SELECT
     *
 FROM
@@ -261,7 +255,6 @@ WHERE
 --           views with "security_barrier" attribute, except for operators
 --           implemented with leakproof functions.
 --
-
 SELECT
     *
 FROM
@@ -308,7 +301,6 @@ WHERE
 -- Test for the case when security_barrier gets changed between rewriter
 -- and planner stage.
 --
-
 PREPARE p1 AS
 SELECT
     *
@@ -344,7 +336,6 @@ EXECUTE p2;
 
 -- To be perform as a view without security-barrier
 -- Cleanup.
-
 RESET SESSION AUTHORIZATION;
 
 DROP ROLE regress_alice;

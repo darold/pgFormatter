@@ -1,7 +1,6 @@
 --
 -- COMMENTS
 --
-
 SELECT
     'trailing' AS FIRST;
 
@@ -28,7 +27,6 @@ SELECT
 --
 -- Nested comments
 --
-
 /*
 SELECT 'trailing' as x1; -- inside block comment
  */

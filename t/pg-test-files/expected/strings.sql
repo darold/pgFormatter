@@ -4,7 +4,6 @@
 --
 -- SQL string continuation syntax
 -- E021-03 character string literals
-
 SELECT
     'first line' ' - next line' ' - third line' AS "Three lines to one";
 
@@ -531,7 +530,6 @@ select md5('12345678901234567890123456789012345678901234567890123456789012345678
 --
 -- SHA-2
 --
-
 SET bytea_output TO hex;
 
 SELECT
@@ -561,7 +559,6 @@ SELECT
 --
 -- test behavior of escape_string_warning and standard_conforming_strings options
 --
-
 SET escape_string_warning = OFF;
 
 SET standard_conforming_strings = OFF;
@@ -619,7 +616,6 @@ SELECT
 --
 -- Additional string functions
 --
-
 SET bytea_output TO escape;
 
 SELECT

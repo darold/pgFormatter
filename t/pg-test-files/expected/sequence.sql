@@ -2,7 +2,6 @@
 -- CREATE SEQUENCE
 --
 -- various error cases
-
 CREATE UNLOGGED SEQUENCE sequence_testx;
 
 CREATE SEQUENCE sequence_testx
@@ -141,7 +140,6 @@ ALTER SEQUENCE sequence_test14
 ---
 --- test creation of SERIAL column
 ---
-
 CREATE TABLE serialTest1 (
     f1 text,
     f2 serial
@@ -296,7 +294,6 @@ SELECT
 
 -- log_cnt can be higher if there is a checkpoint just at the right
 -- time, so just test for the expected range
-
 SELECT
     last_value,
     log_cnt IN (31, 32) AS log_cnt_ok,
@@ -320,7 +317,6 @@ FROM
 --
 -- Check dependencies of serial and ordinary sequences
 --
-
 CREATE TEMP SEQUENCE myseq2;
 
 CREATE TEMP SEQUENCE myseq3;
@@ -350,7 +346,6 @@ DROP SEQUENCE myseq2;
 --
 -- Alter sequence
 --
-
 ALTER SEQUENCE IF EXISTS sequence_test2 RESTART WITH 24 INCREMENT BY 4
 MAXVALUE 36
 MINVALUE 5 CYCLE;
@@ -386,7 +381,6 @@ ALTER SEQUENCE sequence_test4
 
 -- error
 -- test CYCLE and NO CYCLE
-
 ALTER SEQUENCE sequence_test2
     RESTART WITH 24 INCREMENT BY 4
     MAXVALUE 36
@@ -468,7 +462,6 @@ SELECT
 
 -- error
 -- reset
-
 ALTER SEQUENCE IF EXISTS sequence_test2 RESTART WITH 32 START WITH 32 INCREMENT BY 4
 MAXVALUE 36
 MINVALUE 5 CYCLE;
@@ -488,7 +481,6 @@ CREATE SEQUENCE sequence_test3;
 
 -- not read from, to test is_called
 -- Information schema
-
 SELECT
     *
 FROM
@@ -597,7 +589,6 @@ ROLLBACK;
 
 -- privileges tests
 -- nextval
-
 BEGIN;
 SET LOCAL SESSION AUTHORIZATION regress_seq_user;
 CREATE SEQUENCE seq3;

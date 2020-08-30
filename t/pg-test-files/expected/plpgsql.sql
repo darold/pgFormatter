@@ -20,7 +20,6 @@
 --     you look behind the wall when looking at a patchfield
 --     or into a room.
 --
-
 CREATE TABLE Room (
     roomno char(8),
     comment text
@@ -115,7 +114,6 @@ CREATE UNIQUE INDEX PHone_name ON PHone USING btree (slotname bpchar_ops);
 -- * AFTER UPDATE on Room
 -- *	- If room no changes let wall slots follow
 -- ************************************************************
-
 CREATE FUNCTION tg_room_au ()
     RETURNS TRIGGER
     AS '
@@ -141,7 +139,6 @@ CREATE TRIGGER tg_room_au
 -- * AFTER DELETE on Room
 -- *	- delete wall slots in this room
 -- ************************************************************
-
 CREATE FUNCTION tg_room_ad ()
     RETURNS TRIGGER
     AS '
@@ -161,7 +158,6 @@ CREATE TRIGGER tg_room_ad
 -- * BEFORE INSERT or UPDATE on WSlot
 -- *	- Check that room exists
 -- ************************************************************
-
 CREATE FUNCTION tg_wslot_biu ()
     RETURNS TRIGGER
     AS $$
@@ -186,7 +182,6 @@ CREATE TRIGGER tg_wslot_biu
 -- * AFTER UPDATE on PField
 -- *	- Let PSlots of this field follow
 -- ************************************************************
-
 CREATE FUNCTION tg_pfield_au ()
     RETURNS TRIGGER
     AS '
@@ -212,7 +207,6 @@ CREATE TRIGGER tg_pfield_au
 -- * AFTER DELETE on PField
 -- *	- Remove all slots of this patchfield
 -- ************************************************************
-
 CREATE FUNCTION tg_pfield_ad ()
     RETURNS TRIGGER
     AS '
@@ -232,7 +226,6 @@ CREATE TRIGGER tg_pfield_ad
 -- * BEFORE INSERT or UPDATE on PSlot
 -- *	- Ensure that our patchfield does exist
 -- ************************************************************
-
 CREATE FUNCTION tg_pslot_biu ()
     RETURNS TRIGGER
     AS $proc$
@@ -262,7 +255,6 @@ CREATE TRIGGER tg_pslot_biu
 -- * AFTER UPDATE on System
 -- *	- If system name changes let interfaces follow
 -- ************************************************************
-
 CREATE FUNCTION tg_system_au ()
     RETURNS TRIGGER
     AS '
@@ -288,7 +280,6 @@ CREATE TRIGGER tg_system_au
 -- * BEFORE INSERT or UPDATE on IFace
 -- *	- set the slotname to IF.sysname.ifname
 -- ************************************************************
-
 CREATE FUNCTION tg_iface_biu ()
     RETURNS TRIGGER
     AS $$
@@ -325,7 +316,6 @@ CREATE TRIGGER tg_iface_biu
 -- * AFTER INSERT or UPDATE or DELETE on Hub
 -- *	- insert/delete/rename slots as required
 -- ************************************************************
-
 CREATE FUNCTION tg_hub_a ()
     RETURNS TRIGGER
     AS '
@@ -364,7 +354,6 @@ CREATE TRIGGER tg_hub_a
 -- ************************************************************
 -- * Support function to add/remove slots of Hub
 -- ************************************************************
-
 CREATE FUNCTION tg_hub_adjustslots (hname bpchar, oldnslots integer, newnslots integer)
     RETURNS integer
     AS '
@@ -399,7 +388,6 @@ COMMENT ON FUNCTION tg_hub_adjustslots (bpchar, integer, integer) IS NULL;
 -- *	- prevent from manual manipulation
 -- *	- set the slotname to HS.hubname.slotno
 -- ************************************************************
-
 CREATE FUNCTION tg_hslot_biu ()
     RETURNS TRIGGER
     AS '
@@ -449,7 +437,6 @@ CREATE TRIGGER tg_hslot_biu
 -- * BEFORE DELETE on HSlot
 -- *	- prevent from manual manipulation
 -- ************************************************************
-
 CREATE FUNCTION tg_hslot_bd ()
     RETURNS TRIGGER
     AS '
@@ -481,7 +468,6 @@ CREATE TRIGGER tg_hslot_bd
 -- * BEFORE INSERT on all slots
 -- *	- Check name prefix
 -- ************************************************************
-
 CREATE FUNCTION tg_chkslotname ()
     RETURNS TRIGGER
     AS '
@@ -521,7 +507,6 @@ CREATE TRIGGER tg_chkslotname
 -- * BEFORE INSERT or UPDATE on all slots with slotlink
 -- *	- Set slotlink to empty string if NULL value given
 -- ************************************************************
-
 CREATE FUNCTION tg_chkslotlink ()
     RETURNS TRIGGER
     AS '
@@ -558,7 +543,6 @@ CREATE TRIGGER tg_chkslotlink
 -- * BEFORE INSERT or UPDATE on all slots with backlink
 -- *	- Set backlink to empty string if NULL value given
 -- ************************************************************
-
 CREATE FUNCTION tg_chkbacklink ()
     RETURNS TRIGGER
     AS '
@@ -587,7 +571,6 @@ CREATE TRIGGER tg_chkbacklink
 -- * BEFORE UPDATE on PSlot
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
-
 CREATE FUNCTION tg_pslot_bu ()
     RETURNS TRIGGER
     AS '
@@ -612,7 +595,6 @@ CREATE TRIGGER tg_pslot_bu
 -- * BEFORE UPDATE on WSlot
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
-
 CREATE FUNCTION tg_wslot_bu ()
     RETURNS TRIGGER
     AS '
@@ -637,7 +619,6 @@ CREATE TRIGGER tg_wslot_bu
 -- * BEFORE UPDATE on PLine
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
-
 CREATE FUNCTION tg_pline_bu ()
     RETURNS TRIGGER
     AS '
@@ -662,7 +643,6 @@ CREATE TRIGGER tg_pline_bu
 -- * BEFORE UPDATE on IFace
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
-
 CREATE FUNCTION tg_iface_bu ()
     RETURNS TRIGGER
     AS '
@@ -687,7 +667,6 @@ CREATE TRIGGER tg_iface_bu
 -- * BEFORE UPDATE on HSlot
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
-
 CREATE FUNCTION tg_hslot_bu ()
     RETURNS TRIGGER
     AS '
@@ -712,7 +691,6 @@ CREATE TRIGGER tg_hslot_bu
 -- * BEFORE UPDATE on PHone
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
-
 CREATE FUNCTION tg_phone_bu ()
     RETURNS TRIGGER
     AS '
@@ -737,7 +715,6 @@ CREATE TRIGGER tg_phone_bu
 -- * AFTER INSERT or UPDATE or DELETE on slot with backlink
 -- *	- Ensure that the opponent correctly points back to us
 -- ************************************************************
-
 CREATE FUNCTION tg_backlink_a ()
     RETURNS TRIGGER
     AS '
@@ -791,7 +768,6 @@ CREATE TRIGGER tg_backlink_a
 -- * Support function to set the opponents backlink field
 -- * if it does not already point to the requested slot
 -- ************************************************************
-
 CREATE FUNCTION tg_backlink_set (myname bpchar, blname bpchar)
     RETURNS integer
     AS '
@@ -878,7 +854,6 @@ LANGUAGE plpgsql;
 -- * Support function to clear out the backlink field if
 -- * it still points to specific slot
 -- ************************************************************
-
 CREATE FUNCTION tg_backlink_unset (bpchar, bpchar)
     RETURNS integer
     AS '
@@ -957,7 +932,6 @@ LANGUAGE plpgsql;
 -- * AFTER INSERT or UPDATE or DELETE on slot with slotlink
 -- *	- Ensure that the opponent correctly points back to us
 -- ************************************************************
-
 CREATE FUNCTION tg_slotlink_a ()
     RETURNS TRIGGER
     AS '
@@ -1019,7 +993,6 @@ CREATE TRIGGER tg_slotlink_a
 -- * Support function to set the opponents slotlink field
 -- * if it does not already point to the requested slot
 -- ************************************************************
-
 CREATE FUNCTION tg_slotlink_set (bpchar, bpchar)
     RETURNS integer
     AS '
@@ -1156,7 +1129,6 @@ LANGUAGE plpgsql;
 -- * Support function to clear out the slotlink field if
 -- * it still points to specific slot
 -- ************************************************************
-
 CREATE FUNCTION tg_slotlink_unset (bpchar, bpchar)
     RETURNS integer
     AS '
@@ -1274,7 +1246,6 @@ LANGUAGE plpgsql;
 -- ************************************************************
 -- * Describe the backside of a patchfield slot
 -- ************************************************************
-
 CREATE FUNCTION pslot_backlink_view (bpchar)
     RETURNS text
     AS '
@@ -1336,7 +1307,6 @@ LANGUAGE plpgsql;
 -- ************************************************************
 -- * Describe the front of a patchfield slot
 -- ************************************************************
-
 CREATE FUNCTION pslot_slotlink_view (bpchar)
     RETURNS text
     AS '
@@ -1386,7 +1356,6 @@ LANGUAGE plpgsql;
 -- ************************************************************
 -- * Describe the front of a wall connector slot
 -- ************************************************************
-
 CREATE FUNCTION wslot_slotlink_view (bpchar)
     RETURNS text
     AS '
@@ -1457,7 +1426,6 @@ LANGUAGE plpgsql;
 -- ************************************************************
 -- * View of a patchfield describing backside and patches
 -- ************************************************************
-
 CREATE VIEW Pfield_v1 AS
 SELECT
     PF.pfname,
@@ -1470,7 +1438,6 @@ FROM
 --
 -- First we build the house - so we create the rooms
 --
-
 INSERT INTO Room
     VALUES ('001', 'Entrance');
 
@@ -1504,7 +1471,6 @@ INSERT INTO Room
 --
 -- Second we install the wall connectors
 --
-
 INSERT INTO WSlot
     VALUES ('WS.001.1a', '001', '', '');
 
@@ -1634,14 +1600,12 @@ INSERT INTO WSlot
 --
 -- Now create the patch fields and their slots
 --
-
 INSERT INTO PField
     VALUES ('PF0_1', 'Wallslots basement');
 
 --
 -- The cables for these will be made later, so they are unconnected for now
 --
-
 INSERT INTO PSlot
     VALUES ('PS.base.a1', 'PF0_1', '', '');
 
@@ -1663,7 +1627,6 @@ INSERT INTO PSlot
 --
 -- These are already wired to the wall connectors
 --
-
 INSERT INTO PSlot
     VALUES ('PS.base.b1', 'PF0_1', '', 'WS.002.1a');
 
@@ -1704,7 +1667,6 @@ INSERT INTO PSlot
 -- This patchfield will be renamed later into PF0_2 - so its
 -- slots references in pfname should follow
 --
-
 INSERT INTO PField
     VALUES ('PF0_X', 'Phonelines basement');
 
@@ -1824,7 +1786,6 @@ INSERT INTO PSlot
 -- patchfield. In the second update we make an error, and
 -- correct it after
 --
-
 UPDATE
     PSlot
 SET
@@ -1912,7 +1873,6 @@ ORDER BY
 -- of the PSlot. Due to the triggers the result is the same:
 -- WSlot and corresponding PSlot point to each other.
 --
-
 UPDATE
     WSlot
 SET
@@ -2037,7 +1997,6 @@ INSERT INTO PSlot
 --
 -- Fix the wrong name for patchfield PF0_2
 --
-
 UPDATE
     PField
 SET
@@ -2065,7 +2024,6 @@ ORDER BY
 -- triggers automatically tell the PSlots to update their
 -- backlink field.
 --
-
 INSERT INTO PLine
     VALUES ('PL.001', '-0', 'Central call', 'PS.base.ta1');
 
@@ -2130,7 +2088,6 @@ INSERT INTO PLine
 -- Buy some phones, plug them into the wall and patch the
 -- phone lines to the corresponding patchfield slots.
 --
-
 INSERT INTO PHone
     VALUES ('PH.hc001', 'Hicom standard', 'WS.001.1a');
 
@@ -2175,7 +2132,6 @@ WHERE
 -- Install a hub at one of the patchfields, plug a computers
 -- ethernet interface into the wall and patch it to the hub.
 --
-
 INSERT INTO Hub
     VALUES ('base.hub1', 'Patchfield PF0_1 hub', 16);
 
@@ -2195,7 +2151,6 @@ WHERE
 --
 -- Now we take a look at the patchfield
 --
-
 SELECT
     *
 FROM
@@ -2217,7 +2172,6 @@ ORDER BY
 --
 -- Finally we want errors
 --
-
 INSERT INTO PField
     VALUES ('PF1_1', 'should fail due to unique index');
 
@@ -2270,7 +2224,6 @@ INSERT INTO IFace
 --
 -- Test recursion, per bug report 7-Sep-01
 --
-
 CREATE FUNCTION recursion_test (int, int)
     RETURNS text
     AS '
@@ -2294,7 +2247,6 @@ SELECT
 --
 -- Test the FOUND magic variable
 --
-
 CREATE TABLE found_test_tbl (
     a int
 );
@@ -2358,7 +2310,6 @@ FROM
 --
 -- Test set-returning functions for PL/pgSQL
 --
-
 CREATE FUNCTION test_table_func_rec ()
     RETURNS SETOF found_test_tbl
     AS '
@@ -2502,7 +2453,6 @@ FROM
 -- Note that RETURN is optional with OUT params; we try both ways.
 --
 -- wrong way to do it:
-
 CREATE FUNCTION f1 (IN i int, out j int)
     RETURNS int
     AS $$
@@ -2637,7 +2587,6 @@ DROP FUNCTION duplic (anyelement);
 --
 -- test PERFORM
 --
-
 CREATE TABLE perform_test (
     a int,
     b int
@@ -2696,7 +2645,6 @@ DROP TABLE perform_test;
 --
 -- Test proper snapshot handling in simple expressions
 --
-
 CREATE temp TABLE users (
     LOGIN text,
     id serial
@@ -2777,7 +2725,6 @@ DROP FUNCTION sp_id_user (text);
 --
 -- tests for refcursors
 --
-
 CREATE TABLE rc_test (
     a int,
     b int
@@ -2891,7 +2838,6 @@ SELECT
 --
 -- tests for cursors with named parameter arguments
 --
-
 CREATE FUNCTION namedparmcursor_test1 (int, int)
     RETURNS boolean
     AS $$
@@ -2960,7 +2906,6 @@ SELECT
 
 -- mixing named and positional: param2 is given twice, once in named notation
 -- and second time in positional notation. Should throw an error at parse time
-
 CREATE FUNCTION namedparmcursor_test3 ()
     RETURNS void
     AS $$
@@ -3049,7 +2994,6 @@ LANGUAGE plpgsql;
 
 -- division by zero runtime error, the context given in the error message
 -- should be sensible
-
 CREATE FUNCTION namedparmcursor_test7 ()
     RETURNS void
     AS $$
@@ -3079,7 +3023,6 @@ SELECT
 -- comment must be preserved when the argument-evaluating query is
 -- constructed, otherwise the comment effectively comments out the next
 -- argument, too)
-
 CREATE FUNCTION namedparmcursor_test8 ()
     RETURNS int4
     AS $$
@@ -3142,7 +3085,6 @@ SELECT
 --
 -- tests for "raise" processing
 --
-
 CREATE FUNCTION raise_test1 (int)
     RETURNS int
     AS $$
@@ -3178,7 +3120,6 @@ SELECT
 
 -- Test re-RAISE inside a nested exception block.  This case is allowed
 -- by Oracle's PL/SQL but was handled differently by PG before 9.1.
-
 CREATE FUNCTION reraise_test ()
     RETURNS void
     AS $$
@@ -3210,7 +3151,6 @@ SELECT
 -- reject function definitions that contain malformed SQL queries at
 -- compile-time, where possible
 --
-
 CREATE FUNCTION bad_sql1 ()
     RETURNS int
     AS $$
@@ -3244,7 +3184,6 @@ LANGUAGE plpgsql;
 
 -- a RETURN expression is mandatory, except for void-returning
 -- functions, where it is not allowed
-
 CREATE FUNCTION missing_return_expr ()
     RETURNS int
     AS $$
@@ -3298,7 +3237,6 @@ DROP FUNCTION missing_return_expr ();
 --
 -- EXECUTE ... INTO test
 --
-
 CREATE TABLE eifoo (
     i integer,
     y integer
@@ -3345,7 +3283,6 @@ DROP TYPE eitype CASCADE;
 --
 -- SQLSTATE and SQLERRM test
 --
-
 CREATE FUNCTION excpt_test1 ()
     RETURNS void
     AS $$
@@ -3357,7 +3294,6 @@ LANGUAGE plpgsql;
 
 -- should fail: SQLSTATE and SQLERRM are only in defined EXCEPTION
 -- blocks
-
 SELECT
     excpt_test1 ();
 
@@ -3466,7 +3402,6 @@ DROP FUNCTION raise_exprs ();
 -- a SQL command all get mapped to the same $n parameter.  The return value
 -- of the SELECT is not important, we only care that it doesn't fail with
 -- a complaint about an ungrouped column reference.
-
 CREATE FUNCTION multi_datum_use (p1 int)
     RETURNS bool
     AS $$
@@ -3495,7 +3430,6 @@ SELECT
 -- Note that a data-modifying query is quasi strict (disallow multi rows)
 -- by default in the planned case, but not in EXECUTE.
 --
-
 CREATE temp TABLE foo (
     f1 int,
     f2 int
@@ -4695,7 +4629,6 @@ DROP TABLE tabwithcols;
 --
 -- Tests for composite-type results
 --
-
 CREATE TYPE compostype AS (
     x int,
     y varchar
@@ -4905,7 +4838,6 @@ DROP TYPE compostype;
 --
 -- Tests for 8.4's new RAISE features
 --
-
 CREATE OR REPLACE FUNCTION raise_test ()
     RETURNS void
     AS $$
@@ -4923,7 +4855,6 @@ SELECT
 
 -- Since we can't actually see the thrown SQLSTATE in default psql output,
 -- test it like this; this also tests re-RAISE
-
 CREATE OR REPLACE FUNCTION raise_test ()
     RETURNS void
     AS $$
@@ -5184,7 +5115,6 @@ DROP FUNCTION stacked_diagnostics_test ();
 
 -- check cases where implicit SQLSTATE variable could be confused with
 -- SQLSTATE as a keyword, cf bug #5524
-
 CREATE OR REPLACE FUNCTION raise_test ()
     RETURNS void
     AS $$
@@ -5209,7 +5139,6 @@ DROP FUNCTION raise_test ();
 
 -- test passing column_name, constraint_name, datatype_name, table_name
 -- and schema_name error fields
-
 CREATE OR REPLACE FUNCTION stacked_diagnostics_test ()
     RETURNS void
     AS $$
@@ -5405,7 +5334,6 @@ DROP FUNCTION rttest ();
 
 -- Test for proper cleanup at subtransaction exit.  This example
 -- exposed a bug in PG 8.2.
-
 CREATE FUNCTION leaker_1 (fail bool)
     RETURNS integer
     AS $$
@@ -5454,7 +5382,6 @@ DROP FUNCTION leaker_2 (bool);
 
 -- Test for appropriate cleanup of non-simple expression evaluations
 -- (bug in all versions prior to August 2010)
-
 CREATE FUNCTION nonsimple_expr_test ()
     RETURNS text[]
     AS $$
@@ -5517,7 +5444,6 @@ DROP FUNCTION nonsimple_expr_test ();
 -- (bugs in all versions before October 2010).  The problems are most
 -- easily exposed by mutual recursion between plpgsql and sql functions.
 --
-
 CREATE FUNCTION recurse (float8)
     RETURNS float8
     AS $$

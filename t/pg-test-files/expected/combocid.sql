@@ -1,7 +1,6 @@
 --
 -- Tests for some likely failure cases with combo cmin/cmax mechanism
 --
-
 CREATE TEMP TABLE combocidtest (
     foobar int
 );
@@ -209,7 +208,6 @@ FROM
 
 -- test for bug reported in
 -- CABRT9RC81YUf1=jsmWopcKJEro=VoeG2ou6sPwyOUTx_qteRsg@mail.gmail.com
-
 CREATE TABLE IF NOT EXISTS testcase (
     id int PRIMARY KEY,
     balance numeric

@@ -1,7 +1,6 @@
 --
 -- This is created by pgsql/src/tools/findoidjoins/make_oidjoins_check
 --
-
 SELECT
     ctid,
     aggfnoid

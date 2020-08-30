@@ -1,7 +1,6 @@
 --
 -- DEPENDENCIES
 --
-
 CREATE USER regress_dep_user;
 
 CREATE USER regress_dep_user2;
@@ -49,7 +48,6 @@ DROP USER regress_dep_user2;
 -- can't drop the owner of an object
 -- the error message detail here would include a pg_toast_nnn name that
 -- is not constant, so suppress it
-
 \set VERBOSITY terse
 ALTER TABLE deptest OWNER TO regress_dep_user3;
 
@@ -152,7 +150,6 @@ ALTER SEQUENCE ss1 OWNED BY deptest2.f1;
 
 -- When reassigning ownership of a composite type, its pg_class entry
 -- should match
-
 CREATE TYPE deptest_t AS (
     a int
 );

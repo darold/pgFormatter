@@ -638,7 +638,6 @@ SELECT
 -- attribute values.
 -- Since different libxml versions emit slightly different
 -- error messages, we suppress the DETAIL in this test.
-
 \set VERBOSITY terse
 SELECT
     xpath('/*', '<invalidns xmlns=''&lt;''/>');
@@ -650,7 +649,6 @@ SELECT
 
 -- XPath deprecates relative namespaces, but they're not supposed to
 -- throw an error, only a warning.
-
 SELECT
     xpath('/*', '<relativens xmlns=''relative''/>');
 
@@ -836,7 +834,6 @@ FROM
 
 -- should fail
 -- CDATA test
-
 SELECT
     *
 FROM
@@ -968,7 +965,6 @@ FROM (
 
 -- if all is ok, then result is empty
 -- one line xml test
-
 WITH x AS (
     SELECT
         proname,

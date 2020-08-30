@@ -6,7 +6,6 @@
 -- - thomas 1998-07-09
 --
 -- load test data
-
 CREATE TABLE test_missing_target (
     a int,
     b int,
@@ -67,7 +66,6 @@ ORDER BY
 
 --   w/o existing GROUP BY target and w/o existing a different ORDER BY target
 --   failure expected
-
 SELECT
     count(*)
 FROM
@@ -137,7 +135,6 @@ ORDER BY
 
 --   group using reference number out of range
 --   failure expected
-
 SELECT
     c,
     count(*)
@@ -148,7 +145,6 @@ GROUP BY
 
 --   group w/o existing GROUP BY and ORDER BY target under ambiguous condition
 --   failure expected
-
 SELECT
     count(*)
 FROM
@@ -163,7 +159,6 @@ ORDER BY
 
 --   order w/ target under ambiguous condition
 --   failure NOT expected
-
 SELECT
     a,
     a
@@ -174,7 +169,6 @@ ORDER BY
 
 --   order expression w/ target under ambiguous condition
 --   failure NOT expected
-
 SELECT
     a / 2,
     a / 2
@@ -185,7 +179,6 @@ ORDER BY
 
 --   group expression w/ target under ambiguous condition
 --   failure NOT expected
-
 SELECT
     a / 2,
     a / 2
@@ -225,7 +218,6 @@ ORDER BY
 
 --   group w/o existing GROUP BY target under ambiguous condition
 --   into a table
-
 SELECT
     count(*) INTO TABLE test_missing_target2
 FROM
@@ -245,7 +237,6 @@ FROM
 
 --  Functions and expressions
 --   w/ existing GROUP BY target
-
 SELECT
     a % 2,
     count(b)
@@ -268,7 +259,6 @@ ORDER BY
 
 --   w/o existing GROUP BY target and w/o existing a different ORDER BY target
 --   failure expected
-
 SELECT
     count(a)
 FROM
@@ -319,7 +309,6 @@ ORDER BY
 
 --   group w/o existing GROUP BY and ORDER BY target under ambiguous condition
 --   failure expected
-
 SELECT
     count(x.a)
 FROM
@@ -348,7 +337,6 @@ ORDER BY
 
 --   group w/o existing GROUP BY target under ambiguous condition
 --   failure expected due to ambiguous b in count(b)
-
 SELECT
     count(b)
 FROM
@@ -361,7 +349,6 @@ GROUP BY
 
 --   group w/o existing GROUP BY target under ambiguous condition
 --   into a table
-
 SELECT
     count(x.b) INTO TABLE test_missing_target3
 FROM

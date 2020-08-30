@@ -4,7 +4,6 @@
 --
 -- \set
 -- fail: invalid name
-
 \set invalid/name foo
 -- fail: invalid value for special variable
 \set AUTOCOMMIT foo
@@ -164,7 +163,6 @@ TABLE bububu;
 
 -- fail
 -- query buffer should remain unchanged
-
 SELECT
     1 AS x,
     'Hello',
@@ -200,7 +198,6 @@ ORDER BY
 
 -- \gexec should work in FETCH_COUNT mode too
 -- (though the fetch limit applies to the executed queries not the meta query)
-
 \set FETCH_COUNT 1
 SELECT
     'select 1 as ones',
@@ -219,7 +216,6 @@ SELECT
 \pset
 -- test multi-line headers, wrapping, and newline indicators
 -- in aligned, unaligned, and wrapped formats
-
 PREPARE q AS
 SELECT
     array_to_string(array_agg(repeat('x', 2 * n)), E'\n') AS "ab
@@ -586,7 +582,6 @@ WHERE
 \pset tuples_only false
 -- check conditional tableam display
 -- Create a heap2 table am handler with heapam handler
-
 CREATE ACCESS METHOD heap_psql TYPE TABLE HANDLER heap_tableam_handler;
 
 CREATE TABLE tbl_heap_psql (
@@ -1142,7 +1137,6 @@ SELECT
 \p
 -- tests for special result variables
 -- working query, 2 rows selected
-
 SELECT
     1 AS stuff
 UNION

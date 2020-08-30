@@ -12,7 +12,6 @@
 -- **************** pg_depend ****************
 -- Look for illegal values in pg_depend fields.
 -- classid/objid can be zero, but only in 'p' entries
-
 SELECT
     *
 FROM
@@ -32,7 +31,6 @@ WHERE
 -- **************** pg_shdepend ****************
 -- Look for illegal values in pg_shdepend fields.
 -- classid/objid can be zero, but only in 'p' entries
-
 SELECT
     *
 FROM
@@ -58,7 +56,6 @@ WHERE
 -- whatever OID the test is complaining about must have been added later
 -- in initdb, where it intentionally isn't pinned.  Legitimate exceptions
 -- to that rule are listed in the comments in setup_depend().
-
 DO $$
 DECLARE
     relnm text;

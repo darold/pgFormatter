@@ -2,7 +2,6 @@
  * 1.1. test CREATE INDEX with buffered build
  */
 -- Regular index with included columns
-
 CREATE TABLE tbl_gist (
     c1 int,
     c2 int,
@@ -60,7 +59,6 @@ DROP TABLE tbl_gist;
  * 1.2. test CREATE INDEX with inserts
  */
 -- Regular index with included columns
-
 CREATE TABLE tbl_gist (
     c1 int,
     c2 int,

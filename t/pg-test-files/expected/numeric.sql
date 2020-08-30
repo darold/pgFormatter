@@ -1,7 +1,6 @@
 --
 -- NUMERIC
 --
-
 CREATE TABLE num_data (
     id int4,
     val numeric(210, 10)
@@ -61,7 +60,6 @@ CREATE TABLE num_result (
 -- * The following EXPECTED results are computed by bc(1)
 -- * with a scale of 200
 -- ******************************
-
 BEGIN TRANSACTION;
 INSERT INTO num_exp_add
     VALUES (0, 0, '0');
@@ -983,7 +981,6 @@ COMMIT TRANSACTION;
 -- ******************************
 -- * Create indices for faster checks
 -- ******************************
-
 CREATE UNIQUE INDEX num_exp_add_idx ON num_exp_add (id1, id2);
 
 CREATE UNIQUE INDEX num_exp_sub_idx ON num_exp_sub (id1, id2);
@@ -1022,7 +1019,6 @@ VACUUM ANALYZE num_exp_power_10_ln;
 -- ******************************
 -- * Addition check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1074,7 +1070,6 @@ WHERE
 -- ******************************
 -- * Subtraction check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1126,7 +1121,6 @@ WHERE
 -- ******************************
 -- * Multiply check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1178,7 +1172,6 @@ WHERE
 -- ******************************
 -- * Division check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1234,7 +1227,6 @@ WHERE
 -- ******************************
 -- * Square root check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1259,7 +1251,6 @@ WHERE
 -- ******************************
 -- * Natural logarithm check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1286,7 +1277,6 @@ WHERE
 -- ******************************
 -- * Logarithm base 10 check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1313,7 +1303,6 @@ WHERE
 -- ******************************
 -- * POWER(10, LN(value)) check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1341,7 +1330,6 @@ WHERE
 -- * miscellaneous checks for things that have been broken in the past...
 -- ******************************
 -- numeric AVG used to fail on some platforms
-
 SELECT
     AVG(val)
 FROM
@@ -1467,7 +1455,6 @@ FROM
 -- Testing for width_bucket(). For convenience, we test both the
 -- numeric and float8 versions of the function in this file.
 -- errors
-
 SELECT
     width_bucket(5.0, 3.0, 4.0, 0);
 
@@ -1520,7 +1507,6 @@ FROM
 
 -- for float8 only, check positive and negative infinity: we require
 -- finite bucket bounds, but allow an infinite operand
-
 SELECT
     width_bucket(0.0::float8, 'Infinity'::float8, 5, 10);
 
@@ -1537,7 +1523,6 @@ DROP TABLE width_bucket_test;
 
 -- TO_CHAR()
 --
-
 SELECT
     '' AS to_char_1,
     to_char(val, '9G999G999G999G999G999')
@@ -1731,7 +1716,6 @@ SELECT
 
 -- TO_NUMBER()
 --
-
 SET lc_numeric = 'C';
 
 SELECT
@@ -1827,7 +1811,6 @@ RESET lc_numeric;
 --
 -- Input syntax
 --
-
 CREATE TABLE num_input_test (
     n1 numeric
 );
@@ -1887,7 +1870,6 @@ FROM
 --
 -- Test some corner cases for multiplication
 --
-
 SELECT
     4790999999999999999999999999999999999999999999999999999999999999999999999999999999999999 * 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999;
 
@@ -1903,7 +1885,6 @@ SELECT
 --
 -- Test some corner cases for division
 --
-
 SELECT
     999999999999999999999::numeric / 1000000000000000000000;
 
@@ -1946,7 +1927,6 @@ SELECT
 --
 -- Test code path for raising to integer powers
 --
-
 SELECT
     10.0 ^ - 2147483648 AS rounds_to_zero;
 
@@ -1983,7 +1963,6 @@ SELECT
 -- Tests for raising to non-integer powers
 --
 -- special cases
-
 SELECT
     0.0 ^ 0.0;
 
@@ -2040,7 +2019,6 @@ SELECT
 -- Tests for EXP()
 --
 -- special cases
-
 SELECT
     exp(0.0);
 
@@ -2070,7 +2048,6 @@ SELECT
 --
 -- Tests for generate_series
 --
-
 SELECT
     *
 FROM
@@ -2136,7 +2113,6 @@ FROM
 -- Tests for LN()
 --
 -- Invalid inputs
-
 SELECT
     ln(- 12.34);
 
@@ -2172,7 +2148,6 @@ SELECT
 -- Tests for LOG() (base 10)
 --
 -- invalid inputs
-
 SELECT
     log(- 12.34);
 
@@ -2202,7 +2177,6 @@ SELECT
 -- Tests for LOG() (arbitrary base)
 --
 -- invalid inputs
-
 SELECT
     log(- 12.34, 56.78);
 
@@ -2237,7 +2211,6 @@ SELECT
 --
 -- Tests for scale()
 --
-
 SELECT
     scale (numeric 'NaN');
 
@@ -2269,7 +2242,6 @@ SELECT
 -- Tests for SUM()
 --
 -- cases that need carry propagation
-
 SELECT
     SUM(9999::numeric)
 FROM

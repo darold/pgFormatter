@@ -1,7 +1,6 @@
 --
 -- insert...on conflict do unique index inference
 --
-
 CREATE TABLE insertconflicttest (
     key int4,
     fruit text
@@ -11,7 +10,6 @@ CREATE TABLE insertconflicttest (
 -- Test unique index inference with operator class specifications and
 -- named collations
 --
-
 CREATE UNIQUE INDEX op_index_key ON insertconflicttest (KEY, fruit text_pattern_ops);
 
 CREATE UNIQUE INDEX collation_index_key ON insertconflicttest (KEY, fruit COLLATE "C");
@@ -76,7 +74,6 @@ ON CONFLICT (KEY, fruit)
 -- Neither collation nor operator class specifications are required --
 -- supplying them merely *limits* matches to indexes with matching opclasses
 -- used for relevant indexes
-
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
@@ -86,7 +83,6 @@ ON CONFLICT (KEY, fruit text_pattern_ops)
 
 -- Okay, arbitrates using both index where text_pattern_ops opclass does and
 -- does not appear.
-
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
@@ -96,7 +92,6 @@ ON CONFLICT (KEY, fruit COLLATE "C")
 
 -- Okay, but only accepts the single index where both opclass and collation are
 -- specified
-
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
@@ -106,7 +101,6 @@ ON CONFLICT (fruit COLLATE "C" text_pattern_ops, KEY)
 
 -- Okay, but only accepts the single index where both opclass and collation are
 -- specified (plus expression variant)
-
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
@@ -129,7 +123,6 @@ ON CONFLICT (lower(fruit)
 -- assumption that multiple inferred unique indexes will prevent problematic
 -- cases.  It rolls with unique indexes where attributes redundantly appear
 -- multiple times, too (which is not tested here).
-
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
@@ -156,7 +149,6 @@ DROP INDEX both_index_expr_key;
 --
 -- Make sure that cross matching of attribute opclass/collation does not occur
 --
-
 CREATE UNIQUE INDEX cross_match ON insertconflicttest (lower(fruit) COLLATE "C", upper(fruit) text_pattern_ops);
 
 -- fails:
@@ -182,13 +174,11 @@ DROP INDEX cross_match;
 --
 -- Single key tests
 --
-
 CREATE UNIQUE INDEX key_index ON insertconflicttest (KEY);
 
 --
 -- Explain tests
 --
-
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
@@ -262,7 +252,6 @@ ON CONFLICT (KEY)
 
 -- Give good diagnostic message when EXCLUDED.* spuriously referenced from
 -- RETURNING:
-
 INSERT INTO insertconflicttest
     VALUES (1, 'Apple')
 ON CONFLICT (KEY)
@@ -337,7 +326,6 @@ DROP INDEX key_index;
 --
 -- Composite key tests
 --
-
 CREATE UNIQUE INDEX comp_key_index ON insertconflicttest (KEY, fruit);
 
 -- inference succeeds:
@@ -383,7 +371,6 @@ DROP INDEX comp_key_index;
 --
 -- Partial index tests, no inference predicate specified
 --
-
 CREATE UNIQUE INDEX part_comp_key_index ON insertconflicttest (KEY, fruit)
 WHERE
     KEY < 5;
@@ -436,7 +423,6 @@ DROP INDEX expr_part_comp_key_index;
 --
 -- Expression index tests
 --
-
 CREATE UNIQUE INDEX expr_key_index ON insertconflicttest (lower(fruit));
 
 -- inference succeeds:
@@ -470,7 +456,6 @@ DROP INDEX expr_key_index;
 --
 -- Expression index tests (with regular column)
 --
-
 CREATE UNIQUE INDEX expr_comp_key_index ON insertconflicttest (KEY, lower(fruit));
 
 CREATE UNIQUE INDEX tricky_expr_comp_key_index ON insertconflicttest (KEY, lower(fruit), upper(fruit));
@@ -523,7 +508,6 @@ DROP INDEX tricky_expr_comp_key_index;
 --
 -- Non-spurious duplicate violation tests
 --
-
 CREATE UNIQUE INDEX key_index ON insertconflicttest (KEY);
 
 CREATE UNIQUE INDEX fruit_index ON insertconflicttest (fruit);
@@ -537,7 +521,6 @@ ON CONFLICT (KEY)
 
 -- fails, since UPDATE is to row with key value 26, and we're updating "fruit"
 -- to a value that happens to exist in another row ('peach'):
-
 INSERT INTO insertconflicttest
     VALUES (26, 'Peach')
 ON CONFLICT (KEY)
@@ -546,7 +529,6 @@ ON CONFLICT (KEY)
 
 -- succeeds, since "key" isn't repeated/referenced in UPDATE, and "fruit"
 -- arbitrates that statement updates existing "Fig" row:
-
 INSERT INTO insertconflicttest
     VALUES (25, 'Fig')
 ON CONFLICT (fruit)
@@ -560,7 +542,6 @@ DROP INDEX fruit_index;
 --
 -- Test partial unique index inference
 --
-
 CREATE UNIQUE INDEX partial_key_index ON insertconflicttest (KEY)
 WHERE
     fruit LIKE '%berry';
@@ -610,7 +591,6 @@ DROP INDEX partial_key_index;
 --
 -- Test that wholerow references to ON CONFLICT's EXCLUDED work
 --
-
 CREATE UNIQUE INDEX plain ON insertconflicttest (KEY);
 
 -- Succeeds, updates existing row:
@@ -684,7 +664,6 @@ DROP TABLE insertconflicttest;
 -- do not make sense because EXCLUDED isn't an already stored tuple
 -- (and thus doesn't have a ctid etc).
 --
-
 CREATE TABLE syscolconflicttest (
     key int4,
     data text
@@ -705,7 +684,6 @@ DROP TABLE syscolconflicttest;
 -- Previous tests all managed to not test any expressions requiring
 -- planner preprocessing ...
 --
-
 CREATE TABLE insertconflict (
     a bigint,
     b bigint
@@ -741,7 +719,6 @@ DROP TABLE insertconflict;
 --
 -- test insertion through view
 --
-
 CREATE TABLE insertconflict (
     f1 int PRIMARY KEY,
     f2 text
@@ -784,7 +761,6 @@ DROP TABLE insertconflict;
 -- * Test inheritance (example taken from tutorial)                 *
 -- *                                                                *
 -- ******************************************************************
-
 CREATE TABLE cities (
     name text,
     population float8,
@@ -801,7 +777,6 @@ INHERITS (
 -- Create unique indexes.  Due to a general limitation of inheritance,
 -- uniqueness is only enforced per-relation.  Unique index inference
 -- specification will do the right thing, though.
-
 CREATE UNIQUE INDEX cities_names_unique ON cities (name);
 
 CREATE UNIQUE INDEX capitals_names_unique ON capitals (name);
@@ -877,7 +852,6 @@ FROM
 
 -- Cities contains two instances of "Las Vegas", since unique constraints don't
 -- work across inheritance:
-
 SELECT
     tableoid::regclass,
     *
@@ -1185,7 +1159,6 @@ ORDER BY
 
 -- now check that DO UPDATE works correctly for target partition with
 -- different attribute numbers
-
 CREATE TABLE parted_conflict_test_2 (
     b char,
     a int UNIQUE
@@ -1311,7 +1284,6 @@ DROP TABLE parted_conflict_test;
 
 -- test behavior of inserting a conflicting tuple into an intermediate
 -- partitioning level
-
 CREATE TABLE parted_conflict (
     a int PRIMARY KEY,
     b text
@@ -1338,7 +1310,6 @@ DROP TABLE parted_conflict;
 
 -- same thing, but this time try to use an index that's created not in the
 -- partition
-
 CREATE TABLE parted_conflict (
     a int,
     b text

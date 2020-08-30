@@ -2,7 +2,6 @@
 -- Create access method tests
 --
 -- Make gist2 over gisthandler. In fact, it would be a synonym to gist.
-
 CREATE ACCESS METHOD gist2 TYPE INDEX HANDLER gisthandler;
 
 -- Verify return type checks for handlers
@@ -43,7 +42,6 @@ CREATE INDEX grect2ind2 ON fast_emp4000 USING gist2 (home_base);
 
 -- Now check the results from plain indexscan; temporarily drop existing
 -- index grect2ind to ensure it doesn't capture the plan
-
 BEGIN;
 DROP INDEX grect2ind;
 SET enable_seqscan = OFF;
@@ -110,7 +108,6 @@ DROP ACCESS METHOD gist2 CASCADE;
 -- Test table access methods
 --
 -- prevent empty values
-
 SET default_table_access_method = '';
 
 -- prevent nonexistant values
@@ -141,7 +138,6 @@ ORDER BY
 
 -- First create tables employing the new AM using USING
 -- plain CREATE TABLE
-
 CREATE TABLE tableam_tbl_heap2 (
     f1 int)
 USING heap2;
@@ -352,7 +348,6 @@ ROLLBACK;
 
 -- Third, check that we can neither create a table using a nonexistant
 -- AM, nor using an index AM
-
 CREATE TABLE i_am_a_failure ()
 USING "";
 

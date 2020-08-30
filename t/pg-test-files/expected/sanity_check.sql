@@ -7,7 +7,6 @@ VACUUM;
 -- of other backends (to avoid timing-dependent behavior).
 --
 -- temporarily disable fancy output, so catalog changes create less diff noise
-
 a \t
 SELECT
     relname,
@@ -29,7 +28,6 @@ a \t
 -- even after the OID counter wraps around.
 -- We exclude non-system tables from the check by looking at nspname.
 --
-
 SELECT
     relname,
     nspname

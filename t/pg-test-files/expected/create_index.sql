@@ -5,7 +5,6 @@
 --
 -- BTREE
 --
-
 CREATE INDEX onek_unique1 ON onek USING btree (unique1 int4_ops);
 
 CREATE INDEX IF NOT EXISTS onek_unique1 ON onek USING btree (unique1 int4_ops);
@@ -53,7 +52,6 @@ COMMENT ON INDEX six IS NULL;
 -- high key).  we had a bug where new low keys would sometimes be
 -- "lost".
 --
-
 CREATE INDEX bt_i4_index ON bt_i4_heap USING btree (seqno int4_ops);
 
 CREATE INDEX bt_name_index ON bt_name_heap USING btree (seqno name_ops);
@@ -65,7 +63,6 @@ CREATE INDEX bt_f8_index ON bt_f8_heap USING btree (seqno float8_ops);
 --
 -- BTREE partial indices
 --
-
 CREATE INDEX onek2_u1_prtl ON onek2 USING btree (unique1 int4_ops)
 WHERE
     unique1 < 20 OR unique1 > 980;
@@ -81,7 +78,6 @@ WHERE
 --
 -- GiST (rtree-equivalent opclasses only)
 --
-
 CREATE INDEX grect2ind ON fast_emp4000 USING gist (home_base);
 
 CREATE INDEX gpolygonind ON polygon_tbl USING gist (f1);
@@ -119,7 +115,6 @@ CREATE INDEX ggcircleind ON gcircle_tbl USING gist (f1);
 -- Test GiST indexes
 --
 -- get non-indexed results for comparison purposes
-
 SET enable_seqscan = ON;
 
 SET enable_indexscan = OFF;
@@ -739,7 +734,6 @@ RESET enable_bitmapscan;
 --
 -- Note: GIN currently supports only bitmap scans, not plain indexscans
 --
-
 SET enable_seqscan = OFF;
 
 SET enable_indexscan = OFF;
@@ -1124,7 +1118,6 @@ RESET enable_bitmapscan;
 -- Try a GIN index with a lot of items with same key. (GIN creates a posting
 -- tree when there are enough duplicates)
 --
-
 CREATE TABLE array_gin_test (
     a int[]
 );
@@ -1149,14 +1142,12 @@ DROP TABLE array_gin_test;
 --
 -- Test GIN index's reloptions
 --
-
 CREATE INDEX gin_relopts_test ON array_index_op_test USING gin (i) WITH (FASTUPDATE = ON, GIN_PENDING_LIST_LIMIT = 128);
 
 \d+ gin_relopts_test
 --
 -- HASH
 --
-
 CREATE INDEX hash_i4_index ON hash_i4_heap USING HASH (random int4_ops);
 
 CREATE INDEX hash_name_index ON hash_name_heap USING HASH (random name_ops);
@@ -1176,7 +1167,6 @@ DROP TABLE unlogged_hash_table;
 -- CREATE INDEX hash_ovfl_index ON hash_ovfl_heap USING hash (x int4_ops);
 -- Test hash index build tuplesorting.  Force hash tuplesort using low
 -- maintenance_work_mem setting and fillfactor:
-
 SET maintenance_work_mem = '1MB';
 
 CREATE INDEX hash_tuplesort_idx ON tenk1 USING HASH (stringu1 name_ops) WITH (fillfactor = 10);
@@ -1205,7 +1195,6 @@ RESET maintenance_work_mem;
 --
 -- Test functional index
 --
-
 CREATE TABLE func_index_heap (
     f1 text,
     f2 text
@@ -1233,7 +1222,6 @@ INSERT INTO func_index_heap
 --
 -- Same test, expressional index
 --
-
 DROP TABLE func_index_heap;
 
 CREATE TABLE func_index_heap (
@@ -1263,7 +1251,6 @@ INSERT INTO func_index_heap
 --
 -- Test unique index with included columns
 --
-
 CREATE TABLE covering_index_heap (
     f1 int,
     f2 int,
@@ -1299,7 +1286,6 @@ DROP TABLE covering_index_heap;
 -- Also try building functional, expressional, and partial indexes on
 -- tables that already contain data.
 --
-
 CREATE UNIQUE INDEX hash_f8_index_1 ON hash_f8_heap (abs(random));
 
 CREATE UNIQUE INDEX hash_f8_index_2 ON hash_f8_heap ((seqno + 1), random);
@@ -1313,7 +1299,6 @@ WHERE
 --
 -- Unfortunately this only tests about half the code paths because there are
 -- no concurrent updates happening to the table at the same time.
-
 CREATE TABLE concur_heap (
     f1 text,
     f2 text
@@ -1383,7 +1368,6 @@ REINDEX TABLE concur_heap;
 --
 -- Try some concurrent index drops
 --
-
 DROP INDEX CONCURRENTLY "concur_index2";
 
 -- works
@@ -1391,7 +1375,6 @@ DROP INDEX CONCURRENTLY IF EXISTS "concur_index2";
 
 -- notice
 -- failures
-
 DROP INDEX CONCURRENTLY "concur_index2", "concur_index3";
 
 BEGIN;
@@ -1415,7 +1398,6 @@ DROP TABLE concur_heap;
 --
 -- Test ADD CONSTRAINT USING INDEX
 --
-
 CREATE TABLE cwi_test (
     a int,
     b varchar(10),
@@ -1462,7 +1444,6 @@ DROP TABLE cwi_test;
 --
 -- Check handling of indexes on system columns
 --
-
 CREATE TABLE syscol_table (
     a int
 );
@@ -1483,7 +1464,6 @@ DROP TABLE syscol_table;
 --
 -- Tests for IS NULL/IS NOT NULL with b-tree indexes
 --
-
 SELECT
     unique1,
     unique2 INTO onek_with_null
@@ -1781,7 +1761,6 @@ DROP TABLE onek_with_null;
 --
 -- Check bitmap index path planning
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1829,7 +1808,6 @@ WHERE
 --
 -- Check behavior with duplicate index column contents
 --
-
 CREATE TABLE dupindexcols AS
 SELECT
     unique1 AS id,
@@ -1867,7 +1845,6 @@ WHERE
 --
 -- Check ordering of =ANY indexqual results (bug in 9.2.0)
 --
-
 VACUUM tenk1;
 
 -- ensure we get consistent plans here
@@ -1949,7 +1926,6 @@ RESET enable_indexonlyscan;
 --
 -- Check elimination of constant-NULL subexpressions
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1962,7 +1938,6 @@ WHERE (thousand, tenthous) IN ((1, 1001), (NULL, NULL));
 --
 -- Check matching of boolean index columns to WHERE conditions and sort keys
 --
-
 CREATE temp TABLE boolindex (
     b bool,
     i int,
@@ -2050,7 +2025,6 @@ LIMIT 10;
 --
 -- REINDEX (VERBOSE)
 --
-
 CREATE TABLE reindex_verbose (
     id integer PRIMARY KEY
 );
@@ -2065,7 +2039,6 @@ DROP TABLE reindex_verbose;
 --
 -- REINDEX CONCURRENTLY
 --
-
 CREATE TABLE concur_reindex_tab (
     c1 int
 );
@@ -2082,7 +2055,6 @@ ALTER TABLE concur_reindex_tab
 
 -- add toast index
 -- Normal index with integer column
-
 CREATE UNIQUE INDEX concur_reindex_ind1 ON concur_reindex_tab (c1);
 
 -- Normal index with text column
@@ -2166,7 +2138,6 @@ DROP TABLE testcomment;
 
 -- Partitions
 -- Create some partitioned tables
-
 CREATE TABLE concur_reindex_part (
     c1 int,
     c2 int
@@ -2271,7 +2242,6 @@ DROP TABLE concur_reindex_part;
 
 -- Check errors
 -- Cannot run inside a transaction block
-
 BEGIN;
 REINDEX TABLE CONCURRENTLY concur_reindex_tab;
 COMMIT;
@@ -2286,7 +2256,6 @@ REINDEX SYSTEM CONCURRENTLY postgres;
 
 -- not allowed for SYSTEM
 -- Warns about catalog relations
-
 REINDEX SCHEMA CONCURRENTLY pg_catalog;
 
 -- Check the relation status, there should not be invalid indexes
@@ -2308,7 +2277,6 @@ CREATE UNIQUE INDEX CONCURRENTLY concur_reindex_ind5 ON concur_reindex_tab4 (c1)
 
 -- Reindexing concurrently this index fails with the same failure.
 -- The extra index created is itself invalid, and can be dropped.
-
 REINDEX INDEX CONCURRENTLY concur_reindex_ind5;
 
 \d concur_reindex_tab4
@@ -2331,7 +2299,6 @@ DROP TABLE concur_reindex_tab4;
 --
 -- REINDEX SCHEMA
 --
-
 REINDEX SCHEMA schema_to_reindex;
 
 -- failure, schema does not exist

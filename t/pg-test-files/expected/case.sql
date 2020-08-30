@@ -2,7 +2,6 @@
 -- CASE
 -- Test the case statement
 --
-
 CREATE TABLE CASE_TBL (
     i integer,
     f double precision
@@ -46,7 +45,6 @@ INSERT INTO CASE2_TBL
 --
 -- Simplest examples without tables
 --
-
 SELECT
     '3' AS "One",
     CASE WHEN 1 < 2 THEN
@@ -113,7 +111,6 @@ SELECT
 
 -- However we do not currently suppress folding of potentially
 -- reachable subexpressions
-
 SELECT
     CASE WHEN i > 100 THEN
         1 / 0
@@ -135,7 +132,6 @@ SELECT
 --
 -- Examples of targets involving tables
 --
-
 SELECT
     '' AS "Five",
     CASE WHEN i >= 3 THEN
@@ -199,7 +195,6 @@ FROM
 -- Shorthand forms for typical CASE constructs
 --  defined in the SQL standard.
 --
-
 SELECT
     *
 FROM
@@ -248,7 +243,6 @@ WHERE
 --
 -- Examples of updates involving tables
 --
-
 UPDATE
     CASE_TBL
 SET
@@ -306,7 +300,6 @@ FROM
 -- to prevent constant-folding in the planner, which would hide the bug.
 -- Wrap this in a single transaction so the transient '=' operator doesn't
 -- cause problems in concurrent sessions
-
 BEGIN;
 CREATE FUNCTION vol (text)
     RETURNS text
@@ -358,7 +351,6 @@ ROLLBACK;
 -- Test multiple evaluation of a CASE arg that is a read/write object (#14472)
 -- Wrap this in a single transaction so the transient '=' operator doesn't
 -- cause problems in concurrent sessions
-
 BEGIN;
 CREATE DOMAIN arrdomain AS int[];
 CREATE FUNCTION make_ad (int, int)

@@ -3,7 +3,6 @@
 --
 -- test various cases of valid and invalid input
 -- valid
-
 SELECT
     '08:00:2b:01:02:03     '::macaddr8;
 
@@ -80,7 +79,6 @@ SELECT
 -- invalid
 -- test converting a MAC address to modified EUI-64 for inclusion
 -- in an ipv6 address
-
 SELECT
     macaddr8_set7bit ('00:08:2b:01:02:03'::macaddr8);
 

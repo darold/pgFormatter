@@ -1,7 +1,6 @@
 --
 -- Enum tests
 --
-
 CREATE TYPE rainbow AS ENUM (
     'red',
     'orange',
@@ -14,7 +13,6 @@ CREATE TYPE rainbow AS ENUM (
 --
 -- Did it create the right number of rows?
 --
-
 SELECT
     COUNT(*)
 FROM
@@ -25,7 +23,6 @@ WHERE
 --
 -- I/O functions
 --
-
 SELECT
     'red'::rainbow;
 
@@ -35,7 +32,6 @@ SELECT
 --
 -- adding new values
 --
-
 CREATE TYPE planets AS ENUM (
     'venus',
     'earth',
@@ -106,7 +102,6 @@ ALTER TYPE planets
 
 -- if not exists tests
 --  existing value gives error
-
 ALTER TYPE planets
     ADD VALUE 'mercury';
 
@@ -128,7 +123,6 @@ SELECT
 --
 -- Test inserting so many values that we have to renumber
 --
-
 CREATE TYPE insenum AS enum (
     'L1',
     'L2'
@@ -227,7 +221,6 @@ ALTER TYPE insenum
 -- The exact values of enumsortorder will now depend on the local properties
 -- of float4, but in any reasonable implementation we should get at least
 -- 20 splits before having to renumber; so only hide values > 20.
-
 SELECT
     enumlabel,
     CASE WHEN enumsortorder > 20 THEN
@@ -245,7 +238,6 @@ ORDER BY
 --
 -- Basic table creation, row selection
 --
-
 CREATE TABLE enumtest (
     col rainbow
 );
@@ -261,7 +253,6 @@ FROM
 --
 -- Operators, no index
 --
-
 SELECT
     *
 FROM
@@ -317,7 +308,6 @@ ORDER BY
 --
 -- Cast to/from text
 --
-
 SELECT
     'red'::rainbow::text || 'hithere';
 
@@ -327,7 +317,6 @@ SELECT
 --
 -- Aggregates
 --
-
 SELECT
     min(col)
 FROM
@@ -348,7 +337,6 @@ WHERE
 --
 -- Index tests, force use of index
 --
-
 SET enable_seqscan = OFF;
 
 SET enable_bitmapscan = OFF;
@@ -356,7 +344,6 @@ SET enable_bitmapscan = OFF;
 --
 -- Btree index / opclass with the various operators
 --
-
 CREATE UNIQUE INDEX enumtest_btree ON enumtest USING btree (col);
 
 SELECT
@@ -433,7 +420,6 @@ DROP INDEX enumtest_btree;
 --
 -- Hash index / opclass with the = operator
 --
-
 CREATE INDEX enumtest_hash ON enumtest USING HASH (col);
 
 SELECT
@@ -448,7 +434,6 @@ DROP INDEX enumtest_hash;
 --
 -- End index tests
 --
-
 RESET enable_seqscan;
 
 RESET enable_bitmapscan;
@@ -456,7 +441,6 @@ RESET enable_bitmapscan;
 --
 -- Domains over enums
 --
-
 CREATE DOMAIN rgb AS rainbow CHECK (VALUE IN ('red', 'green', 'blue'));
 
 SELECT
@@ -473,7 +457,6 @@ DROP DOMAIN rgb;
 --
 -- Arrays
 --
-
 SELECT
     '{red,green,blue}'::rainbow[];
 
@@ -495,7 +478,6 @@ SELECT
 --
 -- Support functions
 --
-
 SELECT
     enum_first(NULL::rainbow);
 
@@ -520,7 +502,6 @@ SELECT
 --
 -- User functions, can't test perl/python etc here since may not be compiled.
 --
-
 CREATE FUNCTION echo_me (anyenum)
     RETURNS text
     AS $$
@@ -536,7 +517,6 @@ SELECT
 --
 -- Concrete function should override generic one
 --
-
 CREATE FUNCTION echo_me (rainbow)
     RETURNS text
     AS $$
@@ -553,7 +533,6 @@ SELECT
 -- If we drop the original generic one, we don't have to qualify the type
 -- anymore, since there's only one match
 --
-
 DROP FUNCTION echo_me (anyenum);
 
 SELECT
@@ -564,7 +543,6 @@ DROP FUNCTION echo_me (rainbow);
 --
 -- RI triggers on enum types
 --
-
 CREATE TABLE enumtest_parent (
     id rainbow PRIMARY KEY
 );
@@ -589,7 +567,6 @@ DELETE FROM enumtest_parent;
 --
 -- cross-type RI should fail
 --
-
 CREATE TYPE bogus AS ENUM (
     'good',
     'bad',
@@ -624,14 +601,12 @@ ALTER TYPE rainbow RENAME VALUE 'blue' TO 'green';
 --
 -- check transactional behaviour of ALTER TYPE ... ADD VALUE
 --
-
 CREATE TYPE bogus AS ENUM (
     'good'
 );
 
 -- check that we can add new values to existing enums in a transaction
 -- but we can't use them
-
 BEGIN;
 ALTER TYPE bogus
     ADD VALUE 'new';
@@ -675,7 +650,6 @@ ORDER BY
 
 -- check that we recognize the case where the enum already existed but was
 -- modified in the current txn; this should not be considered safe
-
 BEGIN;
 ALTER TYPE bogus RENAME TO bogon;
 ALTER TYPE bogon
@@ -707,7 +681,6 @@ ROLLBACK;
 
 -- ideally, we'd allow this usage; but it requires keeping track of whether
 -- the enum type was created in the current transaction, which is expensive
-
 BEGIN;
 CREATE TYPE bogus AS ENUM (
     'good'
@@ -725,7 +698,6 @@ ROLLBACK;
 --
 -- Cleanup
 --
-
 DROP TABLE enumtest_child;
 
 DROP TABLE enumtest_parent;
@@ -737,7 +709,6 @@ DROP TYPE rainbow;
 --
 -- Verify properly cleaned up
 --
-
 SELECT
     COUNT(*)
 FROM

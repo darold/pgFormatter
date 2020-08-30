@@ -1,7 +1,6 @@
 --
 -- VARCHAR
 --
-
 CREATE TABLE VARCHAR_TBL (
     f1 varchar(1)
 );
@@ -92,7 +91,6 @@ DROP TABLE VARCHAR_TBL;
 --
 -- Now test longer arrays of char
 --
-
 CREATE TABLE VARCHAR_TBL (
     f1 varchar(4)
 );

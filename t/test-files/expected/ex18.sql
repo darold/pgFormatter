@@ -9,7 +9,6 @@ WHERE
 
 -- Deploy schemas/custom/grants/grant_schema_to_authenticated to pg
 -- requires: schemas/custom/schema
-
 BEGIN;
 GRANT USAGE ON SCHEMA custom TO authenticated;
 GRANT USAGE ON SCHEMA custom TO authenticated;

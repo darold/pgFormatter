@@ -7,7 +7,6 @@
 -- so our ability to test with fixed expected output is pretty limited;
 -- but even a trivial check of count(*) will exercise the normal code path
 -- through the SRF.
-
 SELECT
     count(*) >= 0 AS ok
 FROM
@@ -61,7 +60,6 @@ FROM
 
 -- This is to record the prevailing planner enable_foo settings during
 -- a regression test run.
-
 SELECT
     name,
     setting
@@ -76,7 +74,6 @@ WHERE
 -- but it seems reasonable to expect at least one entry per major meridian.
 -- (At the time of writing, the actual counts are around 38 because of
 -- zones using fractional GMT offsets, so this is a pretty loose test.)
-
 SELECT
     count(DISTINCT utc_offset) >= 24 AS ok
 FROM

@@ -4,7 +4,6 @@
 -- Use hand-rolled hash functions and operator classes to get predictable
 -- result on different matchines.  See the definitions of
 -- part_part_test_int4_ops and part_test_text_ops in insert.sql.
-
 CREATE TABLE mchash (
     a int,
     b text,
@@ -69,7 +68,6 @@ SELECT
 
 -- argument via variadic syntax, should fail because not all partitioning
 -- columns are of the correct type
-
 SELECT
     satisfies_hash_partition ('mchash'::regclass, 2, 1, VARIADIC ARRAY[1, 2]::int[]);
 
@@ -111,7 +109,6 @@ FOR VALUES WITH (MODULUS 2, REMAINDER 1);
 
 -- The result here should always be true, because 'xxx' must belong to
 -- one of the two defined partitions
-
 SELECT
     satisfies_hash_partition ('text_hashp'::regclass, 2, 0, 'xxx'::text)
     OR satisfies_hash_partition ('text_hashp'::regclass, 2, 1, 'xxx'::text) AS satisfies;

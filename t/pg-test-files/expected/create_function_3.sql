@@ -4,7 +4,6 @@
 -- Assorted tests using SQL-language functions
 --
 -- All objects made in this test are in temp_func_test schema
-
 CREATE USER regress_unpriv_user;
 
 CREATE SCHEMA temp_func_test;
@@ -19,7 +18,6 @@ SET search_path TO temp_func_test, public;
 --
 -- ARGUMENT and RETURN TYPES
 --
-
 CREATE FUNCTION functest_A_1 (text, date)
     RETURNS bool
     LANGUAGE 'sql'
@@ -52,7 +50,6 @@ ORDER BY
 --
 -- IMMUTABLE | STABLE | VOLATILE
 --
-
 CREATE FUNCTION functest_B_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
@@ -108,7 +105,6 @@ ORDER BY
 --
 -- SECURITY DEFINER | INVOKER
 --
-
 CREATE FUNCTION functest_C_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
@@ -159,7 +155,6 @@ ORDER BY
 --
 -- LEAKPROOF
 --
-
 CREATE FUNCTION functest_E_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
@@ -237,7 +232,6 @@ RESET SESSION AUTHORIZATION;
 --
 -- CALLED ON NULL INPUT | RETURNS NULL ON NULL INPUT | STRICT
 --
-
 CREATE FUNCTION functest_F_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
@@ -358,7 +352,6 @@ DROP FUNCTION functest_b_2;
 
 -- error, ambiguous
 -- CREATE OR REPLACE tests
-
 CREATE FUNCTION functest1 (a int)
     RETURNS int
     LANGUAGE SQL

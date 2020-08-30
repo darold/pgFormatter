@@ -7,7 +7,6 @@
 -- This fails for Postgres v6.1 (and earlier?)
 --  so let's try explicit conversions for now - tgl 97/05/07
 --
-
 CREATE TABLE TEMP_FLOAT (
     f1 float8
 );
@@ -91,7 +90,6 @@ ORDER BY
 --
 -- Group-by combinations
 --
-
 CREATE TABLE TEMP_GROUP (
     f1 int4,
     f2 int4,
@@ -137,7 +135,6 @@ ORDER BY
 
 -- GROUP BY a result column name is not legal per SQL92, but we accept it
 -- anyway (if the name is not the name of any column exposed by FROM).
-
 SELECT
     f1 AS two,
     max(f3) AS max_float,

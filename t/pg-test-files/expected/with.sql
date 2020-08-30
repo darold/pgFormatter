@@ -2,7 +2,6 @@
 -- Tests for common table expressions (WITH query, ... SELECT ...)
 --
 -- Basic WITH
-
 WITH q1 (
     x,
     y
@@ -39,7 +38,6 @@ FROM ( WITH q1 (
 
 -- WITH RECURSIVE
 -- sum of 1..100
-
 WITH RECURSIVE t (
     n
 ) AS (
@@ -191,7 +189,6 @@ FROM
 
 -- In a perfect world, this would work and resolve the literal as int ...
 -- but for now, we have to be content with resolving to text too soon.
-
 WITH RECURSIVE t (
     n
 ) AS (
@@ -220,7 +217,6 @@ FROM
 --      |         |
 --      |         +->D-+->F
 --      +->E-+->G
-
 CREATE TEMP TABLE department (
     id integer PRIMARY KEY, -- department ID
     parent_department integer REFERENCES department, -- upper department ID
@@ -314,7 +310,6 @@ ORDER BY
 
 -- extract all departments under 'A' with "level" number.
 -- Only shows level 2 or more
-
 WITH RECURSIVE subdepartment (
     level,
     id,
@@ -572,7 +567,6 @@ FROM
 --
 -- different tree example
 --
-
 CREATE TEMPORARY TABLE tree (
     id integer PRIMARY KEY,
     parent_id integer REFERENCES tree (id)
@@ -584,7 +578,6 @@ INSERT INTO tree
 --
 -- get all paths from "second level" nodes to leaf nodes
 --
-
 WITH RECURSIVE t (
     id,
     path
@@ -659,7 +652,6 @@ FROM
 --
 -- test cycle detection
 --
-
 CREATE temp TABLE graph (
     f int,
     t int,
@@ -741,7 +733,6 @@ ORDER BY
 --
 -- test multiple WITH queries
 --
-
 WITH RECURSIVE y (
     id
 ) AS (
@@ -949,7 +940,6 @@ FROM
 --
 -- Test WITH attached to a data-modifying statement
 --
-
 CREATE TEMPORARY TABLE y (
     a integer
 );
@@ -1026,7 +1016,6 @@ DROP TABLE y;
 -- error cases
 --
 -- INTERSECT
-
 WITH RECURSIVE x (
     n
 ) AS (
@@ -1527,7 +1516,6 @@ CREATE RULE r2 AS ON UPDATE
 --
 -- test for bug #4902
 --
-
 WITH cte (
     foo
 ) AS (
@@ -1554,7 +1542,6 @@ FROM ((
 
 -- test CTE referencing an outer-level variable (to see that changed-parameter
 -- signaling still works properly after fixing this bug)
-
 SELECT
     ( WITH cte (
             foo
@@ -1585,7 +1572,6 @@ FROM
 --
 -- test for nested-recursive-WITH bug
 --
-
 WITH RECURSIVE t (
     j
 ) AS (
@@ -1621,7 +1607,6 @@ WITH RECURSIVE t (
 --
 -- test WITH attached to intermediate-level set operation
 --
-
 WITH outermost (
     x
 ) AS (
@@ -1727,7 +1712,6 @@ WITH RECURSIVE outermost (
 -- the old code to give them the same runtime PARAM_EXEC slot.  But the
 -- lifespans of the two parameters overlap, thanks to B also reading A.
 --
-
 WITH A AS (
     SELECT
         q2 AS id,
@@ -1765,7 +1749,6 @@ FROM
 --
 -- Test CTEs read in non-initialization orders
 --
-
 WITH RECURSIVE tab (
     id_key,
     link
@@ -1884,7 +1867,6 @@ FROM
 -- Data-modifying statements in WITH
 --
 -- INSERT ... RETURNING
-
 WITH t AS (
 INSERT INTO y
         VALUES (11), (12), (13), (14), (15), (16), (17), (18), (19), (20)
@@ -2188,7 +2170,6 @@ ORDER BY
 -- Ensure subqueries within the update clause work, even if they
 -- reference outside values
 --
-
 WITH aa AS (
     SELECT
         1 a,
@@ -2284,7 +2265,6 @@ ON CONFLICT (k)
 -- Update a row more than once, in different parts of a wCTE. That is
 -- an allowed, presumably very rare, edge case, but since it was
 -- broken in the past, having a test seems worthwhile.
-
 WITH simpletup AS (
     SELECT
         2 k,
@@ -2592,7 +2572,6 @@ INSERT INTO int8_tbl
 
 -- error cases
 -- data-modifying WITH tries to use its own output
-
 WITH RECURSIVE t AS (
 INSERT INTO y
     SELECT
@@ -2669,7 +2648,6 @@ INSERT INTO test
 -- check response to attempt to modify table with same name as a CTE (perhaps
 -- surprisingly it works, because CTEs don't hide tables from data-modifying
 -- statements)
-
 CREATE temp TABLE test (
     i int
 );

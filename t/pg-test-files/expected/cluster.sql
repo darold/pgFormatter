@@ -1,7 +1,6 @@
 --
 --  CLUSTER
 --
-
 CREATE TABLE clstr_tst_s (
     rf_a serial PRIMARY KEY,
     b int
@@ -377,7 +376,6 @@ INSERT INTO clstr_3
 
 -- this user can only cluster clstr_1 and clstr_3, but the latter
 -- has not been clustered
-
 SET SESSION AUTHORIZATION regress_clstr_user;
 
 CLUSTER;
@@ -415,7 +413,6 @@ FROM
 
 -- Test MVCC-safety of cluster. There isn't much we can do to verify the
 -- results with a single backend...
-
 CREATE TABLE clustertest (
     key int PRIMARY KEY
 );

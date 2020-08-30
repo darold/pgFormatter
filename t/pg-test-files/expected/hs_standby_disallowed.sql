@@ -3,7 +3,6 @@
 --
 -- hs_standby_disallowed.sql
 --
-
 SET transaction_read_only = OFF;
 
 BEGIN TRANSACTION read write;

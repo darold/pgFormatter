@@ -1,7 +1,6 @@
 --
 -- PARALLEL
 --
-
 CREATE FUNCTION sp_parallel_restricted (int)
     RETURNS int
     AS $$
@@ -14,7 +13,6 @@ parallel restricted;
 
 -- Serializable isolation would disable parallel query, so explicitly use an
 -- arbitrary other level.
-
 BEGIN ISOLATION level REPEATABLE read;
 -- encourage use of parallel plans
 SET parallel_setup_cost = 0;
@@ -150,7 +148,6 @@ WHERE
     stringu1 = 'GRAAAA';
 -- test with leader participation disabled, but no workers available (so
 -- the leader will have to run the plan despite the setting)
-
 SET max_parallel_workers = 0;
 EXPLAIN (
     COSTS OFF
@@ -213,7 +210,6 @@ ORDER BY
     stringu1;
 -- test that parallel plan for aggregates is not selected when
 -- target list contains parallel restricted clause.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -715,7 +711,6 @@ LIMIT 5;
 -- gather merge test with 0 workers, with parallel leader
 -- participation disabled (the leader will have to run the plan
 -- despite the setting)
-
 SET parallel_leader_participation = OFF;
 EXPLAIN (
     COSTS OFF
@@ -889,7 +884,6 @@ SAVEPOINT settings;
 
 -- multiple subqueries under a single Gather node
 -- must set parallel_setup_cost > 0 to discourage multiple Gather nodes
-
 SET LOCAL parallel_setup_cost = 10;
 
 EXPLAIN (

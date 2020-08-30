@@ -1,7 +1,6 @@
 --
 -- WINDOW FUNCTIONS
 --
-
 CREATE TEMPORARY TABLE empsalary (
     depname varchar,
     empno bigint,
@@ -1231,7 +1230,6 @@ WINDOW w AS (ORDER BY f_numeric RANGE BETWEEN 1.1 PRECEDING AND 'NaN' FOLLOWING)
 
 -- error, NaN disallowed
 -- Test in_range for other datetime datatypes
-
 CREATE temp TABLE datetimes (
     id int,
     f_time time,
@@ -1880,7 +1878,6 @@ GROUP BY
 
 -- Test pushdown of quals into a subquery containing window functions
 -- pushdown is safe because all PARTITION BY clauses include depname:
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1980,7 +1977,6 @@ FROM (
 --
 -- create aggregates that record the series of transform calls (these are
 -- intentionally not true inverses)
-
 CREATE FUNCTION logging_sfunc_nonstrict (text, anyelement)
     RETURNS text
     AS $$
@@ -2163,7 +2159,6 @@ ORDER BY
 -- restarts the aggregation from scratch. The second aggregate is supposed
 -- to test cases where only some aggregates restart, the third one checks
 -- that one aggregate restarting doesn't cause others to restart.
-
 CREATE FUNCTION sum_int_randrestart_minvfunc (int4, int4)
     RETURNS int4
     AS $$
@@ -2212,7 +2207,6 @@ WINDOW fwd AS (ORDER BY vs.i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING);
 -- Test various built-in aggregates that have moving-aggregate support
 --
 -- test inverse transition functions handle NULLs properly
-
 SELECT
     i,
     AVG(v::bigint) OVER (ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)
@@ -2609,7 +2603,6 @@ FROM (
 -- float and double precision. This should not be done as it can give incorrect
 -- results. This test should fail if anyone ever does this without thinking too
 -- hard about it.
-
 SELECT
     to_char(SUM(n::float8) OVER (ORDER BY i ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING), '999999999999999999999D9')
 FROM (

@@ -3,7 +3,6 @@
 -- Test temp relations and indexes
 --
 -- test temp table/index masking
-
 CREATE TABLE temptest (
     col int
 );
@@ -265,7 +264,6 @@ DROP TABLE public.whereami;
 
 -- For partitioned temp tables, ON COMMIT actions ignore storage-less
 -- partitioned tables.
-
 BEGIN;
 CREATE temp TABLE temp_parted_oncommit (
     a int
@@ -288,7 +286,6 @@ DROP TABLE temp_parted_oncommit;
 -- Check dependencies between ON COMMIT actions with a partitioned
 -- table and its partitions.  Using ON COMMIT DROP on a parent removes
 -- the whole set.
-
 BEGIN;
 CREATE temp TABLE temp_parted_oncommit_test (
     a int
@@ -312,7 +309,6 @@ WHERE
 
 -- Using ON COMMIT DELETE on a partitioned table does not remove
 -- all rows if partitions preserve their data.
-
 BEGIN;
 CREATE temp TABLE temp_parted_oncommit_test (
     a int
@@ -328,7 +324,6 @@ COMMIT;
 
 -- Data from the remaining partition is still here as its rows are
 -- preserved.
-
 SELECT
     *
 FROM
@@ -346,7 +341,6 @@ DROP TABLE temp_parted_oncommit_test;
 
 -- Check dependencies between ON COMMIT actions with inheritance trees.
 -- Using ON COMMIT DROP on a parent removes the whole set.
-
 BEGIN;
 CREATE temp TABLE temp_inh_oncommit_test (
     a int
@@ -402,7 +396,6 @@ DROP TABLE temp_inh_oncommit_test;
 -- with two-phase commit.
 -- These cases generate errors about temporary namespace.
 -- Function creation
-
 BEGIN;
 CREATE FUNCTION pg_temp.twophase_func ()
     RETURNS void
@@ -468,7 +461,6 @@ PREPARE TRANSACTION 'twophase_tab';
 -- Corner case: current_schema may create a temporary schema if namespace
 -- creation is pending, so check after that.  First reset the connection
 -- to remove the temporary namespace.
-
 \c -
 SET search_path TO 'pg_temp';
 BEGIN;

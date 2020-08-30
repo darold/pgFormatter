@@ -2,7 +2,6 @@
 -- ASYNC
 --
 --Should work. Send a valid message via a valid channel name
-
 SELECT
     pg_notify('notify_async1', 'sample message1');
 
@@ -33,7 +32,6 @@ UNLISTEN *;
 
 -- Should return zero while there are no pending notifications.
 -- src/test/isolation/specs/async-notify.spec tests for actual usage.
-
 SELECT
     pg_notification_queue_usage ();
 

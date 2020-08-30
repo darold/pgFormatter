@@ -3,7 +3,6 @@
 -- Virtual class definitions
 --	(this also tests the query rewrite system)
 --
-
 CREATE VIEW street AS
 SELECT
     r.name,
@@ -72,7 +71,6 @@ HAVING
 --
 -- CREATE OR REPLACE VIEW
 --
-
 CREATE OR REPLACE VIEW viewtest AS
 SELECT
     *
@@ -205,7 +203,6 @@ SELECT
 -- joins: if any of the join relations are temporary, the view
 -- should also be temporary
 -- should be non-temp
-
 CREATE VIEW v3 AS
 SELECT
     t1.a AS t1_a,
@@ -645,7 +642,6 @@ WHERE
 --
 -- CREATE VIEW and WITH(...) clause
 --
-
 CREATE VIEW mysecview1 AS
 SELECT
     *
@@ -757,7 +753,6 @@ ORDER BY
 
 -- Check that unknown literals are converted to "text" in CREATE VIEW,
 -- so that we don't end up with unknown-type columns.
-
 CREATE VIEW unspecified_types AS
 SELECT
     42 AS i,
@@ -1225,7 +1220,6 @@ SELECT
 --
 -- Also check dropping a column that existed when the view was made
 --
-
 CREATE TABLE tt9 (
     x int,
     xx int,
@@ -1259,7 +1253,6 @@ SELECT
 -- Another corner case is that we might add a column to a table below a
 -- JOIN USING, and thereby make the USING column name ambiguous
 --
-
 CREATE TABLE tt11 (
     x int,
     y int
@@ -1297,7 +1290,6 @@ SELECT
 --
 -- Check cases involving dropped/altered columns in a function's rowtype result
 --
-
 CREATE TABLE tt14t (
     f1 text,
     f2 text,

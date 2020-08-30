@@ -1,7 +1,6 @@
 --
 -- ARRAYS
 --
-
 CREATE TABLE arrtest (
     a int2[],
     b int4[][][],
@@ -15,7 +14,6 @@ CREATE TABLE arrtest (
 --
 -- only the 'e' array is 0-based, the others are 1-based.
 --
-
 INSERT INTO arrtest (a[1:5], b[1:1][1:2][1:2], c, d, f, g)
     VALUES ('{1,2,3,4,5}', '{{{0,0},{1,2}}}', '{}', '{}', '{}', '{}');
 
@@ -185,7 +183,6 @@ SELECT
 -- check subscription corner cases
 --
 -- More subscripts than MAXDIMS(6)
-
 SELECT
     ('{}'::int[])[1][2][3][4][5][6][7];
 
@@ -307,7 +304,6 @@ SET
 
 -- fail, no good with null
 -- check with fixed-length-array type, such as point
-
 SELECT
     f1[0:1]
 FROM
@@ -377,7 +373,6 @@ RETURNING
 --
 -- test array extension
 --
-
 CREATE TEMP TABLE arrtest1 (
     i int[],
     t text[]
@@ -548,7 +543,6 @@ FROM
 -- array expressions and operators
 --
 -- table creation and INSERTs
-
 CREATE TEMP TABLE arrtest2 (
     i integer ARRAY[4],
     f float8[],
@@ -1173,7 +1167,6 @@ ON CONFLICT (pk)
 
 -- note: if above selects don't produce the expected tuple order,
 -- then you didn't get an indexscan plan, and something is busted.
-
 RESET enable_seqscan;
 
 RESET enable_bitmapscan;
@@ -1215,7 +1208,6 @@ SELECT
 -- General array parser tests
 --
 -- none of the following should be accepted
-
 SELECT
     '{{1,{2}},{2,3}}'::text[];
 
@@ -1239,7 +1231,6 @@ SELECT
 
 -- none of the above should be accepted
 -- all of the following should be accepted
-
 SELECT
     '{}'::text[];
 
@@ -1269,7 +1260,6 @@ SELECT
 
 -- all of the above should be accepted
 -- tests for array aggregates
-
 CREATE TEMP TABLE arraggtest (
     f1 int[],
     f2 text[][],
@@ -1835,7 +1825,6 @@ DROP TYPE textandtext;
 
 -- Tests for polymorphic-array form of width_bucket()
 -- this exercises the varwidth and float8 code paths
-
 SELECT
     op,
     width_bucket(op::numeric, ARRAY[1, 3, 5, 10.0]::numeric[]) AS wb_n1,

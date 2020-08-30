@@ -2,7 +2,6 @@
 -- Test for pg_get_object_address
 --
 -- Clean up in case a prior regression run failed
-
 SET client_min_messages TO 'warning';
 
 DROP ROLE IF EXISTS regress_addr_user;
@@ -111,7 +110,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE regress_addr_user REVOKE DELETE ON TABLES FROM
 
 -- this transform would be quite unsafe to leave lying around,
 -- except that the SQL language pays no attention to transforms:
-
 CREATE TRANSFORM FOR int
 LANGUAGE SQL
 (
@@ -334,7 +332,6 @@ WITH objects (
         ('role', '{regress_addr_user}', '{}'),
         -- database
         -- tablespace
-
         ('foreign-data wrapper', '{addr_fdw}', '{}'),
         ('server', '{addr_fserv}', '{}'),
         ('user mapping', '{regress_addr_user}', '{integer}'),
@@ -342,7 +339,6 @@ WITH objects (
         ('default acl', '{regress_addr_user}', '{r}'),
         -- extension
         -- event trigger
-
         ('policy', '{addr_nsp, gentable, genpol}', '{}'),
         ('transform', '{int}', '{sql}'),
         ('access method', '{btree}', '{}'),
@@ -367,7 +363,6 @@ ORDER BY
 ---
 --- Cleanup resources
 ---
-
 DROP FOREIGN DATA WRAPPER addr_fdw CASCADE;
 
 DROP PUBLICATION addr_pub;

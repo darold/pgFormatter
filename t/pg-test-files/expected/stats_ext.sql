@@ -3,7 +3,6 @@
 -- let's make sure we get simple non-parallel plans. Also set the
 -- work_mem low so that we can use small amounts of data.
 -- check the number of estimated/actual rows in the top node
-
 CREATE FUNCTION check_estimated_rows (text)
     RETURNS TABLE (
         estimated int,
@@ -303,7 +302,6 @@ FROM
 
 -- last two plans keep using Group Aggregate, because 'd' is not covered
 -- by the statistic and while it's NULL-only we assume 200 values for it
-
 SELECT
     *
 FROM

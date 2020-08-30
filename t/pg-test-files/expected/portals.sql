@@ -1,7 +1,6 @@
 --
 -- Cursor regression tests
 --
-
 BEGIN;
 DECLARE foo1 SCROLL CURSOR FOR
     SELECT
@@ -203,7 +202,6 @@ CLOSE foo12;
 -- leave some cursors open, to test that auto-close works.
 -- record this in the system view as well (don't query the time field there
 -- however)
-
 SELECT
     name,
     statement,
@@ -226,7 +224,6 @@ FROM
 --
 -- NO SCROLL disallows backward fetching
 --
-
 BEGIN;
 DECLARE foo24 NO SCROLL CURSOR FOR
     SELECT
@@ -242,7 +239,6 @@ END;
 --
 -- Cursors outside transaction blocks
 --
-
 SELECT
     name,
     statement,
@@ -281,7 +277,6 @@ CLOSE foo25;
 --
 -- ROLLBACK should close holdable cursors
 --
-
 BEGIN;
 DECLARE foo26 CURSOR WITH HOLD FOR
     SELECT
@@ -300,7 +295,6 @@ FROM
 --
 -- Parameterized DECLARE needs to insert param values into the cursor portal
 --
-
 BEGIN;
 CREATE FUNCTION declares_cursor (text)
     RETURNS void
@@ -316,7 +310,6 @@ ROLLBACK;
 -- in particular we want to see what happens during commit of a holdable
 -- cursor
 --
-
 CREATE temp TABLE tt1 (
     f1 int
 );
@@ -394,7 +387,6 @@ ROLLBACK;
 
 -- We should not see the portal that is created internally to
 -- implement EXECUTE in pg_cursors
-
 PREPARE cprep AS
 SELECT
     name,
@@ -449,7 +441,6 @@ COMMIT;
 --
 -- Tests for updatable cursors
 --
-
 CREATE TEMP TABLE uctest (
     f1 int,
     f2 text
@@ -843,7 +834,6 @@ ROLLBACK;
 
 -- WHERE CURRENT OF may someday work with views, but today is not that day.
 -- For now, just make sure it errors out cleanly.
-
 CREATE TEMP VIEW ucview AS
 SELECT
     *
@@ -898,7 +888,6 @@ ROLLBACK;
 
 -- Check behavior with rewinding to a previous child scan node,
 -- as per bug #15395
-
 BEGIN;
 CREATE TABLE current_check (
     currentid int,
@@ -955,7 +944,6 @@ ROLLBACK;
 
 -- Make sure snapshot management works okay, per bug report in
 -- 235395b90909301035v7228ce63q392931f15aa74b31@mail.gmail.com
-
 BEGIN;
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 CREATE TABLE CURSOR (
@@ -980,7 +968,6 @@ DROP TABLE CURSOR;
 
 -- Check rewinding a cursor containing a stable function in LIMIT,
 -- per bug report in 8336843.9833.1399385291498.JavaMail.root@quick
-
 BEGIN;
 CREATE FUNCTION nochange (int)
     RETURNS int

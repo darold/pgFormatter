@@ -19,7 +19,6 @@ WHERE dt.a > 75;
 
 -- if an alias is specified, don't allow the original table name
 -- to be referenced
-
 DELETE FROM delete_test dt
 WHERE delete_test.a > 25;
 

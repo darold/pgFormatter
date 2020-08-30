@@ -2,7 +2,6 @@
 -- LIMIT
 -- Check the LIMIT/OFFSET feature of SELECT
 --
-
 SELECT
     ''::text AS two,
     unique1,
@@ -116,7 +115,6 @@ LIMIT 5 OFFSET 900;
 
 -- Test null limit and offset.  The planner would discard a simple null
 -- constant, so to ensure executor is exercised, do this:
-
 SELECT
     *
 FROM
@@ -206,7 +204,6 @@ FROM
 -- Test behavior of volatile and set-returning functions in conjunction
 -- with ORDER BY and LIMIT.
 --
-
 CREATE temp SEQUENCE testseq;
 
 EXPLAIN (

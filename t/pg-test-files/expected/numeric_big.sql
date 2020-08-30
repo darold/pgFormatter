@@ -2,7 +2,6 @@
 -- * Test suite for the Postgres NUMERIC data type
 -- ******************************
 -- Must drop tables created by short numeric test.
-
 DROP TABLE num_data;
 
 DROP TABLE num_exp_add;
@@ -82,7 +81,6 @@ CREATE TABLE num_result (
 -- * The following EXPECTED results are computed by bc(1)
 -- * with a scale of 1000
 -- ******************************
-
 BEGIN TRANSACTION;
 INSERT INTO num_exp_add
     VALUES (0, 0, '0');
@@ -1004,7 +1002,6 @@ COMMIT TRANSACTION;
 -- ******************************
 -- * Create indices for faster checks
 -- ******************************
-
 CREATE UNIQUE INDEX num_exp_add_idx ON num_exp_add (id1, id2);
 
 CREATE UNIQUE INDEX num_exp_sub_idx ON num_exp_sub (id1, id2);
@@ -1043,7 +1040,6 @@ VACUUM ANALYZE num_exp_power_10_ln;
 -- ******************************
 -- * Addition check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1095,7 +1091,6 @@ WHERE
 -- ******************************
 -- * Subtraction check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1147,7 +1142,6 @@ WHERE
 -- ******************************
 -- * Multiply check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1199,7 +1193,6 @@ WHERE
 -- ******************************
 -- * Division check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1255,7 +1248,6 @@ WHERE
 -- ******************************
 -- * Square root check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1280,7 +1272,6 @@ WHERE
 -- ******************************
 -- * Natural logarithm check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1307,7 +1298,6 @@ WHERE
 -- ******************************
 -- * Logarithm base 10 check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1334,7 +1324,6 @@ WHERE
 -- ******************************
 -- * POW(10, LN(value)) check
 -- ******************************
-
 DELETE FROM num_result;
 
 INSERT INTO num_result
@@ -1372,7 +1361,6 @@ WHERE
 --   r=$(bc -ql <<< "scale=500 ; $b^$p" | head -n 1)
 --   echo "($b, $p, $r),"
 -- done
-
 WITH t (
     b,
     p,
@@ -1439,7 +1427,6 @@ FROM
 --   r=$(bc -ql <<< "scale=500 ; $b^$p" | head -n 1)
 --   echo "($b, $p, $r),"
 -- done
-
 WITH t (
     b,
     p,
@@ -1510,7 +1497,6 @@ FROM
 --   r=$(bc -ql <<< "scale=500 ; e($p*l($b))" | head -n 1)
 --   echo "($b, $p, $r),"
 -- done
-
 WITH t (
     b,
     p,
@@ -1578,7 +1564,6 @@ FROM
 --   r=$(bc -ql <<< "scale=500 ; e($p*l($b))" | head -n 1)
 --   echo "($b, $p, $r),"
 -- done
-
 WITH t (
     b,
     p,
@@ -1638,7 +1623,6 @@ FROM
 --
 -- bc(1) results computed with a scale of 2700 and truncated to 4 decimal
 -- places.
-
 WITH t (
     b,
     p,
@@ -1667,7 +1651,6 @@ FROM
 --   r=$(bc -ql <<< "scale=500 ; e($x)" | head -n 1)
 --   echo "($x, $r),"
 -- done
-
 WITH t (
     x,
     bc_result
@@ -1734,7 +1717,6 @@ FROM
 --   l=$(bc -ql <<< "scale=500 ; l(10^-$p)" | head -n 1)
 --   echo "('1.0e-$p', $l),"
 -- done
-
 WITH t (
     x,
     bc_result
@@ -1797,7 +1779,6 @@ FROM
 --   l=$(bc -ql <<< "scale=500 ; l(1-10^-$p)" | head -n 1)
 --   echo "('1.0e-$p', $l),"
 -- done
-
 WITH t (
     x,
     bc_result
@@ -1860,7 +1841,6 @@ FROM
 --   l=$(bc -ql <<< "scale=500 ; l(1+10^-$p)" | head -n 1)
 --   echo "('1.0e-$p', $l),"
 -- done
-
 WITH t (
     x,
     bc_result
@@ -1923,7 +1903,6 @@ FROM
 --   l=$(bc -ql <<< "scale=500 ; l(10^$p)" | head -n 1)
 --   echo "('1.0e$p', $l),"
 -- done
-
 WITH t (
     x,
     bc_result
@@ -1986,7 +1965,6 @@ FROM
 --   l=$(bc -ql <<< "scale=1000 ; l(10^${p}00)" | head -n 1)
 --  echo "('1.0e${p}00', $l),"
 -- done
-
 WITH t (
     x,
     bc_result
@@ -2013,7 +1991,6 @@ FROM
 -- Tests for LOG() (base 10)
 --
 -- input very small, exact result known
-
 WITH t (
     x
 ) AS (
@@ -2040,7 +2017,6 @@ FROM
 --     echo "('${d}.0e-$p', $l),"
 --   done
 -- done
-
 WITH t (
     x,
     bc_result
@@ -2090,7 +2066,6 @@ FROM
 --     echo "('${d}.0e-$p', $l),"
 --   done
 -- done
-
 WITH t (
     x,
     bc_result
@@ -2134,7 +2109,6 @@ FROM
 --     echo "('${d}.0e-$p', $l),"
 --   done
 -- done
-
 WITH t (
     x,
     bc_result
@@ -2192,7 +2166,6 @@ FROM
 --     echo "('${d}.0e$p', $l),"
 --   done
 -- done
-
 WITH t (
     x,
     bc_result

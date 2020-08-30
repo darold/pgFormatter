@@ -1,7 +1,6 @@
 --
 -- PUBLICATION
 --
-
 CREATE ROLE regress_publication_user LOGIN SUPERUSER;
 
 CREATE ROLE regress_publication_user2;

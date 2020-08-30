@@ -4,7 +4,6 @@
 -- hs_standby_allowed.sql
 --
 -- SELECT
-
 SELECT
     count(*) AS should_be_1
 FROM
@@ -125,7 +124,6 @@ COMMIT;
 
 -- SET parameters
 -- has no effect on read only transactions, but we can still set it
-
 SET synchronous_commit = ON;
 
 SHOW synchronous_commit;
@@ -180,7 +178,6 @@ UNLISTEN *;
 -- LOAD
 -- should work, easier if there is no test for that...
 -- ALLOWED COMMANDS
-
 CHECKPOINT;
 
 discard ALL;

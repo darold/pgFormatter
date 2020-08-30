@@ -2,7 +2,6 @@
 -- Test the LOCK statement
 --
 -- Setup
-
 CREATE SCHEMA lock_schema1;
 
 SET search_path = lock_schema1;
@@ -233,7 +232,6 @@ ROLLBACK;
 
 -- Verify that we can't lock a child table just because we have permission
 -- on the parent, but that we can lock the parent only.
-
 GRANT UPDATE ON TABLE lock_tbl1 TO regress_rol_lock1;
 
 SET ROLE regress_rol_lock1;
@@ -251,7 +249,6 @@ RESET ROLE;
 --
 -- Clean up
 --
-
 DROP VIEW lock_view7;
 
 DROP VIEW lock_view6;

@@ -15,7 +15,6 @@
 --	0 1 2 3
 --
 -- boxes are specified by two points, given by four floats x1,y1,x2,y2
-
 CREATE TABLE BOX_TBL (
     f1 box
 );
@@ -31,7 +30,6 @@ INSERT INTO BOX_TBL (f1)
 
 -- degenerate cases where the box is a line or a point
 -- note that lines and points boxes all have zero area
-
 INSERT INTO BOX_TBL (f1)
     VALUES ('(2.5, 2.5, 2.5,3.5)');
 
@@ -213,7 +211,6 @@ FROM
 --
 -- Test the SP-GiST index
 --
-
 CREATE TEMPORARY TABLE box_temp (
     f1 box
 );
@@ -442,7 +439,6 @@ DROP INDEX box_spgist;
 --
 -- Test the SP-GiST index on the larger volume of data
 --
-
 CREATE TABLE quad_box_tbl (
     b box
 );

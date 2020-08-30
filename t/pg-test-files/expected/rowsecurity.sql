@@ -3,7 +3,6 @@
 --
 -- Clean up in case a prior regression run failed
 -- Suppress NOTICE messages when users/groups don't exist
-
 SET client_min_messages TO 'warning';
 
 DROP USER IF EXISTS regress_rls_alice;
@@ -115,7 +114,6 @@ WHERE
 -- this is to make sure that we sort the policies by name first
 -- when applying WITH CHECK, a later INSERT by Dave should fail due
 -- to p1r first
-
 CREATE POLICY p2r ON document AS RESTRICTIVE TO regress_rls_dave USING (cid <> 44
     AND cid < 50);
 
@@ -268,19 +266,16 @@ WHERE
 
 -- 44 would technically fail for both p2r and p1r, but we should get an error
 -- back from p1r for this because it sorts first
-
 INSERT INTO document
     VALUES (100, 44, 1, 'regress_rls_dave', 'testing sorting of policies');
 
 -- fail
 -- Just to see a p2r error
-
 INSERT INTO document
     VALUES (100, 55, 1, 'regress_rls_dave', 'testing sorting of policies');
 
 -- fail
 -- only owner can change policies
-
 ALTER POLICY p1 ON document USING (TRUE);
 
 --fail
@@ -386,7 +381,6 @@ WHERE cid = 33;
 
 -- fails with FK violation
 -- can insert FK referencing invisible PK
-
 SET SESSION AUTHORIZATION regress_rls_carol;
 
 SELECT
@@ -417,7 +411,6 @@ WHERE
 
 -- and confirm we can't see it
 -- RLS policies are checked before constraints
-
 INSERT INTO document
     VALUES (8, 44, 1, 'regress_rls_carol', 'my third manga');
 
@@ -432,7 +425,6 @@ WHERE
 
 -- Should fail with RLS check violation, not duplicate key violation
 -- database superuser does bypass RLS policy when enabled
-
 RESET SESSION AUTHORIZATION;
 
 SET row_security TO ON;
@@ -510,7 +502,6 @@ FROM
 --
 -- Table inheritance and RLS policy
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 SET row_security TO ON;
@@ -734,7 +725,6 @@ WHERE
 --
 -- Partitioned Tables
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE part_document (
@@ -771,7 +761,6 @@ ALTER TABLE part_document ENABLE ROW LEVEL SECURITY;
 
 -- Create policy on parent
 -- user's security level must be higher than or equal to document's
-
 CREATE POLICY pp1 ON part_document AS PERMISSIVE USING (dlevel <= (SELECT seclv
 FROM
     uaccount
@@ -866,26 +855,22 @@ INSERT INTO part_document
 
 -- fail
 -- pp1r ERROR
-
 INSERT INTO part_document
     VALUES (100, 99, 1, 'regress_rls_dave', 'testing pp1r');
 
 -- fail
 -- Show that RLS policy does not apply for direct inserts to children
 -- This should fail with RLS POLICY pp1r violation.
-
 INSERT INTO part_document
     VALUES (100, 55, 1, 'regress_rls_dave', 'testing RLS with partitions');
 
 -- fail
 -- But this should succeed.
-
 INSERT INTO part_document_satire
     VALUES (100, 55, 1, 'regress_rls_dave', 'testing RLS with partitions');
 
 -- success
 -- We still cannot see the row using the parent
-
 SELECT
     *
 FROM
@@ -920,7 +905,6 @@ INSERT INTO part_document_satire
 
 -- fail
 -- And now we cannot see directly into the partition either, due to RLS
-
 SELECT
     *
 FROM
@@ -932,7 +916,6 @@ ORDER BY
 
 -- The parent looks same as before
 -- viewpoint from regress_rls_dave
-
 SELECT
     *
 FROM
@@ -1113,7 +1096,6 @@ INSERT INTO part_document
 
 -- fail
 ----- Dependencies -----
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 SET row_security TO ON;
@@ -1152,7 +1134,6 @@ FROM
 --
 -- Simple recursion
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE rec1 (
@@ -1179,7 +1160,6 @@ FROM
 --
 -- Mutual recursion
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE rec2 (
@@ -1210,7 +1190,6 @@ FROM
 --
 -- Mutual recursion via views
 --
-
 SET SESSION AUTHORIZATION regress_rls_bob;
 
 CREATE VIEW rec1v AS
@@ -1246,7 +1225,6 @@ FROM
 --
 -- Mutual recursion via .s.b views
 --
-
 SET SESSION AUTHORIZATION regress_rls_bob;
 
 DROP VIEW rec1v, rec2v CASCADE;
@@ -1290,7 +1268,6 @@ FROM
 --
 -- recursive RLS and VIEWs in policy
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE s1 (
@@ -1458,7 +1435,6 @@ WHERE
 
 -- fail (infinite recursion via view)
 -- prepared statement with regress_rls_alice privilege
-
 PREPARE p1 (int) AS
 SELECT
     *
@@ -1530,7 +1506,6 @@ EXPLAIN (
 --
 -- UPDATE / DELETE and Row-level security
 --
-
 SET SESSION AUTHORIZATION regress_rls_bob;
 
 EXPLAIN (
@@ -1792,7 +1767,6 @@ RETURNING
 --
 -- S.b. view on top of Row-level security
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE b1 (
@@ -1895,7 +1869,6 @@ FROM
 --
 -- INSERT ... ON CONFLICT DO UPDATE and Row-level security
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 DROP POLICY p1 ON document;
@@ -1924,7 +1897,6 @@ WHERE
 
 -- ...so violates actual WITH CHECK OPTION within UPDATE (not INSERT, since
 -- alternative UPDATE path happens to be taken):
-
 INSERT INTO document
     VALUES (2, (
             SELECT
@@ -1941,7 +1913,6 @@ ON CONFLICT (did)
 -- UPDATE path is taken, but UPDATE fails purely because *existing* row to be
 -- updated is not a "novel"/cid 11 (row is not leaked, even though we have
 -- SELECT privileges sufficient to see the row in this instance):
-
 INSERT INTO document
     VALUES (33, 22, 1, 'regress_rls_bob', 'okay science fiction');
 
@@ -1959,7 +1930,6 @@ ON CONFLICT (did)
 
 -- Fine (we UPDATE, since INSERT WCOs and UPDATE security barrier quals + WCOs
 -- not violated):
-
 INSERT INTO document
     VALUES (2, (
             SELECT
@@ -1988,7 +1958,6 @@ ON CONFLICT (did)
 
 -- Fine (same query, but we UPDATE, so "cid = 33", ("technology") is not the
 -- case in respect of *existing* tuple):
-
 INSERT INTO document
     VALUES (78, (
             SELECT
@@ -2004,7 +1973,6 @@ ON CONFLICT (did)
 
 -- Same query a third time, but now fails due to existing tuple finally not
 -- passing quals:
-
 INSERT INTO document
     VALUES (78, (
             SELECT
@@ -2021,7 +1989,6 @@ ON CONFLICT (did)
 -- Don't fail just because INSERT doesn't satisfy WITH CHECK option that
 -- originated as a barrier/USING() qual from the UPDATE.  Note that the UPDATE
 -- path *isn't* taken, and so UPDATE-related policy does not apply:
-
 INSERT INTO document
     VALUES (79, (
             SELECT
@@ -2038,7 +2005,6 @@ ON CONFLICT (did)
 -- and updating the row just inserted falls afoul of security barrier qual
 -- (enforced as WCO) -- what we might have updated target tuple to is
 -- irrelevant, in fact.
-
 INSERT INTO document
     VALUES (79, (
             SELECT
@@ -2079,7 +2045,6 @@ SET SESSION AUTHORIZATION regress_rls_bob;
 -- a USING qual for the purposes of RLS in general, as opposed to an explicit
 -- USING qual that is ordinarily a security barrier.  We leave it up to the
 -- UPDATE to make this fail:
-
 INSERT INTO document
     VALUES (79, (
             SELECT
@@ -2096,7 +2061,6 @@ ON CONFLICT (did)
 -- corresponds to "novel", but default USING qual is enforced against
 -- post-UPDATE tuple too (as always when updating with a policy that lacks an
 -- explicit WCO), and so this fails:
-
 INSERT INTO document
     VALUES (2, (
             SELECT
@@ -2118,7 +2082,6 @@ DROP POLICY p3_with_default ON document;
 -- Test ALL policies with ON CONFLICT DO UPDATE (much the same as existing UPDATE
 -- tests)
 --
-
 CREATE POLICY p3_with_all ON document FOR ALL USING (cid = (SELECT cid
 FROM
     category
@@ -2141,7 +2104,6 @@ ON CONFLICT (did)
 
 -- Fails, since ALL policy USING qual is enforced (existing, target tuple is in
 -- violation, since it has the "manga" cid):
-
 INSERT INTO document
     VALUES (4, (
             SELECT
@@ -2166,7 +2128,6 @@ ON CONFLICT (did)
 --
 -- ROLE/GROUP
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE z1 (
@@ -2357,7 +2318,6 @@ EXPLAIN (
 -- Views should follow policy for view owner.
 --
 -- View and Table owner are the same.
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE VIEW rls_view AS
@@ -2419,7 +2379,6 @@ GRANT SELECT ON rls_view TO regress_rls_alice;
 
 -- Query as role that is not owner of view but is owner of table.
 -- Should return records based on view owner policies.
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 SELECT
@@ -2437,7 +2396,6 @@ FROM
 
 -- Query as role that is not owner of table but is owner of view.
 -- Should return records based on view owner policies.
-
 SET SESSION AUTHORIZATION regress_rls_bob;
 
 SELECT
@@ -2472,7 +2430,6 @@ FROM
 
 --fail - permission denied.
 -- Query as role that is not the owner of the table or view with permissions.
-
 SET SESSION AUTHORIZATION regress_rls_bob;
 
 GRANT SELECT ON rls_view TO regress_rls_carol;
@@ -2497,7 +2454,6 @@ DROP VIEW rls_view;
 --
 -- Command specific
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE x1 (
@@ -2571,7 +2527,6 @@ RETURNING
 --
 -- Duplicate Policy Names
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE y1 (
@@ -2604,7 +2559,6 @@ ALTER TABLE y2 ENABLE ROW LEVEL SECURITY;
 -- Expression structure with SBV
 --
 -- Create view as table owner.  RLS should NOT be applied.
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE VIEW rls_sbv WITH ( security_barrier
@@ -2655,7 +2609,6 @@ DROP VIEW rls_sbv;
 --
 -- Expression structure
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 INSERT INTO y2 (
@@ -2691,7 +2644,6 @@ WHERE
 --
 -- Qual push-down of leaky functions, when not referring to table
 --
-
 SELECT
     *
 FROM
@@ -2759,7 +2711,6 @@ DROP TABLE test_qual_pushdown;
 --
 -- Plancache invalidate on user change.
 --
-
 RESET SESSION AUTHORIZATION;
 
 DROP TABLE t1 CASCADE;
@@ -2809,7 +2760,6 @@ EXPLAIN (
 --
 -- CTE and RLS
 --
-
 RESET SESSION AUTHORIZATION;
 
 DROP TABLE t1 CASCADE;
@@ -2915,7 +2865,6 @@ INSERT INTO t1
 --
 -- Rename Policy
 --
-
 RESET SESSION AUTHORIZATION;
 
 ALTER POLICY p1 ON t1 RENAME TO p1;
@@ -2945,7 +2894,6 @@ WHERE
 --
 -- Check INSERT SELECT
 --
-
 SET SESSION AUTHORIZATION regress_rls_bob;
 
 CREATE TABLE t2 (
@@ -3004,7 +2952,6 @@ FROM
 --
 -- RLS with JOIN
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE blog (
@@ -3082,7 +3029,6 @@ DROP TABLE blog, comment;
 --
 -- Default Deny Policy
 --
-
 RESET SESSION AUTHORIZATION;
 
 DROP POLICY p2 ON t1;
@@ -3157,7 +3103,6 @@ FROM
 --
 -- COPY TO/FROM
 --
-
 RESET SESSION AUTHORIZATION;
 
 DROP TABLE copy_t CASCADE;
@@ -3233,7 +3178,6 @@ COPY (
 
 --ok
 -- Check COPY TO as user with permissions and BYPASSRLS
-
 SET SESSION AUTHORIZATION regress_rls_exempt_user;
 
 SET row_security TO OFF;
@@ -3261,7 +3205,6 @@ COPY (
 
 --ok
 -- Check COPY TO as user without permissions. SET row_security TO OFF;
-
 SET SESSION AUTHORIZATION regress_rls_carol;
 
 SET row_security TO OFF;
@@ -3289,7 +3232,6 @@ COPY (
 
 --fail - permission denied
 -- Check COPY relation TO; keep it just one row to avoid reordering issues
-
 RESET SESSION AUTHORIZATION;
 
 SET row_security TO ON;
@@ -3333,7 +3275,6 @@ COPY copy_rel_to TO STDOUT WITH DELIMITER ',';
 
 --ok
 -- Check COPY TO as user with permissions and BYPASSRLS
-
 SET SESSION AUTHORIZATION regress_rls_exempt_user;
 
 SET row_security TO OFF;
@@ -3347,7 +3288,6 @@ COPY copy_rel_to TO STDOUT WITH DELIMITER ',';
 
 --ok
 -- Check COPY TO as user without permissions. SET row_security TO OFF;
-
 SET SESSION AUTHORIZATION regress_rls_carol;
 
 SET row_security TO OFF;
@@ -3361,7 +3301,6 @@ COPY copy_rel_to TO STDOUT WITH DELIMITER ',';
 
 --fail - permission denied
 -- Check COPY FROM as Superuser/owner.
-
 RESET SESSION AUTHORIZATION;
 
 SET row_security TO OFF;
@@ -3386,7 +3325,6 @@ FROM
 
 --fail - COPY FROM not supported by RLS.
 -- Check COPY FROM as user with permissions and BYPASSRLS
-
 SET SESSION AUTHORIZATION regress_rls_exempt_user;
 
 SET row_security TO ON;
@@ -3463,7 +3401,6 @@ DECLARE current_check_cursor SCROLL CURSOR FOR
         current_check;
 -- Returns rows that can be seen according to SELECT policy, like plain SELECT
 -- above (even rows)
-
 FETCH ABSOLUTE 1
 FROM
     current_check_cursor;
@@ -3523,7 +3460,6 @@ COMMIT;
 --
 -- check pg_stats view filtering
 --
-
 SET row_security TO ON;
 
 SET SESSION AUTHORIZATION regress_rls_alice;
@@ -3563,7 +3499,6 @@ ORDER BY
 --
 -- Collation support
 --
-
 BEGIN;
 CREATE TABLE coll_t (
     c
@@ -3590,7 +3525,6 @@ ROLLBACK;
 --
 -- Shared Object Dependencies
 --
-
 RESET SESSION AUTHORIZATION;
 
 BEGIN;
@@ -3665,7 +3599,6 @@ ROLLBACK;
 --
 -- Converting table to view
 --
-
 BEGIN;
 CREATE TABLE t (
     c int
@@ -3714,7 +3647,6 @@ ROLLBACK;
 --
 -- Policy expression handling
 --
-
 BEGIN;
 CREATE TABLE t (
     c
@@ -3729,7 +3661,6 @@ ROLLBACK;
 --
 -- Non-target relations are only subject to SELECT policies
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 CREATE TABLE r1 (
@@ -3793,7 +3724,6 @@ RETURNING
 
 -- Deletes nothing
 -- r2 can be used as a non-target relation in DML
-
 INSERT INTO r1
 SELECT
     a + 1
@@ -3840,7 +3770,6 @@ DROP TABLE r2;
 --
 -- FORCE ROW LEVEL SECURITY applies RLS to owners too
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 SET row_security = ON;
@@ -3895,7 +3824,6 @@ DROP TABLE r1;
 --
 -- FORCE ROW LEVEL SECURITY does not break RI
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 SET row_security = ON;
@@ -3917,7 +3845,6 @@ INSERT INTO r2
 -- Create policies on r2 which prevent the
 -- owner from seeing any rows, but RI should
 -- still see them.
-
 CREATE POLICY p1 ON r2 USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
@@ -3973,7 +3900,6 @@ INSERT INTO r2
 -- Create policies on r2 which prevent the
 -- owner from seeing any rows, but RI should
 -- still see them.
-
 CREATE POLICY p1 ON r2 USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
@@ -3988,7 +3914,6 @@ ALTER TABLE r2 NO FORCE ROW LEVEL SECURITY;
 
 -- As owner, we now bypass RLS
 -- verify no rows in r2 now
-
 TABLE r2;
 
 DROP TABLE r2;
@@ -4013,7 +3938,6 @@ INSERT INTO r2
 -- Create policies on r2 which prevent the
 -- owner from seeing any rows, but RI should
 -- still see them.
-
 CREATE POLICY p1 ON r2 USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
@@ -4031,7 +3955,6 @@ ALTER TABLE r2 NO FORCE ROW LEVEL SECURITY;
 
 -- As owner, we now bypass RLS
 -- verify records in r2 updated
-
 TABLE r2;
 
 DROP TABLE r2;
@@ -4042,7 +3965,6 @@ DROP TABLE r1;
 -- Test INSERT+RETURNING applies SELECT policies as
 -- WithCheckOptions (meaning an error is thrown)
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 SET row_security = ON;
@@ -4085,7 +4007,6 @@ DROP TABLE r1;
 -- Test UPDATE+RETURNING applies SELECT policies as
 -- WithCheckOptions (meaning an error is thrown)
 --
-
 SET SESSION AUTHORIZATION regress_rls_alice;
 
 SET row_security = ON;
@@ -4148,7 +4069,6 @@ ON CONFLICT (a)
 
 -- Should still error out without RETURNING (use of arbiter always requires
 -- SELECT permissions)
-
 INSERT INTO r1
     VALUES (10)
 ON CONFLICT (a)
@@ -4373,7 +4293,6 @@ DROP TABLE ref_tbl;
 --
 -- Clean up objects
 --
-
 RESET SESSION AUTHORIZATION;
 
 DROP SCHEMA regress_rls_schema CASCADE;
@@ -4394,7 +4313,6 @@ DROP ROLE regress_rls_group2;
 
 -- Arrange to have a few policies left over, for testing
 -- pg_dump/pg_restore
-
 CREATE SCHEMA regress_rls_schema;
 
 CREATE TABLE rls_tbl (

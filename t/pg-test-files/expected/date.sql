@@ -1,7 +1,6 @@
 --
 -- DATE
 --
-
 CREATE TABLE DATE_TBL (
     f1 date
 );
@@ -77,7 +76,6 @@ WHERE
 --
 -- Check all the documented input formats
 --
-
 SET datestyle TO iso;
 
 -- display results in ISO
@@ -504,7 +502,6 @@ RESET datestyle;
 -- Simple math
 -- Leave most of it for the horology tests
 --
-
 SELECT
     f1 - date '2000-01-01' AS "Days From 2K"
 FROM
@@ -538,7 +535,6 @@ SELECT
 --
 -- epoch
 --
-
 SELECT
     EXTRACT(EPOCH FROM DATE '1970-01-01');
 
@@ -554,7 +550,6 @@ SELECT
 --
 -- century
 --
-
 SELECT
     EXTRACT(CENTURY FROM DATE '0101-12-31 BC');
 
@@ -598,7 +593,6 @@ SELECT
 --
 -- millennium
 --
-
 SELECT
     EXTRACT(MILLENNIUM FROM DATE '0001-12-31 BC');
 
@@ -624,7 +618,6 @@ SELECT
 
 --  3
 -- next test to be fixed on the turn of the next millennium;-)
-
 SELECT
     EXTRACT(MILLENNIUM FROM CURRENT_DATE);
 
@@ -632,7 +625,6 @@ SELECT
 --
 -- decade
 --
-
 SELECT
     EXTRACT(DECADE FROM DATE '1994-12-25');
 
@@ -665,7 +657,6 @@ SELECT
 -- some other types:
 --
 -- on a timestamp.
-
 SELECT
     EXTRACT(CENTURY FROM NOW()) >= 21 AS True;
 
@@ -675,7 +666,6 @@ SELECT
 
 -- 20
 -- on an interval
-
 SELECT
     EXTRACT(CENTURY FROM INTERVAL '100 y');
 
@@ -695,7 +685,6 @@ SELECT
 --
 -- test trunc function!
 --
-
 SELECT
     DATE_TRUNC('MILLENNIUM', TIMESTAMP '1970-03-20 04:30:00.00000');
 
@@ -739,7 +728,6 @@ SELECT
 --
 -- test infinity
 --
-
 SELECT
     'infinity'::date,
     '-infinity'::date;
@@ -758,7 +746,6 @@ SELECT
 --
 -- oscillating fields from non-finite date/timestamptz:
 --
-
 SELECT
     EXTRACT(HOUR FROM DATE 'infinity');
 
@@ -784,7 +771,6 @@ SELECT
 
 -- NULL
 -- all possible fields
-
 SELECT
     EXTRACT(MICROSECONDS FROM DATE 'infinity');
 
@@ -848,7 +834,6 @@ SELECT
 --
 -- monotonic fields from non-finite date/timestamptz:
 --
-
 SELECT
     EXTRACT(EPOCH FROM DATE 'infinity');
 
@@ -874,7 +859,6 @@ SELECT
 
 -- -Infinity
 -- all possible fields
-
 SELECT
     EXTRACT(YEAR FROM DATE 'infinity');
 
@@ -906,7 +890,6 @@ SELECT
 --
 -- wrong fields from non-finite date:
 --
-
 SELECT
     EXTRACT(MICROSEC FROM DATE 'infinity');
 
@@ -916,7 +899,6 @@ SELECT
 
 -- ERROR:  timestamp units "undefined" not supported
 -- test constructors
-
 SELECT
     make_date(2013, 7, 15);
 

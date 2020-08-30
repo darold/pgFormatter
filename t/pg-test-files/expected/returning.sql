@@ -2,7 +2,6 @@
 -- Test INSERT/UPDATE/DELETE RETURNING
 --
 -- Simple cases
-
 CREATE TEMP TABLE foo (
     f1 serial,
     f2 text,

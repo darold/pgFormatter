@@ -277,7 +277,6 @@ ROLLBACK;
 -- bulk joins on CTID
 -- (these plans don't use TID scans, but this still seems like an
 -- appropriate place for these tests)
-
 EXPLAIN (
     COSTS OFF
 )

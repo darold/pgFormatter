@@ -1,7 +1,6 @@
 --
 -- UPDATE syntax tests
 --
-
 CREATE TABLE update_test (
     a int DEFAULT 10,
     b int,
@@ -63,7 +62,6 @@ FROM
 --
 -- Test VALUES in FROM
 --
-
 UPDATE
     update_test
 SET
@@ -91,7 +89,6 @@ WHERE
 --
 -- Test multiple-set-clause syntax
 --
-
 INSERT INTO update_test
 SELECT
     a,
@@ -248,7 +245,6 @@ WHERE
 
 -- if an alias for the target table is specified, don't allow references
 -- to the original table name
-
 UPDATE
     update_test AS t
 SET
@@ -380,7 +376,6 @@ DROP TABLE upsert_test;
 -- WITH CHECK OPTION that is defined. The situation with triggers in this case
 -- also requires thorough testing as partition key updates causing row
 -- movement convert UPDATEs into DELETE+INSERT.
-
 CREATE TABLE range_parted (
     a text,
     b bigint,
@@ -392,7 +387,6 @@ PARTITION BY RANGE (a, b);
 
 -- Create partitions intentionally in descending bound order, so as to test
 -- that update-row-movement works with the leaf partitions not in bound order.
-
 CREATE TABLE part_b_20_b_30 (
     e varchar,
     c numeric,
@@ -427,7 +421,6 @@ FOR VALUES FROM ('a', 1) TO ('a', 10);
 
 -- Check that partition-key UPDATE works sanely on a partitioned table that
 -- does not have any child partitions.
-
 UPDATE
     part_b_10_b_20
 SET
@@ -436,7 +429,6 @@ SET
 -- Create some more partitions following the above pattern of descending bound
 -- order, but let's make the situation a bit more complex by having the
 -- attribute numbers of the columns vary from their parent partition.
-
 CREATE TABLE part_c_100_200 (
     e varchar,
     c numeric,
@@ -509,7 +501,6 @@ WHERE
 
 -- fail, no partition key update, so no attempt to move tuple,
 -- but "a = 'a'" violates partition constraint enforced by root partition)
-
 UPDATE
     part_b_10_b_20
 SET
@@ -698,7 +689,6 @@ WHERE
 -- Enabling OLD TABLE capture for both DELETE as well as UPDATE stmt triggers
 -- should not cause DELETEd rows to be captured twice. Similar thing for
 -- INSERT triggers and inserted rows.
-
 CREATE TRIGGER trans_deletetrig
     AFTER DELETE ON range_parted REFERENCING OLD TABLE AS old_table
     FOR EACH STATEMENT
@@ -732,7 +722,6 @@ DROP TRIGGER trans_inserttrig ON range_parted;
 -- the desired transition tuple format. But conversion happens when there is a
 -- BR trigger because the trigger can change the inserted row. So install a
 -- BR triggers on those child partitions where the rows will be moved.
-
 CREATE FUNCTION func_parted_mod_b ()
     RETURNS TRIGGER
     AS $$
@@ -792,7 +781,6 @@ WHERE
 -- Case where per-partition tuple conversion map array is allocated, but the
 -- map is not required for the particular tuple that is routed, thanks to
 -- matching table attributes of the partition and the target table.
-
 :init_range_parted;
 
 UPDATE
@@ -816,7 +804,6 @@ DROP FUNCTION func_parted_mod_b ();
 
 -- RLS policies with update-row-movement
 -----------------------------------------
-
 ALTER TABLE range_parted ENABLE ROW LEVEL SECURITY;
 
 CREATE USER regress_range_parted_user;
@@ -833,7 +820,6 @@ SET SESSION AUTHORIZATION regress_range_parted_user;
 
 -- This should fail with RLS violation error while moving row from
 -- part_a_10_a_20 to part_d_1_15, because we are setting 'c' to an odd number.
-
 UPDATE
     range_parted
 SET
@@ -869,7 +855,6 @@ SET SESSION AUTHORIZATION regress_range_parted_user;
 -- Here, RLS checks should succeed while moving row from part_a_10_a_20 to
 -- part_d_1_15. Even though the UPDATE is setting 'c' to an odd number, the
 -- trigger at the destination partition again makes it an even number.
-
 UPDATE
     range_parted
 SET
@@ -888,7 +873,6 @@ SET SESSION AUTHORIZATION regress_range_parted_user;
 -- This should fail with RLS violation error. Even though the UPDATE is setting
 -- 'c' to an even number, the trigger at the destination partition again makes
 -- it an odd number.
-
 UPDATE
     range_parted
 SET
@@ -988,7 +972,6 @@ DROP TABLE mintab;
 
 -- statement triggers with update row movement
 ---------------------------------------------------
-
 :init_range_parted;
 
 CREATE FUNCTION trigfunc ()
@@ -1055,7 +1038,6 @@ CREATE TRIGGER d15_insert_trig
 
 -- Move all rows from part_c_100_200 to part_c_1_100. None of the delete or
 -- insert statement triggers should be fired.
-
 UPDATE
     range_parted
 SET
@@ -1118,7 +1100,6 @@ WHERE
 
 -- Update row movement from non-default to default partition.
 -- fail, default partition is not under part_a_10_a_20;
-
 UPDATE
     part_a_10_a_20
 SET
@@ -1145,7 +1126,6 @@ WHERE
 
 -- Update row movement from default to non-default partitions.
 -- ok
-
 UPDATE
     range_parted
 SET
@@ -1205,7 +1185,6 @@ DROP TABLE list_parted;
 -- partitions.
 --------------
 -- Setup for list partitions
-
 CREATE TABLE list_parted (
     a numeric,
     b int,
@@ -1258,7 +1237,6 @@ INSERT INTO sub_parted
 
 -- Test partition constraint violation when intermediate ancestor is used and
 -- constraint is inherited from upper root.
-
 UPDATE
     sub_parted
 SET
@@ -1268,7 +1246,6 @@ WHERE
 
 -- Test update-partition-key, where the unpruned partitions do not have their
 -- partition keys updated.
-
 SELECT
     tableoid::regclass::text,
     *
@@ -1325,7 +1302,6 @@ ORDER BY
 
 -- This should do the tuple routing even though there is no explicit
 -- partition-key update, because there is a trigger on sub_part1.
-
 UPDATE
     list_parted
 SET
@@ -1348,7 +1324,6 @@ DROP TRIGGER parted_mod_b ON sub_part1;
 
 -- If BR DELETE trigger prevented DELETE from happening, we should also skip
 -- the INSERT if that delete is part of UPDATE=>DELETE+INSERT.
-
 CREATE OR REPLACE FUNCTION func_parted_mod_b ()
     RETURNS TRIGGER
     AS $$
@@ -1407,7 +1382,6 @@ DROP FUNCTION func_parted_mod_b ();
 -- UPDATE partition-key with FROM clause. If join produces multiple output
 -- rows for the same row to be modified, we should tuple-route the row only
 -- once. There should not be any rows inserted.
-
 CREATE TABLE non_parted (
     id int
 );
@@ -1443,7 +1417,6 @@ DROP TABLE list_parted;
 
 -- create custom operator class and hash function, for the same reason
 -- explained in alter_table.sql
-
 CREATE OR REPLACE FUNCTION dummy_hashint4 (a int4, seed int8)
     RETURNS int8
     AS $$

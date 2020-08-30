@@ -6,7 +6,6 @@
 -- isn't really needed ... stopping and starting the postmaster would
 -- be enough, but we can't even do that here.
 -- create a simple table that we'll use in the tests
-
 CREATE TABLE pxtest1 (
     foobar varchar(10)
 );

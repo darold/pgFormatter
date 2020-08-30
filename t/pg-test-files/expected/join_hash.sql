@@ -1,7 +1,6 @@
 --
 -- exercises for the hash join code
 --
-
 BEGIN;
 SET local min_parallel_table_scan_size = 0;
 SET local parallel_setup_cost = 0;
@@ -9,7 +8,6 @@ SET local parallel_setup_cost = 0;
 -- general we can't make assertions about how many batches (or
 -- buckets) will be required because it can vary, but we can in some
 -- special cases and we can check for growth.
-
 CREATE OR REPLACE FUNCTION find_hash (node json)
     RETURNS json
     LANGUAGE plpgsql
@@ -54,7 +52,6 @@ END;
 $$;
 -- Make a simple relation with well distributed keys and correctly
 -- estimated size.
-
 CREATE TABLE simple AS
 SELECT
     generate_series(1, 20000) AS id,
@@ -63,7 +60,6 @@ ALTER TABLE simple SET (parallel_workers = 2);
 ANALYZE simple;
 -- Make a relation whose size we will under-estimate.  We want stats
 -- to say 1000 rows, but actually there are 20,000 rows.
-
 CREATE TABLE bigger_than_it_looks AS
 SELECT
     generate_series(1, 20000) AS id,
@@ -80,7 +76,6 @@ WHERE
 -- Make a relation whose size we underestimate and that also has a
 -- kind of skew that breaks our batching scheme.  We want stats to say
 -- 2 rows, but actually there are 20,000 rows with the same key.
-
 CREATE TABLE extremely_skewed (
     id int,
     t text
@@ -111,7 +106,6 @@ ALTER TABLE wide SET (parallel_workers = 2);
 -- batch, we stick to that number, and peak memory usage stays within
 -- our work_mem budget
 -- non-parallel
-
 SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 0;
 SET local work_mem = '4MB';
@@ -220,7 +214,6 @@ ROLLBACK TO settings;
 -- plan for some number of batches, and we stick to that number, and
 -- peak memory usage says within our work_mem budget
 -- non-parallel
-
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 0;
@@ -337,7 +330,6 @@ ROLLBACK TO settings;
 -- couple of times, and peak memory usage stays within our work_mem
 -- budget
 -- non-parallel
-
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 0;
@@ -455,7 +447,6 @@ ROLLBACK TO settings;
 -- then stop increasing because that didn't help at all, so we blow
 -- right through the work_mem budget and hope for the best...
 -- non-parallel
-
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 0;
@@ -566,7 +557,6 @@ ROLLBACK TO settings;
 
 -- A couple of other hash join tests unrelated to work_mem management.
 -- Check that EXPLAIN ANALYZE has data even if the leader doesn't participate
-
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 2;
@@ -590,7 +580,6 @@ ROLLBACK TO settings;
 
 -- Exercise rescans.  We'll turn off parallel_leader_participation so
 -- that we can check that instrumentation comes back correctly.
-
 CREATE TABLE join_foo AS
 SELECT
     generate_series(1, 3) AS id,
@@ -875,7 +864,6 @@ ROLLBACK TO settings;
 
 -- A full outer join where every record is matched.
 -- non-parallel
-
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 0;
@@ -921,7 +909,6 @@ ROLLBACK TO settings;
 
 -- An full outer join where every record is not matched.
 -- non-parallel
-
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 0;
@@ -970,7 +957,6 @@ ROLLBACK TO settings;
 -- the hash table)
 -- parallel with parallel-aware hash join (hits ExecParallelHashLoadTuple and
 -- sts_puttuple oversized tuple cases because it's multi-batch)
-
 SAVEPOINT settings;
 
 SET max_parallel_workers_per_gather = 2;

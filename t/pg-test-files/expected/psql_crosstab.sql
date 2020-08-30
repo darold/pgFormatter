@@ -1,7 +1,6 @@
 --
 -- \crosstabview
 --
-
 CREATE TABLE ctv_data (
     v,
     h,

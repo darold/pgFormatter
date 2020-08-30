@@ -2,7 +2,6 @@
 -- SELECT_HAVING
 --
 -- load test data
-
 CREATE TABLE test_having (
     a int,
     b int,
@@ -97,7 +96,6 @@ ORDER BY
 
 -- test degenerate cases involving HAVING without GROUP BY
 -- Per SQL spec, these should generate 0 or 1 row, even without aggregates
-
 SELECT
     min(a),
     max(a)

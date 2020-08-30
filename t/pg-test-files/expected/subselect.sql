@@ -1,7 +1,6 @@
 --
 -- SUBSELECT
 --
-
 SELECT
     1 AS one
 WHERE
@@ -238,7 +237,6 @@ WHERE (f1, f2) IN (
 --
 -- Use some existing tables in the regression test
 --
-
 SELECT
     '' AS eight,
     ss.f1 AS "Correlated Field",
@@ -324,7 +322,6 @@ SELECT
 --
 -- Check EXISTS simplification with LIMIT
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -380,7 +377,6 @@ WHERE
 -- Test cases to catch unpleasant interactions between IN-join processing
 -- and subquery pullup.
 --
-
 SELECT
     count(*)
 FROM (
@@ -440,7 +436,6 @@ FROM (
 -- "IN (SELECT DISTINCT ...)" and related cases.  Per example from
 -- Luca Pireddu and Michael Fuhr.
 --
-
 CREATE TEMP TABLE foo (
     id integer
 );
@@ -570,7 +565,6 @@ WHERE
 -- Test case to catch problems with multiply nested sub-SELECTs not getting
 -- recalculated properly.  Per bug report from Didier Moens.
 --
-
 CREATE TABLE orderstest (
     approver_ref integer,
     po_ref integer,
@@ -669,7 +663,6 @@ DROP TABLE orderstest CASCADE;
 -- Test cases to catch situations where rule rewriter fails to propagate
 -- hasSubLinks flag correctly.  Per example from Kyle Bateman.
 --
-
 CREATE temp TABLE parts (
     partnum text,
     cost float8
@@ -761,7 +754,6 @@ FROM (
 -- Test cases involving PARAM_EXEC parameters and min/max index optimizations.
 -- Per bug report from David Sanchez i Gregori.
 --
-
 SELECT
     *
 FROM (
@@ -802,7 +794,6 @@ FROM (
 -- here might mean that some other plan type is being used, rendering the test
 -- pointless.)
 --
-
 CREATE temp TABLE numeric_table (
     num_col numeric
 );
@@ -842,7 +833,6 @@ WHERE
 --
 -- Test case for bug #4290: bogus calculation of subplan param sets
 --
-
 CREATE temp TABLE ta (
     id int PRIMARY KEY,
     val int
@@ -902,7 +892,6 @@ SELECT
 --
 -- Test case for 8.3 "failed to locate grouping columns" bug
 --
-
 CREATE temp TABLE t1 (
     f1 numeric(14, 0),
     f2 varchar(30)
@@ -930,7 +919,6 @@ GROUP BY
 --
 -- Test case for bug #5514 (mishandling of whole-row Vars in subselects)
 --
-
 CREATE temp TABLE table_a (
     id integer
 );
@@ -976,7 +964,6 @@ FROM
 -- Check that whole-row Vars reading the result of a subselect don't include
 -- any junk columns therein
 --
-
 SELECT
     q
 FROM (
@@ -1008,7 +995,6 @@ FROM
 -- Test case for sublinks pulled up into joinaliasvars lists in an
 -- inherited update/delete query
 --
-
 BEGIN;
 --  this shouldn't delete anything, but be safe
 DELETE FROM road
@@ -1034,7 +1020,6 @@ ROLLBACK;
 --
 -- Test case for sublinks pushed down into subselects via join alias expansion
 --
-
 SELECT
     (
         SELECT
@@ -1056,7 +1041,6 @@ FROM (
 --
 -- Test case for subselect within UPDATE of INSERT...ON CONFLICT DO UPDATE
 --
-
 CREATE temp TABLE upsert (
     key int4 PRIMARY KEY,
     val text
@@ -1107,7 +1091,6 @@ WITH aa AS (
 --
 -- Test case for cross-type partial matching in hashed subplan (bug #7597)
 --
-
 CREATE temp TABLE outer_7597 (
     f1 int4,
     f2 int4
@@ -1149,7 +1132,6 @@ NOT IN (
 -- information is passed through by execTuplesEqual() in nodeSubplan.c
 -- (otherwise it would error in texteq())
 --
-
 CREATE temp TABLE outer_text (
     f1 text,
     f2 text
@@ -1189,7 +1171,6 @@ NOT IN (
 --
 -- Test case for premature memory release during hashing of subplan output
 --
-
 SELECT
     '1'::text IN (
         SELECT
@@ -1201,7 +1182,6 @@ SELECT
 --
 -- Test case for planner bug with nested EXISTS handling
 --
-
 SELECT
     a.thousand
 FROM
@@ -1227,7 +1207,6 @@ WHERE
 --
 -- Check that nested sub-selects are not pulled up if they contain volatiles
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -1299,7 +1278,6 @@ FROM (
 --
 -- Check we don't misoptimize a NOT IN where the subquery returns no rows.
 --
-
 CREATE temp TABLE notinouter (
     a int
 );
@@ -1325,7 +1303,6 @@ WHERE
 --
 -- Check we behave sanely in corner case of empty SELECT list (bug #8648)
 --
-
 CREATE temp TABLE nocolumns ();
 
 SELECT
@@ -1338,7 +1315,6 @@ SELECT
 --
 -- Check behavior with a SubPlan in VALUES (bug #14924)
 --
-
 SELECT
     val.x
 FROM
@@ -1357,7 +1333,6 @@ WHERE
 --
 -- Check sane behavior with nested IN SubLinks
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -1403,7 +1378,6 @@ WHERE (
 --
 -- Check for incorrect optimization when IN subquery contains a SRF
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -1437,7 +1411,6 @@ WHERE (f1, f1) IN (
 --
 -- check for over-optimization of whole-row Var referencing an Append plan
 --
-
 SELECT
     (
         SELECT
@@ -1463,7 +1436,6 @@ FROM
 -- Check that volatile quals aren't pushed down past a DISTINCT:
 -- nextval() should not be called more than the nominal number of times
 --
-
 CREATE temp SEQUENCE ts1;
 
 SELECT
@@ -1484,7 +1456,6 @@ SELECT
 -- Check that volatile quals aren't pushed down past a set-returning function;
 -- while a nonvolatile qual can be, if it doesn't reference the SRF.
 --
-
 CREATE FUNCTION tattle (x int, y int)
     RETURNS bool VOLATILE
     LANGUAGE plpgsql
@@ -1573,7 +1544,6 @@ DROP FUNCTION tattle (x int, y int);
 -- ANALYZE shows that a top-N sort was used.  We must suppress or filter away
 -- all the non-invariant parts of the EXPLAIN ANALYZE output.
 --
-
 CREATE TABLE sq_limit (
     pk int PRIMARY KEY,
     c1 int,
@@ -1642,7 +1612,6 @@ DROP TABLE sq_limit;
 -- Ensure that backward scan direction isn't propagated into
 -- expression subqueries (bug #15336)
 --
-
 BEGIN;
 DECLARE c1 SCROLL CURSOR FOR
     SELECT
@@ -1661,7 +1630,6 @@ COMMIT;
 -- Tests for CTE inlining behavior
 --
 -- Basic subquery that can be inlined
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -1955,7 +1923,6 @@ FROM ( WITH y AS (
 
 -- Ensure that we inline the currect CTE when there are
 -- multiple CTEs with the same name
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF

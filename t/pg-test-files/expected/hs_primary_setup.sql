@@ -3,7 +3,6 @@
 --
 -- hs_primary_setup.sql
 --
-
 DROP TABLE IF EXISTS hs1;
 
 CREATE TABLE hs1 (

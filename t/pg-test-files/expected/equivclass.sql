@@ -9,7 +9,6 @@
 -- to create one.  We do this by making two alias types that are really
 -- int8 (so we need no new C code) and adding only some operators for them
 -- into the standard integer_ops opfamily.
-
 CREATE TYPE int8alias1;
 
 CREATE FUNCTION int8alias1in (cstring)
@@ -180,7 +179,6 @@ SET enable_mergejoin = OFF;
 -- much whether the plan is ideal as that we don't fail or generate an
 -- outright incorrect plan.
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -556,7 +554,6 @@ SET session AUTHORIZATION regress_user_ectest;
 -- with RLS active, the non-leakproof a.ff = 43 clause is not treated
 -- as a suitable source for an EquivalenceClass; currently, this is true
 -- even though the RLS clause has nothing to do directly with the EC
-
 EXPLAIN (
     COSTS OFF
 )

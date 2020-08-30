@@ -5,7 +5,6 @@
  * coverage.
  */
 -- Regular index with included columns
-
 CREATE TABLE tbl_include_reg (
     c1 int,
     c2 int,

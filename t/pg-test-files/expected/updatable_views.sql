@@ -2,12 +2,10 @@
 -- UPDATABLE VIEWS
 --
 -- avoid bit-exact output here because operations may not be bit-exact.
-
 SET extra_float_digits = 0;
 
 -- check that non-updatable views and columns are rejected with useful error
 -- messages
-
 CREATE TABLE base_tbl (
     a int PRIMARY KEY,
     b text DEFAULT 'Unspecified'
@@ -315,7 +313,6 @@ WHERE a = 3;
 
 -- should be OK
 -- Partially updatable view
-
 INSERT INTO rw_view15
     VALUES (3, 'ROW 3');
 
@@ -416,7 +413,6 @@ WHERE a = 4;
 
 -- should be OK
 -- Partially updatable view
-
 INSERT INTO rw_view16
     VALUES (3, 'Row 3', 3);
 
@@ -452,7 +448,6 @@ WHERE a = - 3;
 
 -- should be OK
 -- Read-only views
-
 INSERT INTO ro_view17
     VALUES (3, 'ROW 3');
 
@@ -3473,7 +3468,6 @@ DROP TABLE tx3;
 -- Test handling of vars from correlated subqueries in quals from outer
 -- security barrier views, per bug #13988
 --
-
 CREATE TABLE t1 (
     a int,
     b text,
@@ -3573,7 +3567,6 @@ DROP TABLE t1;
 -- Test CREATE OR REPLACE VIEW turning a non-updatable view into an
 -- auto-updatable view and adding check options in a single step
 --
-
 CREATE TABLE t1 (
     a int,
     b text
@@ -3705,7 +3698,6 @@ DROP TABLE uv_pt, uv_pt1, uv_pt11;
 
 -- check that wholerow vars appearing in WITH CHECK OPTION constraint expressions
 -- work fine with partitioned tables
-
 CREATE TABLE wcowrtest (
     a int
 )
@@ -3766,7 +3758,6 @@ WHERE
 
 -- WITH CHECK qual will be processed with wcowrtest2's
 -- rowtype after tuple-routing
-
 INSERT INTO wcowrtest_v2
     VALUES (2, 'no such row in sometable');
 
@@ -3776,7 +3767,6 @@ DROP TABLE wcowrtest, sometable;
 
 -- Check INSERT .. ON CONFLICT DO UPDATE works correctly when the view's
 -- columns are named and ordered differently than the underlying table's.
-
 CREATE TABLE uv_iocu_tab (
     a text UNIQUE,
     b float
@@ -3818,7 +3808,6 @@ FROM
 
 -- OK to access view columns that are not present in underlying base
 -- relation in the ON CONFLICT portion of the query
-
 INSERT INTO uv_iocu_view (a, b)
     VALUES ('xyxyxy', 3)
 ON CONFLICT (a)
@@ -4133,7 +4122,6 @@ DROP USER regress_view_user2;
 
 -- Test single- and multi-row inserts with table and view defaults.
 -- Table defaults should be used, unless overridden by view defaults.
-
 CREATE TABLE base_tab_def (
     a int,
     b text DEFAULT 'Table default',
@@ -4190,7 +4178,6 @@ ORDER BY
 
 -- Adding an INSTEAD OF trigger should cause NULLs to be inserted instead of
 -- table defaults, where there are no view defaults.
-
 CREATE FUNCTION base_tab_def_view_instrig_func ()
     RETURNS TRIGGER
     AS $$
@@ -4244,7 +4231,6 @@ ORDER BY
 
 -- Using an unconditional DO INSTEAD rule should also cause NULLs to be
 -- inserted where there are no view defaults.
-
 DROP TRIGGER base_tab_def_view_instrig ON base_tab_def_view;
 
 DROP FUNCTION base_tab_def_view_instrig_func;
@@ -4294,7 +4280,6 @@ ORDER BY
 -- defaults, unless overridden by view defaults). The second insert should
 -- behave the same as a rule-updatable view (inserting NULLs where there are
 -- no view defaults).
-
 DROP RULE base_tab_def_view_ins_rule ON base_tab_def_view;
 
 CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view

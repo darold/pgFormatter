@@ -2,7 +2,6 @@
 -- Test for ALTER some_object {RENAME TO, OWNER TO, SET SCHEMA}
 --
 -- Clean up in case a prior regression run failed
-
 SET client_min_messages TO 'warning';
 
 DROP ROLE IF EXISTS regress_alter_generic_user1;
@@ -30,7 +29,6 @@ SET search_path = alt_nsp1, public;
 --
 -- Function and Aggregate
 --
-
 SET SESSION AUTHORIZATION regress_alter_generic_user1;
 
 CREATE FUNCTION alt_func1 (int)
@@ -192,7 +190,6 @@ ORDER BY
 --
 -- Conversion
 --
-
 SET SESSION AUTHORIZATION regress_alter_generic_user1;
 
 CREATE CONVERSION alt_conv1 FOR 'LATIN1' TO 'UTF8' FROM iso8859_1_to_utf8;
@@ -259,7 +256,6 @@ ORDER BY
 --
 -- Foreign Data Wrapper and Foreign Server
 --
-
 CREATE FOREIGN DATA WRAPPER alt_fdw1;
 
 CREATE FOREIGN DATA WRAPPER alt_fdw2;
@@ -297,7 +293,6 @@ WHERE
 --
 -- Procedural Language
 --
-
 CREATE FUNCTION fn_opf12 (int4, int2)
     RETURNS bigint
     AS 'SELECT NULL::bigint;'
@@ -359,7 +354,6 @@ ROLLBACK;
 
 -- Should fail. In gist throw an error when giving different data types for function argument
 -- without defining left / right type in ALTER OPERATOR FAMILY ... ADD FUNCTION
-
 CREATE OPERATOR FAMILY alt_opf16
     USING gist;
 
@@ -426,7 +420,6 @@ DROP OPERATOR FAMILY alt_opf17
 
 -- Should fail. Ensure that DROP requests for missing OPERATOR / FUNCTIONS
 -- return appropriate message in ALTER OPERATOR FAMILY ... DROP OPERATOR  / FUNCTION
-
 CREATE OPERATOR FAMILY alt_opf18
     USING btree;
 
@@ -453,7 +446,6 @@ DROP OPERATOR FAMILY alt_opf18
 --
 -- Statistics
 --
-
 SET SESSION AUTHORIZATION regress_alter_generic_user1;
 
 CREATE TABLE alt_regress_1 (
@@ -530,7 +522,6 @@ ORDER BY
 --
 -- Text Search Dictionary
 --
-
 SET SESSION AUTHORIZATION regress_alter_generic_user1;
 
 CREATE TEXT SEARCH DICTIONARY alt_ts_dict1 (
@@ -605,7 +596,6 @@ ORDER BY
 --
 -- Text Search Configuration
 --
-
 SET SESSION AUTHORIZATION regress_alter_generic_user1;
 
 CREATE TEXT SEARCH CONFIGURATION alt_ts_conf1 (
@@ -680,7 +670,6 @@ ORDER BY
 --
 -- Text Search Template
 --
-
 CREATE TEXT SEARCH TEMPLATE alt_ts_temp1 (
     lexize = dsimple_lexize
 );
@@ -706,7 +695,6 @@ ALTER TEXT SEARCH TEMPLATE alt_ts_temp2 SET SCHEMA alt_nsp2;
 
 -- failed (name conflict)
 -- invalid: non-lowercase quoted identifiers
-
 CREATE TEXT SEARCH TEMPLATE tstemp_case (
     "Init" = init_function
 );
@@ -727,7 +715,6 @@ ORDER BY
 --
 -- Text Search Parser
 --
-
 CREATE TEXT SEARCH PARSER alt_ts_prs1 (
     START = prsd_start,
     gettoken = prsd_nexttoken,
@@ -762,7 +749,6 @@ ALTER TEXT SEARCH PARSER alt_ts_prs2 SET SCHEMA alt_nsp2;
 
 -- failed (name conflict)
 -- invalid: non-lowercase quoted identifiers
-
 CREATE TEXT SEARCH PARSER tspars_case (
     "Start" = start_function
 );
@@ -783,7 +769,6 @@ ORDER BY
 ---
 --- Cleanup resources
 ---
-
 DROP FOREIGN DATA WRAPPER alt_fdw2 CASCADE;
 
 DROP FOREIGN DATA WRAPPER alt_fdw3 CASCADE;

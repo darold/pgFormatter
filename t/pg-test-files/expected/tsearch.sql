@@ -6,7 +6,6 @@
 -- row in the linked-to table.  However, if we want to enforce that a link
 -- field can't be 0, we have to check it here.
 -- Find unexpected zero link entries
-
 SELECT
     oid,
     prsname

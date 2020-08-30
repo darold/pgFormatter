@@ -1,7 +1,6 @@
 --
 -- TIMESTAMP
 --
-
 CREATE TABLE TIMESTAMP_TBL (
     d1 timestamp(2) without time zone
 );
@@ -14,7 +13,6 @@ CREATE TABLE TIMESTAMP_TBL (
 -- NOTE: it is possible for this part of the test to fail if the transaction
 -- block is entered exactly at local midnight; then 'now' and 'today' have
 -- the same values and the counts will come out different.
-
 INSERT INTO TIMESTAMP_TBL
     VALUES ('now');
 
@@ -329,7 +327,6 @@ SELECT
 -- out of range
 -- The upper boundary differs between integer and float timestamps, so no check
 -- Demonstrate functions and operators
-
 SELECT
     '' AS "48",
     d1

@@ -2,7 +2,6 @@
 -- tsrf - targetlist set returning function tests
 --
 -- simple srf
-
 SELECT
     generate_series(1, 3);
 
@@ -458,7 +457,6 @@ FROM
 -- referenced either in ORDER BY or in the DISTINCT ON list. The ORDER
 -- BY reference can be implicitly generated, if there's no other ORDER BY.
 -- implicit reference (via implicit ORDER) to all columns
-
 SELECT DISTINCT ON (a)
     a,
     b,
