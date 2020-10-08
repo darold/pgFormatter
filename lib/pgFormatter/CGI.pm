@@ -617,7 +617,7 @@ if (objtextarea.value.length > maxlength) {
 <a href="$self->{ 'service_url' }"><img class="logo" src="logo_pgformatter.png"/></a><p>pgFormatter</p>
 </div>
 </td><td width="1000">
-Free Online version of $self->{ 'program_name' } a PostgreSQL SQL syntax beautifier (no line limit here up to $self->{ 'maxlength' } characters).  This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords.  May works with any other databases too.
+Free Online version of $self->{ 'program_name' } a PostgreSQL SQL syntax beautifier (no line limit here up to $self->{ 'maxlength' } characters).  This SQL formatter/beautifier supports keywords from SQL-92, SQL-99, SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords.  May work with any other databases too.
 </td>
 </tr>
 </table>
