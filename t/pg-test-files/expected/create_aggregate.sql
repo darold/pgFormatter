@@ -198,7 +198,7 @@ SELECT
 FROM
     pg_aggregate
 WHERE
-    aggfnoid = 'myavg'::REGPROC;
+    aggfnoid = 'myavg'::regproc;
 
 DROP AGGREGATE myavg (numeric);
 
@@ -231,7 +231,7 @@ SELECT
 FROM
     pg_aggregate
 WHERE
-    aggfnoid = 'myavg'::REGPROC;
+    aggfnoid = 'myavg'::regproc;
 
 -- can change stype:
 CREATE OR REPLACE AGGREGATE myavg (numeric) (
@@ -250,7 +250,7 @@ SELECT
 FROM
     pg_aggregate
 WHERE
-    aggfnoid = 'myavg'::REGPROC;
+    aggfnoid = 'myavg'::regproc;
 
 -- can't change return type:
 CREATE OR REPLACE AGGREGATE myavg (numeric) (

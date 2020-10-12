@@ -4,6 +4,11 @@ SELECT
 FROM
     mytbl1;
 
+CREATE OR REPLACE FUNCTION f ()
+    RETURNS bool
+    AS '/foo', 'bar'
+    LANGUAGE C;
+
 SELECT
     lives_ok ('INSERT INTO "order".v_order (status, order_id, name)
     VALUES (''complete'', ''' || get_order_id () || ''', '' caleb ''', 'with all parameters');
