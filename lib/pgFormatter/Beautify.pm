@@ -264,6 +264,13 @@ sub query
 			    $i++;
 		    }
 	    }
+	    # C function language with AS obj_file, link_symbol
+	    elsif ($language =~ /^c$/i) {
+		    if ($temp_content[$j] =~ s/AS ('[^\']+')\s*,\s*('[^\']+')/AS CODEPARTB${i}CODEPARTB/i) {
+			    push(@{ $self->{ 'placeholder_values' } }, "$1, $2");
+			    $i++;
+		    }
+	    }
             # if the function language is not SQL or PLPGSQL
 	    elsif ($language !~ /^(?:plpg)?sql$/)
 	    {
