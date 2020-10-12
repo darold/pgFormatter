@@ -397,18 +397,18 @@ sub get_command_line_args
 
     if (!grep(/^$cfg{ 'comma' }$/i, 'end', 'start'))
     {
-        printf 'FATAL: unknow value for comma: %s', $cfg{ 'comma' } , "\n";
+        printf 'FATAL: unknown value for comma: %s', $cfg{ 'comma' } , "\n";
         exit 0;
     }
 
     if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html'))
     {
-        printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
+        printf 'FATAL: unknown output format: %s%s', $cfg{ 'format' } , "\n";
         exit 0;
     }
 
     if ( $cfg{ 'extra-function' } && !-e $cfg{ 'extra-function' }) {
-        printf 'FATAL: file for extra function list does not exists: %s', $cfg{ 'extra-function' } , "\n";
+        printf 'FATAL: file for extra function list does not exists: %s%s', $cfg{ 'extra-function' } , "\n";
         exit 0;
     }
 
