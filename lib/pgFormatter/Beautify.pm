@@ -819,7 +819,7 @@ sub beautify
 	{
 		$self->{ 'no_break' } = 1;
 	}
-        elsif ($token =~ /^(AS|IS)$/i && defined $self->_next_token && $self->_next_token eq '(')
+        elsif ($token =~ /^(AS|IS)$/i && defined $self->_next_token && $self->_next_token =~ /^(NOT|\()$/)
 	{
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
         }
