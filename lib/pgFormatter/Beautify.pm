@@ -468,6 +468,8 @@ sub tokenize_sql
 		|
 		\/\/			# mysql delimiter ( $$ is handled later with PG code delimiters )
 		|
+		(?:COPY\s+[^\s]+\s+\((?:.*?)\\\.)		# COPY and its content
+		|
 		(?:\s*--)[\ \t\S]*      # single line comments
 		|
 		(?:\-\|\-) # range operator "is adjacent to"
@@ -718,6 +720,17 @@ sub beautify
 			and defined $self->_next_token and $self->_is_type($self->_next_token))
 	{
 		$self->_add_token($token, $last);
+		$last = $self->_set_last($token, $last);
+		next;
+	
+	}
+	# COPY block
+        if ( $token =~ /^COPY\s+[^\s]+\s+\(/i )
+	{
+                $self->_new_line($token,$last);
+		$self->_add_token($token, $last);
+                $self->_new_line($token,$last);
+		$self->{ 'content' } .= "\n";
 		$last = $self->_set_last($token, $last);
 		next;
 	}
