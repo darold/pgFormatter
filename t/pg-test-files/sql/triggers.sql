@@ -373,7 +373,7 @@ create table trigtest2 (i int references trigtest(i) on delete cascade);
 
 create function trigtest() returns trigger as $$
 begin
-	raise notice '% % % %', TG_RELNAME, TG_OP, TG_WHEN, TG_LEVEL;
+	raise notice '% % % %', TG_TABLE_NAME, TG_OP, TG_WHEN, TG_LEVEL;
 	return new;
 end;$$ language plpgsql;
 
@@ -438,7 +438,6 @@ begin
 	raise NOTICE 'TG_LEVEL: %', TG_level;
 	raise NOTICE 'TG_OP: %', TG_op;
 	raise NOTICE 'TG_RELID::regclass: %', relid;
-	raise NOTICE 'TG_RELNAME: %', TG_relname;
 	raise NOTICE 'TG_TABLE_NAME: %', TG_table_name;
 	raise NOTICE 'TG_TABLE_SCHEMA: %', TG_table_schema;
 	raise NOTICE 'TG_NARGS: %', TG_nargs;
@@ -609,7 +608,7 @@ begin
         argstr := argstr || TG_argv[i];
     end loop;
 
-    raise notice '% % % % (%)', TG_RELNAME, TG_WHEN, TG_OP, TG_LEVEL, argstr;
+    raise notice '% % % % (%)', TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL, argstr;
 
     if TG_LEVEL = 'ROW' then
         if TG_OP = 'INSERT' then
