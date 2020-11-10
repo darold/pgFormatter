@@ -2440,6 +2440,12 @@ sub beautify
                      $self->_new_line($token,$last);
 		 }
                  $self->_add_token( $token, $last );
+		 # Reset CREATE statement flag when using CTE
+		 if ($self->{ '_is_in_create' } && $self->{ '_is_in_with' }
+			 && uc($token) eq 'WITH' && uc($last) eq 'AS')
+		 {
+			 $self->{ '_is_in_create' } = 0;
+		 }
                  if (defined $last && uc($last) eq 'LANGUAGE' && (!defined $self->_next_token || $self->_next_token ne ';'))
                  {
                      $self->_new_line($token,$last);
