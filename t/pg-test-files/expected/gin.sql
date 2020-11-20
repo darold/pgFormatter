@@ -4,7 +4,6 @@
 -- There are other tests to test different GIN opclassed. This is for testing
 -- GIN itself.
 -- Create and populate a test table with a GIN index.
-
 CREATE TABLE gin_test_tbl (
     i int4[]
 )
@@ -44,7 +43,6 @@ SELECT
 
 -- nothing to flush
 -- Test vacuuming
-
 DELETE FROM gin_test_tbl
 WHERE i @> ARRAY[2];
 
@@ -54,7 +52,6 @@ VACUUM gin_test_tbl;
 -- insertions (by flushing the list pages) cause page splits. Without
 -- fastupdate, we get more churn in the GIN data leaf pages, and exercise the
 -- recompression codepaths.
-
 ALTER INDEX gin_test_idx SET (fastupdate = OFF);
 
 INSERT INTO gin_test_tbl

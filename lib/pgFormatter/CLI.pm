@@ -15,12 +15,12 @@ pgFormatter::CLI - Implementation of command line program to format SQL queries.
 
 =head1 VERSION
 
-Version 4.3
+Version 4.4
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '4.3';
+our $VERSION = '4.4';
 
 use autodie;
 use pgFormatter::Beautify;
@@ -66,8 +66,8 @@ sub run {
     $self->logmsg( 'DEBUG', 'Beautifying' );
     $self->beautify();
     if ($self->{'wrap_limit'}) {
-	    $self->logmsg( 'DEBUG', 'Wrap query' );
-	    $self->wrap_lines($self->{'wrap_comment'});
+            $self->logmsg( 'DEBUG', 'Wrap query' );
+            $self->wrap_lines($self->{'wrap_comment'});
     }
     $self->logmsg( 'DEBUG', 'Writing output' );
     $self->save_output();
@@ -103,18 +103,38 @@ sub beautify {
     $args{ 'numbering' }    = $self->{ 'cfg' }->{ 'numbering' };
     $args{ 'redshift' }     = $self->{ 'cfg' }->{ 'redshift' };
     $args{ 'wrap_comment' } = $self->{ 'cfg' }->{ 'wrap-comment' };
+    $args{ 'no_extra_line' }= $self->{ 'cfg' }->{ 'no-extra-line' };
+    $args{ 'config' }       = $self->{ 'cfg' }->{ 'config' };
+    $args{ 'no_rcfile' }    = $self->{ 'cfg' }->{ 'no-rcfile' };
+    $args{ 'inplace' }      = $self->{ 'cfg' }->{ 'inplace' };
+    $args{ 'extra_function' } = $self->{ 'cfg' }->{ 'extra-function' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
     }
 
     my $beautifier = pgFormatter::Beautify->new( %args );
+    if ($args{ 'extra_function' } && -e $args{ 'extra_function' })
+    {
+	    if (open(my $fh, '<', $args{ 'extra_function' }))
+	    {
+		    my @fcts = ();
+		    while (my $l = <$fh>) {
+			    chomp($l);
+			    push(@fcts, split(/^[\s,;]+$/, $l));
+		    }
+		    $beautifier->add_functions(@fcts);
+		    close($fh);
+	    } else {
+		    warn("WARNING: can not read file $args{ 'extra_function' }\n");
+	    }
+    }
     $beautifier->query( $self->{ 'query' } );
     $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
     $beautifier->beautify();
     if ($self->{ 'cfg' }->{ 'wrap-limit' }) {
-	    $self->logmsg( 'DEBUG', 'Wrap query' );
-	    $beautifier->wrap_lines($self->{ 'cfg' }->{ 'wrap-comment' });
+            $self->logmsg( 'DEBUG', 'Wrap query' );
+            $beautifier->wrap_lines($self->{ 'cfg' }->{ 'wrap-comment' });
     }
 
     $self->{ 'ready' } = $beautifier->content();
@@ -136,7 +156,7 @@ sub save_output {
         $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
         open $fh, '>', $self->{ 'cfg' }->{ 'output' };
     } else {  
-    	$fh = \*STDOUT;
+        $fh = \*STDOUT;
     }
     print $fh $self->{ 'ready' };
     close $fh;
@@ -194,6 +214,8 @@ Options:
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -B | --comma-break    : in insert statement, add a newline after each comma.
+    -c | --config FILE    : use a configuration file. Default is to not use
+                            configuration file or ~/.pg_format if it exists.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -204,12 +226,14 @@ Options:
     -g | --nogrouping     : add a newline between statements in transaction
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
+    -i | --inplace        : override input file with formatted content.
+    -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
     -N | --numbering      : statement numbering as a comment before each query.
     -o | --output file    : define the filename for the output. Default: stdout.
-    -p | --placeholder re : set regex to find code that must not be changed.
+    -p | --placeholder RE : set regex to find code that must not be changed.
     -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
@@ -226,6 +250,10 @@ Options:
     -w | --wrap-limit N   : wrap queries at a certain length.
     -W | --wrap-after N   : number of column after which lists must be wrapped.
                             Default: puts every item on its own line.
+    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
+                            --config / -c option overrides it.
+    --extra-function FILE : file containing a list of function to use the same
+                            formatting as PostgreSQL internal function.
 
 Examples:
 
@@ -270,19 +298,24 @@ Parses command line options into $self->{'cfg'}.
 
 =cut
 
-sub get_command_line_args {
+sub get_command_line_args
+{
     my $self = shift;
     my %cfg;
     my @options = (
         'anonymize|a!',
         'comma-start|b!',
         'comma-break|B!',
-        'comma-end|e!',
+        'config|c=s',
+        'no-rcfile|X!',
+        'wrap-comment|C!',
         'debug|d!',
-	'format|F=s',
-        'function-case|f=i',
+        'comma-end|e!',
+        'format|F=s',
         'nogrouping|g!',
         'help|h!',
+        'function-case|f=i',
+        'no-extra-line|L!',
         'maxlength|m=i',
         'nocomment|n!',
         'numbering|N!',
@@ -298,7 +331,8 @@ sub get_command_line_args {
         'version|v!',
         'wrap-limit|w=i',
         'wrap-after|W=i',
-        'wrap-comment|C!',
+        'inplace|i!',
+	'extra-function=s',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -310,12 +344,38 @@ sub get_command_line_args {
         exit 0;
     }
 
+    if ( !$cfg{ 'no-rcfile' } ) {
+        $cfg{ 'config' } //= "$ENV{HOME}/.pg_format";
+    }
+
+    if ( defined $cfg{ 'config' } && -f $cfg{ 'config' } )
+    {
+        open(my $cfh, '<', $cfg{ 'config' }) or die "ERROR: can not read file $cfg{ 'config' }\n";
+        while (my $line = <$cfh>)
+        {
+            chomp($line);
+            next if ($line !~ /^[a-z]/);
+            if ($line =~ /^([^\s=]+)\s*=\s*([^\s]+)/)
+            {
+                # do not override command line arguments
+                next if (defined $cfg{ lc($1) });
+
+                if ($1 eq 'comma' || $1 eq 'format') {
+                    $cfg{ lc($1) } = lc($2);
+                } else {
+                    $cfg{ lc($1) } = $2;
+                }
+            }
+        }
+    }
+
+    # Set default configuration
     $cfg{ 'spaces' }        //= 4;
     $cfg{ 'output' }        //= '-';
     $cfg{ 'function-case' } //= 0;
     $cfg{ 'keyword-case' }  //= 2;
     $cfg{ 'type-case' }     //= 1;
-    $cfg{ 'comma' }           = 'end';
+    $cfg{ 'comma' }         //= 'end';
     $cfg{ 'format' }        //= 'text';
     $cfg{ 'comma-break' }   //= 0;
     $cfg{ 'maxlength' }     //= 0;
@@ -326,19 +386,36 @@ sub get_command_line_args {
     $cfg{ 'space' }         //= ' ';
     $cfg{ 'numbering' }     //= 0;
     $cfg{ 'redshift' }      //= 0;
+    $cfg{ 'no-extra-line' } //= 0;
+    $cfg{ 'inplace' }       //= 0;
 
-    if ($cfg{ 'tabs' }) {
+    if ($cfg{ 'tabs' })
+    {
         $cfg{ 'spaces' } = 1;
         $cfg{ 'space' }  = "\t";
     }
 
-    if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html')) {
-        printf 'FATAL: unknow output format: %s%s', $cfg{ 'format' } , "\n";
+    if (!grep(/^$cfg{ 'comma' }$/i, 'end', 'start'))
+    {
+        printf 'FATAL: unknown value for comma: %s', $cfg{ 'comma' } , "\n";
+        exit 0;
+    }
+
+    if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html'))
+    {
+        printf 'FATAL: unknown output format: %s%s', $cfg{ 'format' } , "\n";
+        exit 0;
+    }
+
+    if ( $cfg{ 'extra-function' } && !-e $cfg{ 'extra-function' }) {
+        printf 'FATAL: file for extra function list does not exists: %s%s', $cfg{ 'extra-function' } , "\n";
         exit 0;
     }
 
     $cfg{ 'input' } = $ARGV[ 0 ] // '-';
+
     $self->{ 'cfg' } = \%cfg;
+
     return;
 }
 
@@ -355,12 +432,18 @@ sub validate_args {
     $self->show_help_and_die( 2, 'function-case can be only one of: 0, 1, 2, or 3.' ) unless $self->{ 'cfg' }->{ 'function-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'keyword-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'keyword-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'type-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'type-case' } =~ m{\A[0123]\z};
+    $self->show_help_and_die( 2, 'can not use -i | --inplace with an output file (-o | --output) .' ) if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'output' } ne '-');
 
     if ($self->{ 'cfg' }->{ 'comma-end' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'end';
     }
     elsif ($self->{ 'cfg' }->{ 'comma-start' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'start';
+    }
+
+    if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'input' } ne '-')
+    {
+        $self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
     }
 
     return;

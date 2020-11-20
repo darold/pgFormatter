@@ -4,7 +4,6 @@
 -- CLASS POPULATION
 --	(any resemblance to real life is purely coincidental)
 --
-
 INSERT INTO tenk2
 SELECT
     *
@@ -250,7 +249,6 @@ INSERT INTO f_star (class)
 --
 -- for internal portal (cursor) tests
 --
-
 CREATE TABLE iportaltest (
     i int4,
     d float4,

@@ -17,7 +17,6 @@ CREATE TEMP TABLE articles_in_category (
 -- test functional dependencies based on primary keys/unique constraints
 -- base tables
 -- group by primary key (OK)
-
 SELECT
     id,
     keywords,
@@ -67,7 +66,6 @@ GROUP BY
 
 -- multiple tables
 -- group by primary key (OK)
-
 SELECT
     a.id,
     a.keywords,
@@ -102,7 +100,6 @@ GROUP BY
 
 -- JOIN syntax
 -- group by left table's primary key (OK)
-
 SELECT
     a.id,
     a.keywords,
@@ -257,7 +254,6 @@ GROUP BY
 
 -- Check views and dependencies
 -- fail
-
 CREATE TEMP VIEW fdv1 AS
 SELECT
     id,

@@ -10,7 +10,6 @@ SET client_encoding TO UTF8;
 -- exceed the MAX_SIMPLE_CHR cutoff, here assumed to be less than U+2000.
 --
 -- trivial cases:
-
 SELECT
     'aⓐ' ~ U & 'a\24D0' AS t;
 

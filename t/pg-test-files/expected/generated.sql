@@ -556,7 +556,6 @@ ALTER TABLE gtest20b VALIDATE CONSTRAINT chk;
 
 -- fails on existing row
 -- not-null constraints
-
 CREATE TABLE gtest21a (
     a int PRIMARY KEY,
     b int GENERATED ALWAYS AS (nullif (a, 0)) STORED NOT NULL
@@ -594,7 +593,6 @@ INSERT INTO gtest21b (a)
 
 -- ok now
 -- index constraints
-
 CREATE TABLE gtest22a (
     a int PRIMARY KEY,
     b int GENERATED ALWAYS AS (a / 2) STORED UNIQUE
@@ -760,7 +758,6 @@ INSERT INTO gtest23q
 
 -- error
 -- domains
-
 CREATE DOMAIN gtestdomain1 AS int CHECK (VALUE < 10);
 
 CREATE TABLE gtest24 (
@@ -777,7 +774,6 @@ INSERT INTO gtest24 (a)
 
 -- error
 -- typed tables (currently not supported)
-
 CREATE TYPE gtest_type AS (
     f1 integer,
     f2 text,
@@ -872,7 +868,6 @@ ALTER TABLE gtest25
 
 -- error
 -- ALTER TABLE ... ALTER COLUMN
-
 CREATE TABLE gtest27 (
     a int,
     b int GENERATED ALWAYS AS (a * 2) STORED
@@ -1005,7 +1000,6 @@ DROP TRIGGER gtest3 ON gtest26;
 
 -- Check that an UPDATE of "a" fires the trigger for UPDATE OF b, per
 -- SQL standard.
-
 CREATE FUNCTION gtest_trigger_func3 ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -1034,7 +1028,6 @@ TRUNCATE gtest26;
 
 -- check that modifications of stored generated columns in triggers do
 -- not get propagated
-
 CREATE FUNCTION gtest_trigger_func4 ()
     RETURNS TRIGGER
     LANGUAGE plpgsql

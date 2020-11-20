@@ -2,7 +2,6 @@
 -- JOIN
 -- Test JOIN clauses
 --
-
 CREATE TABLE J1_TBL (
     i integer,
     j integer,
@@ -84,7 +83,6 @@ INSERT INTO onerow DEFAULT VALUES; ANALYZE onerow;
 -- Make sure that table/column aliases are supported
 -- before diving into more complex join syntax.
 --
-
 SELECT
     '' AS "xxx",
     *
@@ -141,7 +139,6 @@ WHERE
 -- Qualifications are not allowed on cross joins,
 -- which degenerate into a standard unqualified inner join.
 --
-
 SELECT
     '' AS "xxx",
     *
@@ -215,7 +212,6 @@ FROM
 -- by including a column in the USING clause only once in the result.
 --
 -- Inner equi-join on specified column
-
 SELECT
     '' AS "xxx",
     *
@@ -263,7 +259,6 @@ ORDER BY
 -- NATURAL JOIN
 -- Inner equi-join on all columns with the same name
 --
-
 SELECT
     '' AS "xxx",
     *
@@ -293,7 +288,6 @@ FROM
 
 -- mismatch number of columns
 -- currently, Postgres will fill in with underlying names
-
 SELECT
     '' AS "xxx",
     *
@@ -305,7 +299,6 @@ FROM
 --
 -- Inner joins (equi-joins)
 --
-
 SELECT
     '' AS "xxx",
     *
@@ -323,7 +316,6 @@ FROM
 --
 -- Non-equi-joins
 --
-
 SELECT
     '' AS "xxx",
     *
@@ -335,7 +327,6 @@ FROM
 -- Outer joins
 -- Note that OUTER is a noise word
 --
-
 SELECT
     '' AS "xxx",
     *
@@ -413,7 +404,6 @@ WHERE (i = 1);
 --
 -- semijoin selectivity for <>
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -439,7 +429,6 @@ WHERE
 --
 -- Multiway full join
 --
-
 CREATE TABLE t1 (
     name text,
     n integer
@@ -487,7 +476,6 @@ FROM
 -- Test interactions of join syntax and subqueries
 --
 -- Basic cases (we expect planner to pull up the subquery here)
-
 SELECT
     *
 FROM (
@@ -529,7 +517,6 @@ FROM (
 
 -- Cases with non-nullable expressions in subquery results;
 -- make sure these go to null as expected
-
 SELECT
     *
 FROM (
@@ -824,7 +811,6 @@ WHERE (xx2 IS NOT NULL);
 -- regression test: check for bug with propagation of implied equality
 -- to outside an IN
 --
-
 SELECT
     count(*)
 FROM
@@ -843,7 +829,6 @@ WHERE
 -- regression test: check for failure to generate a plan with multiple
 -- degenerate IN clauses
 --
-
 SELECT
     count(*)
 FROM
@@ -898,7 +883,6 @@ ROLLBACK;
 --
 -- regression test: be sure we cope with proven-dummy append rels
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -929,7 +913,6 @@ WHERE
 --
 -- regression test: check handling of empty-FROM subquery underneath outer join
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -961,7 +944,6 @@ ORDER BY
 -- regression test: check a case where join_clause_is_movable_into() gives
 -- an imprecise result, causing an assertion failure
 --
-
 SELECT
     count(*)
 FROM (
@@ -983,7 +965,6 @@ WHERE
 -- regression test: check a case where we formerly missed including an EC
 -- enforcement clause because it was expected to be handled at scan level
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1035,7 +1016,6 @@ WHERE
 -- check a case where we formerly got confused by conflicting sort orders
 -- in redundant merge join path keys
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1070,7 +1050,6 @@ FROM
 --
 -- a different check for handling of redundant sort keys in merge joins
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1119,7 +1098,6 @@ FROM (
 --
 -- Clean up
 --
-
 DROP TABLE t1;
 
 DROP TABLE t2;
@@ -1132,7 +1110,6 @@ DROP TABLE J2_TBL;
 
 -- Both DELETE and UPDATE allow the specification of additional tables
 -- to "join" against to determine which rows should be modified.
-
 CREATE TEMP TABLE t1 (
     a int,
     b int
@@ -1226,7 +1203,6 @@ FROM
 --
 -- regression test for 8.1 merge right join bug
 --
-
 CREATE TEMP TABLE tt1 (
     tt1_id int4,
     joincol int4
@@ -1275,7 +1251,6 @@ RESET enable_nestloop;
 --
 -- regression test for bug #13908 (hash join with skew tuples & nbatch increase)
 --
-
 SET work_mem TO '64kB';
 
 SET enable_mergejoin TO OFF;
@@ -1308,7 +1283,6 @@ RESET enable_mergejoin;
 --
 -- regression test for 8.2 bug with improper re-ordering of left joins
 --
-
 CREATE temp TABLE tt3 (
     f1 int,
     f2 text
@@ -1352,7 +1326,6 @@ WHERE
 --
 -- regression test for proper handling of outer joins within antijoins
 --
-
 CREATE temp TABLE tt4x (
     c1 int,
     c2 int,
@@ -1385,7 +1358,6 @@ WHERE
 --
 -- regression test for problems of the sort depicted in bug #3494
 --
-
 CREATE temp TABLE tt5 (
     f1 int,
     f2 int
@@ -1423,7 +1395,6 @@ WHERE
 --
 -- regression test for problems of the sort depicted in bug #3588
 --
-
 CREATE temp TABLE xx (
     pkxx int
 );
@@ -1473,7 +1444,6 @@ FROM
 -- regression test for improper pushing of constants across outer-join clauses
 -- (as seen in early 8.2.x releases)
 --
-
 CREATE temp TABLE zt1 (
     f1 int PRIMARY KEY
 );
@@ -1521,7 +1491,6 @@ WHERE
 -- regression test for improper extraction of OR indexqual conditions
 -- (as seen in early 8.3.x releases)
 --
-
 SELECT
     a.unique2,
     a.ten,
@@ -1540,7 +1509,6 @@ WHERE
 --
 -- test proper positioning of one-time quals in EXISTS (8.4devel bug)
 --
-
 PREPARE foo (bool) AS
 SELECT
     count(*)
@@ -1563,7 +1531,6 @@ EXECUTE foo (FALSE);
 --
 -- test for sane behavior with noncanonical merge clauses, per bug #4926
 --
-
 BEGIN;
 SET enable_mergejoin = 1;
 SET enable_hashjoin = 0;
@@ -1587,7 +1554,6 @@ ROLLBACK;
 --
 -- test handling of merge clauses using record_ops
 --
-
 BEGIN;
 CREATE TYPE mycomptype AS (
     id int,
@@ -1625,7 +1591,6 @@ ROLLBACK;
 --
 -- test NULL behavior of whole-row Vars, per bug #5025
 --
-
 SELECT
     t1.q2,
     count(t2.*)
@@ -1690,7 +1655,6 @@ ORDER BY
 --
 -- test incorrect failure to NULL pulled-up subexpressions
 --
-
 BEGIN;
 CREATE temp TABLE a (
     code char NOT NULL,
@@ -1750,7 +1714,6 @@ ROLLBACK;
 -- test incorrect handling of placeholders that only appear in targetlists,
 -- per bug #6154
 --
-
 SELECT
     *
 FROM (
@@ -1805,7 +1768,6 @@ FROM (
 --
 -- test case where a PlaceHolderVar is used as a nestloop parameter
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1842,7 +1804,6 @@ FROM (
 --
 -- nested nestloops can require nested PlaceHolderVars
 --
-
 CREATE temp TABLE nt1 (
     id int PRIMARY KEY,
     a1 boolean,
@@ -1939,7 +1900,6 @@ WHERE
 --
 -- test case where a PlaceHolderVar is propagated into a subquery
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1986,7 +1946,6 @@ ORDER BY
 --
 -- test the corner cases FULL JOIN ON TRUE and FULL JOIN ON FALSE
 --
-
 SELECT
     *
 FROM
@@ -2002,7 +1961,6 @@ FROM
 --
 -- test for ability to use a cartesian join when necessary
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2033,7 +1991,6 @@ WHERE
 --
 -- test ability to generate a suitable plan for a star-schema query
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2052,7 +2009,6 @@ WHERE
 --
 -- test a corner case in which we shouldn't apply the star-schema optimization
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2193,7 +2149,6 @@ WHERE
 -- test extraction of restriction OR clauses from join OR clause
 -- (we used to only do this for indexable clauses)
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2234,7 +2189,6 @@ FROM
 --
 -- test placement of movable quals in a parameterized join tree
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2366,7 +2320,6 @@ FROM (
 --
 -- test handling of potential equivalence clauses above outer joins
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2436,7 +2389,6 @@ WHERE (
 --
 -- another case with equivalence clauses above outer joins (bug #8591)
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2469,7 +2421,6 @@ WHERE
 --
 -- check handling of join aliases when flattening multiple levels of subquery
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -2525,7 +2476,6 @@ FROM (
 --
 -- test successful handling of nested outer joins with degenerate join quals
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -2683,7 +2633,6 @@ FROM
 --
 -- test for appropriate join order in the presence of lateral references
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -2803,7 +2752,6 @@ WHERE
 --
 -- check a case in which a PlaceHolderVar forces join order
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -2859,7 +2807,6 @@ WHERE
 --
 -- test successful handling of full join underneath left join (bug #14105)
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2886,7 +2833,6 @@ FROM (
 --
 -- test ability to push constants through outer join clauses
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2914,7 +2860,6 @@ WHERE
 -- specifically that they don't re-use expressions computed below the join;
 -- we force a mergejoin so that coalesce(b.q1, 1) appears as a join input
 --
-
 SET enable_hashjoin TO OFF;
 
 SET enable_nestloop TO OFF;
@@ -2948,7 +2893,6 @@ RESET enable_nestloop;
 --
 -- test join removal
 --
-
 BEGIN;
 CREATE TEMP TABLE a (
     id int PRIMARY KEY,
@@ -3016,7 +2960,6 @@ WHERE
         LEFT JOIN c ON b.id = c.id);
 -- check that join removal works for a left join when joining a subquery
 -- that is guaranteed to be unique by its GROUP BY clause
-
 EXPLAIN (
     COSTS OFF
 )
@@ -3050,7 +2993,6 @@ FROM
 -- not in the join condition.  (Note: as of 9.6, we notice that b.id is a
 -- primary key and so drop b.c_id from the GROUP BY of the resulting plan;
 -- but this happens too late for join removal in the outer plan level.)
-
 EXPLAIN (
     COSTS OFF
 )
@@ -3080,7 +3022,6 @@ FROM
             b) s ON d.a = s.id;
 -- check join removal works when uniqueness of the join condition is enforced
 -- by a UNION
-
 EXPLAIN (
     COSTS OFF
 )
@@ -3375,7 +3316,6 @@ FROM
 --
 -- Test hints given on incorrect column references are useful
 --
-
 SELECT
     t1.uunique1
 FROM
@@ -3400,7 +3340,6 @@ FROM
 --
 -- Take care to reference the correct RTE
 --
-
 SELECT
     atts.relid::regclass,
     s.*
@@ -3420,7 +3359,6 @@ WHERE
 --
 -- Test LATERAL
 --
-
 SELECT
     unique2,
     x.*
@@ -3528,7 +3466,6 @@ FROM
 
 -- check scoping of lateral versus parent references
 -- the first of these should return int8_tbl.q2, the second int8_tbl.q1
-
 SELECT
     *,
     (
@@ -3954,7 +3891,6 @@ FROM
 
 -- lateral can result in join conditions appearing below their
 -- real semantic level
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -4258,7 +4194,6 @@ FROM (
 
 -- check proper extParam/allParam handling (this isn't exactly a LATERAL issue,
 -- but we can make the test case much more compact with LATERAL)
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -4487,7 +4422,6 @@ DELETE FROM xx1 USING LATERAL (
 -- test LATERAL reference propagation down a multi-level inheritance hierarchy
 -- produced for a multi-level partitioned table hierarchy.
 --
-
 CREATE TABLE join_pt1 (
     a int,
     b int,
@@ -4560,7 +4494,6 @@ DROP TABLE join_ut1;
 --
 -- test that foreign key join estimation performs sanely for outer joins
 --
-
 BEGIN;
 CREATE TABLE fkest (
     a int,
@@ -4610,7 +4543,6 @@ ROLLBACK;
 --
 -- test planner's ability to mark joins as unique
 --
-
 CREATE TABLE j1 (
     id int PRIMARY KEY
 );
@@ -4799,7 +4731,6 @@ ANALYZE j3;
 
 -- ensure there's no unique join when not all columns which are part of the
 -- unique index are seen in the join clause
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -4824,7 +4755,6 @@ FROM
 
 -- ensure we don't detect the join to be unique when quals are not part of the
 -- join condition
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -4853,7 +4783,6 @@ WHERE
 -- validate logic in merge joins which skips mark and restore.
 -- it should only do this if all quals which were used to detect the unique
 -- are present as join quals, and not plain quals.
-
 SET enable_nestloop TO 0;
 
 SET enable_hashjoin TO 0;

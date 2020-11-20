@@ -3,7 +3,6 @@
 --
 -- There are other tests to test different SP-GiST opclasses. This is for
 -- testing SP-GiST code itself.
-
 CREATE TABLE spgist_point_tbl (
     id int4,
     p point
@@ -13,7 +12,6 @@ CREATE INDEX spgist_point_idx ON spgist_point_tbl USING spgist (p) WITH (fillfac
 
 -- Test vacuum-root operation. It gets invoked when the root is also a leaf,
 -- i.e. the index is very small.
-
 INSERT INTO spgist_point_tbl (id, p)
 SELECT
     g,
@@ -48,7 +46,6 @@ WHERE id % 2 = 1;
 -- And also delete some concentration of values. (SP-GiST doesn't currently
 -- attempt to delete pages even when they become empty, but if it did, this
 -- would exercise it)
-
 DELETE FROM spgist_point_tbl
 WHERE id < 10000;
 
@@ -57,7 +54,6 @@ VACUUM spgist_point_tbl;
 -- Test rescan paths (cf. bug #15378)
 -- use box and && rather than point, so that rescan happens when the
 -- traverse stack is non-empty
-
 CREATE TABLE spgist_box_tbl (
     id serial,
     b box
@@ -91,7 +87,6 @@ WHERE
 -- The point opclass's choose method only uses the spgMatchNode action,
 -- so the other actions are not tested by the above. Create an index using
 -- text opclass, which uses the others actions.
-
 CREATE TABLE spgist_text_tbl (
     id int4,
     t text
@@ -115,7 +110,6 @@ FROM
 -- Do a lot of insertions that have to split an existing node. Hopefully
 -- one of these will cause the page to run out of space, causing the inner
 -- tuple to be moved to another page.
-
 INSERT INTO spgist_text_tbl (id, t)
 SELECT
     - g,

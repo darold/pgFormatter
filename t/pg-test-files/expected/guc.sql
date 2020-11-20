@@ -1,6 +1,5 @@
 -- pg_regress should ensure that this default value applies; however
 -- we can't rely on any specific default value of vacuum_cost_delay
-
 SHOW datestyle;
 
 -- SET to some nondefault value
@@ -214,7 +213,6 @@ SELECT
 -- Test RESET.  We use datestyle because the reset value is forced by
 -- pg_regress, so it doesn't depend on the installation's configuration.
 --
-
 SET datestyle = iso, ymd;
 
 SHOW datestyle;
@@ -237,7 +235,6 @@ SET vacuum_cost_delay TO '10s';
 --
 -- Test DISCARD TEMP
 --
-
 CREATE TEMP TABLE reset_test (
     data text
 ) ON COMMIT DELETE ROWS;
@@ -262,7 +259,6 @@ WHERE
 -- Test DISCARD ALL
 --
 -- do changes
-
 DECLARE foo CURSOR WITH HOLD FOR
     SELECT
         1;
@@ -343,7 +339,6 @@ DROP ROLE regress_guc_user;
 --
 -- search_path should react to changes in pg_namespace
 --
-
 SET search_path = foo, public, not_there_initially;
 
 SELECT
@@ -364,7 +359,6 @@ RESET search_path;
 --
 -- Tests for function-local GUC settings
 --
-
 SET work_mem = '3MB';
 
 CREATE FUNCTION report_guc (text)
@@ -485,7 +479,6 @@ SELECT
 -- Normally, CREATE FUNCTION should complain about invalid values in
 -- function SET options; but not if check_function_bodies is off,
 -- because that creates ordering hazards for pg_dump
-
 CREATE FUNCTION func_with_bad_set ()
     RETURNS int
     AS $$

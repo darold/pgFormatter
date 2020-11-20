@@ -1,6 +1,5 @@
 -- txid_snapshot data type and related functions
 -- i/o
-
 SELECT
     '12:13:'::txid_snapshot;
 

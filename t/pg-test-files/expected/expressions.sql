@@ -5,7 +5,6 @@
 -- Tests for SQLVAlueFunction
 --
 -- current_date  (always matches because of transactional behaviour)
-
 SELECT
     date(now())::text = CURRENT_DATE::text;
 
@@ -30,7 +29,6 @@ SELECT
 
 -- current_role/user/user is tested in rolnames.sql
 -- current database / catalog
-
 SELECT
     current_catalog = current_database();
 

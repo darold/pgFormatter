@@ -19,3 +19,27 @@ SELECT
 FROM
     styles s;
 
+WITH cte AS NOT MATERIALIZED (
+    SELECT
+        id,
+        jsonb_strip_nulls (jsonb_build_object('name', name)) AS data
+    FROM
+        t
+)
+SELECT
+    *
+FROM
+    cte;
+
+WITH cte AS (
+    SELECT
+        id,
+        jsonb_strip_nulls (jsonb_build_object('name', name)) AS data
+    FROM
+        t
+)
+SELECT
+    *
+FROM
+    cte;
+

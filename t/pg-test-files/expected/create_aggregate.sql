@@ -2,7 +2,6 @@
 -- CREATE_AGGREGATE
 --
 -- all functions CREATEd
-
 CREATE AGGREGATE newavg (
     SFUNC = int4_avg_accum,
     BASETYPE = int4,
@@ -145,7 +144,6 @@ CREATE AGGREGATE sumdouble (float8) (
 
 -- aggregate combine and serialization functions
 -- can't specify just one of serialfunc and deserialfunc
-
 CREATE AGGREGATE myavg (numeric) (
     STYPE = internal,
     SFUNC = numeric_avg_accum,
@@ -200,7 +198,7 @@ SELECT
 FROM
     pg_aggregate
 WHERE
-    aggfnoid = 'myavg'::REGPROC;
+    aggfnoid = 'myavg'::regproc;
 
 DROP AGGREGATE myavg (numeric);
 
@@ -233,7 +231,7 @@ SELECT
 FROM
     pg_aggregate
 WHERE
-    aggfnoid = 'myavg'::REGPROC;
+    aggfnoid = 'myavg'::regproc;
 
 -- can change stype:
 CREATE OR REPLACE AGGREGATE myavg (numeric) (
@@ -252,7 +250,7 @@ SELECT
 FROM
     pg_aggregate
 WHERE
-    aggfnoid = 'myavg'::REGPROC;
+    aggfnoid = 'myavg'::regproc;
 
 -- can't change return type:
 CREATE OR REPLACE AGGREGATE myavg (numeric) (

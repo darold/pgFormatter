@@ -1,13 +1,11 @@
 --
 -- HOROLOGY
 --
-
 SET DateStyle = 'Postgres, MDY';
 
 --
 -- Test various input formats
 --
-
 SELECT
     timestamp with time zone '20011227 040506+08';
 
@@ -157,7 +155,6 @@ SELECT
 --
 -- date, time arithmetic
 --
-
 SELECT
     date '1981-02-03' + time '04:05:06' AS "Date + Time";
 
@@ -183,7 +180,6 @@ SELECT
 --
 -- timestamp, interval arithmetic
 --
-
 SELECT
     timestamp WITHOUT time zone '1996-03-01' - interval '1 second' AS "Feb 29";
 
@@ -211,7 +207,6 @@ SELECT
 -- Shorthand values
 -- Not directly usable for regression testing since these are not constants.
 -- So, just try to test parser and hope for the best - thomas 97/04/26
-
 SELECT
     (timestamp WITHOUT time zone 'today' = (timestamp WITHOUT time zone 'yesterday' + interval '1 day')) AS "True";
 
@@ -245,7 +240,6 @@ SELECT
 -- Convert from date and time to timestamp
 -- This test used to be timestamp(date,time) but no longer allowed by grammar
 -- to enable support for SQL99 timestamp type syntax.
-
 SELECT
     date '1994-01-01' + time '11:00' AS "Jan_01_1994_11am";
 
@@ -341,7 +335,6 @@ FROM
 --
 -- time, interval arithmetic
 --
-
 SELECT
     CAST(time '01:02' AS interval) AS "+01:02";
 
@@ -377,7 +370,6 @@ SELECT
 -- SELECT time with time zone '01:30' + interval '02:01' AS "03:31:00-08";
 -- SELECT time with time zone '03:30' + interval '1 month 04:01' AS "07:31:00-08";
 -- Try the following two tests instead, as a poor substitute
-
 SELECT
     CAST(CAST(date 'today' + time with time zone '05:30' + interval '02:01' AS time with time zone) AS time) AS "07:31:00";
 
@@ -427,7 +419,6 @@ ORDER BY
 
 -- SQL9x OVERLAPS operator
 -- test with time zone
-
 SELECT
     (timestamp with time zone '2000-11-27',
         timestamp with time zone '2000-11-28')
@@ -508,7 +499,6 @@ SELECT
 -- SQL99 seems to want this to be false (and we conform to the spec).
 -- istm that this *should* return true, on the theory that time
 -- intervals can wrap around the day boundary - thomas 2001-09-25
-
 SELECT
     (time '00:00',
         interval '1 hour')
@@ -592,7 +582,6 @@ ORDER BY
 --
 -- Conversions
 --
-
 SELECT
     '' AS "16",
     f1 AS "timestamp",
@@ -610,7 +599,6 @@ DROP TABLE TEMP_TIMESTAMP;
 --
 -- Formats
 --
-
 SET DateStyle TO 'US,Postgres';
 
 SHOW DateStyle;
@@ -684,7 +672,6 @@ RESET DateStyle;
 --
 -- to_timestamp()
 --
-
 SELECT
     to_timestamp( '0097/Feb/16 --> 08:14:30', 'YYYY/Mon/DD --> HH:MI:SS');
 
@@ -808,7 +795,6 @@ SELECT
 --
 -- Check handling of multiple spaces in format and/or input
 --
-
 SELECT
     to_timestamp('2011-12-18 23:38:15', 'YYYY-MM-DD  HH24:MI:SS');
 
@@ -888,7 +874,6 @@ SELECT
 -- Check errors for some incorrect usages of to_timestamp() and to_date()
 --
 -- Mixture of date conventions (ISO week and Gregorian):
-
 SELECT
     to_timestamp('2005527', 'YYYYIWID');
 
@@ -983,7 +968,6 @@ SELECT
 --
 -- Check behavior with SQL-style fixed-GMT-offset time zone (cf bug #8572)
 --
-
 SET TIME ZONE 'America/New_York';
 
 SET TIME ZONE '-1.5';

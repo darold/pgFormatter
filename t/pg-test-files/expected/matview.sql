@@ -324,7 +324,6 @@ DROP TABLE mvtest_t;
 -- make sure dependencies are dropped and reported
 -- and make sure that transactional behavior is correct on rollback
 -- incidentally leaving some interesting materialized views for pg_dump testing
-
 BEGIN;
 DROP TABLE mvtest_t CASCADE;
 ROLLBACK;
@@ -608,7 +607,6 @@ DROP TABLE mvtest_v CASCADE;
 
 -- Check that unknown literals are converted to "text" in CREATE MATVIEW,
 -- so that we don't end up with unknown-type columns.
-
 CREATE MATERIALIZED VIEW mv_unspecified_types AS
 SELECT
     42 AS i,

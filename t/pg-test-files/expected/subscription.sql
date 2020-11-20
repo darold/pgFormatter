@@ -1,7 +1,6 @@
 --
 -- SUBSCRIPTION
 --
-
 CREATE ROLE regress_subscription_user LOGIN SUPERUSER;
 
 CREATE ROLE regress_subscription_user2;

@@ -578,7 +578,6 @@ FROM
 
 -- fail
 -- ideally this would be a parse-time error, but for now it must be run-time:
-
 SELECT
     x < y
 FROM
@@ -601,7 +600,6 @@ ORDER BY
 
 -- not so ok
 -- collation mismatch between recursive and non-recursive term
-
 WITH RECURSIVE foo (
     x
 ) AS (
@@ -761,7 +759,6 @@ ORDER BY
 -- foreign keys
 -- force indexes and mergejoins to be used for FK checking queries,
 -- else they might not exercise collation-dependent operators
-
 SET enable_seqscan TO 0;
 
 SET enable_hashjoin TO 0;
@@ -857,7 +854,6 @@ DROP COLLATION mycoll2;
 
 -- fail
 -- invalid: non-lowercase quoted identifiers
-
 CREATE COLLATION case_coll (
     "Lc_Collate" = "POSIX",
     "Lc_Ctype" = "POSIX"
@@ -900,6 +896,5 @@ SELECT
 -- trying to run any platform-specific collation tests later, so we
 -- must get rid of them.
 --
-
 DROP SCHEMA collate_tests CASCADE;
 

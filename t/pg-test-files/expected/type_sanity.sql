@@ -13,7 +13,6 @@
 -- field can't be 0, we have to check it here.
 -- **************** pg_type ****************
 -- Look for illegal values in pg_type fields.
-
 SELECT
     p1.oid,
     p1.typname
@@ -59,7 +58,6 @@ WHERE
 
 -- Look for complex types that do not have a typrelid entry,
 -- or basic types that do.
-
 SELECT
     p1.oid,
     p1.typname
@@ -74,7 +72,6 @@ WHERE (p1.typtype = 'c'
 -- but don't.  We exclude composites here because we have not bothered to
 -- make array types corresponding to the system catalogs' rowtypes.
 -- NOTE: as of v10, this check finds pg_node_tree, pg_ndistinct, smgr.
-
 SELECT
     p1.oid,
     p1.typname
@@ -180,7 +177,6 @@ WHERE
 -- provariadic should be ANYOID if the type of the last element is ANYOID,
 -- ANYELEMENTOID if the type of the last element is ANYARRAYOID, and otherwise
 -- the element type corresponding to the array type.
-
 SELECT
     oid::regprocedure,
     provariadic::regtype,
@@ -206,7 +202,6 @@ WHERE
 
 -- Check that all and only those functions with a variadic type have
 -- a variadic argument.
-
 SELECT
     oid::regprocedure,
     proargmodes,
@@ -218,7 +213,6 @@ WHERE (proargmodes IS NOT NULL
 
 -- As of 8.0, this check finds refcursor, which is borrowing
 -- other types' I/O routines
-
 SELECT
     p1.oid,
     p1.typname,
@@ -239,7 +233,6 @@ ORDER BY
 
 -- Varlena array types will point to array_in
 -- Exception as of 8.1: int2vector and oidvector have their own I/O routines
-
 SELECT
     p1.oid,
     p1.typname,
@@ -283,7 +276,6 @@ ORDER BY
 -- Check for bogus typoutput routines
 -- As of 8.0, this check finds refcursor, which is borrowing
 -- other types' I/O routines
-
 SELECT
     p1.oid,
     p1.typname,
@@ -376,7 +368,6 @@ WHERE
 
 -- As of 7.4, this check finds refcursor, which is borrowing
 -- other types' I/O routines
-
 SELECT
     p1.oid,
     p1.typname,
@@ -397,7 +388,6 @@ ORDER BY
 
 -- Varlena array types will point to array_recv
 -- Exception as of 8.1: int2vector and oidvector have their own I/O routines
-
 SELECT
     p1.oid,
     p1.typname,
@@ -458,7 +448,6 @@ ORDER BY
 -- Check for bogus typsend routines
 -- As of 7.4, this check finds refcursor, which is borrowing
 -- other types' I/O routines
-
 SELECT
     p1.oid,
     p1.typname,
@@ -650,7 +639,6 @@ WHERE
 
 -- there does not seem to be a reason to care about volatility of typanalyze
 -- domains inherit their base type's typanalyze
-
 SELECT
     d.oid,
     d.typname,
@@ -666,7 +654,6 @@ WHERE
 
 -- range_typanalyze should be used for all and only range types
 -- (but exclude domains, which we checked above)
-
 SELECT
     t.oid,
     t.typname,
@@ -681,7 +668,6 @@ WHERE
 -- array_typanalyze should be used for all and only array types
 -- (but exclude domains, which we checked above)
 -- As of 9.2 this finds int2vector and oidvector, which are weird anyway
-
 SELECT
     t.oid,
     t.typname,
@@ -697,7 +683,6 @@ ORDER BY
 
 -- **************** pg_class ****************
 -- Look for illegal values in pg_class fields
-
 SELECT
     p1.oid,
     p1.relname
@@ -756,7 +741,6 @@ WHERE
 
 -- **************** pg_attribute ****************
 -- Look for illegal values in pg_attribute fields
-
 SELECT
     p1.attrelid,
     p1.attname
@@ -786,7 +770,6 @@ WHERE
 
 -- Detect missing pg_attribute entries: should have as many non-system
 -- attributes as parent relation expects
-
 SELECT
     p1.oid,
     p1.relname
@@ -805,7 +788,6 @@ WHERE
 -- Cross-check against pg_type entry
 -- NOTE: we allow attstorage to be 'plain' even when typstorage is not;
 -- this is mainly for toast tables.
-
 SELECT
     p1.attrelid,
     p1.attname,
@@ -824,7 +806,6 @@ WHERE
 
 -- **************** pg_range ****************
 -- Look for illegal values in pg_range fields.
-
 SELECT
     p1.rngtypid,
     p1.rngsubtype
@@ -848,7 +829,6 @@ WHERE (rngcollation = 0) != (typcollation = 0);
 
 -- opclass had better be a btree opclass accepting the subtype.
 -- We must allow anyarray matches, cf opr_sanity's binary_coercible()
-
 SELECT
     p1.rngtypid,
     p1.rngsubtype,

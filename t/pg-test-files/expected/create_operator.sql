@@ -1,7 +1,6 @@
 --
 -- CREATE_OPERATOR
 --
-
 CREATE OPERATOR ## (
     LEFTARG = path,
     RIGHTARG = path,
@@ -34,8 +33,8 @@ CREATE OPERATOR #%# (
 
 -- Test operator created above
 SELECT
-    point '(1,2)' < % widget '(0,0,3)' AS t,
-    point '(1,2)' < % widget '(0,0,1)' AS f;
+    point '(1,2)' <% widget '(0,0,3)' AS t,
+    point '(1,2)' <% widget '(0,0,1)' AS f;
 
 -- Test comments
 COMMENT ON OPERATOR ## ## ## (int4,
@@ -50,7 +49,6 @@ CREATE OPERATOR => (
 -- lexing of <=, >=, <>, != has a number of edge cases
 -- (=> is tested elsewhere)
 -- this is legal because ! is not allowed in sql ops
-
 CREATE OPERATOR !=- (
     LEFTARG = int8, -- right unary
     PROCEDURE = numeric_fac
@@ -84,7 +82,6 @@ $$;
 
 -- check that <= etc. followed by more operator characters are returned
 -- as the correct token with correct precedence
-
 SELECT
     TRUE <> - 1 BETWEEN 1 AND 1;
 

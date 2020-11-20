@@ -2,7 +2,6 @@
 -- ROWTYPES
 --
 -- Make both a standalone composite type and a table rowtype
-
 CREATE TYPE complex AS (
     r float8,
     i float8
@@ -146,7 +145,6 @@ FROM
 -- The object here is to ensure that toasted references inside
 -- composite values don't cause problems.  The large f1 value will
 -- be toasted inside pp, it must still work after being copied to people.
-
 CREATE temp TABLE pp (
     f1 text
 );
@@ -172,7 +170,6 @@ FROM
 
 -- Test row comparison semantics.  Prior to PG 8.2 we did this in a totally
 -- non-spec-compliant way.
-
 SELECT
     ROW (1,
         2) < ROW (1,
@@ -235,7 +232,6 @@ SELECT
 
 -- We allow operators beyond the six standard ones, if they have btree
 -- operator classes.
-
 SELECT
     ROW ('ABC',
         'DEF') ~<=~ ROW ('DEF',
@@ -502,7 +498,6 @@ ORDER BY
 --
 -- Tests for record_{eq,cmp}
 --
-
 CREATE TYPE testtype1 AS (
     a int,
     b int
@@ -625,7 +620,6 @@ DROP TYPE testtype1, testtype3, testtype5, testtype6;
 --
 -- Tests for record_image_{eq,cmp}
 --
-
 CREATE TYPE testtype1 AS (
     a int,
     b int
@@ -695,7 +689,6 @@ SELECT
 
 -- This returns the "wrong" order because record_image_cmp works on
 -- unsigned datums without knowing about the actual data type.
-
 SELECT
     ROW (1,
         - 2)::testtype1 *< ROW (1,
@@ -831,7 +824,6 @@ DROP TYPE testtype1, testtype2, testtype3, testtype4, testtype5, testtype6;
 --
 -- Test case derived from bug #5716: check multiple uses of a rowtype result
 --
-
 BEGIN;
 CREATE TABLE price (
     id serial PRIMARY KEY,
@@ -880,7 +872,6 @@ ROLLBACK;
 -- Test case derived from bug #9085: check * qualification of composite
 -- parameters for SQL functions
 --
-
 CREATE temp TABLE compos (
     f1 int,
     f2 text
@@ -942,7 +933,6 @@ FROM
 -- invoked via cast syntax, but not functional syntax.  This is because
 -- the latter is too prone to be invoked unintentionally.
 --
-
 SELECT
     cast(fullname AS text)
 FROM
@@ -966,7 +956,6 @@ FROM
 
 -- error
 -- same, but RECORD instead of named composite type:
-
 SELECT
     cast(ROW ('Jim', 'Beam') AS text);
 
@@ -986,7 +975,6 @@ SELECT
 --
 -- Check the equivalence of functional and column notation
 --
-
 INSERT INTO fullname
     VALUES ('Joe', 'Blow');
 

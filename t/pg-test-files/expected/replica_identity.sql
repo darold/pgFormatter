@@ -52,7 +52,6 @@ WHERE
 -- Make sure we detect ineligible indexes
 ----
 -- fail, not unique
-
 ALTER TABLE test_replica_identity REPLICA IDENTITY
 USING INDEX test_replica_identity_keyab;
 
@@ -91,7 +90,6 @@ WHERE
 -- Make sure index cases succeed
 ----
 -- succeed, primary key
-
 ALTER TABLE test_replica_identity REPLICA IDENTITY
 USING INDEX test_replica_identity_pkey;
 
@@ -133,7 +131,6 @@ WHERE
 ----
 -- Make sure non index cases work
 ----
-
 ALTER TABLE test_replica_identity REPLICA IDENTITY DEFAULT;
 
 SELECT

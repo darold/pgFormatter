@@ -1,7 +1,6 @@
 --
 -- INTERVAL
 --
-
 SET DATESTYLE = 'ISO';
 
 SET IntervalStyle TO postgres;
@@ -205,7 +204,6 @@ DROP TABLE INTERVAL_TBL_OF;
 -- Note that it is expected for some day components to be greater than 29 and
 -- some time components be greater than 23:59:59 due to how intervals are
 -- stored internally.
-
 CREATE TABLE INTERVAL_MULDIV_TBL (
     span interval
 );
@@ -245,7 +243,6 @@ FROM
 -- test avg(interval), which is somewhat fragile since people have been
 -- known to change the allowed input syntax for type interval without
 -- updating pg_aggregate.agginitval
-
 SELECT
     avg(f1)
 FROM
@@ -259,7 +256,6 @@ SELECT
 -- Note: the actual maximum length of the interval output is longer,
 -- but we need the test to work for both integer and floating-point
 -- timestamps.
-
 SELECT
     '100000000y 10mon -1000000000d -100000h -10min -10.000001s ago'::interval;
 
@@ -435,7 +431,6 @@ SELECT
 
 -- not ok, redundant hh:mm fields
 -- test syntaxes for restricted precision
-
 SELECT
     interval(0) '1 day 01:23:45.6789';
 

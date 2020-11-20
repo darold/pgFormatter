@@ -3,13 +3,11 @@
 --
 -- Back off displayed precision a little bit to reduce platform-to-platform
 -- variation in results.
-
 SET extra_float_digits TO - 3;
 
 --
 -- Points
 --
-
 SELECT
     '' AS four,
     center(f1) AS center
@@ -265,7 +263,6 @@ WHERE
 -- Lines
 --
 -- Vertical
-
 SELECT
     s
 FROM
@@ -380,7 +377,6 @@ FROM
 -- Line segments
 --
 -- intersection
-
 SELECT
     '' AS count,
     p.f1,
@@ -613,7 +609,6 @@ WHERE
 --
 -- Boxes
 --
-
 SELECT
     '' AS six,
     box(f1) AS box
@@ -727,7 +722,6 @@ FROM
 -- Paths
 --
 -- Points
-
 SELECT
     f1,
     npoints(f1)
@@ -894,7 +888,6 @@ FROM
 -- Polygons
 --
 -- containment
-
 SELECT
     '' AS twentyfour,
     p.f1,
@@ -1089,7 +1082,6 @@ FROM
 --
 -- Circles
 --
-
 SELECT
     '' AS six,
     circle(f1, 50.0)

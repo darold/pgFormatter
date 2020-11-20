@@ -254,11 +254,9 @@ WITH objects (
         ('operator', '{+}', '{int4, int4}'),
         -- database
         -- tablespace
-
         ('foreign-data wrapper', '{addr_fdw}', '{}'),
         -- extension
         -- event trigger
-
         ('policy', '{addr_nsp, gentable, genpol}', '{}'),
         ('statistics object', '{addr_nsp, gentable_stat}', '{}'))
 SELECT
@@ -278,7 +276,6 @@ ORDER BY
 ---
 --- Cleanup resources
 ---
-
 DROP FOREIGN DATA WRAPPER addr_fdw CASCADE;
 
 DROP PUBLICATION addr_pub;

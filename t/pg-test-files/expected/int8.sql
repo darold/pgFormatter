@@ -2,7 +2,6 @@
 -- INT8
 -- Test int8 64-bit integers.
 --
-
 CREATE TABLE INT8_TBL (
     q1 int8,
     q2 int8
@@ -409,7 +408,6 @@ FROM
 
 -- TO_CHAR()
 --
-
 SELECT
     '' AS to_char_1,
     to_char(q1, '9G999G999G999G999G999'),

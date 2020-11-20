@@ -1,6 +1,5 @@
 -- Test initial privileges
 -- There should always be some initial privileges, set up by initdb
-
 SELECT
     count(*) > 0
 FROM

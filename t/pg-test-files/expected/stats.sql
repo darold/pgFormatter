@@ -5,12 +5,10 @@
 -- populated (by create_misc) and indexed (by create_index).
 --
 -- conditio sine qua non
-
 SHOW track_counts;
 
 -- must be on
 -- ensure that both seqscan and indexscan plans are allowed
-
 SET enable_seqscan TO ON;
 
 SET enable_indexscan TO ON;
@@ -159,7 +157,6 @@ COMMIT;
 
 -- rollback a savepoint: this should count 4 inserts and have 2
 -- live tuples after commit (and 2 dead ones due to aborted subxact)
-
 BEGIN;
 INSERT INTO trunc_stats_test3 DEFAULT VALUES; INSERT INTO trunc_stats_test3 DEFAULT VALUES; SAVEPOINT p1;
 INSERT INTO trunc_stats_test3 DEFAULT VALUES; INSERT INTO trunc_stats_test3 DEFAULT VALUES; TRUNCATE trunc_stats_test3;
@@ -182,7 +179,6 @@ FROM
 
 -- do an indexscan
 -- make sure it is not a bitmap scan, which might skip fetching heap tuples
-
 SET enable_bitmapscan TO OFF;
 
 SELECT
@@ -200,7 +196,6 @@ RESET enable_bitmapscan;
 -- in pgstat_report_stat().  But instead of waiting for the rate limiter's
 -- timeout to elapse, let's just start a new session.  The old one will
 -- then send its stats before dying.
-
 \c -
 -- wait for stats collector to update
 SELECT

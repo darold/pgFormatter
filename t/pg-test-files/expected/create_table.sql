@@ -4,7 +4,6 @@
 --
 -- CLASS DEFINITIONS
 --
-
 CREATE TABLE hobbies_r (
     name text,
     person text
@@ -153,7 +152,6 @@ CREATE TABLE real_city (
 -- e inherits from c (two-level single inheritance)
 -- f inherits from e (three-level single inheritance)
 --
-
 CREATE TABLE a_star (
     class char,
     a int4
@@ -227,7 +225,6 @@ CREATE TABLE hash_f8_heap (
 --	x			int4,
 --	y			int4
 -- );
-
 CREATE TABLE bt_i4_heap (
     seqno int4,
     random int4
@@ -411,7 +408,6 @@ DEALLOCATE select1;
 
 -- create an extra wide table to test for issues related to that
 -- (temporarily hide query, to avoid the long CREATE TABLE stmt)
-
 \set ECHO none
 SELECT
     'CREATE TABLE extra_wide_table(firstc text, ' || array_to_string(array_agg('c' || i || ' bool'), ',') || ', lastc text);'
@@ -460,7 +456,6 @@ DROP TABLE withoutoid;
 
 -- check restriction with default expressions
 -- invalid use of column reference in default expressions
-
 CREATE TABLE default_expr_column (
     id int DEFAULT (id)
 );
@@ -499,7 +494,6 @@ CREATE TABLE default_expr_agg (
 -- Partitioned tables
 --
 -- cannot combine INHERITS and PARTITION BY (although grammar allows)
-
 CREATE TABLE partitioned (
     a int
 )
@@ -517,7 +511,6 @@ PARTITION BY LIST (a1, a2);
 
 -- fail
 -- unsupported constraint type for partitioned tables
-
 CREATE TABLE partitioned (
     a int,
     EXCLUDE USING gist (a WITH &&)
@@ -708,7 +701,6 @@ DROP TABLE partitioned, partitioned2;
 -- Partitions
 --
 -- check partition bound syntax
-
 CREATE TABLE list_parted (
     a int
 )
@@ -856,7 +848,6 @@ FOR VALUES WITH (MODULUS 10, REMAINDER 1);
 
 -- each of start and end bounds must have same number of values as the
 -- length of the partition key
-
 CREATE TABLE fail_part PARTITION OF range_parted
 FOR VALUES FROM ('a', 1) TO ('z');
 
@@ -907,7 +898,6 @@ CREATE TABLE fail_default_part PARTITION OF hash_parted DEFAULT;
 
 -- check if compatible with the specified parent
 -- cannot create as partition of a non-partitioned table
-
 CREATE TABLE unparted (
     a int
 );
@@ -1046,7 +1036,6 @@ CREATE TABLE range3_default PARTITION OF range_parted3 DEFAULT;
 -- cannot create a partition that says column b is allowed to range
 -- from -infinity to +infinity, while there exist partitions that have
 -- more specific ranges
-
 CREATE TABLE fail_part PARTITION OF range_parted3
 FOR VALUES FROM (1,
 MINVALUE) TO (1,
@@ -1108,7 +1097,6 @@ ORDER BY
 
 -- able to specify column default, column constraint, and table constraint
 -- first check the "column specified more than once" error
-
 CREATE TABLE part_b PARTITION OF parted (b NOT NULL, b DEFAULT 1, b CHECK (b >= 0), CONSTRAINT check_a CHECK (length(a) > 0))
 FOR VALUES IN ('b');
 
@@ -1149,7 +1137,6 @@ ALTER TABLE part_b
 -- And dropping it from parted should leave no trace of them on part_b, unlike
 -- traditional inheritance where they will be left behind, because they would
 -- be local constraints.
-
 ALTER TABLE parted
     DROP CONSTRAINT check_a,
     DROP CONSTRAINT check_b;
@@ -1211,7 +1198,6 @@ DROP TABLE parted_collate_must_match;
 
 -- check that specifying incompatible collations for partition bound
 -- expressions fails promptly
-
 CREATE TABLE test_part_coll_posix (
     a text
 )
@@ -1231,7 +1217,6 @@ FOR VALUES FROM ('g') TO ('m');
 
 -- using a cast expression uses the target type's default collation
 -- fail
-
 CREATE TABLE test_part_coll_cast PARTITION OF test_part_coll_posix
 FOR VALUES FROM (name 'm' COLLATE "C") TO ('s');
 
@@ -1255,7 +1240,6 @@ DROP TABLE test_part_coll_posix;
 -- Tempted to include \d+ output listing partitions with bound info but
 -- output could vary depending on the order in which partition oids are
 -- returned.
-
 \d parted
 \d hash_parted
 -- check that we get the expected partition constraints

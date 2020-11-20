@@ -30,7 +30,6 @@ SELECT
 -- ERROR, not a valid JSON escape
 -- see json_encoding test for input with unicode escapes
 -- Numbers.
-
 SELECT
     '1'::jsonb;
 
@@ -72,7 +71,6 @@ SELECT
 
 -- ERROR
 -- Arrays.
-
 SELECT
     '[]'::jsonb;
 
@@ -98,7 +96,6 @@ SELECT
 
 -- ERROR, no closing bracket
 -- Objects.
-
 SELECT
     '{}'::jsonb;
 
@@ -140,7 +137,6 @@ SELECT
 
 -- ERROR, no value
 -- Recursion.
-
 SET max_stack_depth = '100kB';
 
 SELECT
@@ -193,7 +189,6 @@ SELECT
 
 -- ERROR, no value
 -- make sure jsonb is passed through json generators without being escaped
-
 SELECT
     array_to_json(ARRAY[jsonb '{"a":1}', jsonb '{"b":[2,3]}']);
 
@@ -757,7 +752,6 @@ WHERE
 
 -- type sensitive array exists - should return no rows (since "exists" only
 -- matches strings that are either object keys or array elements)
-
 SELECT
     count(*)
 FROM
@@ -984,7 +978,6 @@ SELECT
 
 -- ok
 -- empty objects/arrays
-
 SELECT
     jsonb_build_array();
 
@@ -1054,7 +1047,6 @@ FROM
 
 -- jsonb_object
 -- empty object, one dimension
-
 SELECT
     jsonb_object('{}');
 
@@ -2499,7 +2491,6 @@ WHERE
 
 -- type sensitive array exists - should return no rows (since "exists" only
 -- matches strings that are either object keys or array elements)
-
 SELECT
     count(*)
 FROM
@@ -3395,7 +3386,6 @@ SELECT
 
 -- jsonb_set adding instead of replacing
 -- prepend to array
-
 SELECT
     jsonb_set('{"a":1,"b":[0,1,2],"c":{"d":4}}', '{b,-33}', '{"foo":123}');
 

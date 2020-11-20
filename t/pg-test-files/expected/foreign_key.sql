@@ -5,7 +5,6 @@
 --
 -- First test, check and cascade
 --
-
 CREATE TABLE PKTABLE (
     ptest1 int PRIMARY KEY,
     ptest2 text
@@ -86,7 +85,6 @@ DROP TABLE PKTABLE;
 --
 -- check set NULL and table constraint on multiple columns
 --
-
 CREATE TABLE PKTABLE (
     ptest1 int,
     ptest2 int,
@@ -238,7 +236,6 @@ DROP TABLE FKTABLE;
 --
 -- check set default and table constraint on multiple columns
 --
-
 CREATE TABLE PKTABLE (
     ptest1 int,
     ptest2 int,
@@ -357,7 +354,6 @@ DROP TABLE FKTABLE;
 --
 -- First test, check with no on delete or on update
 --
-
 CREATE TABLE PKTABLE (
     ptest1 int PRIMARY KEY,
     ptest2 text
@@ -456,7 +452,6 @@ DROP TABLE PKTABLE;
 --
 -- Check initial check upon ALTER TABLE
 --
-
 CREATE TABLE PKTABLE (
     ptest1 int,
     ptest2 int,
@@ -483,7 +478,6 @@ DROP TABLE PKTABLE;
 
 -- MATCH SIMPLE
 -- Base test restricting update/delete
-
 CREATE TABLE PKTABLE (
     ptest1 int,
     ptest2 int,
@@ -1054,7 +1048,6 @@ DROP TABLE PKTABLE;
 -- Tests for mismatched types
 --
 -- Basic one column, two table setup
-
 CREATE TABLE PKTABLE (
     ptest1 int PRIMARY KEY
 );
@@ -1069,14 +1062,12 @@ CREATE TABLE FKTABLE (
 
 -- This should also fail for the same reason, but here we
 -- give the column name
-
 CREATE TABLE FKTABLE (
     ftest1 inet REFERENCES pktable (ptest1)
 );
 
 -- This should succeed, even though they are different types,
 -- because int=int8 exists and is a member of the integer opfamily
-
 CREATE TABLE FKTABLE (
     ftest1 int8 REFERENCES pktable
 );
@@ -1107,7 +1098,6 @@ DROP TABLE FKTABLE;
 -- This should fail, because we'd have to cast numeric to int which is
 -- not an implicit coercion (or use numeric=numeric, but that's not part
 -- of the integer opfamily)
-
 CREATE TABLE FKTABLE (
     ftest1 numeric REFERENCES pktable
 );
@@ -1116,7 +1106,6 @@ DROP TABLE PKTABLE;
 
 -- On the other hand, this should work because int implicitly promotes to
 -- numeric, and we allow promotion on the FK side
-
 CREATE TABLE PKTABLE (
     ptest1 numeric PRIMARY KEY
 );
@@ -1217,7 +1206,6 @@ DROP TABLE PKTABLE;
 
 -- Two columns, same table
 -- Make sure this still works...
-
 CREATE TABLE PKTABLE (
     ptest1 int,
     ptest2 inet,
@@ -1274,7 +1262,6 @@ CREATE TABLE PKTABLE (
 --
 -- Now some cases with inheritance
 -- Basic 2 table case: 1 column of matching types.
-
 CREATE TABLE pktable_base (
     base1 int NOT NULL
 );
@@ -1316,7 +1303,6 @@ WHERE base1 > 2;
 
 -- okay, let's try updating all of the base1 values to *4
 -- which should fail.
-
 UPDATE
     pktable
 SET
@@ -1370,7 +1356,6 @@ WHERE base1 > 2;
 
 -- okay, let's try updating all of the base1 values to *4
 -- which should fail.
-
 UPDATE
     pktable
 SET
@@ -1553,7 +1538,6 @@ DROP TABLE pktable_base;
 -- Deferrable constraints
 --
 -- deferrable, explicitly deferred
-
 CREATE TABLE pktable (
     id int4 PRIMARY KEY,
     other int4
@@ -1614,7 +1598,6 @@ DROP TABLE fktable, pktable;
 -- to 'immediate' mode, it should be checked for validity *immediately*,
 -- not when the current transaction commits (i.e. the mode change applies
 -- retroactively)
-
 CREATE TABLE pktable (
     id int4 PRIMARY KEY,
     other int4
@@ -1661,7 +1644,6 @@ DROP TABLE pktable, fktable;
 
 -- test notice about expensive referential integrity checks,
 -- where the index cannot be used because of type incompatibilities.
-
 CREATE TEMP TABLE pktable (
     id1 int4 PRIMARY KEY,
     id2 varchar(4) UNIQUE,
@@ -1680,7 +1662,6 @@ CREATE TEMP TABLE fktable (
 -- check individual constraints with alter table.
 -- should fail
 -- varchar does not promote to real
-
 ALTER TABLE fktable
     ADD CONSTRAINT fk_2_3 FOREIGN KEY (x2) REFERENCES pktable (id3);
 
@@ -1698,7 +1679,6 @@ ALTER TABLE fktable
 
 -- should succeed
 -- int4 promotes to real
-
 ALTER TABLE fktable
     ADD CONSTRAINT fk_1_3 FOREIGN KEY (x1) REFERENCES pktable (id3);
 
@@ -1712,7 +1692,6 @@ ALTER TABLE fktable
 
 -- check multikey cases, especially out-of-order column lists
 -- these should work
-
 ALTER TABLE fktable
     ADD CONSTRAINT fk_123_123 FOREIGN KEY (x1, x2, x3) REFERENCES pktable (id1, id2, id3);
 
@@ -1737,7 +1716,6 @@ DROP TABLE pktable, fktable;
 -- created the updated row and the trigger is deferred, since our UPDATE
 -- will have invalidated the original newly-inserted tuple, and therefore
 -- cause the on-INSERT RI trigger not to be fired.
-
 CREATE TEMP TABLE pktable (
     id int PRIMARY KEY,
     other int
@@ -1813,7 +1791,6 @@ COMMIT;
 --
 -- check ALTER CONSTRAINT
 --
-
 INSERT INTO fktable
     VALUES (1, 5);
 
@@ -1847,7 +1824,6 @@ ALTER TABLE fktable
 -- test order of firing of FK triggers when several RI-induced changes need to
 -- be made to the same row.  This was broken by subtransaction-related
 -- changes in 8.0.
-
 CREATE TEMP TABLE users (
     id int PRIMARY KEY,
     name varchar NOT NULL
@@ -1926,7 +1902,6 @@ COMMIT;
 --
 -- Test self-referential FK with CASCADE (bug #6268)
 --
-
 CREATE temp TABLE selfref (
     a int PRIMARY KEY,
     b int,
@@ -1964,7 +1939,6 @@ COMMIT;
 --
 -- Test that SET DEFAULT actions recognize updates to default values
 --
-
 CREATE temp TABLE defp (
     f1 int PRIMARY KEY
 );
@@ -2014,7 +1988,6 @@ WHERE f1 = 1;
 --
 -- Test the difference between NO ACTION and RESTRICT
 --
-
 CREATE temp TABLE pp (
     f1 int PRIMARY KEY
 );
@@ -2091,7 +2064,6 @@ DROP TABLE pp, cc;
 --
 -- Test interaction of foreign-key optimization with rules (bug #14219)
 --
-
 CREATE temp TABLE t1 (
     a integer PRIMARY KEY,
     b text
@@ -2115,7 +2087,6 @@ WHERE a = 1;
 
 -- Test a primary key with attributes located in later attnum positions
 -- compared to the fk attributes.
-
 CREATE TABLE pktable2 (
     a int,
     b int,
@@ -2180,7 +2151,6 @@ DROP TABLE pktable1, pktable2, fktable2;
 --
 -- Test deferred FK check on a tuple deleted by a rolled-back subtransaction
 --
-
 CREATE TABLE pktable2 (
     f1 int PRIMARY KEY
 );
@@ -2214,7 +2184,6 @@ COMMIT;
 --
 -- Test that we prevent dropping FK constraint with pending trigger events
 --
-
 BEGIN;
 INSERT INTO fktable2
     VALUES (2);
@@ -2234,7 +2203,6 @@ DROP TABLE pktable2, fktable2;
 --
 -- Test keys that "look" different but compare as equal
 --
-
 CREATE TABLE pktable2 (
     a float8,
     b float8,
@@ -2287,7 +2255,6 @@ DROP TABLE pktable2, fktable2;
 -- Foreign keys and partitioned tables
 --
 -- Creation of a partitioned hierarchy with irregular definitions
-
 CREATE TABLE fk_notpartitioned_pk (
     fdrop1 int,
     a int,
@@ -2370,19 +2337,16 @@ FOR VALUES FROM (2000, 2000) TO (3000, 3000);
 
 -- Creating a foreign key with ONLY on a partitioned table referencing
 -- a non-partitioned table fails.
-
 ALTER TABLE ONLY fk_partitioned_fk
     ADD FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk;
 
 -- Adding a NOT VALID foreign key on a partitioned table referencing
 -- a non-partitioned table fails.
-
 ALTER TABLE fk_partitioned_fk
     ADD FOREIGN KEY (a, b) REFERENCES fk_notpartitioned_pk NOT VALID;
 
 -- these inserts, targeting both the partition directly as well as the
 -- partitioned table, should all fail
-
 INSERT INTO fk_partitioned_fk (a, b)
     VALUES (500, 501);
 
@@ -2474,7 +2438,6 @@ DROP TABLE fk_notpartitioned_pk, fk_partitioned_fk;
 
 -- Altering a type referenced by a foreign key needs to drop/recreate the FK.
 -- Ensure that works.
-
 CREATE TABLE fk_notpartitioned_pk (
     a int,
     PRIMARY KEY (a),
@@ -2505,7 +2468,6 @@ DROP TABLE fk_notpartitioned_pk, fk_partitioned_fk;
 
 -- Test some other exotic foreign key features: MATCH SIMPLE, ON UPDATE/DELETE
 -- actions
-
 CREATE TABLE fk_notpartitioned_pk (
     a int,
     b int,
@@ -2653,7 +2615,6 @@ INSERT INTO fk_partitioned_fk_3 (a, b)
 
 -- this fails, because the defaults for the referencing table are not present
 -- in the referenced table:
-
 UPDATE
     fk_notpartitioned_pk
 SET
@@ -2724,7 +2685,6 @@ DROP TABLE fk_partitioned_fk_2;
 
 -- Test behavior of the constraint together with attaching and detaching
 -- partitions.
-
 CREATE TABLE fk_partitioned_fk_2 PARTITION OF fk_partitioned_fk
 FOR VALUES IN (1500, 1502);
 
@@ -2817,11 +2777,9 @@ FOR VALUES IN (4500);
 
 -- this one has two constraints, similar but not quite the one in the parent,
 -- so it gets a new one
-
 \d fk_partitioned_fk_5
 -- verify that it works to reattaching a child with multiple candidate
 -- constraints
-
 ALTER TABLE fk_partitioned_fk_5 DETACH PARTITION fk_partitioned_fk_5_1;
 
 ALTER TABLE fk_partitioned_fk_5 ATTACH PARTITION fk_partitioned_fk_5_1
@@ -2830,7 +2788,6 @@ FOR VALUES FROM (0) TO (10);
 \d fk_partitioned_fk_5_1
 -- verify that attaching a table checks that the existing data satisfies the
 -- constraint
-
 CREATE TABLE fk_partitioned_fk_2 (
     a int,
     b int
@@ -2857,7 +2814,6 @@ FOR VALUES IN (1600);
 
 -- leave these tables around intentionally
 -- test the case when the referenced table is owned by a different user
-
 CREATE ROLE regress_other_partitioned_fk_owner;
 
 GRANT REFERENCES ON fk_notpartitioned_pk TO regress_other_partitioned_fk_owner;
@@ -2911,7 +2867,6 @@ DROP ROLE regress_other_partitioned_fk_owner;
 -- Test creating a constraint at the parent that already exists in partitions.
 -- There should be no duplicated constraints, and attempts to drop the
 -- constraint in partitions should raise appropriate errors.
-
 CREATE SCHEMA fkpart0 CREATE TABLE pkey (
     a int PRIMARY KEY)
 CREATE TABLE fk_part (
@@ -2961,7 +2916,6 @@ ALTER TABLE fkpart0.fk_part_56_5
 
 -- verify that attaching and detaching partitions maintains the right set of
 -- triggers
-
 CREATE SCHEMA fkpart1 CREATE TABLE pkey (
     a int PRIMARY KEY)
 CREATE TABLE fk_part (
@@ -3003,7 +2957,6 @@ WHERE a = 1;
 
 -- verify that attaching and detaching partitions manipulates the inheritance
 -- properties of their FK constraints correctly
-
 CREATE SCHEMA fkpart2 CREATE TABLE pkey (
     a int PRIMARY KEY)
 CREATE TABLE fk_part (
@@ -3041,7 +2994,6 @@ DROP SCHEMA fkpart0, fkpart1, fkpart2 CASCADE;
 -- Verify basic functionality with a regular partition creation and a partition
 -- with a different column layout, as well as partitions added (created and
 -- attached) after creating the foreign key.
-
 CREATE SCHEMA fkpart3;
 
 SET search_path TO fkpart3;
@@ -3279,7 +3231,6 @@ SET search_path TO fkpart4;
 
 -- dropping/detaching PARTITIONs is prevented if that would break
 -- a foreign key's existing data
-
 CREATE TABLE droppk (
     a int PRIMARY KEY
 )
@@ -3659,7 +3610,6 @@ DROP TABLE fk;
 
 -- test for reported bug: relispartition not set
 -- https://postgr.es/m/CA+HiwqHMsRtRYRWYTWavKJ8x14AFsv7bmAV46mYwnfD3vy8goQ@mail.gmail.com
-
 CREATE SCHEMA fkpart7 CREATE TABLE pkpart (
     a int
 )

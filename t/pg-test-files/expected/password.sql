@@ -2,7 +2,6 @@
 -- Tests for password verifiers
 --
 -- Tests for GUC password_encryption
-
 SET password_encryption = 'novalue';
 
 -- error
@@ -16,7 +15,6 @@ SET password_encryption = 'scram-sha-256';
 
 -- ok
 -- consistency of password entries
-
 SET password_encryption = 'md5';
 
 CREATE ROLE regress_passwd1 PASSWORD 'role_pwd1';
@@ -38,7 +36,6 @@ CREATE ROLE regress_passwd4 PASSWORD NULL;
 --
 -- Since the salt is random, the exact value stored will be different on every test
 -- run. Use a regular expression to mask the changing parts.
-
 SELECT
     rolname,
     regexp_replace(rolpassword, '(SCRAM-SHA-256)\$(\d+):([a-zA-Z0-9+/=]+)\$([a-zA-Z0-9+=/]+):([a-zA-Z0-9+/=]+)', '\1$\2:<salt>$<storedkey>:<serverkey>') AS rolpassword_masked
@@ -69,7 +66,6 @@ ALTER ROLE regress_passwd2_new RENAME TO regress_passwd2;
 
 -- Change passwords with ALTER USER. With plaintext or already-encrypted
 -- passwords.
-
 SET password_encryption = 'md5';
 
 -- encrypt with MD5
@@ -90,13 +86,11 @@ CREATE ROLE regress_passwd5 PASSWORD 'md5e73a4b11df52a6068f8b39f90be36023';
 
 -- This looks like a valid SCRAM-SHA-256 verifier, but it is not
 -- so it should be hashed with SCRAM-SHA-256.
-
 CREATE ROLE regress_passwd6 PASSWORD 'SCRAM-SHA-256$1234';
 
 -- These may look like valid MD5 verifiers, but they are not, so they
 -- should be hashed with SCRAM-SHA-256.
 -- trailing garbage at the end
-
 CREATE ROLE regress_passwd7 PASSWORD 'md5012345678901234567890123456789zz';
 
 -- invalid length

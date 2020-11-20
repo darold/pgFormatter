@@ -3,7 +3,6 @@
 --
 -- polygon logic
 --
-
 CREATE TABLE POLYGON_TBL (
     f1 polygon
 );
@@ -56,7 +55,6 @@ FROM
 --
 -- Test the SP-GiST index
 --
-
 CREATE TABLE quad_poly_tbl (
     id int,
     p polygon

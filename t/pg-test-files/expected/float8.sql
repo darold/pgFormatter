@@ -1,7 +1,6 @@
 --
 -- FLOAT8
 --
-
 CREATE TABLE FLOAT8_TBL (
     f1 float8
 );
@@ -373,7 +372,6 @@ FROM
 -- hyperbolic functions
 -- we run these with extra_float_digits = 0 too, since different platforms
 -- tend to produce results that vary in the last place.
-
 SELECT
     sinh (float8 '1');
 
@@ -431,7 +429,6 @@ SELECT
 
 -- acosh(Inf) should be Inf, but some mingw versions produce NaN, so skip test
 -- SELECT acosh(float8 'infinity');
-
 SELECT
     acosh (float8 '-infinity');
 
@@ -464,7 +461,6 @@ INSERT INTO FLOAT8_TBL (f1)
 
 -- maintain external table consistency across platforms
 -- delete all values and reinsert well-behaved ones
-
 DELETE FROM FLOAT8_TBL;
 
 INSERT INTO FLOAT8_TBL (f1)
@@ -615,7 +611,6 @@ FROM (
 -- To ensure we're testing what we think we're testing, start with
 -- float values specified by bit patterns (as a useful side effect,
 -- this means we'll fail on non-IEEE platforms).
-
 CREATE TYPE xfloat8;
 
 CREATE FUNCTION xfloat8in (cstring)
@@ -646,7 +641,6 @@ CREATE cast (bigint AS xfloat8) WITHOUT FUNCTION;
 -- we don't care to assume the platform's strtod() handles subnormals
 -- correctly; those are "use at your own risk". However we do test
 -- subnormal outputs, since those are under our control.
-
 WITH testdata (
     bits
 ) AS (
@@ -866,7 +860,6 @@ WITH testdata (
         (x '3ff3c0ca428c59f8'),
         -- these cases come from the upstream's testsuite
         -- LotsOfTrailingZeros)
-
         (x '3e60000000000000'),
         -- Regression
         (x 'c352bd2668e077c4'),

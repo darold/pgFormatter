@@ -205,7 +205,6 @@ ALTER ROLE nonexistent WITH NOREPLICATION;
 
 -- error
 --  ALTER USER
-
 BEGIN;
 SELECT
     *
@@ -273,7 +272,6 @@ ALTER USER nonexistent WITH NOREPLICATION;
 
 -- error
 --  ALTER ROLE SET/RESET
-
 SELECT
     *
 FROM
@@ -329,7 +327,6 @@ ALTER ROLE nonexistent SET application_name TO 'BOMB';
 
 -- error
 --  ALTER USER SET/RESET
-
 SELECT
     *
 FROM
@@ -388,7 +385,6 @@ ALTER USER nonexistent SET application_name TO 'BOMB';
 
 -- error
 -- CREATE SCHEMA
-
 CREATE SCHEMA newschema1 AUTHORIZATION CURRENT_USER;
 
 CREATE SCHEMA newschema2 AUTHORIZATION "current_user";
@@ -539,7 +535,6 @@ ORDER BY
 -- ALTER TABLE, VIEW, MATERIALIZED VIEW, FOREIGN TABLE, SEQUENCE are
 -- changed their owner in the same way.
 -- ALTER AGGREGATE
-
 \c -
 SET SESSION AUTHORIZATION regress_testrol0;
 
@@ -858,7 +853,6 @@ DROP USER MAPPING IF EXISTS FOR nonexistent SERVER sv9;
 
 -- error
 -- GRANT/REVOKE
-
 GRANT regress_testrol0 TO pg_signal_backend;
 
 -- success

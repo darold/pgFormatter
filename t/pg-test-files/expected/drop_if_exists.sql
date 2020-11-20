@@ -2,7 +2,6 @@
 -- IF EXISTS tests
 --
 -- table (will be really dropped at the end)
-
 DROP TABLE test_exists;
 
 DROP TABLE IF EXISTS test_exists;
@@ -88,7 +87,6 @@ DROP DOMAIN test_domain_exists;
 ---
 --- role/user/group
 ---
-
 CREATE USER regress_test_u1;
 
 CREATE ROLE regress_test_r1;

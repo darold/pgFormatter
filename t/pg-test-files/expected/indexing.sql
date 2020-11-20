@@ -1,6 +1,5 @@
 -- Creating an index on a partitioned table makes the partitions
 -- automatically get the index
-
 CREATE TABLE idxpart (
     a int,
     b int,
@@ -10,7 +9,6 @@ PARTITION BY RANGE (a);
 
 -- relhassubclass of a partitioned index is false before creating any partition.
 -- It will be set after the first partition is created.
-
 CREATE INDEX idxpart_idx ON idxpart (a);
 
 SELECT
@@ -42,7 +40,6 @@ FOR VALUES FROM (0) TO (100);
 
 -- Even with partitions, relhassubclass should not be set if a partitioned
 -- index is created only on the parent.
-
 CREATE INDEX idxpart_idx ON ONLY idxpart (a);
 
 SELECT
@@ -89,7 +86,6 @@ DROP TABLE idxpart;
 
 -- Verify bugfix with query on indexed partitioned table with no partitions
 -- https://postgr.es/m/20180124162006.pmapfiznhgngwtjf@alvherre.pgsql
-
 CREATE TABLE idxpart (
     col1 int
 )
@@ -111,7 +107,6 @@ DROP TABLE idxpart, idxpart_two;
 
 -- Verify bugfix with index rewrite on ALTER TABLE / SET DATA TYPE
 -- https://postgr.es/m/CAKcux6mxNCGsgATwf5CGMF8g4WSupCXicCVMeKUTuWbyxHOMsQ@mail.gmail.com
-
 CREATE TABLE idxpart (
     a int,
     b text,
@@ -139,7 +134,6 @@ DROP TABLE idxpart;
 
 -- If a table without index is attached as partition to a table with
 -- an index, the index is automatically created
-
 CREATE TABLE idxpart (
     a int,
     b int,
@@ -282,7 +276,6 @@ ALTER INDEX idxpart_a_b_idx ATTACH PARTITION idxpart1_a_b_idx;
 
 -- quiet
 -- reject dupe
-
 CREATE INDEX idxpart1_2_a_b ON idxpart1 (a, b);
 
 ALTER INDEX idxpart_a_b_idx ATTACH PARTITION idxpart1_2_a_b;
@@ -331,7 +324,6 @@ DROP TABLE idxpart;
 -- If CREATE INDEX ONLY, don't create indexes on partitions; and existing
 -- indexes on partitions don't change parent.  ALTER INDEX ATTACH can change
 -- the parent after the fact.
-
 CREATE TABLE idxpart (
     a int
 )
@@ -358,7 +350,6 @@ CREATE INDEX ON idxpart (a);
 
 -- Here we expect that idxpart1 and idxpart2 have a new index, but idxpart21
 -- does not; also, idxpart22 is not attached.
-
 \d idxpart1
 \d idxpart2
 \d idxpart21
@@ -403,7 +394,6 @@ DROP TABLE idxpart;
 -- When a table is attached a partition and it already has an index, a
 -- duplicate index should not get created, but rather the index becomes
 -- attached to the parent's index.
-
 CREATE TABLE idxpart (
     a int,
     b int,
@@ -456,7 +446,6 @@ DROP TABLE idxpart;
 -- On the other hand, attaching a valid index marks not only its direct
 -- ancestor valid, but also any indirect ancestor that was only missing the one
 -- that was just made valid
-
 CREATE TABLE idxpart (
     a int,
     b int
@@ -502,7 +491,6 @@ ORDER BY
 
 -- after creating and attaching this, both idxpart1_a_idx and idxpart_a_idx
 -- should become valid
-
 CREATE INDEX ON idxpart11 (a);
 
 ALTER INDEX idxpart1_a_idx ATTACH PARTITION idxpart11_a_idx;
@@ -1182,7 +1170,6 @@ DROP TABLE idxpart;
 -- Constraint-related indexes
 --
 -- Verify that it works to add primary key / unique to partitioned tables
-
 CREATE TABLE idxpart (
     a int PRIMARY KEY,
     b int
@@ -1363,7 +1350,6 @@ DROP TABLE idxpart;
 
 -- Verify that multi-layer partitioning honors the requirement that all
 -- columns in the partition key must appear in primary/unique key
-
 CREATE TABLE idxpart (
     a int,
     b int,
@@ -1431,7 +1417,6 @@ DROP TABLE idxpart;
 -- to drop the corresponding constraint in the children; nor it's possible
 -- to drop the indexes individually.  Dropping the constraint in the parent
 -- gets rid of the lot.
-
 CREATE TABLE idxpart (
     i int
 )
@@ -1509,7 +1494,6 @@ DROP TABLE idxpart;
 
 -- If the partition to be attached already has a primary key, fail if
 -- it doesn't match the parent's PK.
-
 CREATE TABLE idxpart (
     c1 int PRIMARY KEY,
     c2 int,
@@ -1558,7 +1542,6 @@ DROP TABLE idxpart, idxpart1, idxpart11;
 
 -- If a partitioned table has a constraint whose index is not valid,
 -- attaching a missing partition makes it valid.
-
 CREATE TABLE idxpart (
     a int
 )
@@ -1621,7 +1604,6 @@ DROP TABLE idxpart;
 
 -- Related to the above scenario: ADD PRIMARY KEY on the parent mustn't
 -- automatically propagate NOT NULL to child columns.
-
 CREATE TABLE idxpart (
     a int
 )
@@ -1655,7 +1637,6 @@ DROP TABLE idxpart;
 
 -- if a partition has a unique index without a constraint, does not attach
 -- automatically; creates a new index instead.
-
 CREATE TABLE idxpart (
     a int,
     b int
@@ -1848,7 +1829,6 @@ FOR VALUES FROM (1000) TO (2000);
 
 -- More objects intentionally left behind, to verify some pg_dump/pg_upgrade
 -- behavior; see https://postgr.es/m/20190321204928.GA17535@alvherre.pgsql
-
 CREATE SCHEMA regress_indexing;
 
 SET search_path TO regress_indexing;
@@ -1962,7 +1942,6 @@ CREATE UNIQUE INDEX ON covidxpart (b) INCLUDE (a);
 
 -- should fail
 -- check that detaching a partition also detaches the primary key constraint
-
 CREATE TABLE parted_pk_detach_test (
     a int PRIMARY KEY
 )

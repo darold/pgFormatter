@@ -4,13 +4,11 @@
 --
 -- sanity check - if this fails go insane!
 --
-
 SELECT
     1 AS one;
 
 -- ******************testing built-in type bool********************
 -- check bool input syntax
-
 SELECT
     TRUE AS true;
 
@@ -210,7 +208,6 @@ INSERT INTO BOOLTBL2 (f1)
 
 -- This is now an invalid expression
 -- For pre-v6.3 this evaluated to false - thomas 1997-10-23
-
 INSERT INTO BOOLTBL2 (f1)
     VALUES (bool 'XXX');
 
@@ -271,7 +268,6 @@ ORDER BY
 -- Try all combinations to ensure that we get nothing when we expect nothing
 -- - thomas 2000-01-04
 --
-
 SELECT
     '' AS "True",
     f1
@@ -339,7 +335,6 @@ WHERE
 --
 -- Tests for BooleanTest
 --
-
 CREATE TABLE BOOLTBL3 (
     d text,
     b bool,
@@ -371,7 +366,6 @@ ORDER BY
 -- Test to make sure short-circuiting and NULL handling is
 -- correct. Use a table as source to prevent constant simplification
 -- to interfer.
-
 CREATE TABLE booltbl4 (
     isfalse bool,
     istrue bool,
@@ -384,7 +378,6 @@ INSERT INTO booltbl4
 \pset null '(null)'
 -- AND expression need to return null if there's any nulls and not all
 -- of the value are true
-
 SELECT
     istrue
     AND isnul
@@ -429,7 +422,6 @@ FROM
 
 -- OR expression need to return null if there's any nulls and none
 -- of the value is true
-
 SELECT
     isfalse
     OR isnul
@@ -478,7 +470,6 @@ FROM
 --  particularly useful so just get rid of them for now.
 --  - thomas 1997-11-30
 --
-
 DROP TABLE BOOLTBL1;
 
 DROP TABLE BOOLTBL2;

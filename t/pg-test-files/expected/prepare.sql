@@ -1,7 +1,6 @@
 -- Regression tests for prepareable statements. We query the content
 -- of the pg_prepared_statements view as prepared statements are
 -- created and removed.
-
 SELECT
     name,
     statement,

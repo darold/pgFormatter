@@ -320,7 +320,6 @@ WHERE
 --
 -- CREATE INDEX, ALTER INDEX for btrees
 --
-
 CREATE INDEX reloptions_test_idx ON reloptions_test (s) WITH (fillfactor = 30);
 
 SELECT

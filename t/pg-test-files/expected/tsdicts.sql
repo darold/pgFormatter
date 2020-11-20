@@ -1,6 +1,5 @@
 --Test text search dictionaries and configurations
 -- Test ISpell dictionary with ispell affix file
-
 CREATE TEXT SEARCH DICTIONARY ispell (
     TEMPLATE = ispell,
     DictFile = ispell_sample,
@@ -241,7 +240,6 @@ SELECT
 -- Create and simple test thesaurus dictionary
 -- More tests in configuration checks because ts_lexize()
 -- cannot pass more than one word to thesaurus.
-
 CREATE TEXT SEARCH DICTIONARY thesaurus (
     TEMPLATE = thesaurus,
     DictFile = thesaurus_sample,
@@ -341,7 +339,6 @@ SELECT
 
 -- test thesaurus in configuration
 -- see thesaurus_sample.ths to understand 'odd' resulting tsvector
-
 CREATE TEXT SEARCH CONFIGURATION thesaurus_tst (
     COPY = synonym_tst
 );

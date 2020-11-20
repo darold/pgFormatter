@@ -1,10 +1,13 @@
-use Test::Simple tests => 60;
+use Test::Simple tests => 63;
+use File::Temp qw/ tempfile /;
 
-my $ret = `perl -I. -wc pg_format 2>&1`;
+my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
+
+my $ret = `perl -I. -wc $pg_format 2>&1`;
+ok( $? == 0, "$pg_format compiles OK" ) or exit $?;
 
 my @files = `find t/test-files/ -maxdepth 1 -name '*.sql' | sort`;
 chomp(@files);
-my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to 'pg_format' to test installed binary in /usr/bin
 my $exit = 0;
 
 foreach my $f (@files)
@@ -13,12 +16,19 @@ foreach my $f (@files)
 	my $opt = '';
 	$opt = "-S '\$f\$'" if ($f =~ m#/ex19.sql$#);
 	$opt = "-W 4" if ($f =~ m#/ex46.sql$#);
-	$opt = "--comma-break -U 2" if ($f =~ m#/ex57.sql$#);
-	#$opt .= ' -t' if (grep(/^-t/, @ARGV) or $f =~ /float4\.sql/);
 	$opt .= ' -t' if (grep(/^-t/, @ARGV));
 	$opt = "-T -n " if ($f =~ m#/ex51.sql$#);
+	$opt = "-f 2 -u 2 -U 2 " if ($f =~ m#/ex60.sql$#);
+	$opt = "--comma-break -U 2" if ($f =~ m#/ex57.sql$#);
 	$opt = "--keyword-case 2 --function-case 1 --comma-start --wrap-after 1 --wrap-limit 40 --tabs --spaces 4 " if ($f =~ m#/ex58.sql$#);
-	my $cmd = "./pg_format $opt -u 2 $f >/tmp/output.sql";
+	if ($f =~ m#/ex61.sql$#)
+	{
+		my ($fh, $tmpfile) = tempfile('tmp_pgformatXXXX', SUFFIX => '.lst', TMPDIR => 1, O_TEMPORARY => 1, UNLINK => 1 );
+		print $fh "fct1\nMyFunction\n";
+		close($fh);
+		$opt = "--extra-function $tmpfile " if ($f =~ m#/ex61.sql$#);
+	}
+	my $cmd = "$pg_format $opt -u 2 -X $f >/tmp/output.sql";
 	`$cmd`;
 	$f =~ s/test-files\//test-files\/expected\//;
 	if (lc($ARGV[0]) eq 'update') {

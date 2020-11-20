@@ -1,7 +1,6 @@
 --
 -- regproc
 --
-
 /* If objects exist, return oids */
 CREATE ROLE regress_regrole_test;
 
@@ -171,7 +170,6 @@ SELECT
 
 /* If objects don't exist, return NULL with no error. */
 -- without schemaname
-
 SELECT
     to_regoper ('||//');
 

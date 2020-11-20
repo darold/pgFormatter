@@ -8,7 +8,6 @@
 -- there's a maximum number of a,b combinations in the table.
 -- That allows us to test all the different combinations of
 -- lossy and non-lossy pages with the minimum amount of data
-
 CREATE TABLE bmscantest (
     a int,
     b int,
@@ -29,7 +28,6 @@ CREATE INDEX i_bmtest_b ON bmscantest (b);
 
 -- We want to use bitmapscans. With default settings, the planner currently
 -- chooses a bitmap scan for the queries below anyway, but let's make sure.
-
 SET enable_indexscan = FALSE;
 
 SET enable_seqscan = FALSE;

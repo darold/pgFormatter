@@ -2,7 +2,6 @@
 -- HASH_INDEX
 -- grep 843938989 hash.data
 --
-
 SELECT
     *
 FROM
@@ -14,7 +13,6 @@ WHERE
 -- hash index
 -- grep 66766766 hash.data
 --
-
 SELECT
     *
 FROM
@@ -26,7 +24,6 @@ WHERE
 -- hash index
 -- grep 1505703298 hash.data
 --
-
 SELECT
     *
 FROM
@@ -38,7 +35,6 @@ WHERE
 -- hash index
 -- grep 7777777 hash.data
 --
-
 SELECT
     *
 FROM
@@ -50,7 +46,6 @@ WHERE
 -- hash index
 -- grep 1351610853 hash.data
 --
-
 SELECT
     *
 FROM
@@ -62,7 +57,6 @@ WHERE
 -- hash index
 -- grep 111111112222222233333333 hash.data
 --
-
 SELECT
     *
 FROM
@@ -74,7 +68,6 @@ WHERE
 -- hash index
 -- grep 444705537 hash.data
 --
-
 SELECT
     *
 FROM
@@ -86,7 +79,6 @@ WHERE
 -- hash index
 -- grep 88888888 hash.data
 --
-
 SELECT
     *
 FROM
@@ -109,7 +101,6 @@ WHERE
 --
 -- HASH
 --
-
 UPDATE
     hash_i4_heap
 SET
@@ -164,7 +155,6 @@ WHERE
 --
 -- this is the row we just replaced; index scan should return zero rows
 --
-
 SELECT
     h.seqno AS emptyset
 FROM
@@ -242,7 +232,6 @@ WHERE
 --
 -- Cause some overflow insert and splits.
 --
-
 CREATE TABLE hash_split_heap (
     keycol int
 );

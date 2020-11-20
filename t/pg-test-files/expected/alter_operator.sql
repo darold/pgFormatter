@@ -40,7 +40,6 @@ ORDER BY
 --
 -- Reset and set params
 --
-
 ALTER OPERATOR === (boolean, boolean) SET (RESTRICT = NONE);
 
 ALTER OPERATOR === (boolean, boolean) SET (JOIN = NONE);
@@ -140,7 +139,6 @@ ORDER BY
 --
 -- Test invalid options.
 --
-
 ALTER OPERATOR === (boolean, boolean) SET (COMMUTATOR = ====);
 
 ALTER OPERATOR === (boolean, boolean) SET (NEGATOR = ====);
@@ -159,7 +157,6 @@ ALTER OPERATOR & (bit, bit) SET ("Restrict" = _int_contsel, "Join" = _int_contjo
 --
 -- Test permission check. Must be owner to ALTER OPERATOR.
 --
-
 CREATE USER regress_alter_op_user;
 
 SET SESSION AUTHORIZATION regress_alter_op_user;

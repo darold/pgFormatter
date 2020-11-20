@@ -1,7 +1,6 @@
 --
 -- Test inheritance features
 --
-
 CREATE TABLE a (
     aa text
 );
@@ -525,7 +524,6 @@ INSERT INTO z
 
 -- should fail
 -- Check inherited UPDATE with all children excluded
-
 CREATE TABLE some_tab (
     a int,
     b int
@@ -951,7 +949,6 @@ DROP TABLE p1 CASCADE;
 
 -- Tests for casting between the rowtypes of parent and child
 -- tables. See the pgsql-hackers thread beginning Dec. 4/04
-
 CREATE TABLE base (
     i integer
 );
@@ -1712,7 +1709,6 @@ ORDER BY
 --
 -- Test parameterized append plans for inheritance trees
 --
-
 CREATE temp TABLE patest0 (
     id,
     x
@@ -1816,7 +1812,6 @@ DROP TABLE patest0 CASCADE;
 --
 -- Test merge-append plans for inheritance trees
 --
-
 CREATE TABLE matest0 (
     id serial PRIMARY KEY,
     name text
@@ -1953,7 +1948,6 @@ DROP TABLE matest0 CASCADE;
 -- Check that use of an index with an extraneous column doesn't produce
 -- a plan with extraneous sorting
 --
-
 CREATE TABLE matest0 (
     a int,
     b int,
@@ -1995,7 +1989,6 @@ DROP TABLE matest0 CASCADE;
 --
 -- Test merge-append for UNION ALL append relations
 --
-
 SET enable_seqscan = OFF;
 
 SET enable_indexscan = ON;
@@ -2178,7 +2171,6 @@ RESET enable_bitmapscan;
 --
 -- Check handling of a constant-null CHECK constraint
 --
-
 CREATE TABLE cnullparent (
     f1 int
 );
@@ -2216,7 +2208,6 @@ DROP TABLE cnullparent CASCADE;
 --
 -- Check use of temporary tables with inheritance trees
 --
-
 CREATE TABLE inh_perm_parent (
     a1 int
 );
@@ -2275,7 +2266,6 @@ DROP TABLE inh_temp_parent CASCADE;
 -- Check that constraint exclusion works correctly with partitions using
 -- implicit constraints generated from the partition bound information.
 --
-
 CREATE TABLE list_parted (
     a varchar
 )
@@ -2488,7 +2478,6 @@ DROP TABLE range_list_parted;
 
 -- check that constraint exclusion is able to cope with the partition
 -- constraint emitted for multi-column range partitioned tables
-
 CREATE TABLE mcrparted (
     a int,
     b int,
@@ -2604,7 +2593,6 @@ WHERE
 -- scans mcrparted3, mcrparte4, mcrparte5, mcrparted_def
 -- check that partitioned table Appends cope with being referenced in
 -- subplans
-
 CREATE TABLE parted_minmax (
     a int,
     b varchar(16)
@@ -2642,7 +2630,6 @@ DROP TABLE parted_minmax;
 
 -- Test code that uses Append nodes in place of MergeAppend when the
 -- partition ordering matches the desired ordering.
-
 CREATE INDEX mcrparted_a_abs_c_idx ON mcrparted (a, abs(b), c);
 
 -- MergeAppend must be used when a default partition exists
@@ -2662,7 +2649,6 @@ DROP TABLE mcrparted_def;
 
 -- Append is used for a RANGE partitioned table with no default
 -- and no subpartitions
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2690,7 +2676,6 @@ ORDER BY
 
 -- check that Append plan is used containing a MergeAppend for sub-partitions
 -- that are unordered.
-
 DROP TABLE mcrparted5;
 
 CREATE TABLE mcrparted5 PARTITION OF mcrparted
@@ -2721,7 +2706,6 @@ DROP TABLE mcrparted5_def;
 -- check that an Append plan is used and the sub-partitions are flattened
 -- into the main Append when the sub-partition is unordered but contains
 -- just a single sub-partition.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2737,7 +2721,6 @@ ORDER BY
 
 -- check that Append is used when the sub-partitioned tables are pruned
 -- during planning.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2778,7 +2761,6 @@ ORDER BY
 
 -- Ensure a MergeAppend is used when a partition exists with interleaved
 -- datums in the partition bound.
-
 CREATE TABLE mclparted3_5 PARTITION OF mclparted
 FOR VALUES IN (3, 5);
 
@@ -2799,7 +2781,6 @@ DROP TABLE mclparted;
 
 -- Ensure subplans which don't have a path with the correct pathkeys get
 -- sorted correctly.
-
 DROP INDEX mcrparted_a_abs_c_idx;
 
 CREATE INDEX ON mcrparted1 (a, abs(b), c);
@@ -2829,7 +2810,6 @@ SET enable_bitmapscan = 0;
 
 -- Ensure Append node can be used when the partition is ordered by some
 -- pathkeys which were deemed redundant.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2949,7 +2929,6 @@ DROP TABLE bool_rp;
 
 -- Ensure an Append scan is chosen when the partition order is a subset of
 -- the required order.
-
 CREATE TABLE range_parted (
     a int,
     b int,

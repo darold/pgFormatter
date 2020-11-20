@@ -4,7 +4,6 @@
 --
 -- awk '{print $3;}' onek.data | sort -n | uniq
 --
-
 SELECT DISTINCT
     two
 FROM
@@ -15,7 +14,6 @@ ORDER BY
 --
 -- awk '{print $5;}' onek.data | sort -n | uniq
 --
-
 SELECT DISTINCT
     ten
 FROM
@@ -26,7 +24,6 @@ ORDER BY
 --
 -- awk '{print $16;}' onek.data | sort -d | uniq
 --
-
 SELECT DISTINCT
     string4
 FROM
@@ -38,7 +35,6 @@ ORDER BY
 -- awk '{print $3,$16,$5;}' onek.data | sort -d | uniq |
 -- sort +0n -1 +1d -2 +2n -3
 --
-
 SELECT DISTINCT
     two,
     string4,
@@ -55,7 +51,6 @@ ORDER BY
 -- awk 'BEGIN{FS="      ";}{if(NF!=1){print $5;}else{print;}}' - stud_emp.data |
 -- sort -n -r | uniq
 --
-
 SELECT DISTINCT
     p.age
 FROM
@@ -66,7 +61,6 @@ ORDER BY
 --
 -- Check mentioning same column more than once
 --
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -93,7 +87,6 @@ FROM ( SELECT DISTINCT
 -- Also, some tests of IS DISTINCT FROM, which doesn't quite deserve its
 -- very own regression file.
 --
-
 CREATE TEMP TABLE disttable (
     f1 integer
 );

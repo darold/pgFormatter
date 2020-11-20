@@ -218,7 +218,6 @@ DROP ROLE regress_evt_user;
 
 -- cleanup before next test
 -- these are all OK; the second one should emit a NOTICE
-
 DROP EVENT TRIGGER IF EXISTS regress_event_trigger2;
 
 DROP EVENT TRIGGER IF EXISTS regress_event_trigger2;
@@ -301,7 +300,6 @@ CREATE TABLE dropped_objects (
 
 -- This tests errors raised within event triggers; the one in audit_tbls
 -- uses 2nd-level recursive invocation via test_evtrig_dropped_objects().
-
 CREATE OR REPLACE FUNCTION undroppable ()
     RETURNS event_trigger
     LANGUAGE plpgsql
@@ -536,7 +534,6 @@ ROLLBACK;
 
 -- typed tables are rewritten when their type changes.  Don't emit table
 -- name, because firing order is not stable.
-
 CREATE OR REPLACE FUNCTION test_evtrig_no_rewrite ()
     RETURNS event_trigger
     LANGUAGE plpgsql

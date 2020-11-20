@@ -1,6 +1,5 @@
 -- regression test for the uuid datatype
 -- creating test tables
-
 CREATE TABLE guid1 (
     guid_field uuid,
     text_field text DEFAULT (now())
@@ -13,7 +12,6 @@ CREATE TABLE guid2 (
 
 -- inserting invalid data tests
 -- too long
-
 INSERT INTO guid1 (guid_field)
     VALUES ('11111111-1111-1111-1111-111111111111F');
 

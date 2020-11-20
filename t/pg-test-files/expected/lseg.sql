@@ -3,7 +3,6 @@
 -- Line segments
 --
 --DROP TABLE LSEG_TBL;
-
 CREATE TABLE LSEG_TBL (
     s lseg
 );
@@ -36,7 +35,6 @@ INSERT INTO LSEG_TBL
 
 -- NaN
 -- bad values for parser testing
-
 INSERT INTO LSEG_TBL
     VALUES ('(3asdf,2 ,3,4r2)');
 

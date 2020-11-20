@@ -834,7 +834,6 @@ FROM
 
 -- fail
 -- ideally this would be a parse-time error, but for now it must be run-time:
-
 SELECT
     x < y
 FROM
@@ -857,7 +856,6 @@ ORDER BY
 
 -- not so ok
 -- collation mismatch between recursive and non-recursive term
-
 WITH RECURSIVE foo (
     x
 ) AS (
@@ -910,7 +908,6 @@ ORDER BY
 
 -- propagation of collation in SQL functions (inlined and non-inlined cases)
 -- and plpgsql functions too
-
 CREATE FUNCTION mylt (text, text)
     RETURNS boolean
     LANGUAGE sql
@@ -1267,7 +1264,6 @@ DROP TYPE textrange_en_us;
 
 -- nondeterministic collations
 -- (not supported with libc provider)
-
 CREATE COLLATION ctest_det (
     locale = 'en_US.utf8',
     deterministic = TRUE

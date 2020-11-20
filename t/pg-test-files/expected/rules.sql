@@ -6,7 +6,6 @@
 --
 -- Tables and rules for the view test
 --
-
 CREATE TABLE rtest_t1 (
     a int4,
     b int4
@@ -61,7 +60,6 @@ COMMENT ON RULE rtest_v1_del ON rtest_v1 IS NULL;
 -- 	both possible syntaxes to define them (The last action
 --  can but must not have a semicolon at the end).
 --
-
 CREATE TABLE rtest_system (
     sysname text,
     sysdesc text
@@ -123,7 +121,6 @@ CREATE RULE rtest_pers_del AS ON DELETE TO rtest_person
 --
 -- Tables and rules for the logging test
 --
-
 CREATE TABLE rtest_emp (
     ename char(20),
     salary money
@@ -154,7 +151,6 @@ CREATE RULE rtest_emp_del AS ON DELETE TO rtest_emp DO INSERT INTO rtest_emplog 
 -- Tables and rules for the multiple cascaded qualified instead
 -- rule test
 --
-
 CREATE TABLE rtest_t4 (
     a int4,
     b text
@@ -209,7 +205,6 @@ CREATE RULE rtest_t6_ins AS ON INSERT TO rtest_t6 WHERE
 -- As of PG 7.3, the rules should fire in order by name, regardless
 -- of INSTEAD attributes or creation order.
 --
-
 CREATE TABLE rtest_order1 (
     a int4
 );
@@ -240,7 +235,6 @@ CREATE RULE rtest_order_r1 AS ON INSERT TO rtest_order1
 --
 -- Tables and rules for the instead nothing test
 --
-
 CREATE TABLE rtest_nothn1 (
     a int4,
     b text
@@ -290,7 +284,6 @@ CREATE RULE rtest_nothn_r4 AS ON INSERT TO rtest_nothn2
 --
 -- We need test date later
 --
-
 INSERT INTO rtest_t2
     VALUES (1, 21);
 
@@ -544,7 +537,6 @@ FROM
 --
 -- Test for constraint updates/deletes
 --
-
 INSERT INTO rtest_system
     VALUES ('orion', 'Linux Jan Wieck');
 
@@ -572,11 +564,14 @@ INSERT INTO rtest_person
 INSERT INTO rtest_person
     VALUES ('bm', 'Bruce Momjian');
 
-INSERT INTO rtest_admin VALUES ('jw', 'orion');
+INSERT INTO rtest_admin
+    VALUES ('jw', 'orion');
 
-INSERT INTO rtest_admin VALUES ('jw', 'notjw');
+INSERT INTO rtest_admin
+    VALUES ('jw', 'notjw');
 
-INSERT INTO rtest_admin VALUES ('bm', 'neptun');
+INSERT INTO rtest_admin
+    VALUES ('bm', 'neptun');
 
 UPDATE
     rtest_system
@@ -605,7 +600,6 @@ WHERE
 -- Note: use ORDER BY here to ensure consistent output across all systems.
 -- The above UPDATE affects two rows with equal keys, so they could be
 -- updated in either order depending on the whim of the local qsort().
-
 SELECT
     *
 FROM
@@ -630,7 +624,6 @@ FROM
 --
 -- Rule qualification test
 --
-
 INSERT INTO rtest_emp
     VALUES ('wiecc', '5000.00');
 
@@ -749,7 +742,6 @@ ORDER BY
 --
 -- Multiple cascaded qualified instead rule test
 --
-
 INSERT INTO rtest_t4
     VALUES (1, 'Record should go to rtest_t4');
 
@@ -948,7 +940,6 @@ FROM
 --
 -- Check that the ordering of rules fired is correct
 --
-
 INSERT INTO rtest_order1
     VALUES (1);
 
@@ -960,7 +951,6 @@ FROM
 --
 -- Check if instead nothing w/without qualification works
 --
-
 INSERT INTO rtest_nothn1
     VALUES (1, 'want this');
 
@@ -1345,7 +1335,6 @@ DELETE FROM rtest_view4;
 --
 -- Test for computations in views
 --
-
 CREATE TABLE rtest_comp (
     part text,
     unit char(4),
@@ -1415,7 +1404,6 @@ ORDER BY
 -- In addition run the (slightly modified) queries from the
 -- programmers manual section on the rule system.
 --
-
 CREATE TABLE shoe_data (
     shoename char(10), -- primary key
     sh_avail integer, -- available # of pairs
@@ -1555,7 +1543,6 @@ CREATE TABLE shoelace_log (
 -- Want "log_who" to be CURRENT_USER,
 -- but that is non-portable for the regression test
 -- - thomas 1999-02-21
-
 CREATE RULE log_shoelace AS ON UPDATE
     TO shoelace_data WHERE
     NEW.sl_avail != OLD.sl_avail DO INSERT INTO shoelace_log VALUES (NEW.sl_name, NEW.sl_avail, 'Al Bundy', 'epoch');
@@ -1723,7 +1710,6 @@ FROM
 --
 -- Simple test of qualified ON INSERT ... this did not work in 7.0 ...
 --
-
 CREATE TABLE rules_foo (
     f1 int
 );
@@ -1788,7 +1774,6 @@ DROP TABLE rules_foo2;
 -- Test rules containing INSERT ... SELECT, which is a very ugly special
 -- case as of 7.1.  Example is based on bug report from Joel Burton.
 --
-
 CREATE TABLE pparent (
     pid int,
     txt text
@@ -1893,7 +1878,6 @@ DROP TABLE cchild;
 -- Check that ruleutils are working
 --
 -- temporarily disable fancy output, so view changes create less diff noise
-
 a \t
 SELECT
     viewname,
@@ -1922,7 +1906,6 @@ a \t
 --
 -- CREATE OR REPLACE RULE
 --
-
 CREATE TABLE ruletest_tbl (
     a int,
     b int
@@ -1960,7 +1943,6 @@ FROM
 
 -- Check that rewrite rules splitting one INSERT into multiple
 -- conditional statements does not disable FK checking.
-
 CREATE TABLE rule_and_refint_t1 (
     id1a integer,
     id1b integer,
@@ -2067,7 +2049,6 @@ INSERT INTO rule_and_refint_t3
 --
 -- disallow dropping a view's rule (bug #5072)
 --
-
 CREATE VIEW rules_fooview AS
 SELECT
     'rules_foo'::text;
@@ -2079,7 +2060,6 @@ DROP VIEW rules_fooview;
 --
 -- test conversion of table to view (needed to load some pg_dump files)
 --
-
 CREATE TABLE rules_fooview (
     x int,
     y text
@@ -2152,7 +2132,6 @@ SELECT
 --
 -- check for planner problems with complex inherited UPDATES
 --
-
 CREATE TABLE id (
     id serial PRIMARY KEY,
     name text
@@ -2251,7 +2230,6 @@ DROP TABLE id CASCADE;
 -- check corner case where an entirely-dummy subplan is created by
 -- constraint exclusion
 --
-
 CREATE temp TABLE t1 (
     a integer PRIMARY KEY
 );
@@ -2347,7 +2325,6 @@ SELECT
 --
 -- check multi-row VALUES in rules
 --
-
 CREATE TABLE rules_src (
     f1 int,
     f2 int
@@ -2416,7 +2393,6 @@ CREATE RULE r3 AS ON DELETE TO rules_src DO NOTIFY rules_src_deletion;
 --
 -- Ensure an aliased target relation for insert is correctly deparsed.
 --
-
 CREATE RULE r4 AS ON INSERT TO rules_src
     DO INSTEAD
     INSERT INTO rules_log AS trgt
@@ -2437,7 +2413,6 @@ CREATE RULE r5 AS ON UPDATE
 --
 -- check alter rename rule
 --
-
 CREATE TABLE rule_t1 (
     a int
 );
@@ -2466,7 +2441,6 @@ FROM
 --
 -- error conditions for alter rename rule
 --
-
 ALTER RULE InsertRule ON rule_v1 RENAME TO NewInsertRule;
 
 -- doesn't exist
@@ -2483,7 +2457,6 @@ DROP TABLE rule_t1;
 --
 -- check display of VALUES in view definitions
 --
-
 CREATE VIEW rule_v1 AS
 VALUES (1,
     2);
@@ -2519,7 +2492,6 @@ DROP VIEW rule_v1;
 --
 -- Check DO INSTEAD rules with ON CONFLICT
 --
-
 CREATE TABLE hats (
     hat_name char(10) PRIMARY KEY,
     hat_color char(10) -- hat color
@@ -2727,7 +2699,6 @@ DROP TABLE hat_data;
 
 -- test for pg_get_functiondef properly regurgitating SET parameters
 -- Note that the function is kept around to stress pg_dump.
-
 CREATE FUNCTION func_with_set_params ()
     RETURNS integer
     AS 'select 1;'
@@ -2797,7 +2768,6 @@ DROP TABLE rules_parted_table;
 --
 -- Test enabling/disabling
 --
-
 CREATE TABLE ruletest1 (
     a int
 );

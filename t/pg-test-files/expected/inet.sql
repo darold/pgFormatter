@@ -2,7 +2,6 @@
 -- INET
 --
 -- prepare the table...
-
 DROP TABLE INET_TBL;
 
 CREATE TABLE INET_TBL (

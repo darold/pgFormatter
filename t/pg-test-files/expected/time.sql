@@ -1,7 +1,6 @@
 --
 -- TIME
 --
-
 CREATE TABLE TIME_TBL (
     f1 time(2)
 );
@@ -82,7 +81,6 @@ WHERE
 -- Leave in one query to show that it is rejected,
 -- and do the rest of the testing in horology.sql
 -- where we do mixed-type arithmetic. - thomas 2000-12-02
-
 SELECT
     f1 + time '00:01' AS "Illegal"
 FROM

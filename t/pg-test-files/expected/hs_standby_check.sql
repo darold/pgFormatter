@@ -6,7 +6,6 @@
 --
 -- If the query below returns false then all other tests will fail after it.
 --
-
 SELECT
     CASE pg_is_in_recovery()
     WHEN FALSE THEN

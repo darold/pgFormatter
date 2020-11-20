@@ -5,7 +5,6 @@
 -- whose low 32 bits match the standard hash function.  When the salt is
 -- not 0, we should get a different result.
 --
-
 SELECT
     v AS value,
     hashint2(v)::bit(32) AS standard,

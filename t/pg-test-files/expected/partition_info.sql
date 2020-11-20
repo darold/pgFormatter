@@ -1,7 +1,6 @@
 --
 -- Tests for functions providing information about partitions
 --
-
 SELECT
     *
 FROM
@@ -258,7 +257,6 @@ DROP TABLE ptif_normal_table;
 -- Various partitioning-related functions return empty/NULL if passed relations
 -- of types that cannot be part of a partition tree; for example, views,
 -- materialized views, legacy inheritance children or parents, etc.
-
 CREATE VIEW ptif_test_view AS
 SELECT
     1;

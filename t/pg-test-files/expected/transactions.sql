@@ -1,7 +1,6 @@
 --
 -- TRANSACTIONS
 --
-
 BEGIN;
 SELECT
     * INTO TABLE xacttest
@@ -200,7 +199,6 @@ COMMIT;
 
 -- Subtransactions, basic tests
 -- create & drop tables
-
 SET SESSION CHARACTERISTICS AS TRANSACTION READ WRITE;
 
 CREATE TABLE trans_foobar (
@@ -262,7 +260,6 @@ FROM
 
 -- should be empty
 -- inserts
-
 BEGIN;
 INSERT INTO trans_foo
     VALUES (1);
@@ -311,7 +308,6 @@ FROM
 
 -- should have 1
 -- test whole-tree commit
-
 BEGIN;
 SAVEPOINT one;
 SELECT
@@ -543,7 +539,6 @@ SELECT
 
 -- this should work
 -- check non-transactional behavior of cursors
-
 BEGIN;
 DECLARE c CURSOR FOR
     SELECT
@@ -597,7 +592,6 @@ COMMIT;
 -- also check that they don't see commits of concurrent transactions, but
 -- that's a mite hard to do within the limitations of pg_regress.)
 --
-
 SELECT
     *
 FROM
@@ -743,7 +737,6 @@ DROP FUNCTION inverse (int);
 -- verify that cursors created during an aborted subtransaction are
 -- closed, but that we do not rollback the effect of any FETCHs
 -- performed in the aborted subtransaction
-
 BEGIN;
 SAVEPOINT x;
 CREATE TABLE abc (
@@ -795,7 +788,6 @@ abort;
 
 -- Test for proper cleanup after a failure in a cursor portal
 -- that was created in an outer subtransaction
-
 CREATE FUNCTION invert (x float8)
     RETURNS float8
     LANGUAGE plpgsql
@@ -992,7 +984,6 @@ DROP TABLE abc;
 -- when multiple SQL commands are sent in a single Query message.  These
 -- tests rely on the fact that psql will not break SQL commands apart at a
 -- backslash-quoted semicolon, but will send them as one Query.
-
 CREATE temp TABLE i_table (
     f1 int
 );
@@ -1037,7 +1028,6 @@ ROLLBACK;
 
 -- we are not in a transaction at this point
 -- can use regular begin/commit/rollback within a single Query
-
 BEGIN;
 INSERT INTO i_table
     VALUES (3);
@@ -1056,7 +1046,6 @@ ROLLBACK;
 -- we are not in a transaction at this point
 -- begin converts implicit transaction into a regular one that
 -- can extend past the end of the Query
-
 SELECT
     1;
 
@@ -1103,7 +1092,6 @@ ROLLBACK;
 
 -- we are not in a transaction at this point
 -- implicit transaction block is still a transaction block, for e.g. VACUUM
-
 SELECT
     1;
 
@@ -1154,7 +1142,6 @@ COMMIT;
 
 -- Test for successful cleanup of an aborted transaction at session exit.
 -- THIS MUST BE THE LAST TEST IN THIS FILE.
-
 BEGIN;
 SELECT
     1 / 0;

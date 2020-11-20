@@ -2,7 +2,6 @@
 -- UNION (also INTERSECT, EXCEPT)
 --
 -- Simple UNION constructs
-
 SELECT
     1 AS two
 UNION
@@ -160,7 +159,6 @@ ORDER BY
 --
 -- Try testing from tables...
 --
-
 SELECT
     f1 AS five
 FROM
@@ -276,7 +274,6 @@ ORDER BY
 --
 -- INTERSECT and EXCEPT
 --
-
 SELECT
     q2
 FROM
@@ -575,7 +572,6 @@ RESET enable_hashagg;
 --
 -- Mixed types
 --
-
 SELECT
     f1
 FROM
@@ -603,7 +599,6 @@ ORDER BY
 --
 -- Operator precedence and (((((extra))))) parentheses
 --
-
 SELECT
     q1
 FROM
@@ -712,7 +707,6 @@ ORDER BY
 -- Subqueries with ORDER BY & LIMIT clauses
 --
 -- In this syntax, ORDER BY/LIMIT apply to the result of the EXCEPT
-
 SELECT
     q1,
     q2
@@ -761,7 +755,6 @@ ORDER BY
 --
 -- New syntaxes (7.1) permit new tests
 --
-
 (((((
                     SELECT
                         *
@@ -771,7 +764,6 @@ ORDER BY
 --
 -- Check behavior with empty select list (allowed since 9.4)
 --
-
 SELECT
 UNION
 SELECT
@@ -946,7 +938,6 @@ RESET enable_sort;
 -- an undecorated constant will work in all cases, but historically this
 -- usage has worked, so test we don't break it.
 --
-
 SELECT
     a.f1
 FROM (
@@ -976,7 +967,6 @@ SELECT
 -- Test that expression-index constraints can be pushed down through
 -- UNION or UNION ALL
 --
-
 CREATE TEMP TABLE t1 (
     a text,
     b text
@@ -1040,7 +1030,6 @@ WHERE
 -- Test that ORDER BY for UNION ALL can be pushed down to inheritance
 -- children.
 --
-
 CREATE TEMP TABLE t1c (
     b text,
     a text
@@ -1267,7 +1256,6 @@ ORDER BY
 
 -- Test proper handling of parameterized appendrel paths when the
 -- potential join qual is expensive
-
 CREATE FUNCTION expensivefunc (int)
     RETURNS int
     LANGUAGE plpgsql

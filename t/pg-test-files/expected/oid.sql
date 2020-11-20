@@ -1,7 +1,6 @@
 --
 -- OID
 --
-
 CREATE TABLE OID_TBL (
     f1 oid
 );

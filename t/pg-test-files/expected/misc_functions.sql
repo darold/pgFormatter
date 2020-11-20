@@ -1,7 +1,6 @@
 --
 -- num_nulls()
 --
-
 SELECT
     num_nonnulls (NULL);
 
@@ -81,7 +80,6 @@ SELECT
 --
 -- Test adding a support function to a subject function
 --
-
 CREATE FUNCTION my_int_eq (int, int)
     RETURNS bool
     LANGUAGE internal

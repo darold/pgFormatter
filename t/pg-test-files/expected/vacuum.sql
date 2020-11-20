@@ -1,7 +1,6 @@
 --
 -- VACUUM
 --
-
 CREATE TABLE vactst (
     i int
 );
@@ -341,7 +340,6 @@ ANALYZE (nonexistentarg) does_not_exit;
 
 -- ensure argument order independence, and that SKIP_LOCKED on non-existing
 -- relation still errors out.
-
 ANALYZE (SKIP_LOCKED,
     VERBOSE) does_not_exist;
 
@@ -408,7 +406,6 @@ VACUUM (ANALYZE) pg_catalog.pg_authid;
 -- Partitioned table and its partitions, nothing owned by other user.
 -- Relations are not listed in a single command to test ownership
 -- independently.
-
 VACUUM vacowned_parted;
 
 VACUUM vacowned_part1;

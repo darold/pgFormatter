@@ -1,10 +1,114 @@
+August 31 2020 - v4.4
+
+This is a maintenance release to fix issues reported by users since
+the last six months. As usual there is also some improvements and
+new features.
+
+New options and features:
+
+  * Add command line option --extra-function to apply formatting to
+    a user defined list of function like with PG internal functions.
+  * Add --no-rcfile / -X option to avoid loading user configuration
+    file. Thanks to Norbert Buchmueller for the patch.
+  * Add -i | --inplace command line option to override an input file
+    with the resulting formatted content.
+  * Add new command line option -L, --no-extra-line. By default an
+    empty line is added after the end of a statement when it is
+    terminated by a semi-colon except in a plpgsql code block.
+    If the extra empty line at end of the output is useless, you can
+    remove it by adding this option to the command line.
+  * Add option -C, --wrap-comment to enable comment wrapping. Used
+    to wrap comments at the length defined by -w or --wrap-limit
+    whatever is the part of the comment. Indent is not included in
+    the character count.
+  * Add Dockerfile that builds image with pgformatter.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix unwanted extra new line after comment.
+  - Add Dockerfile that builds image with pgformatter. The tool can
+    then be run as
+        cat file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
+    where darold.net/pgformatter is name of the image build using
+        docker build -t darold.net/pgformatter .
+    Thanks to Manish Tomar for the patch.
+  - Add new option --extra-function and associated configuration
+    directive extra-function.  pgFormatter applies some formatting to
+    the PostgreSQL internal functions call but it can not detect user
+    defined function. It is possible to defined a list of functions
+    into a file (one name per line) and give it to pgFormatter through
+    the --extra-function option that will be formatter as PostgreSQL
+    internal functions. Thanks to Sven Klemm for the feature request.
+  - Fix unwanted space inserting inside triple single quotes. Thanks
+    to Caleb Cushing for the report.
+  - Add -i | --inplace command line option to override an input file
+    with the resulting formatted content. Thanks to Francilio Araujo
+    for the feature request.
+  - Fix an other uncaught exception and formatting issue to insert
+    statement. Thanks to allprecisely for the report.
+  - Add new command line option -L, --no-extra-line. By default an
+    empty line is always added after the end of a statement when it
+    is terminated by a ; except in a plpgsql code block. If the extra
+    empty line at end of the output is useless, you can remove it by
+    using this option. Thanks to Wael Nasreddine for the feature
+    request and David Johnston for the patch review.
+  - Fix new uncaught exception with non semi-colon terminated query.
+    Thanks to allprecisely for the report.
+  - Order options list in alphabetic order for usage output.
+  - Use env PG_FORMAT to check that pg_format compiles ok and improve
+    regression test. Thank to Norbert Buchmueller for the patches.
+  - Do not read configuration file if the filename is empty. Thank to
+    Norbert Buchmueller for the patch.
+  - Add support of pg_trgm operators. Thanks to Carlo Hyvonen for the
+    report.
+  - Fix some regexp with or condition.
+  - Add word boundaries when AS statements require a newline. Thanks
+    to Vikrum Nijjar for the patch.
+  - Add possible use of configuration file. Thanks to Duncan Holm for
+    the feature request.
+  - Fix case of time zone data type.
+  - Add new regression test about data type and function case.
+  - Fix upper case of column name with the same name as a data type.
+    Thanks to Jacques Dafflon for the report.
+  - Fix upper case of double precision data type.
+  - Fix upper case when object name is also a built-in function.
+    Thanks to Jacques Dafflon for the report.
+  - Fix special handling of MySQL code delimiter // or $$. Thanks to
+    Clement Aubert for the test cases.
+  - Fix integrity of comments broken with last commits. Thanks to mjfs
+    for the report and tests cases.
+  - Fix special case of DELIMITER followed by a ;. Thanks to Clement
+    Aubert for the report.
+  - Fix newline after a comment inside a function parameters. Thanks
+    to mfs for the report.
+  - Complete previous patch when --comma-start is used.
+  - Change position of a comma when it appears after a comment if
+    option -b | --comma-start is not use.
+  - Fix error related to modification of non-creatable array value.
+    Thanks to John Walsh and Mark Fletcher for the report.
+  - Add hints on using stdin as input to pg_format. Thanks to Vignesh
+    Raja for the suggestion.
+  - Fix several incorrect case conversion for data types. Thanks to
+    Jacques Dafflon for the report.
+  - Fix wrong case of function detection in a CREATE TABLE statement
+    when the name of the table is also the name of a function. Thanks
+    to Jacques Dafflon for the report.
+  - Fix uncaught exception. Thanks to George MacKerron for the report.
+  - Fix connection limit formatting in CREATE ROLE. Thanks to Nathan
+    Cahill for the report.
+  - Fix unwanted code formatting in format() function. Thanks to Ervin
+    Weber for the report.
+  - Fix indentation in identity column GENENERATED BY clause. Thanks
+    to Peter Boromissza for the report.
+
+
 Mars 29 2020 - v4.3
 
 This is a maintenance release to fix issues reported by users since
 the last two months. As usual there is also some improvements and
 more formatting supported.
 
-New option:
+New options:
 
   * Add command line option -r | --redshift to add RedShift specific
     keywords to the list of SQL keywords to format.

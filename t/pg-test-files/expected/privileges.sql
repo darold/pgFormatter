@@ -3,7 +3,6 @@
 --
 -- Clean up in case a prior regression run failed
 -- Suppress NOTICE messages when users/groups don't exist
-
 SET client_min_messages TO 'warning';
 
 DROP ROLE IF EXISTS regress_priv_group1;
@@ -210,7 +209,6 @@ GRANT ALL ON atest1 TO PUBLIC;
 
 -- fail
 -- checks in subquery, both ok
-
 SELECT
     *
 FROM
@@ -351,7 +349,6 @@ FROM
 -- ok
 -- test leaky-function protections in selfuncs
 -- regress_priv_user1 will own a table and provide a view for it.
-
 SET SESSION AUTHORIZATION regress_priv_user1;
 
 CREATE TABLE atest12 AS
@@ -485,7 +482,6 @@ WHERE
 
 -- But not for this, due to lack of table-wide permissions needed
 -- to make use of the expression index's statistics.
-
 EXPLAIN (
     COSTS OFF
 )
@@ -525,7 +521,6 @@ DELETE FROM atest3;
 
 -- ok
 -- views
-
 SET SESSION AUTHORIZATION regress_priv_user3;
 
 CREATE VIEW atestv1 AS
@@ -600,7 +595,6 @@ FROM
 
 -- fail
 -- Appendrels excluded by constraints failed to check permissions in 8.4-9.2.
-
 SELECT
     *
 FROM ((
@@ -684,7 +678,6 @@ FROM
 
 -- fail (even though regress_priv_user2 can access underlying atest2)
 -- Test column level permissions
-
 SET SESSION AUTHORIZATION regress_priv_user1;
 
 CREATE TABLE atest5 (
@@ -848,7 +841,6 @@ FROM
 
 -- ok now
 -- test column-level privileges for INSERT and UPDATE
-
 INSERT INTO atest5 (two)
     VALUES (3);
 
@@ -882,7 +874,6 @@ SET
 -- fail
 -- Check that column level privs are enforced in RETURNING
 -- Ok.
-
 INSERT INTO atest5 (two)
     VALUES (6)
 ON CONFLICT (two)
@@ -909,7 +900,6 @@ ON CONFLICT (two)
 
 -- Check that column level privileges are enforced for EXCLUDED
 -- Ok. we may select one
-
 INSERT INTO atest5 (two)
     VALUES (6)
 ON CONFLICT (two)
@@ -938,7 +928,6 @@ ON CONFLICT (two)
 
 -- fails (due to INSERT)
 -- Check that the columns in the inference require select privileges
-
 INSERT INTO atest5 (four)
     VALUES (4);
 
@@ -1014,7 +1003,6 @@ FROM
 
 -- ok
 -- check error reporting with column privs
-
 SET SESSION AUTHORIZATION regress_priv_user1;
 
 CREATE TABLE t1 (
@@ -1161,7 +1149,6 @@ WHERE two = 2;
 
 -- ok
 -- check inheritance cases
-
 SET SESSION AUTHORIZATION regress_priv_user1;
 
 CREATE TABLE atestp1 (
@@ -1250,7 +1237,6 @@ FROM
 -- ok
 -- privileges on functions, languages
 -- switch to superuser
-
 \c -
 REVOKE ALL PRIVILEGES ON
 LANGUAGE sql
@@ -1413,7 +1399,6 @@ DROP FUNCTION priv_testfunc1 (int);
 
 -- ok
 -- restore to sanity
-
 GRANT ALL PRIVILEGES ON
 LANGUAGE sql
 TO PUBLIC;
@@ -1434,7 +1419,6 @@ ROLLBACK;
 
 -- privileges on types
 -- switch to superuser
-
 \c -
 CREATE TYPE priv_testtype1 AS (
     a int,
@@ -1686,7 +1670,6 @@ DROP DOMAIN priv_testdomain1;
 
 -- ok
 -- truncate
-
 SET SESSION AUTHORIZATION regress_priv_user5;
 
 TRUNCATE atest2;
@@ -1697,7 +1680,6 @@ TRUNCATE atest3;
 -- fail
 -- has_table_privilege function
 -- bad-input checks
-
 SELECT
     has_table_privilege(NULL, 'pg_authid', 'select');
 
@@ -1746,7 +1728,6 @@ FROM (
 
 -- 'rule' privilege no longer exists, but for backwards compatibility
 -- has_table_privilege still recognizes the keyword and says FALSE
-
 SELECT
     has_table_privilege(CURRENT_USER, t1.oid, 'rule')
 FROM (
@@ -2033,7 +2014,6 @@ FROM (
 
 -- has_column_privilege function
 -- bad-input checks (as non-super-user)
-
 SELECT
     has_column_privilege('pg_authid', NULL, 'select');
 
@@ -2126,7 +2106,6 @@ SELECT
 
 -- true
 -- Admin options
-
 SET SESSION AUTHORIZATION regress_priv_user4;
 
 CREATE FUNCTION dogrant_ok ()
@@ -2395,7 +2374,6 @@ SELECT
 
 -- to be denied
 -- don't allow unpriv users to access pg_largeobject contents
-
 \c -
 SELECT
     *
@@ -2413,7 +2391,6 @@ LIMIT 0;
 
 -- to be denied
 -- test default ACLs
-
 \c -
 CREATE SCHEMA testns;
 
@@ -2499,7 +2476,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT USAGE ON SCHEMAS TO regress_priv
 -- the privileges attached to objects created by concurrent regression tests.
 -- To avoid that, be sure to revoke the privileges again before committing.
 --
-
 BEGIN;
 ALTER DEFAULT PRIVILEGES GRANT USAGE ON SCHEMAS TO regress_priv_user2;
 CREATE SCHEMA testns2;

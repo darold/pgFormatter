@@ -2,7 +2,6 @@
 -- grouping sets
 --
 -- test data sources
-
 CREATE temp VIEW gstest1 (a, b, v) AS
 VALUES (1,
     1,
@@ -92,7 +91,6 @@ SET enable_hashagg = FALSE;
 -- test hashing explicitly later
 -- simple rollup with multiple plain aggregates, with and without ordering
 -- (and with ordering differing from grouping)
-
 SELECT
     a,
     b,
@@ -426,7 +424,6 @@ GROUP BY
 
 -- check that distinct grouping columns are kept separate
 -- even if they are equal()
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1539,7 +1536,6 @@ FROM (
 
 -- Rescan logic changes when there are no empty grouping sets, so test
 -- that too:
-
 SELECT
     *
 FROM (
@@ -1657,7 +1653,6 @@ GROUP BY
 -- check collation-sensitive matching between grouping expressions
 -- (similar to a check for aggregates, but there are additional code
 -- paths for GROUPING, so check again here)
-
 SELECT
     v || 'a',
     CASE GROUPING (v || 'a')

@@ -40,7 +40,6 @@ CREATE TRIGGER invalid_trig
 --
 -- Serializable isolation would disable parallel query, so explicitly use an
 -- arbitrary other level.
-
 BEGIN ISOLATION level REPEATABLE read;
 -- encourage use of parallel plans
 SET parallel_setup_cost = 0;
@@ -51,7 +50,6 @@ SET max_parallel_workers_per_gather = 4;
 -- Test write operations that has an underlying query that is eligble
 -- for parallel plans
 --
-
 EXPLAIN (
     COSTS OFF
 ) CREATE TABLE parallel_write AS

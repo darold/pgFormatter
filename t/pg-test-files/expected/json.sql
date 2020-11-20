@@ -30,7 +30,6 @@ SELECT
 -- ERROR, not a valid JSON escape
 -- see json_encoding test for input with unicode escapes
 -- Numbers.
-
 SELECT
     '1'::json;
 
@@ -72,7 +71,6 @@ SELECT
 
 -- ERROR
 -- Arrays.
-
 SELECT
     '[]'::json;
 
@@ -98,7 +96,6 @@ SELECT
 
 -- ERROR, no closing bracket
 -- Objects.
-
 SELECT
     '{}'::json;
 
@@ -140,7 +137,6 @@ SELECT
 
 -- ERROR, no value
 -- Recursion.
-
 SET max_stack_depth = '100kB';
 
 SELECT
@@ -194,7 +190,6 @@ SELECT
 -- ERROR, no value
 --constructors
 -- array_to_json
-
 SELECT
     array_to_json(ARRAY (
             SELECT
@@ -1587,7 +1582,6 @@ SELECT
 
 -- ok
 -- empty objects/arrays
-
 SELECT
     json_build_array();
 
@@ -1650,7 +1644,6 @@ FROM
 
 -- json_object
 -- empty object, one dimension
-
 SELECT
     json_object('{}');
 

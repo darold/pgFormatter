@@ -1,7 +1,6 @@
 --
 -- PORTALS_P2
 --
-
 BEGIN;
 DECLARE foo13 CURSOR FOR
     SELECT

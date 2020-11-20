@@ -1,7 +1,6 @@
 --
 -- Test index AM property-reporting functions
 --
-
 SELECT
     prop,
     pg_indexam_has_property(a.oid, prop) AS "AM",
@@ -76,7 +75,6 @@ ORDER BY
 --
 -- additional checks for pg_index_column_has_property
 --
-
 CREATE TEMP TABLE foo (
     f1 int,
     f2 int,

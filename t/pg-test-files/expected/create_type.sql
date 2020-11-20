@@ -6,7 +6,6 @@
 -- prior shell-type creation.  These commands therefore complete a test
 -- of the "old style" approach of making the functions first.
 --
-
 CREATE TYPE widget (
     internallength = 24,
     input = widget_in,
@@ -37,7 +36,6 @@ DROP TYPE shell;
 
 -- fail, type not exist
 -- also, let's leave one around for purposes of pg_dump testing
-
 CREATE TYPE myshell;
 
 --
@@ -46,7 +44,6 @@ CREATE TYPE myshell;
 -- This part of the test also exercises the "new style" approach of making
 -- a shell type and then filling it in.
 --
-
 CREATE TYPE int42;
 
 CREATE TYPE text_w_default;
@@ -196,7 +193,6 @@ DROP TYPE base_type CASCADE;
 
 -- Check usage of typmod with a user-defined type
 -- (we have borrowed numeric's typmod functions)
-
 CREATE TEMP TABLE mytab (
     foo widget (42, 13, 7)
 );

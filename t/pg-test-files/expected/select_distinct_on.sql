@@ -1,7 +1,6 @@
 --
 -- SELECT_DISTINCT_ON
 --
-
 SELECT DISTINCT ON (string4)
     string4,
     two,

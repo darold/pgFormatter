@@ -6,7 +6,6 @@
 -- row in the linked-to table.  However, if we want to enforce that a link
 -- field can't be 0, we have to check it here.
 -- Find unexpected zero link entries
-
 SELECT
     oid,
     prsname
@@ -512,7 +511,7 @@ SELECT
     to_tsquery('simple', 'qwe & sKies ');
 
 SELECT
-    to_tsquery('english', '' 'the wether'':dc & ''           sKies '':BC ');
+    to_tsquery('english', '''the wether'':dc & ''           sKies '':BC ');
 
 SELECT
     to_tsquery('english', 'asd&(and|fghj)');
@@ -1483,7 +1482,7 @@ SELECT
     websearch_to_tsquery('''');
 
 SELECT
-    websearch_to_tsquery('' 'abc''''def''');
+    websearch_to_tsquery('''abc''''def''');
 
 SELECT
     websearch_to_tsquery('\abc');

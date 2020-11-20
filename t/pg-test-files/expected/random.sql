@@ -3,7 +3,6 @@
 -- Test the random function
 --
 -- count the number of tuples originally, should be 1000
-
 SELECT
     count(*)
 FROM

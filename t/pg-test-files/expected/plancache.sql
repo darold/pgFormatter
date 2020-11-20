@@ -1,7 +1,6 @@
 --
 -- Tests to exercise the plan caching/invalidation mechanism
 --
-
 CREATE TEMP TABLE pcachetest AS
 SELECT
     *
@@ -37,7 +36,6 @@ EXECUTE prepstmt2 (123);
 
 -- recreate the temp table (this demonstrates that the raw plan is
 -- purely textual and doesn't depend on OIDs, for instance)
-
 CREATE TEMP TABLE pcachetest AS
 SELECT
     *
@@ -52,7 +50,6 @@ EXECUTE prepstmt2 (123);
 
 -- prepared statements should prevent change in output tupdesc,
 -- since clients probably aren't expecting that to change on the fly
-
 ALTER TABLE pcachetest
     ADD COLUMN q3 bigint;
 
@@ -70,7 +67,6 @@ EXECUTE prepstmt2 (123);
 
 -- Try it with a view, which isn't directly used in the resulting plan
 -- but should trigger invalidation anyway
-
 CREATE TEMP VIEW pcacheview AS
 SELECT
     *
@@ -230,7 +226,6 @@ EXECUTE p2;
 
 -- Check DDL via SPI, immediately followed by SPI plan re-use
 -- (bug in original coding)
-
 CREATE FUNCTION cachebug ()
     RETURNS void
     AS $$
@@ -267,7 +262,6 @@ SELECT
 
 -- Check that addition or removal of any partition is correctly dealt with by
 -- default partition table when it is being used in prepared statement.
-
 CREATE TABLE pc_list_parted (
     a int
 )
@@ -366,7 +360,6 @@ EXECUTE test_mode_pp (1);
 
 -- 5x
 -- we should now get a really bad plan
-
 EXPLAIN (
     COSTS OFF
 ) EXECUTE test_mode_pp (2);

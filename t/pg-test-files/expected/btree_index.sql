@@ -2,7 +2,6 @@
 -- BTREE_INDEX
 -- test retrieval of min/max keys for each index
 --
-
 SELECT
     b.*
 FROM
@@ -91,7 +90,6 @@ WHERE
 -- Check correct optimization of LIKE (special index operator support)
 -- for both indexscan and bitmapscan cases
 --
-
 SET enable_seqscan TO FALSE;
 
 SET enable_indexscan TO TRUE;
@@ -228,7 +226,6 @@ RESET enable_bitmapscan;
 -- The text column must be the leading column in the index, since suffix
 -- truncation would otherwise truncate tuples on internal pages, leaving us
 -- with a short tree.
-
 CREATE TABLE btree_tall_tbl (
     id int4,
     t text
@@ -250,7 +247,6 @@ FROM
 -- Test vacuum_cleanup_index_scale_factor
 --
 -- Simple create
-
 CREATE TABLE btree_test (
     a int
 );
@@ -286,7 +282,6 @@ WHERE
 --
 -- Test for multilevel page deletion
 --
-
 CREATE TABLE delete_test_table (
     a bigint,
     b bigint,
@@ -308,7 +303,6 @@ ALTER TABLE delete_test_table
 
 -- Delete most entries, and vacuum, deleting internal pages and creating "fast
 -- root"
-
 DELETE FROM delete_test_table
 WHERE a < 79990;
 
@@ -321,7 +315,6 @@ VACUUM delete_test_table;
 --
 -- The vacuum above should've turned the leaf page into a fast root. We just
 -- need to insert some rows to cause the fast root page to split.
-
 INSERT INTO delete_test_table
 SELECT
     i,

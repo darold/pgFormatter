@@ -2,7 +2,6 @@
 -- AGGREGATES
 --
 -- avoid bit-exact output here because operations may not be bit-exact.
-
 SET extra_float_digits = 0;
 
 SELECT
@@ -19,7 +18,6 @@ WHERE
 
 -- In 7.1, avg(float4) is computed using float8 arithmetic.
 -- Round the result to 3 digits to avoid platform-specific results.
-
 SELECT
     avg(b)::numeric(10, 3) AS avg_107_943
 FROM
@@ -112,7 +110,6 @@ FROM
 
 -- population variance is defined for a single tuple, sample variance
 -- is not
-
 SELECT
     var_pop(1.0),
     var_samp(2.0);
@@ -414,7 +411,6 @@ FROM
 
 -- test for outer-level aggregates
 -- this should work
-
 SELECT
     ten,
     sum(DISTINCT four)
@@ -450,7 +446,6 @@ HAVING
 
 -- Test handling of sublinks within outer-level aggregates.
 -- Per bug report from Daniel Grace.
-
 SELECT
     (
         SELECT
@@ -464,7 +459,6 @@ FROM
 
 -- Test handling of Params within aggregate arguments in hashed aggregation.
 -- Per bug report from Jeevan Chalke.
-
 EXPLAIN (
     VERBOSE,
     COSTS OFF
@@ -538,7 +532,6 @@ FROM
 --
 -- test for bitwise integer aggregates
 --
-
 CREATE TEMPORARY TABLE bitwise_test (
     i2 int2,
     i4 int4,
@@ -575,7 +568,6 @@ FROM
 -- test boolean aggregates
 --
 -- first test all possible transition and final states
-
 SELECT
     -- boolean and transitions
     -- null because strict
@@ -653,7 +645,6 @@ FROM
 -- the generic aggregate implementation.
 --
 -- Basic cases
-
 EXPLAIN (
     COSTS OFF
 )
@@ -718,7 +709,6 @@ WHERE
 -- enabled, since that plan will be parallel safe and the "optimized"
 -- plan, which has almost identical cost, will not be.  we want to test
 -- the optimized plan, so temporarily disable parallel query.
-
 BEGIN;
 SET local max_parallel_workers_per_gather = 0;
 EXPLAIN (
@@ -990,7 +980,6 @@ FROM
 --
 -- Test removal of redundant GROUP BY columns
 --
-
 CREATE temp TABLE t1 (
     a int,
     b int,
@@ -1102,7 +1091,6 @@ DROP TABLE t3;
 --
 -- Test combinations of DISTINCT and/or ORDER BY
 --
-
 SELECT
     array_agg(a ORDER BY b)
 FROM (
@@ -1471,7 +1459,6 @@ FROM
 
 -- ok
 -- string_agg bytea tests
-
 CREATE TABLE bytea_test_table (
     v bytea
 );
@@ -1593,7 +1580,6 @@ FROM
 
 -- outer query is aggregation query
 -- subquery in FILTER clause (PostgreSQL extension)
-
 SELECT
     sum(unique1) FILTER (WHERE unique1 IN (
         SELECT
@@ -2087,7 +2073,6 @@ ROLLBACK;
 
 -- test aggregate state sharing to ensure it works if one aggregate has a
 -- finalfn and the other one has none.
-
 BEGIN WORK;
 CREATE OR REPLACE FUNCTION sum_transfn (state int4, n int4)
     RETURNS int4
@@ -2145,7 +2130,6 @@ ROLLBACK;
 -- test that the aggregate transition logic correctly handles
 -- transition / combine functions returning NULL
 -- First test the case of a normal transition function returning NULL
-
 BEGIN;
 CREATE FUNCTION balkifnull (int8, int4)
     RETURNS int8 STRICT
@@ -2173,7 +2157,6 @@ ROLLBACK;
 -- Secondly test the case of a parallel aggregate combiner function
 -- returning NULL. For that use normal transition function, but a
 -- combiner function returning NULL.
-
 BEGIN ISOLATION LEVEL REPEATABLE READ;
 CREATE FUNCTION balkifnull (int8, int8)
     RETURNS int8 PARALLEL SAFE STRICT
@@ -2219,7 +2202,6 @@ SET max_parallel_workers_per_gather = 4;
 SET enable_indexonlyscan = OFF;
 -- variance(int4) covers numeric_poly_combine
 -- sum(int8) covers int8_avg_combine
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2253,7 +2235,6 @@ ORDER BY
 -- Ensure that the STRICT checks for aggregates does not take NULLness
 -- of ORDER BY columns into account. See bug report around
 -- 2a505161-2727-2473-7c46-591ed108ac52@email.cz
-
 SELECT
     min(x ORDER BY y)
 FROM (

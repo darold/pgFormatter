@@ -34,7 +34,6 @@ WHERE
 
 -- ordinal 2, not 1
 -- ordinality vs. column names and types
-
 SELECT
     a,
     b,
@@ -860,7 +859,6 @@ CREATE FUNCTION rngfunc_mat (int, int)
 --invokes ExecReScanFunctionScan - all these cases should materialize the function only once
 -- LEFT JOIN on a condition that the planner can't prove to be true is used to ensure the function
 -- is on the inner path of a nestloop join
-
 SELECT
     setval('rngfunc_rescan_seq1', 1, FALSE),
     setval('rngfunc_rescan_seq2', 1, FALSE);
@@ -1284,7 +1282,6 @@ DROP SEQUENCE rngfunc_rescan_seq2;
 --
 -- Test cases involving OUT parameters
 --
-
 CREATE FUNCTION rngfunc (IN f1 int, out f2 int
 )
 AS 'select $1+1'
@@ -1388,7 +1385,6 @@ DROP FUNCTION rngfuncb (IN f1 int, INOUT f2 int);
 --
 -- For my next trick, polymorphic OUT parameters
 --
-
 CREATE FUNCTION dup (f1 anyelement, f2 out anyelement, f3 out anyarray
 )
 AS 'select $1, array[$1,$1]'
@@ -1437,7 +1433,6 @@ AS 'select $1, array[$1,$1]'
 --
 -- table functions
 --
-
 CREATE OR REPLACE FUNCTION rngfunc ()
     RETURNS TABLE (
         a int
@@ -1503,7 +1498,6 @@ DROP FUNCTION rngfunc ();
 --
 -- some tests on SQL functions with RETURNING
 --
-
 CREATE temp TABLE tt (
     f1 serial,
     data text
@@ -1628,7 +1622,6 @@ FROM
 
 -- note that nextval() gets executed a second time in the rule expansion,
 -- which is expected.
-
 SELECT
     *
 FROM
@@ -1671,7 +1664,6 @@ DROP FUNCTION rngfunc1 (n integer);
 -- test use of SQL functions returning record
 -- this is supported in some cases where the query doesn't specify
 -- the actual record type ...
-
 CREATE FUNCTION array_to_set (anyarray)
     RETURNS SETOF record
     AS $$
@@ -1763,7 +1755,6 @@ DROP FUNCTION testrngfunc ();
 --
 -- Check some cases involving added/dropped columns in a rowtype result
 --
-
 CREATE temp TABLE users (
     userid text,
     seq int,
@@ -1780,8 +1771,7 @@ INSERT INTO users
     VALUES ('id2', 2, 'email2', TRUE, 12, TRUE);
 
 ALTER TABLE users
-    DROP COLUMN
-    todrop;
+    DROP COLUMN todrop;
 
 CREATE OR REPLACE FUNCTION get_first_user ()
     RETURNS users
@@ -1836,7 +1826,6 @@ FROM
 
 -- make sure ordinality copes
 -- multiple functions vs. dropped columns
-
 SELECT
     *
 FROM
@@ -1878,8 +1867,7 @@ FROM
 
 BEGIN;
 ALTER TABLE users
-    DROP COLUMN
-    moredrop;
+    DROP COLUMN moredrop;
 SELECT
     *
 FROM

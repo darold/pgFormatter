@@ -1,7 +1,6 @@
 -- encoding-sensitive tests for json and jsonb
 -- first json
 -- basic unicode input
-
 SELECT
     '"\u"'::json;
 
@@ -23,7 +22,6 @@ SELECT
 
 -- OK, uppercase and lower case both OK
 -- handling of unicode surrogate pairs
-
 SELECT
     json '{ "a":  "\ud83d\ude04\ud83d\udc36" }' -> 'a' AS correct_in_utf8;
 
@@ -44,7 +42,6 @@ SELECT
 
 -- orphan low surrogate
 --handling of simple unicode escapes
-
 SELECT
     json '{ "a":  "the Copyright \u00a9 sign" }' AS correct_in_utf8;
 
@@ -77,7 +74,6 @@ SELECT
 
 -- then jsonb
 -- basic unicode input
-
 SELECT
     '"\u"'::jsonb;
 
@@ -100,13 +96,11 @@ SELECT
 -- ERROR, we don't support U+0000
 -- use octet_length here so we don't get an odd unicode char in the
 -- output
-
 SELECT
     octet_length('"\uaBcD"'::jsonb::text);
 
 -- OK, uppercase and lower case both OK
 -- handling of unicode surrogate pairs
-
 SELECT
     octet_length((jsonb '{ "a":  "\ud83d\ude04\ud83d\udc36" }' -> 'a')::text) AS correct_in_utf8;
 
@@ -127,7 +121,6 @@ SELECT
 
 -- orphan low surrogate
 -- handling of simple unicode escapes
-
 SELECT
     jsonb '{ "a":  "the Copyright \u00a9 sign" }' AS correct_in_utf8;
 

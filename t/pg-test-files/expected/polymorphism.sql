@@ -34,7 +34,6 @@
 -- argument polymorphism, but within the constraints of valid aggregate
 -- functions, i.e. tf arg1 and tf return type must match
 -- polymorphic single arg transfn
-
 CREATE FUNCTION stfp (anyarray)
     RETURNS anyarray
     AS 'select $1'
@@ -103,7 +102,6 @@ CREATE FUNCTION ffnp (int[])
 --     -------
 --     N    N
 -- should CREATE
-
 CREATE AGGREGATE myaggp01a (*) (
     SFUNC = stfnp,
     STYPE = int4[],
@@ -113,7 +111,6 @@ CREATE AGGREGATE myaggp01a (*) (
 
 --     P    N
 -- should ERROR: stfnp(anyarray) not matched by stfnp(int[])
-
 CREATE AGGREGATE myaggp02a (*) (
     SFUNC = stfnp,
     STYPE = anyarray,
@@ -123,7 +120,6 @@ CREATE AGGREGATE myaggp02a (*) (
 
 --     N    P
 -- should CREATE
-
 CREATE AGGREGATE myaggp03a (*) (
     SFUNC = stfp,
     STYPE = int4[],
@@ -139,7 +135,6 @@ CREATE AGGREGATE myaggp03b (*) (
 
 --     P    P
 -- should ERROR: we have no way to resolve S
-
 CREATE AGGREGATE myaggp04a (*) (
     SFUNC = stfp,
     STYPE = anyarray,
@@ -159,7 +154,6 @@ CREATE AGGREGATE myaggp04b (*) (
 --    -----------------------
 --    N    N        N    N
 -- should CREATE
-
 CREATE AGGREGATE myaggp05a (
     BASETYPE = int,
     SFUNC = tfnp,
@@ -170,7 +164,6 @@ CREATE AGGREGATE myaggp05a (
 
 --    N    N        N    P
 -- should CREATE
-
 CREATE AGGREGATE myaggp06a (
     BASETYPE = int,
     SFUNC = tf2p,
@@ -181,7 +174,6 @@ CREATE AGGREGATE myaggp06a (
 
 --    N    N        P    N
 -- should ERROR: tfnp(int[], anyelement) not matched by tfnp(int[], int)
-
 CREATE AGGREGATE myaggp07a (
     BASETYPE = anyelement,
     SFUNC = tfnp,
@@ -192,7 +184,6 @@ CREATE AGGREGATE myaggp07a (
 
 --    N    N        P    P
 -- should CREATE
-
 CREATE AGGREGATE myaggp08a (
     BASETYPE = anyelement,
     SFUNC = tf2p,
@@ -203,7 +194,6 @@ CREATE AGGREGATE myaggp08a (
 
 --    N    P        N    N
 -- should CREATE
-
 CREATE AGGREGATE myaggp09a (
     BASETYPE = int,
     SFUNC = tf1p,
@@ -221,7 +211,6 @@ CREATE AGGREGATE myaggp09b (
 
 --    N    P        N    P
 -- should CREATE
-
 CREATE AGGREGATE myaggp10a (
     BASETYPE = int,
     SFUNC = tfp,
@@ -239,7 +228,6 @@ CREATE AGGREGATE myaggp10b (
 
 --    N    P        P    N
 -- should ERROR: tf1p(int[],anyelement) not matched by tf1p(anyarray,int)
-
 CREATE AGGREGATE myaggp11a (
     BASETYPE = anyelement,
     SFUNC = tf1p,
@@ -257,7 +245,6 @@ CREATE AGGREGATE myaggp11b (
 
 --    N    P        P    P
 -- should ERROR: tfp(int[],anyelement) not matched by tfp(anyarray,anyelement)
-
 CREATE AGGREGATE myaggp12a (
     BASETYPE = anyelement,
     SFUNC = tfp,
@@ -275,7 +262,6 @@ CREATE AGGREGATE myaggp12b (
 
 --    P    N        N    N
 -- should ERROR: tfnp(anyarray, int) not matched by tfnp(int[],int)
-
 CREATE AGGREGATE myaggp13a (
     BASETYPE = int,
     SFUNC = tfnp,
@@ -286,7 +272,6 @@ CREATE AGGREGATE myaggp13a (
 
 --    P    N        N    P
 -- should ERROR: tf2p(anyarray, int) not matched by tf2p(int[],anyelement)
-
 CREATE AGGREGATE myaggp14a (
     BASETYPE = int,
     SFUNC = tf2p,
@@ -297,7 +282,6 @@ CREATE AGGREGATE myaggp14a (
 
 --    P    N        P    N
 -- should ERROR: tfnp(anyarray, anyelement) not matched by tfnp(int[],int)
-
 CREATE AGGREGATE myaggp15a (
     BASETYPE = anyelement,
     SFUNC = tfnp,
@@ -308,7 +292,6 @@ CREATE AGGREGATE myaggp15a (
 
 --    P    N        P    P
 -- should ERROR: tf2p(anyarray, anyelement) not matched by tf2p(int[],anyelement)
-
 CREATE AGGREGATE myaggp16a (
     BASETYPE = anyelement,
     SFUNC = tf2p,
@@ -319,7 +302,6 @@ CREATE AGGREGATE myaggp16a (
 
 --    P    P        N    N
 -- should ERROR: we have no way to resolve S
-
 CREATE AGGREGATE myaggp17a (
     BASETYPE = int,
     SFUNC = tf1p,
@@ -337,7 +319,6 @@ CREATE AGGREGATE myaggp17b (
 
 --    P    P        N    P
 -- should ERROR: tfp(anyarray, int) not matched by tfp(anyarray, anyelement)
-
 CREATE AGGREGATE myaggp18a (
     BASETYPE = int,
     SFUNC = tfp,
@@ -355,7 +336,6 @@ CREATE AGGREGATE myaggp18b (
 
 --    P    P        P    N
 -- should ERROR: tf1p(anyarray, anyelement) not matched by tf1p(anyarray, int)
-
 CREATE AGGREGATE myaggp19a (
     BASETYPE = anyelement,
     SFUNC = tf1p,
@@ -373,7 +353,6 @@ CREATE AGGREGATE myaggp19b (
 
 --    P    P        P    P
 -- should CREATE
-
 CREATE AGGREGATE myaggp20a (
     BASETYPE = anyelement,
     SFUNC = tfp,
@@ -395,7 +374,6 @@ CREATE AGGREGATE myaggp20b (
 --     -------
 --     N    N
 -- should CREATE
-
 CREATE AGGREGATE myaggn01a (*) (
     SFUNC = stfnp,
     STYPE = int4[],
@@ -411,7 +389,6 @@ CREATE AGGREGATE myaggn01b (*) (
 
 --     P    N
 -- should ERROR: stfnp(anyarray) not matched by stfnp(int[])
-
 CREATE AGGREGATE myaggn02a (*) (
     SFUNC = stfnp,
     STYPE = anyarray,
@@ -427,7 +404,6 @@ CREATE AGGREGATE myaggn02b (*) (
 
 --     N    P
 -- should CREATE
-
 CREATE AGGREGATE myaggn03a (*) (
     SFUNC = stfp,
     STYPE = int4[],
@@ -437,7 +413,6 @@ CREATE AGGREGATE myaggn03a (*) (
 
 --     P    P
 -- should ERROR: ffnp(anyarray) not matched by ffnp(int[])
-
 CREATE AGGREGATE myaggn04a (*) (
     SFUNC = stfp,
     STYPE = anyarray,
@@ -451,7 +426,6 @@ CREATE AGGREGATE myaggn04a (*) (
 --    -----------------------
 --    N    N        N    N
 -- should CREATE
-
 CREATE AGGREGATE myaggn05a (
     BASETYPE = int,
     SFUNC = tfnp,
@@ -469,7 +443,6 @@ CREATE AGGREGATE myaggn05b (
 
 --    N    N        N    P
 -- should CREATE
-
 CREATE AGGREGATE myaggn06a (
     BASETYPE = int,
     SFUNC = tf2p,
@@ -487,7 +460,6 @@ CREATE AGGREGATE myaggn06b (
 
 --    N    N        P    N
 -- should ERROR: tfnp(int[], anyelement) not matched by tfnp(int[], int)
-
 CREATE AGGREGATE myaggn07a (
     BASETYPE = anyelement,
     SFUNC = tfnp,
@@ -505,7 +477,6 @@ CREATE AGGREGATE myaggn07b (
 
 --    N    N        P    P
 -- should CREATE
-
 CREATE AGGREGATE myaggn08a (
     BASETYPE = anyelement,
     SFUNC = tf2p,
@@ -523,7 +494,6 @@ CREATE AGGREGATE myaggn08b (
 
 --    N    P        N    N
 -- should CREATE
-
 CREATE AGGREGATE myaggn09a (
     BASETYPE = int,
     SFUNC = tf1p,
@@ -534,7 +504,6 @@ CREATE AGGREGATE myaggn09a (
 
 --    N    P        N    P
 -- should CREATE
-
 CREATE AGGREGATE myaggn10a (
     BASETYPE = int,
     SFUNC = tfp,
@@ -545,7 +514,6 @@ CREATE AGGREGATE myaggn10a (
 
 --    N    P        P    N
 -- should ERROR: tf1p(int[],anyelement) not matched by tf1p(anyarray,int)
-
 CREATE AGGREGATE myaggn11a (
     BASETYPE = anyelement,
     SFUNC = tf1p,
@@ -556,7 +524,6 @@ CREATE AGGREGATE myaggn11a (
 
 --    N    P        P    P
 -- should ERROR: tfp(int[],anyelement) not matched by tfp(anyarray,anyelement)
-
 CREATE AGGREGATE myaggn12a (
     BASETYPE = anyelement,
     SFUNC = tfp,
@@ -567,7 +534,6 @@ CREATE AGGREGATE myaggn12a (
 
 --    P    N        N    N
 -- should ERROR: tfnp(anyarray, int) not matched by tfnp(int[],int)
-
 CREATE AGGREGATE myaggn13a (
     BASETYPE = int,
     SFUNC = tfnp,
@@ -585,7 +551,6 @@ CREATE AGGREGATE myaggn13b (
 
 --    P    N        N    P
 -- should ERROR: tf2p(anyarray, int) not matched by tf2p(int[],anyelement)
-
 CREATE AGGREGATE myaggn14a (
     BASETYPE = int,
     SFUNC = tf2p,
@@ -603,7 +568,6 @@ CREATE AGGREGATE myaggn14b (
 
 --    P    N        P    N
 -- should ERROR: tfnp(anyarray, anyelement) not matched by tfnp(int[],int)
-
 CREATE AGGREGATE myaggn15a (
     BASETYPE = anyelement,
     SFUNC = tfnp,
@@ -621,7 +585,6 @@ CREATE AGGREGATE myaggn15b (
 
 --    P    N        P    P
 -- should ERROR: tf2p(anyarray, anyelement) not matched by tf2p(int[],anyelement)
-
 CREATE AGGREGATE myaggn16a (
     BASETYPE = anyelement,
     SFUNC = tf2p,
@@ -639,7 +602,6 @@ CREATE AGGREGATE myaggn16b (
 
 --    P    P        N    N
 -- should ERROR: ffnp(anyarray) not matched by ffnp(int[])
-
 CREATE AGGREGATE myaggn17a (
     BASETYPE = int,
     SFUNC = tf1p,
@@ -650,7 +612,6 @@ CREATE AGGREGATE myaggn17a (
 
 --    P    P        N    P
 -- should ERROR: tfp(anyarray, int) not matched by tfp(anyarray, anyelement)
-
 CREATE AGGREGATE myaggn18a (
     BASETYPE = int,
     SFUNC = tfp,
@@ -661,7 +622,6 @@ CREATE AGGREGATE myaggn18a (
 
 --    P    P        P    N
 -- should ERROR: tf1p(anyarray, anyelement) not matched by tf1p(anyarray, int)
-
 CREATE AGGREGATE myaggn19a (
     BASETYPE = anyelement,
     SFUNC = tf1p,
@@ -672,7 +632,6 @@ CREATE AGGREGATE myaggn19a (
 
 --    P    P        P    P
 -- should ERROR: ffnp(anyarray) not matched by ffnp(int[])
-
 CREATE AGGREGATE myaggn20a (
     BASETYPE = anyelement,
     SFUNC = tfp,
@@ -980,7 +939,6 @@ LANGUAGE sql;
 
 -- Note this would fail with integer overflow, never mind wrong bleat() output,
 -- if the CASE expression were not successfully inlined
-
 SELECT
     f1,
     sql_if (f1 > 0, bleat (f1), bleat (f1 + 1))
@@ -1100,7 +1058,6 @@ WHERE
 
 -- such functions must protect themselves if varying element type isn't OK
 -- (WHERE clause here is to avoid possibly getting a collation error instead)
-
 SELECT
     max(histogram_bounds)
 FROM
@@ -1134,7 +1091,6 @@ SELECT
 
 -- fail
 -- test with variadic call parameter
-
 SELECT
     myleast (VARIADIC ARRAY[1, 2, 3, 4, - 1]);
 
@@ -1240,7 +1196,6 @@ SELECT
 -- polymorphic input
 -- test functions with default parameters
 -- test basic functionality
-
 CREATE FUNCTION dfunc (a int = 1, int = 2)
     RETURNS int
     AS $$
@@ -1273,7 +1228,6 @@ DROP FUNCTION dfunc (int, int);
 
 -- ok
 -- fail: defaults must be at end of argument list
-
 CREATE FUNCTION dfunc (a int = 1, b int)
     RETURNS int
     AS $$
@@ -1366,7 +1320,6 @@ LANGUAGE sql;
 
 -- Now, dfunc(nargs = 2) and dfunc(nargs = 4) are ambiguous when called
 -- with 0 to 2 arguments.
-
 SELECT
     dfunc ();
 
@@ -1508,7 +1461,6 @@ SELECT
 
 -- fail
 -- but this works since the ambiguous functions aren't preferred anyway
-
 SELECT
     dfunc ('Hi');
 
@@ -1521,7 +1473,6 @@ DROP FUNCTION dfunc (text);
 --
 -- Tests for named- and mixed-notation function calling
 --
-
 CREATE FUNCTION dfunc (a int, b int, c int = 0, d int = 0)
     RETURNS TABLE (
         a int,
@@ -1861,7 +1812,6 @@ SELECT
 
 -- mixed notation
 -- ansi/sql syntax
-
 SELECT
     dfunc (a => 1, b => 2);
 
@@ -1905,7 +1855,6 @@ SELECT
 
 -- mixed notation
 -- this tests lexer edge cases around =>
-
 SELECT
     dfunc (a => - 1);
 

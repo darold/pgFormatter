@@ -3,7 +3,6 @@
 -- Infinite lines
 --
 --DROP TABLE LINE_TBL;
-
 CREATE TABLE LINE_TBL (
     s line
 );

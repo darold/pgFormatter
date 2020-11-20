@@ -1,7 +1,6 @@
 --
 -- Test partitioning planner code
 --
-
 CREATE TABLE lp (
     a char
 )
@@ -1189,7 +1188,6 @@ ORDER BY
 -- pruning for partitioned table appearing inside a sub-query
 --
 -- pruning won't work for mc3p, because some keys are Params
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1211,7 +1209,6 @@ WHERE
 
 -- pruning should work fine, because values for a prefix of keys (a, b) are
 -- available
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1255,7 +1252,6 @@ WHERE
 -- pruning with clauses containing <> operator
 --
 -- doesn't prune range partitions
-
 CREATE TABLE rp (
     a int
 )
@@ -1328,7 +1324,6 @@ WHERE (a <> 'a'
 -- check that it also works for a partitioned table that's not root,
 -- which in this case are partitions of rlp that are themselves
 -- list-partitioned on b
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1346,7 +1341,6 @@ WHERE
 --
 -- different collations for different keys with same expression
 --
-
 CREATE TABLE coll_pruning_multi (
     a text
 )
@@ -1398,7 +1392,6 @@ WHERE
 --
 -- LIKE operators don't prune
 --
-
 CREATE TABLE like_op_noprune (
     a text
 )
@@ -1423,7 +1416,6 @@ WHERE
 --
 -- tests wherein clause value requires a cross-type comparison function
 --
-
 CREATE TABLE lparted_by_int2 (
     a smallint
 )
@@ -1490,7 +1482,6 @@ DROP TABLE lp, coll_pruning, rlp, mc3p, mc2p, boolpart, rp, coll_pruning_multi, 
 -- result on different matchines.  See the definitions of
 -- part_part_test_int4_ops and part_test_text_ops in insert.sql.
 --
-
 CREATE TABLE hp (
     a int,
     b text
@@ -1611,7 +1602,6 @@ WHERE
 
 -- pruning should work if either a value or a IS NULL clause is provided for
 -- each of the keys
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1697,7 +1687,6 @@ DROP TABLE hp;
 --
 -- Test runtime partition pruning
 --
-
 CREATE TABLE ab (
     a int NOT NULL,
     b int NOT NULL
@@ -1746,7 +1735,6 @@ FOR VALUES IN (3);
 -- Disallow index only scans as concurrent transactions may stop visibility
 -- bits being set causing "Heap Fetches" to be unstable in the EXPLAIN ANALYZE
 -- output.
-
 SET enable_indexonlyscan = OFF;
 
 PREPARE ab_q1 (int, int, int) AS
@@ -1761,7 +1749,6 @@ WHERE
 
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
-
 EXECUTE ab_q1 (1, 8, 3);
 
 EXECUTE ab_q1 (1, 8, 3);
@@ -1801,7 +1788,6 @@ WHERE
 
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
-
 EXECUTE ab_q1 (1, 8);
 
 EXECUTE ab_q1 (1, 8);
@@ -1828,7 +1814,6 @@ EXPLAIN (
 
 -- Ensure a mix of PARAM_EXTERN and PARAM_EXEC Params work together at
 -- different levels of partitioning.
-
 PREPARE ab_q2 (int, int) AS
 SELECT
     a
@@ -1913,7 +1898,6 @@ SELECT
 BEGIN;
 -- Don't select an actual value out of the table as the order of the Append's
 -- subnodes may not be stable.
-
 DECLARE cur SCROLL CURSOR FOR
     SELECT
         1
@@ -1994,7 +1978,6 @@ DROP TABLE list_part;
 -- Suppress the number of loops each parallel node runs for.  This is because
 -- more than one worker may run the same parallel node if timing conditions
 -- are just right, which destabilizes the test.
-
 CREATE FUNCTION explain_parallel_append (text)
     RETURNS SETOF text
     LANGUAGE plpgsql
@@ -2033,7 +2016,6 @@ SET max_parallel_workers_per_gather = 2;
 
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
-
 EXECUTE ab_q4 (1, 8);
 
 EXECUTE ab_q4 (1, 8);
@@ -2059,7 +2041,6 @@ WHERE
 
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
-
 EXECUTE ab_q5 (1, 2, 3);
 
 EXECUTE ab_q5 (1, 2, 3);
@@ -2078,7 +2059,6 @@ SELECT
 
 -- Try some params whose values do not belong to any partition.
 -- We'll still get a single subplan in this case, but it should not be scanned.
-
 SELECT
     explain_parallel_append ('execute ab_q5 (33, 44, 55)');
 
@@ -2131,7 +2111,6 @@ SELECT
 
 -- Ensure the same partitions are pruned when we make the nested loop
 -- parameter an Expr rather than a plain Param.
-
 SELECT
     explain_parallel_append ('select avg(ab.a) from ab inner join lprt_a a on ab.a = a.a + 0 where a.a in(0, 0, 1)');
 
@@ -2614,7 +2593,6 @@ WHERE
 
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
-
 EXECUTE part_abc_q1 (1, 2, 3);
 
 EXECUTE part_abc_q1 (1, 2, 3);
@@ -2639,7 +2617,6 @@ DROP TABLE part_abc;
 
 -- Ensure that an Append node properly handles a sub-partitioned table
 -- matching without any of its leaf partitions matching the clause.
-
 CREATE TABLE listp (
     a int,
     b int
@@ -2670,7 +2647,6 @@ WHERE
 -- Ensure that an Append node properly can handle selection of all first level
 -- partitions before finally detecting the correct set of 2nd level partitions
 -- which match the given parameter.
-
 PREPARE q1 (int,
     int) AS
 SELECT
@@ -2713,7 +2689,6 @@ EXPLAIN (
 
 -- Try with no matching partitions. One subplan should remain in this case,
 -- but it shouldn't be executed.
-
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
@@ -2776,7 +2751,6 @@ EXPLAIN (
 
 -- Both partitions allowed by IN clause, then both excluded again by <> clauses.
 -- One subplan will remain in this case, but it should not be executed.
-
 EXPLAIN (
     ANALYZE,
     COSTS OFF,
@@ -2867,7 +2841,6 @@ DROP TABLE boolp;
 --
 -- Test run-time pruning of MergeAppend subnodes
 --
-
 SET enable_seqscan = OFF;
 
 SET enable_sort = OFF;
@@ -2911,7 +2884,6 @@ ORDER BY
 
 -- Execute query 5 times to allow choose_custom_plan
 -- to start considering a generic plan.
-
 EXECUTE mt_q1 (0);
 
 EXECUTE mt_q1 (0);
@@ -2985,7 +2957,6 @@ RESET enable_indexonlyscan;
 -- pseudotype
 --
 -- array type list partition key
-
 CREATE TABLE pp_arrpart (
     a int[]
 )
@@ -3218,7 +3189,6 @@ DROP TABLE pp_intrangepart;
 --
 -- Ensure the enable_partition_prune GUC properly disables partition pruning.
 --
-
 CREATE TABLE pp_lp (
     a int,
     value int
@@ -3366,7 +3336,6 @@ WHERE a = 1;
 
 -- Ensure we don't exclude normal relations when we only expect to exclude
 -- inheritance children
-
 EXPLAIN (
     COSTS OFF
 ) UPDATE
@@ -3559,7 +3528,6 @@ DROP TABLE p, q;
 
 -- Ensure run-time pruning works correctly when we match a partitioned table
 -- on the first level but find no matching partitions on the second level.
-
 CREATE TABLE listp (
     a int,
     b int
@@ -3597,7 +3565,6 @@ WHERE
 -- constraint_exclusion = on
 --
 -- turn off partition pruning, so that it doesn't interfere
-
 SET enable_partition_pruning TO OFF;
 
 -- setting constraint_exclusion to 'partition' disables exclusion

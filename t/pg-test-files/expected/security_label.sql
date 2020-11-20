@@ -2,7 +2,6 @@
 -- Test for facilities of security label
 --
 -- initial setups
-
 SET client_min_messages TO 'warning';
 
 DROP ROLE IF EXISTS regress_seclabel_user1;

@@ -399,7 +399,6 @@ SELECT
 
 -- false with ICU
 -- The following actually exercises the selectivity estimation for ~*.
-
 SELECT
     relname
 FROM
@@ -416,7 +415,6 @@ SELECT to_char(date '2010-04-01', 'DD TMMON YYYY');
 SELECT to_char(date '2010-04-01', 'DD TMMON YYYY' COLLATE "tr-x-icu");
  */
 -- backwards parsing
-
 CREATE VIEW collview1 AS
 SELECT
     *
@@ -829,7 +827,6 @@ FROM
 
 -- fail
 -- ideally this would be a parse-time error, but for now it must be run-time:
-
 SELECT
     x < y
 FROM
@@ -852,7 +849,6 @@ ORDER BY
 
 -- not so ok
 -- collation mismatch between recursive and non-recursive term
-
 WITH RECURSIVE foo (
     x
 ) AS (
@@ -905,7 +901,6 @@ ORDER BY
 
 -- propagation of collation in SQL functions (inlined and non-inlined cases)
 -- and plpgsql functions too
-
 CREATE FUNCTION mylt (text, text)
     RETURNS boolean
     LANGUAGE sql
@@ -1251,7 +1246,6 @@ DROP TYPE textrange_en_us;
 
 -- test ICU collation customization
 -- test the attributes handled by icu_set_collation_attributes()
-
 CREATE COLLATION testcoll_ignore_accents (
     provider = icu,
     locale = '@colStrength=primary;colCaseLevel=yes'
@@ -1309,7 +1303,6 @@ CREATE COLLATION testcoll_error1 (
 
 -- test that attributes not handled by icu_set_collation_attributes()
 -- (handled by ucol_open() directly) also work
-
 CREATE COLLATION testcoll_de_phonebook (
     provider = icu,
     locale = 'de@collation=phonebook'
@@ -1924,7 +1917,6 @@ SELECT
 -- This tests the issue described in match_pattern_prefix().  In the
 -- absence of that check, the case_insensitive tests below would
 -- return no rows where they should logically return one.
-
 CREATE TABLE test4c (
     x text COLLATE "C"
 );
@@ -1974,7 +1966,6 @@ RESET enable_seqscan;
 -- A naive implementation like citext that just does lower(x) =
 -- lower(y) will do the wrong thing here, because lower('Σ') is 'σ'
 -- but upper('ς') is 'Σ'.
-
 SELECT
     'ὀδυσσεύς' = 'ὈΔΥΣΣΕΎΣ' COLLATE case_sensitive;
 
@@ -2097,7 +2088,6 @@ WHERE
 
 -- foreign keys (should use collation of primary key)
 -- PK is case-sensitive, FK is case-insensitive
-
 CREATE TABLE test10pk (
     x text COLLATE case_sensitive PRIMARY KEY
 );

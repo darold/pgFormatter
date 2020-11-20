@@ -1,7 +1,6 @@
 --
 -- SELECT_INTO
 --
-
 SELECT
     * INTO TABLE sitmp1
 FROM
@@ -23,7 +22,6 @@ DROP TABLE sitmp1;
 --
 -- SELECT INTO and INSERT permission, if owner is not allowed to insert.
 --
-
 CREATE SCHEMA selinto_schema;
 
 CREATE USER regress_selinto_user;
@@ -221,7 +219,6 @@ DROP TABLE ctas_nodata_4;
 -- CREATE TABLE AS/SELECT INTO as last command in a SQL function
 -- have been known to cause problems
 --
-
 CREATE FUNCTION make_table ()
     RETURNS VOID
     AS $$
@@ -244,7 +241,6 @@ FROM
 
 -- Try EXPLAIN ANALYZE SELECT INTO and EXPLAIN ANALYZE CREATE TABLE AS
 -- WITH NO DATA, but hide the outputs since they won't be stable.
-
 DO $$
 BEGIN
     EXECUTE 'EXPLAIN ANALYZE SELECT * INTO TABLE easi FROM int8_tbl';
@@ -259,7 +255,6 @@ DROP TABLE easi, easi2;
 --
 -- Disallowed uses of SELECT ... INTO.  All should fail
 --
-
 DECLARE
     foo CURSOR FOR
         SELECT

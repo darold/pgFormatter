@@ -32,6 +32,8 @@ Options:
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -B | --comma-break    : in insert statement, add a newline after each comma.
+    -c | --config FILE    : use a configuration file. Default is to not use
+                            configuration file or ~/.pg_format if it exists.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -42,12 +44,14 @@ Options:
     -g | --nogrouping     : add a newline between statements in transaction
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
+    -i | --inplace        : override input file with formatted content.
+    -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
     -n | --nocomment      : remove any comment from SQL code.
     -N | --numbering      : statement numbering as a comment before each query.
     -o | --output file    : define the filename for the output. Default: stdout.
-    -p | --placeholder re : set regex to find code that must not be changed.
+    -p | --placeholder RE : set regex to find code that must not be changed.
     -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
@@ -64,6 +68,10 @@ Options:
     -w | --wrap-limit N   : wrap queries at a certain length.
     -W | --wrap-after N   : number of column after which lists must be wrapped.
                             Default: puts every item on its own line.
+    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
+                            --config / -c option overrides it.
+    --extra-function FILE : file containing a list of function to use the same
+                            formatting as PostgreSQL internal function.
 
 Examples:
 
@@ -95,7 +103,6 @@ or
 
 following your distribution.
 
-
 =head1 INSTALLATION
 
 Download the tarball from github and unpack the archive as follow:
@@ -122,6 +129,14 @@ By default INSTALLDIRS is set to site.
 Regression tests can be executed with the following command:
 
 	make test
+
+If you have docker installed you can build a pgFormatter image using:
+
+	docker build -t darold.net/pgformatter .
+
+then just use it as 
+
+	echo file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
 
 
 =head1 SPECIAL FORMATTING
@@ -192,7 +207,39 @@ transaction:
 
 This might add readability to not DML transactions.
 
+=head2 Option -L, --no-extra-line
+
+By default pgFormatter always adds an empty line after the end of a
+statement when it is terminated by a ; except in a plpgsql code block.
+If the extra empty line at end of the output is useless, you can remove
+it by adding this option to the command line.
+
+=head2 Option --extra-function
+
+pgFormatter applies some formatting to the PostgreSQL internal functions call
+but it can not detect user defined function. It is possible to defined a list
+of functions into a file (one function name per line) and give it to pgFormatter
+through the --extra-function option that will be formatter as PostgreSQL
+internal functions.
+
 =head1 HINTS
+
+=head2 Configuration
+
+If the default settings of pg_format doesn't fit all your needs you can
+customize the behavior of pg_format by using a configuration file instead
+of repeating the command line option. By default pgFormatter look for file
+~/.pg_format but you can choose an alternate configuration file using command
+line option -c | --config
+
+To customize the CGI pg_format.cgi look for a configuration file named
+pg_format.conf in the same directory as the CGI script.
+
+For a sample configuration file see doc/pg_format.conf.sample
+
+To prevent pg_format to look at ~/.pg_format file you can use the command
+line option -X | --no-rcfile
+
 
 =head2 Formatting from stdin
 

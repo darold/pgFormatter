@@ -3,7 +3,6 @@
 --
 -- There are other tests to test different GiST opclasses. This is for
 -- testing GiST code itself. Vacuuming in particular.
-
 CREATE TABLE gist_point_tbl (
     id int4,
     p point
@@ -60,7 +59,6 @@ REINDEX INDEX gist_pointidx;
 --
 -- Test Index-only plans on GiST indexes
 --
-
 CREATE TABLE gist_tbl (
     b box,
     p point,
@@ -215,7 +213,6 @@ DROP INDEX gist_tbl_box_index;
 
 -- Test that an index-only scan is not chosen, when the query involves the
 -- circle column (the circle opclass does not support index-only scans).
-
 CREATE INDEX gist_tbl_multi_index ON gist_tbl USING gist (p, c);
 
 EXPLAIN (

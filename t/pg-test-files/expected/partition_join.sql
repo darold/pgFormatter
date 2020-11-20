@@ -3,13 +3,11 @@
 -- Test partitionwise join between partitioned tables
 --
 -- Enable partitionwise join, which by default is disabled.
-
 SET enable_partitionwise_join TO TRUE;
 
 --
 -- partitioned by a single column
 --
-
 CREATE TABLE prt1 (
     a int,
     b int,
@@ -536,7 +534,6 @@ ORDER BY
 --
 -- partitioned by expression
 --
-
 CREATE TABLE prt1_e (
     a int,
     b int,
@@ -629,7 +626,6 @@ ORDER BY
 --
 -- N-way join
 --
-
 EXPLAIN (
     COSTS OFF
 )
@@ -747,7 +743,6 @@ ORDER BY
 
 -- Cases with non-nullable expressions in subquery results;
 -- make sure these go to null as expected
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1009,7 +1004,6 @@ ORDER BY
 
 -- MergeAppend on nullable column
 -- This should generate a partitionwise join, but currently fails to
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1061,7 +1055,6 @@ ORDER BY
 
 -- merge join when expression with whole-row reference needs to be sorted;
 -- partitionwise join does not apply
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1096,7 +1089,6 @@ RESET enable_nestloop;
 --
 -- partitioned by multiple columns
 --
-
 CREATE TABLE prt1_m (
     a int,
     b int,
@@ -1203,7 +1195,6 @@ ORDER BY
 --
 -- tests for list partitioned tables.
 --
-
 CREATE TABLE plt1 (
     a int,
     b int,
@@ -1259,7 +1250,6 @@ ANALYZE plt2;
 --
 -- list partitioned by expression
 --
-
 CREATE TABLE plt1_e (
     a int,
     b int,
@@ -1420,7 +1410,6 @@ ORDER BY
 --
 -- tests for hash partitioned tables.
 --
-
 CREATE TABLE pht1 (
     a int,
     b int,
@@ -1476,7 +1465,6 @@ ANALYZE pht2;
 --
 -- hash partitioned by expression
 --
-
 CREATE TABLE pht1_e (
     a int,
     b int,
@@ -1622,7 +1610,6 @@ ORDER BY
 --
 -- multiple levels of partitioning
 --
-
 CREATE TABLE prt1_l (
     a int,
     b int,
@@ -1928,7 +1915,6 @@ FROM (
 -- The weird-looking lateral join is just there to force creation of a
 -- nestloop parameter within the subquery, which exposes the problem if the
 -- planner fails to make multiple copies of the subquery as appropriate.
-
 EXPLAIN (
     COSTS OFF
 ) DELETE FROM prt1_l
@@ -1949,7 +1935,6 @@ WHERE EXISTS (
 --
 -- negative testcases
 --
-
 CREATE TABLE prt1_n (
     a int,
     b int,
@@ -2081,7 +2066,6 @@ WHERE
 
 -- partitionwise join can not be applied if there are no equi-join conditions
 -- between partition keys
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2096,7 +2080,6 @@ FROM
 
 -- equi-join with join condition on partial keys does not qualify for
 -- partitionwise join
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2113,7 +2096,6 @@ WHERE
 
 -- equi-join between out-of-order partition key columns does not qualify for
 -- partitionwise join
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2141,7 +2123,6 @@ FROM
 
 -- partitionwise join can not be applied between tables with different
 -- partition lists
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2169,7 +2150,6 @@ FROM
 
 -- partitionwise join can not be applied for a join between list and range
 -- partitioned table
-
 EXPLAIN (
     COSTS OFF
 )
@@ -2184,7 +2164,6 @@ FROM
 
 -- partitionwise join can not be applied if only one of joining table has
 -- default partition
-
 ALTER TABLE prt2 DETACH PARTITION prt2_p3;
 
 ALTER TABLE prt2 ATTACH PARTITION prt2_p3

@@ -248,7 +248,6 @@ SELECT
 
 -- ok, no change expected
 -- Tests for brin_desummarize_range
-
 SELECT
     brin_desummarize_range ('brinidx', - 1);
 

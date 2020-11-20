@@ -3,7 +3,6 @@
 -- all inputs are silently truncated at NAMEDATALEN-1 (63) characters
 --
 -- fixed-length by reference
-
 SELECT
     name 'name string' = name 'name string' AS "True";
 
@@ -13,7 +12,6 @@ SELECT
 --
 --
 --
-
 CREATE TABLE NAME_TBL (
     f1 name
 );
@@ -150,7 +148,6 @@ SELECT
 
 -- ok
 -- should fail
-
 SELECT
     parse_ident(' ');
 

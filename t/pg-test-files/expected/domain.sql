@@ -2,7 +2,6 @@
 -- Test domains.
 --
 -- Test Comment / Drop
-
 CREATE DOMAIN domaindroptest int4;
 
 COMMENT ON DOMAIN domaindroptest IS 'About to drop this..';
@@ -20,7 +19,6 @@ DROP DOMAIN domaindroptest CASCADE;
 -- Test domain input.
 -- Note: the point of checking both INSERT and COPY FROM is that INSERT
 -- exercises CoerceToDomain while COPY exercises domain_in.
-
 CREATE DOMAIN domainvarchar varchar(5);
 
 CREATE DOMAIN domainnumeric numeric(8, 2);
@@ -678,7 +676,6 @@ FROM
 
 -- fail
 -- cleanup
-
 DROP TABLE nulltest;
 
 DROP DOMAIN dnotnull RESTRICT;
@@ -721,7 +718,6 @@ ALTER TABLE defaulttest
 
 INSERT INTO defaulttest DEFAULT VALUES; -- succeeds, inserts domain default
 -- We used to treat SET DEFAULT NULL as equivalent to DROP DEFAULT; wrong
-
 ALTER TABLE defaulttest
     ALTER COLUMN col5 SET DEFAULT NULL;
 
@@ -1018,7 +1014,6 @@ DROP DOMAIN vchar4 CASCADE;
 -- Make sure that constraints of newly-added domain columns are
 -- enforced correctly, even if there's no default value for the new
 -- column. Per bug #1433
-
 CREATE DOMAIN str_domain AS text NOT NULL;
 
 CREATE TABLE domain_test (
@@ -1045,7 +1040,6 @@ ALTER TABLE domain_test
 
 -- Check that domain constraints on prepared statement parameters of
 -- unknown type are enforced correctly.
-
 CREATE DOMAIN pos_int AS int4 CHECK (value > 0)
 NOT NULL;
 
@@ -1063,7 +1057,6 @@ EXECUTE s1 (NULL);
 -- should fail
 -- Check that domain constraints on plpgsql function parameters, results,
 -- and local variables are enforced correctly.
-
 CREATE FUNCTION doubledecrement (p1 pos_int)
     RETURNS pos_int
     AS $$
@@ -1127,7 +1120,6 @@ SELECT
 
 -- good
 -- Check that ALTER DOMAIN tests columns of derived types
-
 CREATE DOMAIN posint AS int4;
 
 -- Currently, this doesn't work for composite types, but verify it complains
@@ -1250,7 +1242,6 @@ DROP DOMAIN posint CASCADE;
 --
 -- Check enforcement of domain-related typmod in plpgsql (bug #5717)
 --
-
 CREATE OR REPLACE FUNCTION array_elem_check (numeric)
     RETURNS numeric
     AS $$
@@ -1314,7 +1305,6 @@ DROP FUNCTION array_elem_check (numeric);
 --
 -- Check enforcement of array-level domain constraints
 --
-
 CREATE DOMAIN orderedpair AS int[2] CHECK (value[1] < value[2]);
 
 SELECT
@@ -1374,7 +1364,6 @@ DROP FUNCTION array_elem_check (int);
 --
 -- Check enforcement of changing constraints in plpgsql
 --
-
 CREATE DOMAIN di AS int;
 
 CREATE FUNCTION dom_check (int)
@@ -1444,7 +1433,6 @@ DROP DOMAIN di;
 -- Check use of a (non-inline-able) SQL function in a domain constraint;
 -- this has caused issues in the past
 --
-
 CREATE FUNCTION sql_is_distinct_from (anyelement, anyelement)
     RETURNS boolean
     LANGUAGE sql
@@ -1481,7 +1469,6 @@ DROP FUNCTION sql_is_distinct_from (anyelement, anyelement);
 --
 -- Renaming
 --
-
 CREATE DOMAIN testdomain1 AS int;
 
 ALTER DOMAIN testdomain1 RENAME TO testdomain2;
@@ -1494,7 +1481,6 @@ DROP DOMAIN testdomain3;
 --
 -- Renaming domain constraints
 --
-
 CREATE DOMAIN testdomain1 AS int CONSTRAINT unsigned CHECK (value > 0);
 
 ALTER DOMAIN testdomain1 RENAME CONSTRAINT unsigned TO unsigned_foo;
