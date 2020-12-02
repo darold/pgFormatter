@@ -770,7 +770,7 @@ CREATE FUNCTION trigtest ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice '% % % %', TG_RELNAME, TG_OP, TG_WHEN, TG_LEVEL;
+    RAISE notice '% % % %', TG_TABLE_NAME, TG_OP, TG_WHEN, TG_LEVEL;
     RETURN new;
 END;
 $$
@@ -864,7 +864,6 @@ BEGIN
     RAISE NOTICE 'TG_LEVEL: %', TG_level;
     RAISE NOTICE 'TG_OP: %', TG_op;
     RAISE NOTICE 'TG_RELID::regclass: %', relid;
-    RAISE NOTICE 'TG_RELNAME: %', TG_relname;
     RAISE NOTICE 'TG_TABLE_NAME: %', TG_table_name;
     RAISE NOTICE 'TG_TABLE_SCHEMA: %', TG_table_schema;
     RAISE NOTICE 'TG_NARGS: %', TG_nargs;
@@ -1117,7 +1116,7 @@ BEGIN
         END IF;
         argstr := argstr || TG_argv[i];
     END LOOP;
-    RAISE notice '% % % % (%)', TG_RELNAME, TG_WHEN, TG_OP, TG_LEVEL, argstr;
+    RAISE notice '% % % % (%)', TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL, argstr;
     IF TG_LEVEL = 'ROW' THEN
         IF TG_OP = 'INSERT' THEN
             RAISE NOTICE 'NEW: %', NEW;
