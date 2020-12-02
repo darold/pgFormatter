@@ -497,7 +497,9 @@ sub tokenize_sql
 		|
 		(?:\*=|\*<>|\*<=|\*>=|\*<|\*>) # composite type comparison operators
 		|
-		(?:<>|<=>|>=|<=|=>|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
+		(?:\d+e[\+\-]\d+) # signed exponents
+		|
+		(?:<>|<=>|>=|<=|=>|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|\-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
 		|
 		[\[\]\(\),;.]            # punctuation (parenthesis, comma)
 		|
