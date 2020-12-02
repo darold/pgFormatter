@@ -495,7 +495,17 @@ qq{<textarea name="original_content" id="originalcontent" style="display: none;"
     </td></tr>
     <tr><td>
     <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.com</a> </div>
-    </td></tr></table>
+    </td></tr>
+};
+
+    # Add external file with html code at bottom of the page
+    # used to display ads or anything else below the text area
+    my $ad_content = $self->_load_optional_file( $self->{ 'bottom_ad_file' } );
+    $ad_content ||= '<br/>';
+
+    print qq{
+    <tr><td>$ad_content</td></tr>
+    </table>
     </td></tr></table> </form>
 };
 
@@ -511,14 +521,7 @@ Outputs footer of the page
 sub print_footer {
     my $self = shift;
 
-    # Add external file with html code at bottom of the page
-    # used to display ads or anything else below the text area
-    my $ad_content = $self->_load_optional_file( $self->{ 'bottom_ad_file' } );
-    $ad_content ||= '<br/>';
-
-    print $ad_content;
-    print
-    qq{<p>&nbsp;</p>};
+    print qq{<p>&nbsp;</p>};
     print " </div> </body> </html>\n";
     return;
 }
