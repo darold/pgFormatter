@@ -109,7 +109,7 @@ sub set_config {
     $self->{ 'show_example' } = 0;
     $self->{ 'project_url' }  = 'https://github.com/darold/pgFormatter';
     $self->{ 'service_url' }  = '';
-    $self->{ 'download_url' } = 'http://sourceforge.net/projects/pgformatter/';
+    $self->{ 'download_url' } = 'https://github.com/darold/pgFormatter/releases';
 
     if (-f $self->{ 'config' })
     {
