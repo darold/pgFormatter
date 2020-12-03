@@ -505,6 +505,12 @@ sub tokenize_sql
 		|
 		\"\"(?!\"")             # empty double quoted string
 		|
+		"[^\"\s\(\)=<>!~\*&:\|\-\+\%\^\?\@\#\[\]\{\}\.,;']+"\.[^\"\s\(\)=<>!~\*&:\|\-\+\%\^\?\@\#\[\]\{\}\.,;']+ # fqdn identifier form "schema".table or "table".column
+		|
+		[^\"\s=<>!~\*&\(\):\|\-\+\%\^\?\@\#\[\]\{\}\.,;']+\."[^\"\s=<>!~\*&\(\):\|\-\+\%\^\?\@\#\[\]\{\}\.,;']+" # fqdn identifier form schema."table" or table."column"
+		|
+		"[^\"\s=<>!~\*&\(\):\|\-\+\%\^\?\@\#\[\]\{\}\.,;']+"\."[^\"\s=<>!~\*&\(\):\|\-\+\%\^\?\@\#\[\]\{\}\.,;']+" # fqdn identifier form "schema"."table" or "table"."column"
+		|
 		"(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
 		|
 		`(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
