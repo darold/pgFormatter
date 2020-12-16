@@ -1766,7 +1766,8 @@ sub beautify
 		# cover FOR in cursor and in policy or publication statements
 		$self->_over($token,$last) if (uc($self->_next_token) eq 'SELECT' || $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' });
             }
-            if ($self->{ 'format_type' } && $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' }) {
+	    #if ($self->{ 'format_type' } && $self->{ '_is_in_policy' } || $self->{ '_is_in_publication' }) {
+            if ($self->{ '_is_in_policy' } || ($self->{ 'format_type' } && $self->{ '_is_in_publication' })) {
 		$self->_new_line($token,$last);
 	    }
             $self->_add_token( $token );
@@ -1852,7 +1853,7 @@ sub beautify
                 $last = $self->_set_last($token, $last);
 		next;
             }
-	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' }  and !$self->{ '_is_in_statistics' }
+	    elsif ($token !~ /^FROM$/i or (!$self->{ '_is_in_function' } and !$self->{ '_is_in_statistics' }
 				    and $self->{ '_current_sql_stmt' } !~ /(DELETE|REVOKE)/))
 	    {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
@@ -1952,7 +1953,15 @@ sub beautify
             }
 	    else
 	    {
+		if ($self->{ '_is_in_policy' } > 1) {
+			$self->_new_line($token,$last);
+		}
                 $self->_add_token( $token );
+		if ($self->{ '_is_in_policy' } > 1) {
+		    $self->_new_line($token,$last);
+                    $self->_over($token,$last);
+		}
+		$self->{ '_is_in_policy' }++ if ($self->{ '_is_in_policy' });
             }
         }
 
@@ -2300,12 +2309,13 @@ sub beautify
             }
         }
 
-        elsif ($token =~ /^USING$/i and (!$self->{ '_is_in_policy' } || $self->{ 'format_type' }))
+        elsif (($token =~ /^USING$/i or (uc($token) eq 'WITH' and uc($self->_next_token()) eq 'CHECK' and $self->{ '_is_in_policy' }))
+			and (!$self->{ '_is_in_policy' } || $self->{ 'format_type' }))
 	{
 	    $self->{ '_is_in_using' } = 1;
             if (!$self->{ '_is_in_from' })
 	    {
-		$self->_over($token,$last) if ($self->{ '_is_in_operator' });
+		$self->_over($token,$last) if ($self->{ '_is_in_operator' } || ($self->{ '_is_in_policy' } == 1 && $self->{ 'format_type' }));
                 $self->_new_line($token,$last) if (uc($last) ne 'EXCLUDE' and !$self->{ '_is_in_index' } and !$self->{ '_is_in_function' });
             }
 	    else
