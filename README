@@ -324,8 +324,8 @@ HINTS
     will not format the bit-shift like operators.
     
     If you would like to wrap queries after 60 characters (-w 60) and to 
-    apply that limit to comments as well (-C), then the url may get 
-    wrapped. If you would prefer not to wrap url, you can use a regular
+    apply that limit to comments as well (-C), then urls in comments may get 
+    wrapped. If you would prefer not to wrap urls, you can use a regular
     expression like the one found at https://stackoverflow.com/a/3809435/
     to avoid wrapping urls.  For example:
 
