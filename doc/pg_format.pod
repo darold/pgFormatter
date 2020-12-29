@@ -337,6 +337,15 @@ instruct pgFormatter to keep some part of the query untouched. For example:
 	pg_format samples/ex9.sql -p '<<(?:.*)?>>'
 
 will not format the bit-shift like operators.
+    
+If you would like to wrap queries after 60 characters (-w 60) and to 
+apply that limit to comments as well (-C), then urls in comments may get 
+wrapped. If you would prefer not to wrap urls, you can use a regular
+expression to avoid wrapping urls.  For example:
+
+	pg_format samples/ex62.sql -C -w 60 -p 'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
+
+will wrap the queries and the comments, but not the urls.
 
 =head2 Prevent dynamic code formatting
 
