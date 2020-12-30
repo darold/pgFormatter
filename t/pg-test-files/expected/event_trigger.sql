@@ -113,7 +113,7 @@ CREATE TABLE event_trigger_fire1 (
     a int
 );
 
-ALTER EVENT TRIGGER regress_event_trigger enable;
+ALTER EVENT TRIGGER regress_event_trigger ENABLE;
 
 SET session_replication_role = REPLICA;
 
@@ -122,14 +122,14 @@ CREATE TABLE event_trigger_fire2 (
     a int
 );
 
-ALTER EVENT TRIGGER regress_event_trigger enable REPLICA;
+ALTER EVENT TRIGGER regress_event_trigger ENABLE REPLICA;
 
 -- fires only _trigger
 CREATE TABLE event_trigger_fire3 (
     a int
 );
 
-ALTER EVENT TRIGGER regress_event_trigger enable always;
+ALTER EVENT TRIGGER regress_event_trigger ENABLE ALWAYS;
 
 -- fires only _trigger
 CREATE TABLE event_trigger_fire4 (

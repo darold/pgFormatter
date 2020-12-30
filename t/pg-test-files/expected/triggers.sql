@@ -792,16 +792,16 @@ CREATE TRIGGER trigtest_a_stmt_tg
     AFTER INSERT OR UPDATE OR DELETE ON trigtest FOR EACH statement
     EXECUTE PROCEDURE trigtest ();
 
-INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest disable TRIGGER trigtest_b_row_tg;
+INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest DISABLE TRIGGER trigtest_b_row_tg;
 
-INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest disable TRIGGER USER;
+INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest DISABLE TRIGGER USER;
 
-INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest enable TRIGGER trigtest_a_stmt_tg;
+INSERT INTO trigtest DEFAULT VALUES; ALTER TABLE trigtest ENABLE TRIGGER trigtest_a_stmt_tg;
 
 INSERT INTO trigtest DEFAULT VALUES; SET session_replication_role = REPLICA;
 
 INSERT INTO trigtest DEFAULT VALUES; -- does not trigger
-ALTER TABLE trigtest enable always TRIGGER trigtest_a_stmt_tg;
+ALTER TABLE trigtest ENABLE ALWAYS TRIGGER trigtest_a_stmt_tg;
 
 INSERT INTO trigtest DEFAULT VALUES; -- now it does
 RESET session_replication_role;
@@ -820,7 +820,7 @@ SELECT
 FROM
     trigtest2;
 
-ALTER TABLE trigtest disable TRIGGER ALL;
+ALTER TABLE trigtest DISABLE TRIGGER ALL;
 
 DELETE FROM trigtest
 WHERE i = 1;
@@ -2611,12 +2611,12 @@ SET
 DELETE FROM parted_stmt_trig;
 
 -- Disabling a trigger in the parent table should disable children triggers too
-ALTER TABLE parted_stmt_trig disable TRIGGER trig_ins_after_parent;
+ALTER TABLE parted_stmt_trig DISABLE TRIGGER trig_ins_after_parent;
 
 INSERT INTO parted_stmt_trig
     VALUES (1);
 
-ALTER TABLE parted_stmt_trig enable TRIGGER trig_ins_after_parent;
+ALTER TABLE parted_stmt_trig ENABLE TRIGGER trig_ins_after_parent;
 
 INSERT INTO parted_stmt_trig
     VALUES (1);
