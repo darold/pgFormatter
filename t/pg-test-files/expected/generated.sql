@@ -59,7 +59,8 @@ CREATE TABLE gtest_err_2a (
 
 CREATE TABLE gtest_err_2b (
     a int PRIMARY KEY,
-    b int GENERATED ALWAYS AS (a * 2) STORED, c int GENERATED ALWAYS AS (b * 3) STORED
+    b int GENERATED ALWAYS AS (a * 2) STORED,
+    c int GENERATED ALWAYS AS (b * 3) STORED
 );
 
 -- invalid reference
@@ -609,7 +610,8 @@ INSERT INTO gtest22a
 
 CREATE TABLE gtest22b (
     a int,
-    b int GENERATED ALWAYS AS (a / 2) STORED, PRIMARY KEY (a, b)
+    b int GENERATED ALWAYS AS (a / 2) STORED,
+    PRIMARY KEY (a, b)
 );
 
 INSERT INTO gtest22b
@@ -738,7 +740,8 @@ DROP TABLE gtest23a;
 
 CREATE TABLE gtest23p (
     x int,
-    y int GENERATED ALWAYS AS (x * 2) STORED, PRIMARY KEY (y)
+    y int GENERATED ALWAYS AS (x * 2) STORED,
+    PRIMARY KEY (y)
 );
 
 INSERT INTO gtest23p

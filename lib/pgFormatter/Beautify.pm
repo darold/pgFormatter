@@ -710,6 +710,7 @@ sub beautify
     $self->{ 'stmt_number' } = 1;
     $self->{ '_is_subquery' } = 0;
     $self->{ '_mysql_delimiter' } = '';
+    $self->{ '_is_in_generated' } = 0;
 
     my $last = '';
     $self->tokenize_sql();
@@ -866,7 +867,7 @@ sub beautify
 		    $last = $self->_set_last($token, $last);
 		    next;
 	    }
-
+	    $self->{ '_is_in_generated' } = 0 if ($self->{ '_is_in_create' } and $self->{ '_parenthesis_level' } == 1);
             $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
 	    if (defined $self->_next_token and $self->_next_token !~ /^(AS|WITH|,)$/i
 			    and (!$self->_is_comment($self->_next_token) or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }[1] ne ','))
@@ -1099,12 +1100,13 @@ sub beautify
         if ($token =~ /^(string_agg|group_concat|array_agg|percentile_cont)$/i) {
             $self->{ '_has_order_by' } = 1;
         } elsif ( $token =~ /^(?:GENERATED)$/i and $self->_next_token =~ /^(ALWAYS|BY)$/i ) {
-            $self->{ 'no_break' } = 1;
+	    $self->{ '_is_in_generated' } = 1;
         } elsif ( $token =~ /^(?:TRUNCATE)$/i ) {
             $self->{ 'no_break' } = 1;
         } elsif ( uc($token) eq 'IDENTITY' ) {
             $self->{ '_has_order_by' } = 0;
             $self->{ 'no_break' } = 0;
+	    $self->{ '_is_in_generated' } = 0;
         } elsif ( $self->{ '_has_order_by' } and uc($token) eq 'ORDER' and $self->_next_token =~ /^BY$/i) {
 	    $self->_add_token( $token, $last );
             $last = $self->_set_last($token, $last);
@@ -1395,7 +1397,7 @@ sub beautify
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
 		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_trigger' }
 		    && !$self->{ '_is_in_policy' } && !$self->{ '_is_in_aggregate' }
-		    && !$self->{ 'no_break' }
+		    && !$self->{ 'no_break' } && !$self->{ '_is_in_generated' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE')
 		{
@@ -1508,6 +1510,7 @@ sub beautify
 
                 if (!$self->{ '_is_in_grouping' } and !$self->{ '_is_in_trigger' }
 				and !$self->{ 'no_break' }
+				and !$self->{ '_is_in_generated' }
 				and $self->{ '_is_in_create' } <= 2
 				and $self->_next_token !~ /^LOOP$/i
 			)
@@ -1581,6 +1584,7 @@ sub beautify
 		    $self->_back($token, $last);
 	    }
             $add_newline = 1 if ( !$self->{ 'no_break' }
+		               && !$self->{ '_is_in_generated' }
                                && !$self->{ '_is_in_function' }
 			       && !$self->{ '_is_in_distinct' }
 			       && !$self->{ '_is_in_array' }
@@ -1648,6 +1652,7 @@ sub beautify
 
             # Initialize most of statement related variables
             $self->{ 'no_break' } = 0;
+	    $self->{ '_is_in_generated' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_join' } = 0;
@@ -2321,7 +2326,6 @@ sub beautify
 	    else
 	    {
                 # USING from join clause disable line break
-		#$self->{ 'no_break' } = 1;
                 $self->{ '_is_in_function' }++;
             }
             $self->_add_token($token);
