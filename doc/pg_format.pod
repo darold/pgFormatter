@@ -48,6 +48,7 @@ Options:
     -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
+    -M | --multiline      : enable multi-line search for -p or --placeholder.
     -n | --nocomment      : remove any comment from SQL code.
     -N | --numbering      : statement numbering as a comment before each query.
     -o | --output file    : define the filename for the output. Default: stdout.

@@ -98,6 +98,8 @@ Takes options as hash. Following options are recognized:
 
 =item * keywords - list (arrayref) of strings that are keywords
 
+=item * multiline - use multi-line search for placeholder regex, see placeholder.
+
 =item * no_comments - if set to true comments will be removed from query
 
 =item * no_grouping - if set to true statements will not be grouped in a transaction, an extra newline character will be added between statements like outside a transaction.
@@ -162,7 +164,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -297,9 +299,21 @@ sub query
 
     # Store values of code that must not be changed following the given placeholder
     if ($self->{ 'placeholder' }) {
-        while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/) {
-            push(@{ $self->{ 'placeholder_values' } }, $1);
-            $i++;
+	if (!$self->{ 'multiline' }) 
+	{
+		while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/)
+		{
+		    push(@{ $self->{ 'placeholder_values' } }, $1);
+		    $i++;
+	       }
+       }
+       else
+       {
+		while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/s)
+		{
+		    push(@{ $self->{ 'placeholder_values' } }, $1);
+		    $i++;
+	       }
        }
     }
 
@@ -3308,6 +3322,8 @@ Currently defined defaults:
 
 =item placeholder => ''
 
+=item multiline => 0
+
 =item separator => ''
 
 =item comma => 'end'
@@ -3348,6 +3364,7 @@ sub set_defaults
     $self->{ 'no_comments' }  = 0;
     $self->{ 'no_grouping' }  = 0;
     $self->{ 'placeholder' }  = '';
+    $self->{ 'multiline' }    = 0;
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
     $self->{ 'types' }        = $self->{ 'dict' }->{ 'pg_types' };
     $self->{ 'functions' }    = ();
