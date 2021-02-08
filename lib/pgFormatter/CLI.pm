@@ -90,6 +90,7 @@ sub beautify {
     $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
     $args{ 'uc_types' }     = $self->{ 'cfg' }->{ 'type-case' };
     $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
+    $args{ 'multiline' }    = $self->{ 'cfg' }->{ 'multiline' };
     $args{ 'separator' }    = $self->{ 'cfg' }->{ 'separator' };
     $args{ 'comma' }        = $self->{ 'cfg' }->{ 'comma' };
     $args{ 'comma_break' }  = $self->{ 'cfg' }->{ 'comma-break' };
@@ -230,6 +231,7 @@ Options:
     -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
+    -M | --multiline      : enable multi-line search for -p or --placeholder.
     -n | --nocomment      : remove any comment from SQL code.
     -N | --numbering      : statement numbering as a comment before each query.
     -o | --output file    : define the filename for the output. Default: stdout.
@@ -317,6 +319,7 @@ sub get_command_line_args
         'function-case|f=i',
         'no-extra-line|L!',
         'maxlength|m=i',
+        'multiline|M!',
         'nocomment|n!',
         'numbering|N!',
         'output|o=s',
@@ -345,7 +348,7 @@ sub get_command_line_args
     }
 
     if ( !$cfg{ 'no-rcfile' } ) {
-        $cfg{ 'config' } //= "$ENV{HOME}/.pg_format";
+        $cfg{ 'config' } //= (exists  $ENV{HOME}) ? "$ENV{HOME}/.pg_format" : ".pg_format";
     }
 
     if ( defined $cfg{ 'config' } && -f $cfg{ 'config' } )

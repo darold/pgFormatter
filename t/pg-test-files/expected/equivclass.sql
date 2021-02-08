@@ -526,7 +526,7 @@ SET enable_nestloop = ON;
 
 SET enable_mergejoin = OFF;
 
-ALTER TABLE ec1 enable ROW level SECURITY;
+ALTER TABLE ec1 ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY p1 ON ec1
     USING (f1 < '5'::int8alias1);

@@ -48,6 +48,9 @@ output=
 # Set regex to find code that must not be changed.
 placeholder=
 
+# Use multi-line search for placeholder regex
+multiline=0
+
 # Add RedShift keyworks to the list of SQL keyworks.
 redshift=0
 

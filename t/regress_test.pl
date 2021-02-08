@@ -19,6 +19,7 @@ foreach my $f (@files)
 	$opt = "-T -n " if ($f =~ m#/ex51.sql$#);
 	$opt = "-f 2 -u 2 -U 2 " if ($f =~ m#/ex60.sql$#);
 	$opt = "--comma-break -U 2" if ($f =~ m#/ex57.sql$#);
+	$opt = "-w 60 -C -p 'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'" if ($f =~ m#/ex62.sql$#);
 	$opt = "--keyword-case 2 --function-case 1 --comma-start --wrap-after 1 --wrap-limit 40 --tabs --spaces 4 " if ($f =~ m#/ex58.sql$#);
 	if ($f =~ m#/ex61.sql$#)
 	{

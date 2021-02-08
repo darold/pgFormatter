@@ -323,6 +323,15 @@ HINTS
 
     will not format the bit-shift like operators.
 
+    If you would like to wrap queries after 60 characters (-w 60) and to
+    apply that limit to comments as well (-C), then urls in comments may get
+    wrapped. If you would prefer not to wrap urls, you can use a regular
+    expression to avoid wrapping urls. For example:
+
+            pg_format samples/ex62.sql -C -w 60 -p 'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
+
+    will wrap the queries and the comments, but not the urls.
+
   Prevent dynamic code formatting
     By default pgFormatter takes all code between single quote as string
     constant and do not perform any formatting on this code. It is common to

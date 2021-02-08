@@ -98,6 +98,8 @@ Takes options as hash. Following options are recognized:
 
 =item * keywords - list (arrayref) of strings that are keywords
 
+=item * multiline - use multi-line search for placeholder regex, see placeholder.
+
 =item * no_comments - if set to true comments will be removed from query
 
 =item * no_grouping - if set to true statements will not be grouped in a transaction, an extra newline character will be added between statements like outside a transaction.
@@ -162,7 +164,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -344,12 +346,22 @@ sub query
     $self->{ 'query' } = join('', @temp_content);
 
     # Store values of code that must not be changed following the given placeholder
-    if ($self->{ 'placeholder' })
-    {
-        while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/)
+    if ($self->{ 'placeholder' }) {
+	if (!$self->{ 'multiline' }) 
 	{
-            push(@{ $self->{ 'placeholder_values' } }, $1);
-            $i++;
+		while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/)
+		{
+		    push(@{ $self->{ 'placeholder_values' } }, $1);
+		    $i++;
+	       }
+       }
+       else
+       {
+		while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/s)
+		{
+		    push(@{ $self->{ 'placeholder_values' } }, $1);
+		    $i++;
+	       }
        }
     }
 
@@ -776,6 +788,8 @@ sub beautify
     $self->{ 'stmt_number' } = 1;
     $self->{ '_is_subquery' } = 0;
     $self->{ '_mysql_delimiter' } = '';
+    $self->{ '_is_in_generated' } = 0;
+
     @{ $self->{ '_begin_level' } } = ();
 
     my $last = '';
@@ -935,7 +949,9 @@ sub beautify
 		    $last = $self->_set_last($token, $last);
 		    next;
 	    }
-            $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' } and !$self->{ '_is_in_policy' });
+	    $self->{ '_is_in_generated' } = 0 if ($self->{ '_is_in_create' } and $self->{ '_parenthesis_level' } == 1);
+            $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
+	    #$self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' } and !$self->{ '_is_in_policy' });
 	    if (defined $self->_next_token and $self->_next_token !~ /^(AS|WITH|,)$/i
 			    and (!$self->_is_comment($self->_next_token) or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }[1] ne ','))
 			    and !$self->{ '_parenthesis_with_level' })
@@ -1179,12 +1195,13 @@ sub beautify
         if ($token =~ /^(string_agg|group_concat|array_agg|percentile_cont)$/i) {
             $self->{ '_has_order_by' } = 1;
         } elsif ( $token =~ /^(?:GENERATED)$/i and $self->_next_token =~ /^(ALWAYS|BY)$/i ) {
-            $self->{ 'no_break' } = 1;
+	    $self->{ '_is_in_generated' } = 1;
         } elsif ( $token =~ /^(?:TRUNCATE)$/i ) {
             $self->{ 'no_break' } = 1;
         } elsif ( uc($token) eq 'IDENTITY' ) {
             $self->{ '_has_order_by' } = 0;
             $self->{ 'no_break' } = 0;
+	    $self->{ '_is_in_generated' } = 0;
         } elsif ( $self->{ '_has_order_by' } and uc($token) eq 'ORDER' and $self->_next_token =~ /^BY$/i) {
 	    $self->_add_token( $token, $last );
             $last = $self->_set_last($token, $last);
@@ -1490,7 +1507,7 @@ sub beautify
 		    && !$self->{ '_is_in_grouping' } && !$self->{ '_is_in_partition' }
 		    && !$self->{ '_is_in_over' } && !$self->{ '_is_in_trigger' }
 		    && !$self->{ '_is_in_policy' } && !$self->{ '_is_in_aggregate' }
-		    && !$self->{ 'no_break' }
+		    && !$self->{ 'no_break' } && !$self->{ '_is_in_generated' }
 	    ) {
                 if (uc($last) eq 'AS' || $self->{ '_is_in_create' } == 2 || uc($self->_next_token) eq 'CASE')
 		{
@@ -1603,6 +1620,7 @@ sub beautify
 
                 if (!$self->{ '_is_in_grouping' } and !$self->{ '_is_in_trigger' }
 				and !$self->{ 'no_break' }
+				and !$self->{ '_is_in_generated' }
 				and $self->{ '_is_in_create' } <= 2
 				and $self->_next_token !~ /^LOOP$/i
 			)
@@ -1678,6 +1696,7 @@ sub beautify
 		    $self->_back($token, $last);
 	    }
             $add_newline = 1 if ( !$self->{ 'no_break' }
+		               && !$self->{ '_is_in_generated' }
                                && !$self->{ '_is_in_function' }
 			       && !$self->{ '_is_in_distinct' }
 			       && !$self->{ '_is_in_array' }
@@ -1746,6 +1765,7 @@ sub beautify
 
             # Initialize most of statement related variables
             $self->{ 'no_break' } = 0;
+	    $self->{ '_is_in_generated' } = 0;
             $self->{ '_is_in_where' } = 0;
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_join' } = 0;
@@ -3023,15 +3043,17 @@ sub _is_keyword
     # Fix some false positive
     if (defined $next_token)
     {
+        return 0 if (uc($token) eq 'LEVEL' and uc($next_token) ne 'SECURITY');
         return 0 if (uc($token) eq 'EVENT' and uc($next_token) ne 'TRIGGER');
-        return 0 if (uc($token) eq 'NOTICE' and uc($last_token) ne 'RAISE');
+	return 0 if (uc($token) eq 'NOTICE' and uc($last_token) ne 'RAISE');
+	#return 0 if ($token =~ /^(ENBALE|DISABLE)$/i and uc($next_token) !~ /^(ALWAYS|RULE|ROW|REPLICA|TRIGGER)$/i);
     }
     return 0 if (uc($token) eq 'COMMENT' and (not defined $next_token or $next_token) !~ /^ON|IS$/i);
 
     if (defined $last_token)
     {
-        return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' }) and $last_token =~ /^OF|FROM$/i);
-        return 0 if ($token =~ /^CONSTRAINT|INDEX|TRUE|FALSE$/i and uc($last_token) eq 'AS');
+        return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' }) and $last_token =~ /^(OF|FROM)$/i);
+        return 0 if ($token =~ /^(CONSTRAINT|INDEX|TRUE|FALSE)$/i and uc($last_token) eq 'AS');
     }
 
     if ($DEBUG and defined $token and grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } }) {
@@ -3440,6 +3462,8 @@ Currently defined defaults:
 
 =item placeholder => ''
 
+=item multiline => 0
+
 =item separator => ''
 
 =item comma => 'end'
@@ -3480,6 +3504,7 @@ sub set_defaults
     $self->{ 'no_comments' }  = 0;
     $self->{ 'no_grouping' }  = 0;
     $self->{ 'placeholder' }  = '';
+    $self->{ 'multiline' }    = 0;
     $self->{ 'keywords' }     = $self->{ 'dict' }->{ 'pg_keywords' };
     $self->{ 'types' }        = $self->{ 'dict' }->{ 'pg_types' };
     $self->{ 'functions' }    = ();
@@ -3535,16 +3560,16 @@ sub set_dicts
     # Afterwards, when everything is ready, put it in $self->{'dict'}->{...}
 
     my @pg_keywords = map { uc } qw( 
-        ADD AFTER AGGREGATE ALL ALSO ALTER ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
+        ADD AFTER AGGREGATE ALL ALSO ALTER ALWAYS ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
         BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY CACHE CASCADE CASE CAST CHECK CHECKPOINT CLOSE CLUSTER
 	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY
 	COST COSTS CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER CURSOR
-	CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER DESC DETACH EVENT DISTINCT
-	DO DOMAIN DROP EACH ELSE ENCODING END EXCEPT EXCLUDE EXCLUDING EXECUTE EXCEPTION EXISTS EXPLAIN EXTENSION FALSE FETCH FILTER
+	CYCLE DATABASE DEALLOCATE DECLARE DEFAULT DEFERRABLE DEFERRED DEFINER DELETE DELIMITER DESC DETACH DISABLE DISTINCT
+	DO DOMAIN DROP EACH ELSE ENABLE ENCODING END EVENT EXCEPTION EXCEPT EXCLUDE EXCLUDING EXECUTE EXISTS EXPLAIN EXTENSION FALSE FETCH FILTER
 	FIRST FOLLOWING FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GENERATED GRANT GROUP GROUPING HAVING HASHES HASH
 	IDENTITY IF ILIKE IMMUTABLE IN INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD
 	INTERSECT INTO INVOKER IS ISNULL ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING
-	LEAKPROOF LEFT LEFTARG LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN
+	LEAKPROOF LEFT LEFTARG LEVEL LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN
 	LOOP MAPPING MATCH MAXVALUE MERGES MINVALUE MODULUS MOVE NATURAL NEXT NOTHING NOTICE ORDINALITY
         NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OFF OF OIDS ON ONLY OPEN OPERATOR OR ORDER
         OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE RANGE
@@ -3557,7 +3582,7 @@ sub set_dicts
 	CALL GROUPS INCLUDE OTHERS PROCEDURES ROUTINE ROUTINES TIES READ_ONLY SHAREABLE READ_WRITE
         BASETYPE SFUNC STYPE SFUNC1 STYPE1 SSPACE FINALFUNC FINALFUNC_EXTRA FINALFUNC_MODIFY COMBINEFUNC SERIALFUNC DESERIALFUNC
        	INITCOND MSFUNC MINVFUNC MSTYPE MSSPACE MFINALFUNC MFINALFUNC_EXTRA MFINALFUNC_MODIFY MINITCOND SORTOP
-	REFRESH MATERIALIZED RAISE WITHOUT
+	STORED REFRESH MATERIALIZED RAISE WITHOUT
         );
 
     my @pg_types = qw(
