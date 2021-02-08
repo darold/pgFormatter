@@ -3055,7 +3055,7 @@ sub _is_keyword
 	return 0 if (uc($token) eq 'NOTICE' and uc($last_token) ne 'RAISE');
         return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' }) and $last_token =~ /^(OF|FROM)$/i);
         return 0 if (uc($last_token) eq 'AS' and $token !~ /^(IDENTITY|SELECT|ENUM|TRANSACTION|UPDATE|DELETE|INSERT|MATERIALIZED|ON|VALUES|RESTRICTIVE|PERMISSIVE|UGLY|EXECUTE|STORAGE|OPERATOR|RANGE|NOT)$/i);
-	return 0 if ($token =~ /^(TYPE|SCHEMA)$/i and $last_token =~ /^(\(|,|\||\))/i);
+	return 0 if ($token =~ /^(TYPE|SCHEMA)$/i and $last_token =~ /^(COLUMN|\(|,|\||\))/i);
     }
 
     if ($DEBUG and defined $token and grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } }) {
