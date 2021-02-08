@@ -106,7 +106,7 @@ CREATE EVENT TRIGGER regress_event_trigger_noperms ON ddl_command_start
 RESET ROLE;
 
 -- test enabling and disabling
-ALTER EVENT TRIGGER regress_event_trigger disable;
+ALTER EVENT TRIGGER regress_event_trigger DISABLE;
 
 -- fires _trigger2 and _trigger_end should fire, but not _trigger
 CREATE TABLE event_trigger_fire1 (
@@ -173,7 +173,7 @@ $$;
 CALL p1 ();
 
 -- clean up
-ALTER EVENT TRIGGER regress_event_trigger disable;
+ALTER EVENT TRIGGER regress_event_trigger DISABLE;
 
 DROP TABLE event_trigger_fire2, event_trigger_fire3, event_trigger_fire4, event_trigger_fire5, event_trigger_fire6, event_trigger_fire7;
 

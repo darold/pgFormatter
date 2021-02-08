@@ -950,8 +950,8 @@ sub beautify
 		    next;
 	    }
 	    $self->{ '_is_in_generated' } = 0 if ($self->{ '_is_in_create' } and $self->{ '_parenthesis_level' } == 1);
-            $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
-	    #$self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' } and !$self->{ '_is_in_policy' });
+	    #$self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
+	    $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' } and !$self->{ '_is_in_policy' });
 	    if (defined $self->_next_token and $self->_next_token !~ /^(AS|WITH|,)$/i
 			    and (!$self->_is_comment($self->_next_token) or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }[1] ne ','))
 			    and !$self->{ '_parenthesis_with_level' })
@@ -3046,7 +3046,6 @@ sub _is_keyword
         return 0 if (uc($token) eq 'LEVEL' and uc($next_token) ne 'SECURITY');
         return 0 if (uc($token) eq 'EVENT' and uc($next_token) ne 'TRIGGER');
 	return 0 if (uc($token) eq 'NOTICE' and uc($last_token) ne 'RAISE');
-	#return 0 if ($token =~ /^(ENBALE|DISABLE)$/i and uc($next_token) !~ /^(ALWAYS|RULE|ROW|REPLICA|TRIGGER)$/i);
     }
     return 0 if (uc($token) eq 'COMMENT' and (not defined $next_token or $next_token) !~ /^ON|IS$/i);
 
