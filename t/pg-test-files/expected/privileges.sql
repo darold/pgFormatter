@@ -424,7 +424,7 @@ CREATE FUNCTION leak2 (integer, integer)
     RETURNS boolean
     AS $$
 BEGIN
-    RAISE notice 'leak % %', $1, $2;
+    RAISE NOTICE 'leak % %', $1, $2;
     RETURN $1 > $2;
 END
 $$
@@ -1274,8 +1274,7 @@ CREATE AGGREGATE priv_testagg1 (int) (
     STYPE = int4
 );
 
-CREATE PROCEDURE priv_testproc1 (int
-)
+CREATE PROCEDURE priv_testproc1 (int)
     AS 'select $1;'
     LANGUAGE sql;
 
@@ -1464,9 +1463,7 @@ CREATE FUNCTION castfunc (int)
 $$
 LANGUAGE SQL;
 
-CREATE CAST (priv_testdomain1 AS priv_testdomain3a
-)
-WITH FUNCTION castfunc (int);
+CREATE CAST (priv_testdomain1 AS priv_testdomain3a) WITH FUNCTION castfunc (int);
 
 DROP FUNCTION castfunc (int) CASCADE;
 
@@ -1560,9 +1557,7 @@ CREATE FUNCTION castfunc (int)
 $$
 LANGUAGE SQL;
 
-CREATE CAST (priv_testdomain1 AS priv_testdomain3b
-)
-WITH FUNCTION castfunc (int);
+CREATE CAST (priv_testdomain1 AS priv_testdomain3b) WITH FUNCTION castfunc (int);
 
 CREATE FUNCTION priv_testfunc5b (a priv_testdomain1)
     RETURNS int
@@ -2229,39 +2224,39 @@ SELECT
     lo_create(2002);
 
 SELECT
-    loread (lo_open(1001, x '20000'::int), 32);
+    loread (lo_open(1001, x'20000'::int), 32);
 
 -- allowed, for now
 SELECT
-    lowrite(lo_open(1001, x '40000'::int), 'abcd');
+    lowrite(lo_open(1001, x'40000'::int), 'abcd');
 
 -- fail, wrong mode
 SELECT
-    loread (lo_open(1001, x '40000'::int), 32);
+    loread (lo_open(1001, x'40000'::int), 32);
 
 SELECT
-    loread (lo_open(1002, x '40000'::int), 32);
-
--- to be denied
-SELECT
-    loread (lo_open(1003, x '40000'::int), 32);
-
-SELECT
-    loread (lo_open(1004, x '40000'::int), 32);
-
-SELECT
-    lowrite(lo_open(1001, x '20000'::int), 'abcd');
-
-SELECT
-    lowrite(lo_open(1002, x '20000'::int), 'abcd');
+    loread (lo_open(1002, x'40000'::int), 32);
 
 -- to be denied
 SELECT
-    lowrite(lo_open(1003, x '20000'::int), 'abcd');
+    loread (lo_open(1003, x'40000'::int), 32);
+
+SELECT
+    loread (lo_open(1004, x'40000'::int), 32);
+
+SELECT
+    lowrite(lo_open(1001, x'20000'::int), 'abcd');
+
+SELECT
+    lowrite(lo_open(1002, x'20000'::int), 'abcd');
 
 -- to be denied
 SELECT
-    lowrite(lo_open(1004, x '20000'::int), 'abcd');
+    lowrite(lo_open(1003, x'20000'::int), 'abcd');
+
+-- to be denied
+SELECT
+    lowrite(lo_open(1004, x'20000'::int), 'abcd');
 
 GRANT SELECT ON LARGE OBJECT 1005 TO regress_priv_user3;
 
@@ -2296,21 +2291,21 @@ ORDER BY
 SET SESSION AUTHORIZATION regress_priv_user3;
 
 SELECT
-    loread (lo_open(1001, x '40000'::int), 32);
+    loread (lo_open(1001, x'40000'::int), 32);
 
 SELECT
-    loread (lo_open(1003, x '40000'::int), 32);
-
--- to be denied
-SELECT
-    loread (lo_open(1005, x '40000'::int), 32);
-
-SELECT
-    lo_truncate(lo_open(1005, x '20000'::int), 10);
+    loread (lo_open(1003, x'40000'::int), 32);
 
 -- to be denied
 SELECT
-    lo_truncate(lo_open(2001, x '20000'::int), 10);
+    loread (lo_open(1005, x'40000'::int), 32);
+
+SELECT
+    lo_truncate(lo_open(1005, x'20000'::int), 10);
+
+-- to be denied
+SELECT
+    lo_truncate(lo_open(2001, x'20000'::int), 10);
 
 -- compatibility mode in largeobject permission
 \c -
@@ -2320,15 +2315,15 @@ SET lo_compat_privileges = FALSE;
 SET SESSION AUTHORIZATION regress_priv_user4;
 
 SELECT
-    loread (lo_open(1002, x '40000'::int), 32);
+    loread (lo_open(1002, x'40000'::int), 32);
 
 -- to be denied
 SELECT
-    lowrite(lo_open(1002, x '20000'::int), 'abcd');
+    lowrite(lo_open(1002, x'20000'::int), 'abcd');
 
 -- to be denied
 SELECT
-    lo_truncate(lo_open(1002, x '20000'::int), 10);
+    lo_truncate(lo_open(1002, x'20000'::int), 10);
 
 -- to be denied
 SELECT
@@ -2358,13 +2353,13 @@ SET lo_compat_privileges = TRUE;
 SET SESSION AUTHORIZATION regress_priv_user4;
 
 SELECT
-    loread (lo_open(1002, x '40000'::int), 32);
+    loread (lo_open(1002, x'40000'::int), 32);
 
 SELECT
-    lowrite(lo_open(1002, x '20000'::int), 'abcd');
+    lowrite(lo_open(1002, x'20000'::int), 'abcd');
 
 SELECT
-    lo_truncate(lo_open(1002, x '20000'::int), 10);
+    lo_truncate(lo_open(1002, x'20000'::int), 10);
 
 SELECT
     lo_unlink(1002);
@@ -2677,8 +2672,7 @@ CREATE AGGREGATE testns.priv_testagg (int) (
     STYPE = int4
 );
 
-CREATE PROCEDURE testns.priv_testproc (int
-)
+CREATE PROCEDURE testns.priv_testproc (int)
     AS 'select 3'
     LANGUAGE sql;
 

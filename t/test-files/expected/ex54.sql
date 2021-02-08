@@ -228,10 +228,10 @@ BEGIN
                 BEGIN
                     PERFORM
                         pg_get_object_address(objtype, names, args);
-                    EXCEPTION
+                EXCEPTION
                     WHEN OTHERS THEN
                         RAISE WARNING 'error for %,%,%: %', objtype, names, args, sqlerrm;
-                    END;
+                END;
             END LOOP;
         END LOOP;
     END LOOP;

@@ -24,8 +24,7 @@ FROM
 WHERE
     onek.unique1 < 20
 ORDER BY
-    unique1
-    USING >;
+    unique1 USING >;
 
 --
 -- awk '{if($1>980){print $1,$14;}else{next;}}' onek.data | sort +1d -2
@@ -38,8 +37,7 @@ FROM
 WHERE
     onek.unique1 > 980
 ORDER BY
-    stringu1
-    USING <;
+    stringu1 USING <;
 
 --
 -- awk '{if($1>980){print $1,$16;}else{next;}}' onek.data |
@@ -53,10 +51,8 @@ FROM
 WHERE
     onek.unique1 > 980
 ORDER BY
-    string4
-    USING <,
-    unique1
-    USING >;
+    string4 USING <,
+    unique1 USING >;
 
 --
 -- awk '{if($1>980){print $1,$16;}else{next;}}' onek.data |
@@ -70,10 +66,8 @@ FROM
 WHERE
     onek.unique1 > 980
 ORDER BY
-    string4
-    USING >,
-    unique1
-    USING <;
+    string4 USING >,
+    unique1 USING <;
 
 --
 -- awk '{if($1<20){print $1,$16;}else{next;}}' onek.data |
@@ -87,10 +81,8 @@ FROM
 WHERE
     onek.unique1 < 20
 ORDER BY
-    unique1
-    USING >,
-    string4
-    USING <;
+    unique1 USING >,
+    string4 USING <;
 
 --
 -- awk '{if($1<20){print $1,$16;}else{next;}}' onek.data |
@@ -104,10 +96,8 @@ FROM
 WHERE
     onek.unique1 < 20
 ORDER BY
-    unique1
-    USING <,
-    string4
-    USING >;
+    unique1 USING <,
+    string4 USING >;
 
 --
 -- test partial btree indexes
@@ -145,8 +135,7 @@ FROM
 WHERE
     onek2.unique1 < 20
 ORDER BY
-    unique1
-    USING >;
+    unique1 USING >;
 
 --
 -- awk '{if($1>980){print $1,$14;}else{next;}}' onek.data | sort +1d -2
@@ -199,7 +188,8 @@ SELECT
 FROM
     person * p
 ORDER BY
-    age USING >, name;
+    age USING >,
+    name;
 
 --
 -- Test some cases involving whole-row Var referencing a subquery

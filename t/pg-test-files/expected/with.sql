@@ -2388,7 +2388,7 @@ CREATE FUNCTION y_trigger ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice 'y_trigger: a = %', NEW.a;
+    RAISE NOTICE 'y_trigger: a = %', NEW.a;
     RETURN new;
 END;
 $$
@@ -2443,7 +2443,7 @@ CREATE OR REPLACE FUNCTION y_trigger ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice 'y_trigger';
+    RAISE NOTICE 'y_trigger';
     RETURN NULL;
 END;
 $$
@@ -2551,7 +2551,7 @@ INSERT INTO child2
     RETURNING
         id AS newid)
     DELETE FROM parent USING wcte
-    WHERE id = newid;
+        WHERE id = newid;
 
 SELECT
     *
@@ -2568,7 +2568,7 @@ INSERT INTO int8_tbl
     RETURNING
         q2)
     DELETE FROM a USING wcte
-    WHERE aa = q2;
+        WHERE aa = q2;
 
 -- error cases
 -- data-modifying WITH tries to use its own output

@@ -712,7 +712,7 @@ CREATE FUNCTION inverse (int)
 BEGIN
     ANALYZE revalidate_bug;
     RETURN 1::float8 / $1;
-exception
+EXCEPTION
     WHEN division_by_zero THEN
         RETURN 0;
 END
@@ -746,12 +746,11 @@ INSERT INTO abc
     VALUES (5);
 INSERT INTO abc
     VALUES (10);
-DECLARE
-    foo CURSOR FOR
-        SELECT
-            *
-        FROM
-            abc;
+DECLARE foo CURSOR FOR
+    SELECT
+        *
+    FROM
+        abc;
 FETCH FROM foo;
 ROLLBACK TO x;
 
@@ -815,21 +814,20 @@ END
 $$;
 
 BEGIN;
-DECLARE
-    ok CURSOR FOR
-        SELECT
-            *
-        FROM
-            int8_tbl;
-    DECLARE ctt CURSOR FOR
-        SELECT
-            create_temp_tab ();
+DECLARE ok CURSOR FOR
+    SELECT
+        *
+    FROM
+        int8_tbl;
+DECLARE ctt CURSOR FOR
+    SELECT
+        create_temp_tab ();
 FETCH ok;
-    SAVEPOINT s1;
+SAVEPOINT s1;
 FETCH ok;
-    -- should work
-    FETCH ctt;
-    -- error occurs here
+-- should work
+FETCH ctt;
+-- error occurs here
 ROLLBACK TO s1;
 
 FETCH ok;

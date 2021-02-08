@@ -97,28 +97,36 @@ INSERT INTO document
 ALTER TABLE document ENABLE ROW LEVEL SECURITY;
 
 -- user's security level must be higher than or equal to document's
-CREATE POLICY p1 ON document AS PERMISSIVE USING (dlevel <= (SELECT seclv
-FROM
-    uaccount
-WHERE
-    pguser = CURRENT_USER));
+CREATE POLICY p1 ON document AS PERMISSIVE
+    USING (dlevel <= (
+        SELECT
+            seclv
+        FROM
+            uaccount
+        WHERE
+            pguser = CURRENT_USER));
 
 -- try to create a policy of bogus type
-CREATE POLICY p1 ON document AS UGLY USING (dlevel <= (SELECT seclv
-FROM
-    uaccount
-WHERE
-    pguser = CURRENT_USER));
+CREATE POLICY p1 ON document AS UGLY
+    USING (dlevel <= (
+        SELECT
+            seclv
+        FROM
+            uaccount
+        WHERE
+            pguser = CURRENT_USER));
 
 -- but Dave isn't allowed to anything at cid 50 or above
 -- this is to make sure that we sort the policies by name first
 -- when applying WITH CHECK, a later INSERT by Dave should fail due
 -- to p1r first
-CREATE POLICY p2r ON document AS RESTRICTIVE TO regress_rls_dave USING (cid <> 44
-    AND cid < 50);
+CREATE POLICY p2r ON document AS RESTRICTIVE TO regress_rls_dave
+    USING (cid <> 44
+        AND cid < 50);
 
 -- and Dave isn't allowed to see manga documents
-CREATE POLICY p1r ON document AS RESTRICTIVE TO regress_rls_dave USING (cid <> 44);
+CREATE POLICY p1r ON document AS RESTRICTIVE TO regress_rls_dave
+    USING (cid <> 44);
 
 \dp
 \d document
@@ -276,7 +284,8 @@ INSERT INTO document
 
 -- fail
 -- only owner can change policies
-ALTER POLICY p1 ON document USING (TRUE);
+ALTER POLICY p1 ON document
+    USING (TRUE);
 
 --fail
 DROP POLICY p1 ON document;
@@ -284,7 +293,8 @@ DROP POLICY p1 ON document;
 --fail
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-ALTER POLICY p1 ON document USING (dauthor = CURRENT_USER);
+ALTER POLICY p1 ON document
+    USING (dauthor = CURRENT_USER);
 
 -- viewpoint from regress_rls_bob again
 SET SESSION AUTHORIZATION regress_rls_bob;
@@ -354,13 +364,15 @@ WHERE
 -- interaction of FK/PK constraints
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-CREATE POLICY p2 ON category USING ( CASE WHEN CURRENT_USER = 'regress_rls_bob' THEN
-    cid IN (11, 33)
-WHEN CURRENT_USER = 'regress_rls_carol' THEN
-    cid IN (22, 44)
-ELSE
-    FALSE
-END);
+CREATE POLICY p2 ON category
+    USING (
+        CASE WHEN CURRENT_USER = 'regress_rls_bob' THEN
+            cid IN (11, 33)
+        WHEN CURRENT_USER = 'regress_rls_carol' THEN
+            cid IN (22, 44)
+        ELSE
+            FALSE
+        END);
 
 ALTER TABLE category ENABLE ROW LEVEL SECURITY;
 
@@ -539,10 +551,14 @@ ALTER TABLE t3 INHERIT t1;
 
 GRANT ALL ON t3 TO public;
 
-CREATE POLICY p1 ON t1 FOR ALL TO PUBLIC USING (a % 2 = 0);
+CREATE POLICY p1 ON t1
+    FOR ALL TO PUBLIC
+        USING (a % 2 = 0);
 
 -- be even number
-CREATE POLICY p2 ON t2 FOR ALL TO PUBLIC USING (a % 2 = 1);
+CREATE POLICY p2 ON t2
+    FOR ALL TO PUBLIC
+        USING (a % 2 = 1);
 
 -- be odd number
 ALTER TABLE t1 ENABLE ROW LEVEL SECURITY;
@@ -761,14 +777,18 @@ ALTER TABLE part_document ENABLE ROW LEVEL SECURITY;
 
 -- Create policy on parent
 -- user's security level must be higher than or equal to document's
-CREATE POLICY pp1 ON part_document AS PERMISSIVE USING (dlevel <= (SELECT seclv
-FROM
-    uaccount
-WHERE
-    pguser = CURRENT_USER));
+CREATE POLICY pp1 ON part_document AS PERMISSIVE
+    USING (dlevel <= (
+        SELECT
+            seclv
+        FROM
+            uaccount
+        WHERE
+            pguser = CURRENT_USER));
 
 -- Dave is only allowed to see cid < 55
-CREATE POLICY pp1r ON part_document AS RESTRICTIVE TO regress_rls_dave USING (cid < 55);
+CREATE POLICY pp1r ON part_document AS RESTRICTIVE TO regress_rls_dave
+    USING (cid < 55);
 
 \d+ part_document
 SELECT
@@ -895,7 +915,8 @@ SET SESSION AUTHORIZATION regress_rls_alice;
 
 ALTER TABLE part_document_satire ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY pp3 ON part_document_satire AS RESTRICTIVE USING (cid < 55);
+CREATE POLICY pp3 ON part_document_satire AS RESTRICTIVE
+    USING (cid < 55);
 
 -- This should fail with RLS violation now.
 SET SESSION AUTHORIZATION regress_rls_dave;
@@ -958,7 +979,8 @@ WHERE
     f_leak (dtitle);
 
 -- only owner can change policies
-ALTER POLICY pp1 ON part_document USING (TRUE);
+ALTER POLICY pp1 ON part_document
+    USING (TRUE);
 
 --fail
 DROP POLICY pp1 ON part_document;
@@ -966,7 +988,8 @@ DROP POLICY pp1 ON part_document;
 --fail
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-ALTER POLICY pp1 ON part_document USING (dauthor = CURRENT_USER);
+ALTER POLICY pp1 ON part_document
+    USING (dauthor = CURRENT_USER);
 
 -- viewpoint from regress_rls_bob again
 SET SESSION AUTHORIZATION regress_rls_bob;
@@ -1083,11 +1106,14 @@ SET SESSION AUTHORIZATION regress_rls_alice;
 
 SET row_security TO ON;
 
-CREATE POLICY pp3 ON part_document AS RESTRICTIVE USING ((SELECT dlevel <= seclv
-FROM
-    uaccount
-WHERE
-    pguser = CURRENT_USER));
+CREATE POLICY pp3 ON part_document AS RESTRICTIVE
+    USING ((
+        SELECT
+            dlevel <= seclv
+        FROM
+            uaccount
+        WHERE
+            pguser = CURRENT_USER));
 
 SET SESSION AUTHORIZATION regress_rls_carol;
 
@@ -1110,11 +1136,15 @@ CREATE TABLE dependent (
     y integer
 );
 
-CREATE POLICY d1 ON dependent FOR ALL TO PUBLIC USING (x = (SELECT d.x
-FROM
-    dependee d
-WHERE
-    d.y = y));
+CREATE POLICY d1 ON dependent
+    FOR ALL TO PUBLIC
+        USING (x = (
+            SELECT
+                d.x
+            FROM
+                dependee d
+            WHERE
+                d.y = y));
 
 DROP TABLE dependee;
 
@@ -1141,11 +1171,14 @@ CREATE TABLE rec1 (
     y integer
 );
 
-CREATE POLICY r1 ON rec1 USING (x = (SELECT r.x
-FROM
-    rec1 r
-WHERE
-    y = r.y));
+CREATE POLICY r1 ON rec1
+    USING (x = (
+        SELECT
+            r.x
+        FROM
+            rec1 r
+        WHERE
+            y = r.y));
 
 ALTER TABLE rec1 ENABLE ROW LEVEL SECURITY;
 
@@ -1167,15 +1200,21 @@ CREATE TABLE rec2 (
     b integer
 );
 
-ALTER POLICY r1 ON rec1 USING (x = (SELECT a FROM rec2
-WHERE
-    b = y));
+ALTER POLICY r1 ON rec1
+    USING (x = (
+        SELECT
+            a FROM rec2
+        WHERE
+            b = y));
 
-CREATE POLICY r2 ON rec2 USING (a = (SELECT x
-FROM
-    rec1
-WHERE
-    y = b));
+CREATE POLICY r2 ON rec2
+    USING (a = (
+        SELECT
+            x
+        FROM
+            rec1
+        WHERE
+            y = b));
 
 ALTER TABLE rec2 ENABLE ROW LEVEL SECURITY;
 
@@ -1206,13 +1245,19 @@ FROM
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-ALTER POLICY r1 ON rec1 USING (x = (SELECT a FROM rec2v
-WHERE
-    b = y));
+ALTER POLICY r1 ON rec1
+    USING (x = (
+        SELECT
+            a FROM rec2v
+        WHERE
+            b = y));
 
-ALTER POLICY r2 ON rec2 USING (a = (SELECT x FROM rec1v
-WHERE
-    y = b));
+ALTER POLICY r2 ON rec2
+    USING (a = (
+        SELECT
+            x FROM rec1v
+        WHERE
+            y = b));
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -1245,17 +1290,23 @@ FROM
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-CREATE POLICY r1 ON rec1 USING (x = (SELECT a
-FROM
-    rec2v
-WHERE
-    b = y));
+CREATE POLICY r1 ON rec1
+    USING (x = (
+        SELECT
+            a
+        FROM
+            rec2v
+        WHERE
+            b = y));
 
-CREATE POLICY r2 ON rec2 USING (a = (SELECT x
-FROM
-    rec1v
-WHERE
-    y = b));
+CREATE POLICY r2 ON rec2
+    USING (a = (
+        SELECT
+            x
+        FROM
+            rec1v
+        WHERE
+            y = b));
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -1296,21 +1347,31 @@ INSERT INTO s2 (
 
 GRANT SELECT ON s1, s2 TO regress_rls_bob;
 
-CREATE POLICY p1 ON s1 USING (a IN (SELECT x
-FROM
-    s2
-WHERE
-    y LIKE '%2f%'));
+CREATE POLICY p1 ON s1
+    USING (a IN (
+        SELECT
+            x
+        FROM
+            s2
+        WHERE
+            y LIKE '%2f%'));
 
-CREATE POLICY p2 ON s2 USING (x IN (SELECT a
-FROM
-    s1
-WHERE
-    b LIKE '%22%'));
+CREATE POLICY p2 ON s2
+    USING (x IN (
+        SELECT
+            a
+        FROM
+            s1
+        WHERE
+            b LIKE '%22%'));
 
-CREATE POLICY p3 ON s1 FOR INSERT WITH CHECK (a = (SELECT a
-FROM
-    s1));
+CREATE POLICY p3 ON s1
+    FOR INSERT
+        WITH CHECK (a = (
+            SELECT
+                a
+            FROM
+                s1));
 
 ALTER TABLE s1 ENABLE ROW LEVEL SECURITY;
 
@@ -1342,7 +1403,8 @@ SET SESSION AUTHORIZATION regress_rls_alice;
 
 DROP POLICY p3 ON s1;
 
-ALTER POLICY p2 ON s2 USING (x % 2 = 0);
+ALTER POLICY p2 ON s2
+    USING (x % 2 = 0);
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -1366,7 +1428,10 @@ WHERE
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-ALTER POLICY p1 ON s1 USING (a IN (SELECT x FROM v2));
+ALTER POLICY p1 ON s1
+    USING (a IN (
+        SELECT
+            x FROM v2));
 
 -- using VIEW in RLS policy
 SET SESSION AUTHORIZATION regress_rls_bob;
@@ -1420,9 +1485,12 @@ WHERE
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-ALTER POLICY p2 ON s2 USING (x IN (SELECT a FROM s1
-WHERE
-    b LIKE '%d2%'));
+ALTER POLICY p2 ON s2
+    USING (x IN (
+        SELECT
+            a FROM s1
+        WHERE
+            b LIKE '%d2%'));
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -1781,7 +1849,8 @@ INSERT INTO b1 (
     FROM
         generate_series(- 10, 10) x);
 
-CREATE POLICY p1 ON b1 USING (a % 2 = 0);
+CREATE POLICY p1 ON b1
+    USING (a % 2 = 0);
 
 ALTER TABLE b1 ENABLE ROW LEVEL SECURITY;
 
@@ -1875,15 +1944,24 @@ DROP POLICY p1 ON document;
 
 DROP POLICY p1r ON document;
 
-CREATE POLICY p1 ON document FOR SELECT USING (TRUE);
+CREATE POLICY p1 ON document
+    FOR SELECT
+        USING (TRUE);
 
-CREATE POLICY p2 ON document FOR INSERT WITH CHECK (dauthor = CURRENT_USER);
+CREATE POLICY p2 ON document
+    FOR INSERT
+        WITH CHECK (dauthor = CURRENT_USER);
 
-CREATE POLICY p3 ON document FOR UPDATE USING (cid = (SELECT cid
-FROM
-    category
-WHERE
-    cname = 'novel')) WITH CHECK (dauthor = CURRENT_USER);
+CREATE POLICY p3 ON document
+    FOR UPDATE
+        USING (cid = (
+            SELECT
+                cid
+            FROM
+                category
+            WHERE
+                cname = 'novel'))
+            WITH CHECK (dauthor = CURRENT_USER);
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -2026,11 +2104,15 @@ DROP POLICY p2 ON document;
 
 DROP POLICY p3 ON document;
 
-CREATE POLICY p3_with_default ON document FOR UPDATE USING (cid = (SELECT cid
-FROM
-    category
-WHERE
-    cname = 'novel'));
+CREATE POLICY p3_with_default ON document
+    FOR UPDATE
+        USING (cid = (
+            SELECT
+                cid
+            FROM
+                category
+            WHERE
+                cname = 'novel'));
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -2082,11 +2164,16 @@ DROP POLICY p3_with_default ON document;
 -- Test ALL policies with ON CONFLICT DO UPDATE (much the same as existing UPDATE
 -- tests)
 --
-CREATE POLICY p3_with_all ON document FOR ALL USING (cid = (SELECT cid
-FROM
-    category
-WHERE
-    cname = 'novel')) WITH CHECK (dauthor = CURRENT_USER);
+CREATE POLICY p3_with_all ON document
+    FOR ALL
+        USING (cid = (
+            SELECT
+                cid
+            FROM
+                category
+            WHERE
+                cname = 'novel'))
+            WITH CHECK (dauthor = CURRENT_USER);
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -2145,9 +2232,11 @@ GRANT SELECT ON z1, z2 TO regress_rls_group1, regress_rls_group2, regress_rls_bo
 INSERT INTO z1
     VALUES (1, 'aba'), (2, 'bbb'), (3, 'ccc'), (4, 'dad');
 
-CREATE POLICY p1 ON z1 TO regress_rls_group1 USING (a % 2 = 0);
+CREATE POLICY p1 ON z1 TO regress_rls_group1
+    USING (a % 2 = 0);
 
-CREATE POLICY p2 ON z1 TO regress_rls_group2 USING (a % 2 = 1);
+CREATE POLICY p2 ON z1 TO regress_rls_group2
+    USING (a % 2 = 1);
 
 ALTER TABLE z1 ENABLE ROW LEVEL SECURITY;
 
@@ -2467,15 +2556,25 @@ GRANT ALL ON x1 TO PUBLIC;
 INSERT INTO x1
     VALUES (1, 'abc', 'regress_rls_bob'), (2, 'bcd', 'regress_rls_bob'), (3, 'cde', 'regress_rls_carol'), (4, 'def', 'regress_rls_carol'), (5, 'efg', 'regress_rls_bob'), (6, 'fgh', 'regress_rls_bob'), (7, 'fgh', 'regress_rls_carol'), (8, 'fgh', 'regress_rls_carol');
 
-CREATE POLICY p0 ON x1 FOR ALL USING (c = CURRENT_USER);
+CREATE POLICY p0 ON x1
+    FOR ALL
+        USING (c = CURRENT_USER);
 
-CREATE POLICY p1 ON x1 FOR SELECT USING (a % 2 = 0);
+CREATE POLICY p1 ON x1
+    FOR SELECT
+        USING (a % 2 = 0);
 
-CREATE POLICY p2 ON x1 FOR INSERT WITH CHECK (a % 2 = 1);
+CREATE POLICY p2 ON x1
+    FOR INSERT
+        WITH CHECK (a % 2 = 1);
 
-CREATE POLICY p3 ON x1 FOR UPDATE USING (a % 2 = 0);
+CREATE POLICY p3 ON x1
+    FOR UPDATE
+        USING (a % 2 = 0);
 
-CREATE POLICY p4 ON x1 FOR DELETE USING (a < 8);
+CREATE POLICY p4 ON x1
+    FOR DELETE
+        USING (a < 8);
 
 ALTER TABLE x1 ENABLE ROW LEVEL SECURITY;
 
@@ -2541,14 +2640,22 @@ CREATE TABLE y2 (
 
 GRANT ALL ON y1, y2 TO regress_rls_bob;
 
-CREATE POLICY p1 ON y1 FOR ALL USING (a % 2 = 0);
+CREATE POLICY p1 ON y1
+    FOR ALL
+        USING (a % 2 = 0);
 
-CREATE POLICY p2 ON y1 FOR SELECT USING (a > 2);
+CREATE POLICY p2 ON y1
+    FOR SELECT
+        USING (a > 2);
 
-CREATE POLICY p1 ON y1 FOR SELECT USING (a % 2 = 1);
+CREATE POLICY p1 ON y1
+    FOR SELECT
+        USING (a % 2 = 1);
 
 --fail
-CREATE POLICY p1 ON y2 FOR ALL USING (a % 2 = 0);
+CREATE POLICY p1 ON y2
+    FOR ALL
+        USING (a % 2 = 0);
 
 --OK
 ALTER TABLE y1 ENABLE ROW LEVEL SECURITY;
@@ -2618,9 +2725,11 @@ INSERT INTO y2 (
     FROM
         generate_series(0, 20) x);
 
-CREATE POLICY p2 ON y2 USING (a % 3 = 0);
+CREATE POLICY p2 ON y2
+    USING (a % 3 = 0);
 
-CREATE POLICY p3 ON y2 USING (a % 4 = 0);
+CREATE POLICY p3 ON y2
+    USING (a % 4 = 0);
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -2721,9 +2830,11 @@ CREATE TABLE t1 (
 
 GRANT SELECT ON t1 TO regress_rls_bob, regress_rls_carol;
 
-CREATE POLICY p1 ON t1 TO regress_rls_bob USING ((a % 2) = 0);
+CREATE POLICY p1 ON t1 TO regress_rls_bob
+    USING ((a % 2) = 0);
 
-CREATE POLICY p2 ON t1 TO regress_rls_carol USING ((a % 4) = 0);
+CREATE POLICY p2 ON t1 TO regress_rls_carol
+    USING ((a % 4) = 0);
 
 ALTER TABLE t1 ENABLE ROW LEVEL SECURITY;
 
@@ -2769,7 +2880,8 @@ CREATE TABLE t1 (
     b text
 );
 
-CREATE POLICY p1 ON t1 USING (a % 2 = 0);
+CREATE POLICY p1 ON t1
+    USING (a % 2 = 0);
 
 ALTER TABLE t1 ENABLE ROW LEVEL SECURITY;
 
@@ -2967,7 +3079,8 @@ CREATE TABLE comment (
 
 GRANT ALL ON blog, comment TO regress_rls_bob;
 
-CREATE POLICY blog_1 ON blog USING (id % 2 = 0);
+CREATE POLICY blog_1 ON blog
+    USING (id % 2 = 0);
 
 ALTER TABLE blog ENABLE ROW LEVEL SECURITY;
 
@@ -2999,7 +3112,8 @@ FROM
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 
-CREATE POLICY comment_1 ON comment USING (blog_id < 4);
+CREATE POLICY comment_1 ON comment
+    USING (blog_id < 4);
 
 ALTER TABLE comment ENABLE ROW LEVEL SECURITY;
 
@@ -3112,7 +3226,8 @@ CREATE TABLE copy_t (
     b text
 );
 
-CREATE POLICY p1 ON copy_t USING (a % 2 = 0);
+CREATE POLICY p1 ON copy_t
+    USING (a % 2 = 0);
 
 ALTER TABLE copy_t ENABLE ROW LEVEL SECURITY;
 
@@ -3241,7 +3356,8 @@ CREATE TABLE copy_rel_to (
     b text
 );
 
-CREATE POLICY p1 ON copy_rel_to USING (a % 2 = 0);
+CREATE POLICY p1 ON copy_rel_to
+    USING (a % 2 = 0);
 
 ALTER TABLE copy_rel_to ENABLE ROW LEVEL SECURITY;
 
@@ -3366,12 +3482,19 @@ GRANT ALL ON current_check TO PUBLIC;
 INSERT INTO current_check
     VALUES (1, 'abc', 'regress_rls_bob'), (2, 'bcd', 'regress_rls_bob'), (3, 'cde', 'regress_rls_bob'), (4, 'def', 'regress_rls_bob');
 
-CREATE POLICY p1 ON current_check FOR SELECT USING (currentid % 2 = 0);
+CREATE POLICY p1 ON current_check
+    FOR SELECT
+        USING (currentid % 2 = 0);
 
-CREATE POLICY p2 ON current_check FOR DELETE USING (currentid = 4
-    AND rlsuser = CURRENT_USER);
+CREATE POLICY p2 ON current_check
+    FOR DELETE
+        USING (currentid = 4
+            AND rlsuser = CURRENT_USER);
 
-CREATE POLICY p3 ON current_check FOR UPDATE USING (currentid = 4) WITH CHECK (rlsuser = CURRENT_USER);
+CREATE POLICY p3 ON current_check
+    FOR UPDATE
+        USING (currentid = 4)
+        WITH CHECK (rlsuser = CURRENT_USER);
 
 ALTER TABLE current_check ENABLE ROW LEVEL SECURITY;
 
@@ -3506,7 +3629,8 @@ CREATE TABLE coll_t (
 VALUES (
     'bar' ::text
 );
-CREATE POLICY coll_p ON coll_t USING (c < ('foo'::text COLLATE "C"));
+CREATE POLICY coll_p ON coll_t
+    USING (c < ('foo'::text COLLATE "C"));
 ALTER TABLE coll_t ENABLE ROW LEVEL SECURITY;
 GRANT SELECT ON coll_t TO regress_rls_alice;
 SELECT
@@ -3537,7 +3661,8 @@ VALUES (
     'bar' ::text
 );
 GRANT SELECT ON TABLE tbl1 TO regress_rls_eve;
-CREATE POLICY P ON tbl1 TO regress_rls_eve, regress_rls_frank USING (TRUE);
+CREATE POLICY P ON tbl1 TO regress_rls_eve, regress_rls_frank
+    USING (TRUE);
 SELECT
     refclassid::regclass,
     deptype
@@ -3559,7 +3684,8 @@ DROP ROLE regress_rls_eve;
 --fails due to dependency on POLICY p
 ROLLBACK TO q;
 
-ALTER POLICY p ON tbl1 TO regress_rls_frank USING (TRUE);
+ALTER POLICY p ON tbl1 TO regress_rls_frank
+    USING (TRUE);
 
 SAVEPOINT q;
 
@@ -3603,7 +3729,8 @@ BEGIN;
 CREATE TABLE t (
     c int
 );
-CREATE POLICY p ON t USING (c % 2 = 1);
+CREATE POLICY p ON t
+    USING (c % 2 = 1);
 ALTER TABLE t ENABLE ROW LEVEL SECURITY;
 SAVEPOINT q;
 CREATE RULE "_RETURN" AS ON
@@ -3654,7 +3781,8 @@ CREATE TABLE t (
 VALUES (
     'bar' ::text
 );
-CREATE POLICY p ON t USING (max(c));
+CREATE POLICY p ON t
+    USING (max(c));
 -- fails: aggregate functions are not allowed in policy expressions
 ROLLBACK;
 
@@ -3679,17 +3807,26 @@ INSERT INTO r2
 
 GRANT ALL ON r1, r2 TO regress_rls_bob;
 
-CREATE POLICY p1 ON r1 USING (TRUE);
+CREATE POLICY p1 ON r1
+    USING (TRUE);
 
 ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY p1 ON r2 FOR SELECT USING (TRUE);
+CREATE POLICY p1 ON r2
+    FOR SELECT
+        USING (TRUE);
 
-CREATE POLICY p2 ON r2 FOR INSERT WITH CHECK (FALSE);
+CREATE POLICY p2 ON r2
+    FOR INSERT
+        WITH CHECK (FALSE);
 
-CREATE POLICY p3 ON r2 FOR UPDATE USING (FALSE);
+CREATE POLICY p3 ON r2
+    FOR UPDATE
+        USING (FALSE);
 
-CREATE POLICY p4 ON r2 FOR DELETE USING (FALSE);
+CREATE POLICY p4 ON r2
+    FOR DELETE
+        USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
 
@@ -3781,7 +3918,8 @@ CREATE TABLE r1 (
 INSERT INTO r1
     VALUES (10), (20);
 
-CREATE POLICY p1 ON r1 USING (FALSE);
+CREATE POLICY p1 ON r1
+    USING (FALSE);
 
 ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 
@@ -3845,7 +3983,8 @@ INSERT INTO r2
 -- Create policies on r2 which prevent the
 -- owner from seeing any rows, but RI should
 -- still see them.
-CREATE POLICY p1 ON r2 USING (FALSE);
+CREATE POLICY p1 ON r2
+    USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
 
@@ -3865,7 +4004,8 @@ ALTER TABLE r2 DISABLE ROW LEVEL SECURITY;
 DELETE FROM r2;
 
 -- Change r1 to not allow rows to be seen
-CREATE POLICY p1 ON r1 USING (FALSE);
+CREATE POLICY p1 ON r1
+    USING (FALSE);
 
 ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 
@@ -3900,7 +4040,8 @@ INSERT INTO r2
 -- Create policies on r2 which prevent the
 -- owner from seeing any rows, but RI should
 -- still see them.
-CREATE POLICY p1 ON r2 USING (FALSE);
+CREATE POLICY p1 ON r2
+    USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
 
@@ -3938,7 +4079,8 @@ INSERT INTO r2
 -- Create policies on r2 which prevent the
 -- owner from seeing any rows, but RI should
 -- still see them.
-CREATE POLICY p1 ON r2 USING (FALSE);
+CREATE POLICY p1 ON r2
+    USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
 
@@ -3973,9 +4115,13 @@ CREATE TABLE r1 (
     a int
 );
 
-CREATE POLICY p1 ON r1 FOR SELECT USING (FALSE);
+CREATE POLICY p1 ON r1
+    FOR SELECT
+        USING (FALSE);
 
-CREATE POLICY p2 ON r1 FOR INSERT WITH CHECK (TRUE);
+CREATE POLICY p2 ON r1
+    FOR INSERT
+        WITH CHECK (TRUE);
 
 ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 
@@ -4015,11 +4161,18 @@ CREATE TABLE r1 (
     a int PRIMARY KEY
 );
 
-CREATE POLICY p1 ON r1 FOR SELECT USING (a < 20);
+CREATE POLICY p1 ON r1
+    FOR SELECT
+        USING (a < 20);
 
-CREATE POLICY p2 ON r1 FOR UPDATE USING (a < 20) WITH CHECK (TRUE);
+CREATE POLICY p2 ON r1
+    FOR UPDATE
+        USING (a < 20)
+        WITH CHECK (TRUE);
 
-CREATE POLICY p3 ON r1 FOR INSERT WITH CHECK (TRUE);
+CREATE POLICY p3 ON r1
+    FOR INSERT
+        WITH CHECK (TRUE);
 
 INSERT INTO r1
     VALUES (10);
@@ -4094,9 +4247,12 @@ CREATE TABLE dep2 (
     c1 int
 );
 
-CREATE POLICY dep_p1 ON dep1 TO regress_rls_bob USING (c1 > (SELECT max(dep2.c1)
-FROM
-    dep2));
+CREATE POLICY dep_p1 ON dep1 TO regress_rls_bob
+    USING (c1 > (
+        SELECT
+            max(dep2.c1)
+        FROM
+            dep2));
 
 ALTER POLICY dep_p1 ON dep1 TO regress_rls_bob, regress_rls_carol;
 
@@ -4121,7 +4277,8 @@ WHERE
         WHERE
             relname = 'dep2');
 
-ALTER POLICY dep_p1 ON dep1 USING (TRUE);
+ALTER POLICY dep_p1 ON dep1
+    USING (TRUE);
 
 -- Should return one
 SELECT
@@ -4202,21 +4359,24 @@ CREATE TABLE dob_t2 (
 )
 PARTITION BY RANGE (c1);
 
-CREATE POLICY p1 ON dob_t1 TO regress_rls_dob_role1 USING (TRUE);
+CREATE POLICY p1 ON dob_t1 TO regress_rls_dob_role1
+    USING (TRUE);
 
 DROP OWNED BY regress_rls_dob_role1;
 
 DROP POLICY p1 ON dob_t1;
 
 -- should fail, already gone
-CREATE POLICY p1 ON dob_t1 TO regress_rls_dob_role1, regress_rls_dob_role2 USING (TRUE);
+CREATE POLICY p1 ON dob_t1 TO regress_rls_dob_role1, regress_rls_dob_role2
+    USING (TRUE);
 
 DROP OWNED BY regress_rls_dob_role1;
 
 DROP POLICY p1 ON dob_t1;
 
 -- should succeed
-CREATE POLICY p1 ON dob_t2 TO regress_rls_dob_role1, regress_rls_dob_role2 USING (TRUE);
+CREATE POLICY p1 ON dob_t2 TO regress_rls_dob_role1, regress_rls_dob_role2
+    USING (TRUE);
 
 DROP OWNED BY regress_rls_dob_role1;
 
@@ -4244,9 +4404,12 @@ INSERT INTO rls_tbl
 
 ALTER TABLE rls_tbl ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY p1 ON rls_tbl USING (EXISTS (SELECT 1
-FROM
-    ref_tbl));
+CREATE POLICY p1 ON rls_tbl
+    USING (EXISTS (
+        SELECT
+            1
+        FROM
+            ref_tbl));
 
 GRANT SELECT ON ref_tbl TO regress_rls_bob;
 
@@ -4321,13 +4484,21 @@ CREATE TABLE rls_tbl (
 
 ALTER TABLE rls_tbl ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY p1 ON rls_tbl USING (c1 > 5);
+CREATE POLICY p1 ON rls_tbl
+    USING (c1 > 5);
 
-CREATE POLICY p2 ON rls_tbl FOR SELECT USING (c1 <= 3);
+CREATE POLICY p2 ON rls_tbl
+    FOR SELECT
+        USING (c1 <= 3);
 
-CREATE POLICY p3 ON rls_tbl FOR UPDATE USING (c1 <= 3) WITH CHECK (c1 > 5);
+CREATE POLICY p3 ON rls_tbl
+    FOR UPDATE
+        USING (c1 <= 3)
+        WITH CHECK (c1 > 5);
 
-CREATE POLICY p4 ON rls_tbl FOR DELETE USING (c1 <= 3);
+CREATE POLICY p4 ON rls_tbl
+    FOR DELETE
+        USING (c1 <= 3);
 
 CREATE TABLE rls_tbl_force (
     c1 int
@@ -4337,11 +4508,20 @@ ALTER TABLE rls_tbl_force ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE rls_tbl_force FORCE ROW LEVEL SECURITY;
 
-CREATE POLICY p1 ON rls_tbl_force USING (c1 = 5) WITH CHECK (c1 < 5);
+CREATE POLICY p1 ON rls_tbl_force
+    USING (c1 = 5)
+    WITH CHECK (c1 < 5);
 
-CREATE POLICY p2 ON rls_tbl_force FOR SELECT USING (c1 = 8);
+CREATE POLICY p2 ON rls_tbl_force
+    FOR SELECT
+        USING (c1 = 8);
 
-CREATE POLICY p3 ON rls_tbl_force FOR UPDATE USING (c1 = 8) WITH CHECK (c1 >= 5);
+CREATE POLICY p3 ON rls_tbl_force
+    FOR UPDATE
+        USING (c1 = 8)
+        WITH CHECK (c1 >= 5);
 
-CREATE POLICY p4 ON rls_tbl_force FOR DELETE USING (c1 = 8);
+CREATE POLICY p4 ON rls_tbl_force
+    FOR DELETE
+        USING (c1 = 8);
 

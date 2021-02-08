@@ -112,7 +112,7 @@ BEGIN
                         AND deptype = 'p');
             END IF;
             IF NOT pinned THEN
-                RAISE notice '% contains unpinned initdb-created object(s)', relnm;
+                RAISE NOTICE '% contains unpinned initdb-created object(s)', relnm;
             END IF;
         END LOOP;
     end$$;

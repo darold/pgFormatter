@@ -53,8 +53,7 @@ CREATE TABLE reservation (
 );
 
 INSERT INTO reservation
-	VALUES (1108 , '[2010-01-01
-	14:30, 2010-01-01 15:30)');
+	VALUES (1108 , '[2010-01-01 14:30, 2010-01-01 15:30)');
 
 -- Containment
 SELECT int4range(10 , 20) @> 3;

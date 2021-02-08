@@ -673,7 +673,7 @@ RESET DateStyle;
 -- to_timestamp()
 --
 SELECT
-    to_timestamp( '0097/Feb/16 --> 08:14:30', 'YYYY/Mon/DD --> HH:MI:SS');
+    to_timestamp('0097/Feb/16 --> 08:14:30', 'YYYY/Mon/DD --> HH:MI:SS');
 
 SELECT
     to_timestamp('97/2/16 8:14:30', 'FMYYYY/FMMM/FMDD FMHH:FMMI:FMSS');

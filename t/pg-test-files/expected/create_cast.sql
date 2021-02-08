@@ -52,9 +52,7 @@ DROP CAST(text AS casttesttype);
 
 -- cleanup
 -- Try IMPLICIT binary coercion cast
-CREATE CAST (text AS casttesttype) WITHOUT FUNCTION
-AS IMPLICIT
-;
+CREATE CAST (text AS casttesttype) WITHOUT FUNCTION AS IMPLICIT;
 
 SELECT
     casttestfunc ('foo'::text);
@@ -65,9 +63,7 @@ SELECT
     1234::int4::casttesttype;
 
 -- No cast yet, should fail
-CREATE CAST (int4 AS casttesttype
-)
-WITH INOUT;
+CREATE CAST (int4 AS casttesttype) WITH INOUT;
 
 SELECT
     1234::int4::casttesttype;
@@ -81,16 +77,11 @@ CREATE FUNCTION int4_casttesttype (int4)
     LANGUAGE SQL
     AS $$
     SELECT
-        (
-            'foo' ::text || $1 ::text)::casttesttype;
+        ('foo'::text || $1::text)::casttesttype;
 
 $$;
 
-CREATE CAST (int4 AS casttesttype
-)
-WITH FUNCTION int4_casttesttype (int4
-) AS
-IMPLICIT;
+CREATE CAST (int4 AS casttesttype) WITH FUNCTION int4_casttesttype (int4) AS IMPLICIT;
 
 SELECT
     1234::int4::casttesttype;

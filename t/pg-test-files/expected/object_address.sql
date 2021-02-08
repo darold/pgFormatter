@@ -114,9 +114,7 @@ CREATE TRANSFORM FOR int
 LANGUAGE SQL
 (
 FROM
-    SQL WITH FUNCTION prsd_lextype( internal
-),
-TO SQL WITH FUNCTION int4recv( internal));
+    SQL WITH FUNCTION prsd_lextype(internal), TO SQL WITH FUNCTION int4recv(internal));
 
 CREATE PUBLICATION addr_pub FOR TABLE addr_nsp.gentable;
 
@@ -147,10 +145,10 @@ BEGIN
         BEGIN
             PERFORM
                 pg_get_object_address(objtype, '{one}', '{}');
-            EXCEPTION
+        EXCEPTION
             WHEN invalid_parameter_value THEN
                 RAISE WARNING 'error for %: %', objtype, sqlerrm;
-            END;
+        END;
     END LOOP;
 END;
 
@@ -192,10 +190,10 @@ BEGIN
                 BEGIN
                     PERFORM
                         pg_get_object_address(objtype, names, args);
-                    EXCEPTION
+                EXCEPTION
                     WHEN OTHERS THEN
                         RAISE WARNING 'error for %,%,%: %', objtype, names, args, sqlerrm;
-                    END;
+                END;
             END LOOP;
         END LOOP;
     END LOOP;

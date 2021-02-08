@@ -87,7 +87,7 @@ SELECT
     quote_literal('abc''');
 
 SELECT
-    quote_literal(e '\\');
+    quote_literal(e'\\');
 
 -- check variadic labeled argument
 SELECT

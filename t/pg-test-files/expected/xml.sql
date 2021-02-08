@@ -27,7 +27,7 @@ SELECT
     xmlcomment('test-');
 
 SELECT
-    xmlcomment( '--test');
+    xmlcomment('--test');
 
 SELECT
     xmlcomment('te st');

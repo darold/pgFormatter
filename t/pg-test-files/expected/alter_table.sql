@@ -2825,13 +2825,14 @@ FROM
 
 ALTER TABLE anothertab
     ALTER COLUMN atcol2 TYPE text
-    USING CASE WHEN atcol2 IS TRUE THEN
-        'IT WAS TRUE'
-    WHEN atcol2 IS FALSE THEN
-        'IT WAS FALSE'
-    ELSE
-        'IT WAS NULL!'
-    END;
+    USING
+        CASE WHEN atcol2 IS TRUE THEN
+            'IT WAS TRUE'
+        WHEN atcol2 IS FALSE THEN
+            'IT WAS FALSE'
+        ELSE
+            'IT WAS NULL!'
+        END;
 
 SELECT
     *
@@ -2840,11 +2841,12 @@ FROM
 
 ALTER TABLE anothertab
     ALTER COLUMN atcol1 TYPE boolean
-    USING CASE WHEN atcol1 % 2 = 0 THEN
-        TRUE
-    ELSE
-        FALSE
-    END;
+    USING
+        CASE WHEN atcol1 % 2 = 0 THEN
+            TRUE
+        ELSE
+            FALSE
+        END;
 
 -- fails
 ALTER TABLE anothertab
@@ -2852,11 +2854,12 @@ ALTER TABLE anothertab
 
 ALTER TABLE anothertab
     ALTER COLUMN atcol1 TYPE boolean
-    USING CASE WHEN atcol1 % 2 = 0 THEN
-        TRUE
-    ELSE
-        FALSE
-    END;
+    USING
+        CASE WHEN atcol1 % 2 = 0 THEN
+            TRUE
+        ELSE
+            FALSE
+        END;
 
 -- fails
 ALTER TABLE anothertab
@@ -2872,11 +2875,12 @@ ALTER TABLE anothertab
 -- succeeds
 ALTER TABLE anothertab
     ALTER COLUMN atcol1 TYPE boolean
-    USING CASE WHEN atcol1 % 2 = 0 THEN
-        TRUE
-    ELSE
-        FALSE
-    END;
+    USING
+        CASE WHEN atcol1 % 2 = 0 THEN
+            TRUE
+        ELSE
+            FALSE
+        END;
 
 SELECT
     *

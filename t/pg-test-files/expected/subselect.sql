@@ -685,7 +685,7 @@ WHERE
 
 CREATE RULE shipped_view_insert AS ON INSERT TO shipped_view
     DO INSTEAD
-    INSERT INTO shipped VALUES ('wt', new.ordnum, new.partnum, new.value);
+    INSERT INTO shipped VALUES ('wt', NEW.ordnum, NEW.partnum, NEW.value);
 
 INSERT INTO parts (partnum,
     COST)
@@ -708,10 +708,10 @@ CREATE RULE shipped_view_update AS ON UPDATE
         DO INSTEAD
         UPDATE
             shipped SET
-            partnum = new.partnum,
-            value = new.value WHERE
-            ttype = new.ttype
-            AND ordnum = new.ordnum;
+            partnum = NEW.partnum,
+            value = NEW.value WHERE
+            ttype = NEW.ttype
+            AND ordnum = NEW.ordnum;
 
 UPDATE
     shipped_view
@@ -1461,7 +1461,7 @@ CREATE FUNCTION tattle (x int, y int)
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    RAISE notice 'x = %, y = %', x, y;
+    RAISE NOTICE 'x = %, y = %', x, y;
     RETURN x > y;
 END
 $$;

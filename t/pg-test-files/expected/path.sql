@@ -10,7 +10,7 @@ INSERT INTO PATH_TBL
     VALUES ('[(1,2),(3,4)]');
 
 INSERT INTO PATH_TBL
-    VALUES (' (( 1 , 2 ) , ( 3 , 4 ) ) ');
+    VALUES (' ( ( 1 , 2 ) , ( 3 , 4 ) ) ');
 
 INSERT INTO PATH_TBL
     VALUES ('[ (0,0),(3,0),(4,5),(1,6) ]');

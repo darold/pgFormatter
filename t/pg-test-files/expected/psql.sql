@@ -706,22 +706,19 @@ SELECT
 
 \pset csv_fieldsep '.'
 SELECT
-    '\' as d1, '' as d2;
+    '\' AS d1,
+    '' AS d2;
 
 -- illegal csv separators
 \pset csv_fieldsep ''
-\pset csv_fieldsep ' 0 '
-\pset csv_fieldsep ' n '
-\pset csv_fieldsep ' r '
-\pset csv_fieldsep ' "'
+\pset csv_fieldsep '\0'
+\pset csv_fieldsep '\n'
+\pset csv_fieldsep '\r'
+\pset csv_fieldsep '"'
 \pset csv_fieldsep ',,'
-
 \pset csv_fieldsep ','
-
 -- test html output format
-
 \pset format html
-
 \pset border 1
 \pset expanded off
 \d psql_serial_tab_id_seq
@@ -733,40 +730,41 @@ SELECT
 \pset tuples_only true
 \df exp
 \pset tuples_only false
-
-prepare q as
-  select 'some" text ' as "a&title", E' < foo > n < bar > ' as "junk",
-         ' ' as "empty", n as int
-  from generate_series(1,2) as n;
+PREPARE q AS
+SELECT
+    'some"text' AS "a&title",
+    E'  <foo>\n<bar>' AS "junk",
+    '   ' AS "empty",
+    n AS int
+FROM
+    generate_series(1, 2) AS n;
 
 \pset expanded off
 \pset border 0
-execute q;
+EXECUTE q;
 
 \pset border 1
-execute q;
+EXECUTE q;
 
 \pset tableattr foobar
-execute q;
-\pset tableattr
+EXECUTE q;
 
+\pset tableattr
 \pset expanded on
 \pset border 0
-execute q;
+EXECUTE q;
 
 \pset border 1
-execute q;
+EXECUTE q;
 
 \pset tableattr foobar
-execute q;
-\pset tableattr
+EXECUTE q;
 
-deallocate q;
+\pset tableattr
+DEALLOCATE q;
 
 -- test latex output format
-
 \pset format latex
-
 \pset border 1
 \pset expanded off
 \d psql_serial_tab_id_seq
@@ -778,9 +776,10 @@ deallocate q;
 \pset tuples_only true
 \df exp
 \pset tuples_only false
-
-prepare q as
-  select ' SOME more_text ' as "a$title", E' #< foo > % & ^ ~ | n {bar}' AS "junk",
+PREPARE q AS
+SELECT
+    'some\more_text' AS "a$title",
+    E'  #<foo>%&^~|\n{bar}' AS "junk",
     '   ' AS "empty",
     n AS int
 FROM
@@ -1093,24 +1092,24 @@ SELECT
 \set SHOW_CONTEXT never
 DO $$
 BEGIN
-    RAISE notice 'foo';
-    RAISE exception 'bar';
+    RAISE NOTICE 'foo';
+    RAISE EXCEPTION 'bar';
 END
 $$;
 
 \set SHOW_CONTEXT errors
 DO $$
 BEGIN
-    RAISE notice 'foo';
-    RAISE exception 'bar';
+    RAISE NOTICE 'foo';
+    RAISE EXCEPTION 'bar';
 END
 $$;
 
 \set SHOW_CONTEXT always
 DO $$
 BEGIN
-    RAISE notice 'foo';
-    RAISE exception 'bar';
+    RAISE NOTICE 'foo';
+    RAISE EXCEPTION 'bar';
 END
 $$;
 

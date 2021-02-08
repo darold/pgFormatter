@@ -8,7 +8,9 @@ SELECT DISTINCT ON (string4)
 FROM
     tmp
 ORDER BY
-    string4 USING <, two USING >, ten USING <;
+    string4 USING <,
+    two USING >,
+    ten USING <;
 
 -- this will fail due to conflict of ordering requirements
 SELECT DISTINCT ON (string4, ten)
@@ -18,7 +20,9 @@ SELECT DISTINCT ON (string4, ten)
 FROM
     tmp
 ORDER BY
-    string4 USING <, two USING <, ten USING <;
+    string4 USING <,
+    two USING <,
+    ten USING <;
 
 SELECT DISTINCT ON (string4, ten)
     string4,
@@ -27,7 +31,9 @@ SELECT DISTINCT ON (string4, ten)
 FROM
     tmp
 ORDER BY
-    string4 USING <, ten USING >, two USING <;
+    string4 USING <,
+    ten USING >,
+    two USING <;
 
 -- bug #5049: early 8.4.x chokes on volatile DISTINCT ON clauses
 SELECT DISTINCT ON (1)

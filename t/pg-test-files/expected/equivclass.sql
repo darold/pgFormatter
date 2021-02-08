@@ -45,13 +45,13 @@ CREATE TYPE int8alias2 (
     LIKE = int8
 );
 
-CREATE cast (int8 AS int8alias1) WITHOUT FUNCTION;
+CREATE CAST (int8 AS int8alias1) WITHOUT FUNCTION;
 
-CREATE cast (int8 AS int8alias2) WITHOUT FUNCTION;
+CREATE CAST (int8 AS int8alias2) WITHOUT FUNCTION;
 
-CREATE cast (int8alias1 AS int8) WITHOUT FUNCTION;
+CREATE CAST (int8alias1 AS int8) WITHOUT FUNCTION;
 
-CREATE cast (int8alias2 AS int8) WITHOUT FUNCTION;
+CREATE CAST (int8alias2 AS int8) WITHOUT FUNCTION;
 
 CREATE FUNCTION int8alias1eq (int8alias1, int8alias1)
     RETURNS bool STRICT IMMUTABLE
@@ -528,7 +528,8 @@ SET enable_mergejoin = OFF;
 
 ALTER TABLE ec1 enable ROW level SECURITY;
 
-CREATE POLICY p1 ON ec1 USING (f1 < '5'::int8alias1);
+CREATE POLICY p1 ON ec1
+    USING (f1 < '5'::int8alias1);
 
 CREATE USER regress_user_ectest;
 

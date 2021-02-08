@@ -1916,7 +1916,7 @@ CREATE OR REPLACE FUNCTION avg_transfn (state avg_state, n int)
 DECLARE
     new_state avg_state;
 BEGIN
-    RAISE notice 'avg_transfn called with %', n;
+    RAISE NOTICE 'avg_transfn called with %', n;
     IF state IS NULL THEN
         IF n IS NOT NULL THEN
             new_state.total := n;
@@ -2080,7 +2080,7 @@ CREATE OR REPLACE FUNCTION sum_transfn (state int4, n int4)
 DECLARE
     new_state int4;
 BEGIN
-    RAISE notice 'sum_transfn called with %', n;
+    RAISE NOTICE 'sum_transfn called with %', n;
     IF state IS NULL THEN
         IF n IS NOT NULL THEN
             new_state := n;

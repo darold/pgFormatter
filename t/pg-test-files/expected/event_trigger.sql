@@ -293,8 +293,8 @@ INSERT INTO undroppable_objs
     VALUES ('table', 'schema_one.table_three'), ('table', 'audit_tbls.schema_two_table_three');
 
 CREATE TABLE dropped_objects (
-    TYPE text,
-    SCHEMA text,
+    type text,
+    schema text,
     object text
 );
 
@@ -615,9 +615,11 @@ CREATE EVENT TRIGGER sql_drop_command ON sql_drop
     WHEN TAG IN ('DROP POLICY')
         EXECUTE PROCEDURE drop_sql_command ();
 
-CREATE POLICY p1 ON event_trigger_test USING (FALSE);
+CREATE POLICY p1 ON event_trigger_test
+    USING (FALSE);
 
-ALTER POLICY p1 ON event_trigger_test USING (TRUE);
+ALTER POLICY p1 ON event_trigger_test
+    USING (TRUE);
 
 ALTER POLICY p1 ON event_trigger_test RENAME TO p2;
 

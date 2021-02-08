@@ -21,16 +21,16 @@ SELECT
     '''1 2'''::tsvector;
 
 SELECT
-    E'' '1 \\''2' ''::tsvector;
+    E'''1 \\''2'''::tsvector;
 
 SELECT
-    E'' '1 \\''2''3'::tsvector;
+    E'''1 \\''2''3'::tsvector;
 
 SELECT
-    E'' '1 \\''2'' 3'::tsvector;
+    E'''1 \\''2'' 3'::tsvector;
 
 SELECT
-    E'' '1 \\''2'' '' 3'' 4 '::tsvector;
+    E'''1 \\''2'' '' 3'' 4 '::tsvector;
 
 SELECT
     $$ '\\as' ab \c ab\\c AB\\\c ab\\\\c$$::tsvector;
@@ -59,7 +59,7 @@ SELECT
     '''1 2'''::tsquery;
 
 SELECT
-    E'' '1 \\''2'''::tsquery;
+    E'''1 \\''2'''::tsquery;
 
 SELECT
     '!1'::tsquery;

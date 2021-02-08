@@ -219,7 +219,7 @@ FROM
 
 CREATE RULE voo_i AS ON INSERT TO voo
     DO INSTEAD
-    INSERT INTO foo VALUES (new.*, 57);
+    INSERT INTO foo VALUES (NEW.*, 57);
 
 INSERT INTO voo
     VALUES (11, 'zit');
@@ -367,11 +367,11 @@ CREATE RULE joinview_u AS ON UPDATE
         DO INSTEAD
         UPDATE
             foo SET
-            f1 = new.f1,
-            f3 = new.f3 FROM
+            f1 = NEW.f1,
+            f3 = NEW.f3 FROM
             joinme WHERE
             f2 = f2j
-            AND f2 = old.f2 RETURNING
+            AND f2 = OLD.f2 RETURNING
             foo.*,
             other;
 

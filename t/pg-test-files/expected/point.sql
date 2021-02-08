@@ -75,7 +75,8 @@ SELECT
     p.*
 FROM
     POINT_TBL p
-WHERE '(0.0,0.0)' >> p.f1;
+WHERE
+    '(0.0,0.0)' >> p.f1;
 
 -- above
 SELECT
@@ -83,7 +84,8 @@ SELECT
     p.*
 FROM
     POINT_TBL p
-WHERE '(0.0,0.0)' >^ p.f1;
+WHERE
+    '(0.0,0.0)' >^ p.f1;
 
 -- below
 SELECT

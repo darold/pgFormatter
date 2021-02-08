@@ -649,7 +649,7 @@ CREATE FUNCTION trans_updatetrigfunc ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    RAISE notice 'trigger = %, old table = %, new table = %', TG_NAME, (
+    RAISE NOTICE 'trigger = %, old table = %, new table = %', TG_NAME, (
         SELECT
             string_agg(old_table::text, ', ' ORDER BY a)
         FROM
@@ -810,9 +810,14 @@ CREATE USER regress_range_parted_user;
 
 GRANT ALL ON range_parted, mintab TO regress_range_parted_user;
 
-CREATE POLICY seeall ON range_parted AS PERMISSIVE FOR SELECT USING (TRUE);
+CREATE POLICY seeall ON range_parted AS PERMISSIVE
+    FOR SELECT
+        USING (TRUE);
 
-CREATE POLICY policy_range_parted ON range_parted FOR UPDATE USING (TRUE) WITH CHECK (c % 2 = 0);
+CREATE POLICY policy_range_parted ON range_parted
+    FOR UPDATE
+        USING (TRUE)
+        WITH CHECK (c % 2 = 0);
 
 :init_range_parted;
 
@@ -894,9 +899,14 @@ RESET SESSION AUTHORIZATION;
 
 :init_range_parted;
 
-CREATE POLICY policy_range_parted_subplan ON range_parted AS RESTRICTIVE FOR UPDATE USING (TRUE) WITH CHECK ((SELECT range_parted.c <= c1
-FROM
-    mintab));
+CREATE POLICY policy_range_parted_subplan ON range_parted AS RESTRICTIVE
+    FOR UPDATE
+        USING (TRUE)
+        WITH CHECK ((
+            SELECT
+                range_parted.c <= c1
+            FROM
+                mintab));
 
 SET SESSION AUTHORIZATION regress_range_parted_user;
 
@@ -925,7 +935,10 @@ RESET SESSION AUTHORIZATION;
 
 :init_range_parted;
 
-CREATE POLICY policy_range_parted_wholerow ON range_parted AS RESTRICTIVE FOR UPDATE USING (TRUE) WITH CHECK (range_parted = ROW ('b', 10, 112, 1, NULL)::range_parted);
+CREATE POLICY policy_range_parted_wholerow ON range_parted AS RESTRICTIVE
+    FOR UPDATE
+        USING (TRUE)
+        WITH CHECK (range_parted = ROW ('b', 10, 112, 1, NULL)::range_parted);
 
 SET SESSION AUTHORIZATION regress_range_parted_user;
 
@@ -979,7 +992,7 @@ CREATE FUNCTION trigfunc ()
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    RAISE notice 'trigger = % fired on table % during %', TG_NAME, TG_TABLE_NAME, TG_OP;
+    RAISE NOTICE 'trigger = % fired on table % during %', TG_NAME, TG_TABLE_NAME, TG_OP;
     RETURN NULL;
 END;
 $$;
@@ -1328,7 +1341,7 @@ CREATE OR REPLACE FUNCTION func_parted_mod_b ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice 'Trigger: Got OLD row %, but returning NULL', OLD;
+    RAISE NOTICE 'Trigger: Got OLD row %, but returning NULL', OLD;
     RETURN NULL;
 END
 $$

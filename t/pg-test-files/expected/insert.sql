@@ -161,19 +161,19 @@ CREATE TABLE inserttest2 (
 CREATE RULE irule1 AS ON INSERT TO inserttest2
     DO ALSO
     INSERT INTO inserttest (f3.if2[1], f3.if2[2])
-    VALUES (new.f1, new.f2);
+    VALUES (NEW.f1, NEW.f2);
 
 CREATE RULE irule2 AS ON INSERT TO inserttest2
     DO ALSO
     INSERT INTO inserttest (f4[1].if1, f4[1].if2[2])
-    VALUES (1, 'fool'), (new.f1, new.f2);
+    VALUES (1, 'fool'), (NEW.f1, NEW.f2);
 
 CREATE RULE irule3 AS ON INSERT TO inserttest2
     DO ALSO
     INSERT INTO inserttest (f4[1].if1, f4[1].if2[2])
     SELECT
-        new.f1,
-        new.f2;
+        NEW.f1,
+        NEW.f2;
 
 \d+ inserttest2
 DROP TABLE inserttest2;
@@ -1253,7 +1253,7 @@ CREATE OR REPLACE FUNCTION donothingbrtrig_func ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice 'b: %', NEW.b;
+    RAISE NOTICE 'b: %', NEW.b;
     RETURN NULL;
 END
 $$

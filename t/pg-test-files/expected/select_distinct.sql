@@ -42,7 +42,9 @@ SELECT DISTINCT
 FROM
     tmp
 ORDER BY
-    two USING <, string4 USING <, ten USING <;
+    two USING <,
+    string4 USING <,
+    ten USING <;
 
 --
 -- awk '{print $2;}' person.data |

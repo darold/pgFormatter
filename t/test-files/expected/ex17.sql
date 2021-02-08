@@ -148,7 +148,7 @@ BEGIN
                 INSERT INTO stock (vin_id, contenant_id, annee, nombre)
                     VALUES (v_vin_id, v_contenant_id, v_annee, v_nombre);
                 IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
-                    RAISE notice 'stock : % sur % tuples generes', compteur, tuples_a_generer;
+                    RAISE NOTICE 'stock : % sur % tuples generes', compteur, tuples_a_generer;
                 END IF;
                 compteur := compteur + 1;
             END LOOP;
@@ -211,7 +211,7 @@ BEGIN
                 INSERT INTO vin (recoltant_id, appellation_id, type_vin_id)
                     VALUES (v_recoltant_id, v_appellation_id, v_type_vin_id);
                 IF (((compteur % 1000) = 0) OR (compteur = tuples_a_generer)) THEN
-                    RAISE notice 'vins : % sur % tuples generes', compteur, tuples_a_generer;
+                    RAISE NOTICE 'vins : % sur % tuples generes', compteur, tuples_a_generer;
                 END IF;
                 compteur := compteur + 1;
             END LOOP;
@@ -290,7 +290,7 @@ BEGIN
             AND vin_id = v_vin_id
             AND annee = v_annee;
         IF (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
-            RAISE notice 'stock : % sur % echantillon effaces', v_tuples, echantillon;
+            RAISE NOTICE 'stock : % sur % echantillon effaces', v_tuples, echantillon;
         END IF;
     END LOOP;
     --fin boucle v_tuples
@@ -338,7 +338,7 @@ BEGIN
         DELETE FROM vin
         WHERE id = v_vin_id;
         IF (((v_tuples % 100) = 0) OR (v_tuples = echantillon)) THEN
-            RAISE notice 'vin : % sur % echantillon effaces', v_tuples, echantillon;
+            RAISE NOTICE 'vin : % sur % echantillon effaces', v_tuples, echantillon;
         END IF;
     END LOOP;
     --fin boucle v_tuples

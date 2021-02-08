@@ -1282,8 +1282,7 @@ DROP SEQUENCE rngfunc_rescan_seq2;
 --
 -- Test cases involving OUT parameters
 --
-CREATE FUNCTION rngfunc (IN f1 int, out f2 int
-)
+CREATE FUNCTION rngfunc (IN f1 int, out f2 int)
 AS 'select $1+1'
     LANGUAGE sql;
 
@@ -1323,8 +1322,7 @@ CREATE OR REPLACE FUNCTION rngfunc (IN f1 int, out f2 int, out f3 text)
     AS 'select $1+1'
     LANGUAGE sql;
 
-CREATE OR REPLACE FUNCTION rngfuncr (IN f1 int, out f2 int, out text
-)
+CREATE OR REPLACE FUNCTION rngfuncr (IN f1 int, out f2 int, out text)
 AS $$
     SELECT
         $1 - 1,
@@ -1349,8 +1347,7 @@ FROM
     rngfuncr (42) AS p (a,
         b);
 
-CREATE OR REPLACE FUNCTION rngfuncb (IN f1 int, INOUT f2 int, out text
-)
+CREATE OR REPLACE FUNCTION rngfuncb (IN f1 int, INOUT f2 int, out text)
 AS $$
     SELECT
         $2 - 1,
@@ -1385,8 +1382,7 @@ DROP FUNCTION rngfuncb (IN f1 int, INOUT f2 int);
 --
 -- For my next trick, polymorphic OUT parameters
 --
-CREATE FUNCTION dup (f1 anyelement, f2 out anyelement, f3 out anyarray
-)
+CREATE FUNCTION dup (f1 anyelement, f2 out anyelement, f3 out anyarray)
 AS 'select $1, array[$1,$1]'
     LANGUAGE sql;
 
@@ -1406,16 +1402,14 @@ FROM
     dup ('xyz'::text);
 
 -- fails, as we are attempting to rename first argument
-CREATE OR REPLACE FUNCTION dup (INOUT f2 anyelement, out f3 anyarray
-)
+CREATE OR REPLACE FUNCTION dup (INOUT f2 anyelement, out f3 anyarray)
 AS 'select $1, array[$1,$1]'
     LANGUAGE sql;
 
 DROP FUNCTION dup (anyelement);
 
 -- equivalent behavior, though different name exposed for input arg
-CREATE OR REPLACE FUNCTION dup (INOUT f2 anyelement, out f3 anyarray
-)
+CREATE OR REPLACE FUNCTION dup (INOUT f2 anyelement, out f3 anyarray)
 AS 'select $1, array[$1,$1]'
     LANGUAGE sql;
 
@@ -1425,8 +1419,7 @@ SELECT
 DROP FUNCTION dup (anyelement);
 
 -- fails, no way to deduce outputs
-CREATE FUNCTION bad (f1 int, out f2 anyelement, out f3 anyarray
-)
+CREATE FUNCTION bad (f1 int, out f2 anyelement, out f3 anyarray)
 AS 'select $1, array[$1,$1]'
     LANGUAGE sql;
 
@@ -1582,7 +1575,7 @@ CREATE FUNCTION noticetrigger ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE notice 'noticetrigger % %', NEW.f1, NEW.data;
+    RAISE NOTICE 'noticetrigger % %', NEW.f1, NEW.data;
     RETURN NULL;
 END
 $$
@@ -1917,8 +1910,7 @@ FROM
 DROP FUNCTION rngfuncbar ();
 
 -- check handling of a SQL function with multiple OUT params (bug #5777)
-CREATE OR REPLACE FUNCTION rngfuncbar (out integer, out numeric
-)
+CREATE OR REPLACE FUNCTION rngfuncbar (out integer, out numeric)
 AS $$
     SELECT
         (1,
@@ -1931,8 +1923,7 @@ SELECT
 FROM
     rngfuncbar ();
 
-CREATE OR REPLACE FUNCTION rngfuncbar (out integer, out numeric
-)
+CREATE OR REPLACE FUNCTION rngfuncbar (out integer, out numeric)
 AS $$
     SELECT
         (1,
@@ -1946,8 +1937,7 @@ FROM
     rngfuncbar ();
 
 -- fail
-CREATE OR REPLACE FUNCTION rngfuncbar (out integer, out numeric
-)
+CREATE OR REPLACE FUNCTION rngfuncbar (out integer, out numeric)
 AS $$
     SELECT
         (1,

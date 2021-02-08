@@ -29,21 +29,21 @@ FROM
 
 CREATE RULE rtest_v1_ins AS ON INSERT TO rtest_v1
     DO INSTEAD
-    INSERT INTO rtest_t1 VALUES (new.a, new.b);
+    INSERT INTO rtest_t1 VALUES (NEW.a, NEW.b);
 
 CREATE RULE rtest_v1_upd AS ON UPDATE
     TO rtest_v1
         DO INSTEAD
         UPDATE
             rtest_t1 SET
-            a = new.a,
-            b = new.b WHERE
-            a = old.a;
+            a = NEW.a,
+            b = NEW.b WHERE
+            a = OLD.a;
 
 CREATE RULE rtest_v1_del AS ON DELETE TO rtest_v1
     DO INSTEAD
     DELETE FROM rtest_t1
-    WHERE a = old.a;
+    WHERE a = OLD.a;
 
 -- Test comments
 COMMENT ON RULE rtest_v1_bad ON rtest_v1 IS 'bad rule';
@@ -85,8 +85,8 @@ CREATE RULE rtest_sys_upd AS ON UPDATE
         DO ALSO
         ( UPDATE
                 rtest_interface SET
-                sysname = new.sysname WHERE
-                sysname = old.sysname;
+                sysname = NEW.sysname WHERE
+                sysname = OLD.sysname;
 
 UPDATE
     rtest_admin
@@ -98,7 +98,7 @@ WHERE
 CREATE RULE rtest_sys_del AS ON DELETE TO rtest_system
     DO ALSO
     ( DELETE FROM rtest_interface
-        WHERE sysname = old.sysname;
+        WHERE sysname = OLD.sysname;
 
 DELETE FROM rtest_admin
 WHERE sysname = old.sysname;
@@ -110,13 +110,13 @@ CREATE RULE rtest_pers_upd AS ON UPDATE
         DO ALSO
         UPDATE
             rtest_admin SET
-            pname = new.pname WHERE
-            pname = old.pname;
+            pname = NEW.pname WHERE
+            pname = OLD.pname;
 
 CREATE RULE rtest_pers_del AS ON DELETE TO rtest_person
     DO ALSO
     DELETE FROM rtest_admin
-    WHERE pname = old.pname;
+    WHERE pname = OLD.pname;
 
 --
 -- Tables and rules for the logging test
@@ -139,13 +139,13 @@ CREATE TABLE rtest_empmass (
     salary money
 );
 
-CREATE RULE rtest_emp_ins AS ON INSERT TO rtest_emp DO INSERT INTO rtest_emplog VALUES (new.ename, CURRENT_USER, 'hired', new.salary, '0.00');
+CREATE RULE rtest_emp_ins AS ON INSERT TO rtest_emp DO INSERT INTO rtest_emplog VALUES (NEW.ename, CURRENT_USER, 'hired', NEW.salary, '0.00');
 
 CREATE RULE rtest_emp_upd AS ON UPDATE
     TO rtest_emp WHERE
-    new.salary != old.salary DO INSERT INTO rtest_emplog VALUES (new.ename, CURRENT_USER, 'honored', new.salary, old.salary);
+    NEW.salary != OLD.salary DO INSERT INTO rtest_emplog VALUES (NEW.ename, CURRENT_USER, 'honored', NEW.salary, OLD.salary);
 
-CREATE RULE rtest_emp_del AS ON DELETE TO rtest_emp DO INSERT INTO rtest_emplog VALUES (old.ename, CURRENT_USER, 'fired', '0.00', old.salary);
+CREATE RULE rtest_emp_del AS ON DELETE TO rtest_emp DO INSERT INTO rtest_emplog VALUES (OLD.ename, CURRENT_USER, 'fired', '0.00', OLD.salary);
 
 --
 -- Tables and rules for the multiple cascaded qualified instead
@@ -182,22 +182,22 @@ CREATE TABLE rtest_t9 (
 );
 
 CREATE RULE rtest_t4_ins1 AS ON INSERT TO rtest_t4 WHERE
-    new.a >= 10
-    AND new.a < 20
+    NEW.a >= 10
+    AND NEW.a < 20
         DO INSTEAD
-        INSERT INTO rtest_t5 VALUES (new.a, new.b);
+        INSERT INTO rtest_t5 VALUES (NEW.a, NEW.b);
 
 CREATE RULE rtest_t4_ins2 AS ON INSERT TO rtest_t4 WHERE
-    new.a >= 20
-    AND new.a < 30 DO INSERT INTO rtest_t6 VALUES (new.a, new.b);
+    NEW.a >= 20
+    AND NEW.a < 30 DO INSERT INTO rtest_t6 VALUES (NEW.a, NEW.b);
 
 CREATE RULE rtest_t5_ins AS ON INSERT TO rtest_t5 WHERE
-    new.a > 15 DO INSERT INTO rtest_t7 VALUES (new.a, new.b);
+    NEW.a > 15 DO INSERT INTO rtest_t7 VALUES (NEW.a, NEW.b);
 
 CREATE RULE rtest_t6_ins AS ON INSERT TO rtest_t6 WHERE
-    new.a > 25
+    NEW.a > 25
         DO INSTEAD
-        INSERT INTO rtest_t8 VALUES (new.a, new.b);
+        INSERT INTO rtest_t8 VALUES (NEW.a, NEW.b);
 
 --
 -- Tables and rules for the rule fire order test
@@ -219,18 +219,18 @@ CREATE SEQUENCE rtest_seq;
 
 CREATE RULE rtest_order_r3 AS ON INSERT TO rtest_order1
     DO INSTEAD
-    INSERT INTO rtest_order2 VALUES (new.a, nextval('rtest_seq'), 'rule 3 - this should run 3rd');
+    INSERT INTO rtest_order2 VALUES (NEW.a, nextval('rtest_seq'), 'rule 3 - this should run 3rd');
 
 CREATE RULE rtest_order_r4 AS ON INSERT TO rtest_order1 WHERE
     a < 100
         DO INSTEAD
-        INSERT INTO rtest_order2 VALUES (new.a, nextval('rtest_seq'), 'rule 4 - this should run 4th');
+        INSERT INTO rtest_order2 VALUES (NEW.a, nextval('rtest_seq'), 'rule 4 - this should run 4th');
 
-CREATE RULE rtest_order_r2 AS ON INSERT TO rtest_order1 DO INSERT INTO rtest_order2 VALUES (new.a, nextval('rtest_seq'), 'rule 2 - this should run 2nd');
+CREATE RULE rtest_order_r2 AS ON INSERT TO rtest_order1 DO INSERT INTO rtest_order2 VALUES (NEW.a, nextval('rtest_seq'), 'rule 2 - this should run 2nd');
 
 CREATE RULE rtest_order_r1 AS ON INSERT TO rtest_order1
     DO INSTEAD
-    INSERT INTO rtest_order2 VALUES (new.a, nextval('rtest_seq'), 'rule 1 - this should run 1st');
+    INSERT INTO rtest_order2 VALUES (NEW.a, nextval('rtest_seq'), 'rule 1 - this should run 1st');
 
 --
 -- Tables and rules for the instead nothing test
@@ -256,21 +256,21 @@ CREATE TABLE rtest_nothn4 (
 );
 
 CREATE RULE rtest_nothn_r1 AS ON INSERT TO rtest_nothn1 WHERE
-    new.a >= 10
-    AND new.a < 20
+    NEW.a >= 10
+    AND NEW.a < 20
         DO INSTEAD
         NOTHING;
 
 CREATE RULE rtest_nothn_r2 AS ON INSERT TO rtest_nothn1 WHERE
-    new.a >= 30
-    AND new.a < 40
+    NEW.a >= 30
+    AND NEW.a < 40
         DO INSTEAD
         NOTHING;
 
 CREATE RULE rtest_nothn_r3 AS ON INSERT TO rtest_nothn2 WHERE
-    new.a >= 100
+    NEW.a >= 100
         DO INSTEAD
-        INSERT INTO rtest_nothn3 VALUES (new.a, new.b);
+        INSERT INTO rtest_nothn3 VALUES (NEW.a, NEW.b);
 
 CREATE RULE rtest_nothn_r4 AS ON INSERT TO rtest_nothn2
     DO INSTEAD
@@ -1397,8 +1397,7 @@ FROM
 WHERE
     size_in_cm > 10.0
 ORDER BY
-    size_in_cm
-    USING >;
+    size_in_cm USING >;
 
 --
 -- In addition run the (slightly modified) queries from the
@@ -1746,7 +1745,7 @@ CREATE RULE rules_foorule AS ON INSERT TO rules_foo WHERE
 CREATE RULE rules_foorule AS ON INSERT TO rules_foo WHERE
     f1 < 100
         DO INSTEAD
-        INSERT INTO rules_foo2 VALUES (new.f1);
+        INSERT INTO rules_foo2 VALUES (NEW.f1);
 
 INSERT INTO rules_foo
     VALUES (2);
@@ -1807,9 +1806,9 @@ CREATE RULE rrule AS ON UPDATE
         DO INSTEAD
         (INSERT INTO cchild (pid, descrip)
             SELECT
-                old.pid,
-                new.descrip WHERE
-                old.descrip ISNULL;
+                OLD.pid,
+                NEW.descrip WHERE
+                OLD.descrip ISNULL;
 
 UPDATE
     cchild
@@ -2030,15 +2029,15 @@ ON CONFLICT (sl_name)
 CREATE RULE rule_and_refint_t3_ins AS ON INSERT TO rule_and_refint_t3 WHERE (EXISTS (
         SELECT
             1 FROM
-            rule_and_refint_t3 WHERE (((rule_and_refint_t3.id3a = new.id3a)
-                AND (rule_and_refint_t3.id3b = new.id3b))
-            AND (rule_and_refint_t3.id3c = new.id3c))))
+            rule_and_refint_t3 WHERE (((rule_and_refint_t3.id3a = NEW.id3a)
+                AND (rule_and_refint_t3.id3b = NEW.id3b))
+            AND (rule_and_refint_t3.id3c = NEW.id3c))))
     DO INSTEAD
     UPDATE
         rule_and_refint_t3 SET
-        data = new.data WHERE (((rule_and_refint_t3.id3a = new.id3a)
-            AND (rule_and_refint_t3.id3b = new.id3b))
-        AND (rule_and_refint_t3.id3c = new.id3c));
+        data = NEW.data WHERE (((rule_and_refint_t3.id3a = NEW.id3a)
+            AND (rule_and_refint_t3.id3b = NEW.id3b))
+        AND (rule_and_refint_t3.id3c = NEW.id3c));
 
 INSERT INTO rule_and_refint_t3
     VALUES (1, 11, 13, 'row7');
@@ -2190,8 +2189,8 @@ CREATE RULE update_id_ordered AS ON UPDATE
         DO INSTEAD
         UPDATE
             id SET
-            name = new.name WHERE
-            id = old.id;
+            name = NEW.name WHERE
+            id = OLD.id;
 
 SELECT
     *
@@ -2249,36 +2248,36 @@ INHERITS (
 );
 
 CREATE RULE t1_ins_1 AS ON INSERT TO t1 WHERE
-    new.a >= 0
-    AND new.a < 10
+    NEW.a >= 0
+    AND NEW.a < 10
         DO INSTEAD
-        INSERT INTO t1_1 VALUES (new.a);
+        INSERT INTO t1_1 VALUES (NEW.a);
 
 CREATE RULE t1_ins_2 AS ON INSERT TO t1 WHERE
-    new.a >= 10
-    AND new.a < 20
+    NEW.a >= 10
+    AND NEW.a < 20
         DO INSTEAD
-        INSERT INTO t1_2 VALUES (new.a);
+        INSERT INTO t1_2 VALUES (NEW.a);
 
 CREATE RULE t1_upd_1 AS ON UPDATE
     TO t1 WHERE
-    old.a >= 0
-    AND old.a < 10
+    OLD.a >= 0
+    AND OLD.a < 10
         DO INSTEAD
         UPDATE
             t1_1 SET
-            a = new.a WHERE
-            a = old.a;
+            a = NEW.a WHERE
+            a = OLD.a;
 
 CREATE RULE t1_upd_2 AS ON UPDATE
     TO t1 WHERE
-    old.a >= 10
-    AND old.a < 20
+    OLD.a >= 10
+    AND OLD.a < 20
         DO INSTEAD
         UPDATE
             t1_2 SET
-            a = new.a WHERE
-            a = old.a;
+            a = NEW.a WHERE
+            a = OLD.a;
 
 SET constraint_exclusion = ON;
 
@@ -2342,7 +2341,7 @@ INSERT INTO rules_src
 CREATE RULE r1 AS ON UPDATE
     TO rules_src
         DO ALSO
-        INSERT INTO rules_log VALUES (old.*, 'old'), (new.*, 'new');
+        INSERT INTO rules_log VALUES (OLD.*, 'old'), (NEW.*, 'new');
 
 UPDATE
     rules_src
@@ -2367,9 +2366,9 @@ FROM
 CREATE RULE r2 AS ON UPDATE
     TO rules_src
         DO ALSO
-    VALUES (old.*,
+    VALUES (OLD.*,
         'old'),
-    (new.*,
+    (NEW.*,
         'new');
 
 UPDATE
@@ -2407,7 +2406,7 @@ CREATE RULE r5 AS ON UPDATE
         UPDATE
             rules_log AS trgt SET
             tag = 'updated' WHERE
-            trgt.f1 = new.f1;
+            trgt.f1 = NEW.f1;
 
 \d+ rules_src
 --
@@ -2425,7 +2424,7 @@ FROM
 
 CREATE RULE InsertRule AS ON INSERT TO rule_v1
     DO INSTEAD
-    INSERT INTO rule_t1 VALUES (new.a);
+    INSERT INTO rule_t1 VALUES (NEW.a);
 
 ALTER RULE InsertRule ON rule_v1 RENAME TO NewInsertRule;
 

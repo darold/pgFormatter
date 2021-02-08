@@ -1309,8 +1309,7 @@ SELECT
 SELECT
     range_add_bounds (numrange(1.0001, 123.123));
 
-CREATE FUNCTION rangetypes_sql (q anyrange, b anyarray, out c anyelement
-)
+CREATE FUNCTION rangetypes_sql (q anyrange, b anyarray, out c anyelement)
 AS $$
     SELECT
         upper($1) + $2[1]
@@ -1408,8 +1407,7 @@ RESET enable_sort;
 --
 -- OUT/INOUT/TABLE functions
 --
-CREATE FUNCTION outparam_succeed (i anyrange, out r anyrange, out t text
-)
+CREATE FUNCTION outparam_succeed (i anyrange, out r anyrange, out t text)
 AS $$
     SELECT
         $1,
@@ -1422,8 +1420,7 @@ SELECT
 FROM
     outparam_succeed (int4range(1, 2));
 
-CREATE FUNCTION inoutparam_succeed (out i anyelement, INOUT r anyrange
-)
+CREATE FUNCTION inoutparam_succeed (out i anyelement, INOUT r anyrange)
 AS $$
     SELECT
         upper($1),
@@ -1454,8 +1451,7 @@ FROM
     table_succeed (123, int4range(1, 11));
 
 -- should fail
-CREATE FUNCTION outparam_fail (i anyelement, out r anyrange, out t text
-)
+CREATE FUNCTION outparam_fail (i anyelement, out r anyrange, out t text)
 AS $$
     SELECT
         '[1,10]',
@@ -1464,8 +1460,7 @@ $$
 LANGUAGE sql;
 
 --should fail
-CREATE FUNCTION inoutparam_fail (INOUT i anyelement, out r anyrange
-)
+CREATE FUNCTION inoutparam_fail (INOUT i anyelement, out r anyrange)
 AS $$
     SELECT
         $1,

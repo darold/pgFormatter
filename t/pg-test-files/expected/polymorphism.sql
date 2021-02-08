@@ -919,7 +919,7 @@ CREATE FUNCTION bleat (int)
     RETURNS int
     AS $$
 BEGIN
-    RAISE notice 'bleat %', $1;
+    RAISE NOTICE 'bleat %', $1;
     RETURN $1;
 END
 $$
@@ -1238,8 +1238,7 @@ $$
 LANGUAGE sql;
 
 -- however, this should work:
-CREATE FUNCTION dfunc (a int = 1, out sum int, b int = 2
-)
+CREATE FUNCTION dfunc (a int = 1, out sum int, b int = 2)
 AS $$
     SELECT
         $1 + $2;

@@ -248,7 +248,7 @@ BEGIN
         *
     FROM
         vv LOOP
-            RAISE notice '%', r;
+            RAISE NOTICE '%', r;
         END LOOP;
 END
 $$
