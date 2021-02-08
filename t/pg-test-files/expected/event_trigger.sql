@@ -348,7 +348,7 @@ BEGIN
             IF obj.object_type = 'table' THEN
                 EXECUTE format('DROP TABLE IF EXISTS audit_tbls.%I', format('%s_%s', obj.schema_name, obj.object_name));
             END IF;
-            INSERT INTO dropped_objects (TYPE, SCHEMA, object)
+            INSERT INTO dropped_objects (type, schema, object)
                 VALUES (obj.object_type, obj.schema_name, obj.object_identity);
         END LOOP;
 END

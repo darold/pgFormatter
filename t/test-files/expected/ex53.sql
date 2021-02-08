@@ -89,21 +89,21 @@ EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
     VALUES (0, 'Crowberry')
-ON CONFLICT (fruit, KEY, fruit, KEY)
+ON CONFLICT (fruit, key, fruit, key)
     DO NOTHING;
 
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
     VALUES (0, 'Crowberry')
-ON CONFLICT (lower(fruit), KEY, lower(fruit), KEY)
+ON CONFLICT (lower(fruit), key, lower(fruit), key)
     DO NOTHING;
 
 EXPLAIN (
     COSTS OFF
 ) INSERT INTO insertconflicttest
     VALUES (0, 'Crowberry')
-ON CONFLICT (KEY, fruit)
+ON CONFLICT (key, fruit)
     DO UPDATE SET
         fruit = excluded.fruit
     WHERE

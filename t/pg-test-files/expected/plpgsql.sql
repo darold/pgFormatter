@@ -2649,7 +2649,7 @@ BEGIN
     FROM
         users
     WHERE
-        LOGIN = a_login;
+        login = a_login;
     IF found THEN
         RETURN x;
     END IF;
@@ -2679,7 +2679,7 @@ BEGIN
         RETURN - 1;
         -- error code for existing user
     END IF;
-    INSERT INTO users (LOGIN)
+    INSERT INTO users (login)
         VALUES (a_login);
     my_id_user = sp_id_user (a_login);
     IF my_id_user = 0 THEN
@@ -5133,7 +5133,7 @@ DECLARE
     _schema_name text;
 BEGIN
     RAISE EXCEPTION
-        USING COLUMN = '>>some column name<<', CONSTRAINT = '>>some constraint name<<', datatype = '>>some datatype name<<', TABLE = '>>some table name<<', SCHEMA = '>>some schema name<<';
+        USING COLUMN = '>>some column name<<', CONSTRAINT = '>>some constraint name<<', datatype = '>>some datatype name<<', TABLE = '>>some table name<<', schema = '>>some schema name<<';
 EXCEPTION
     WHEN OTHERS THEN
         get stacked diagnostics _column_name = column_name,

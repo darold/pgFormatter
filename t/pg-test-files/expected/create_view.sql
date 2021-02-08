@@ -29,7 +29,7 @@ CREATE VIEW toyemp AS
 SELECT
     name,
     age,
-    LOCATION,
+    location,
     12 * salary AS annualsal
 FROM
     emp;
@@ -53,7 +53,7 @@ SELECT
 FROM
     view_base_table
 GROUP BY
-    KEY;
+    key;
 
 ALTER TABLE view_base_table
     DROP CONSTRAINT view_base_table_pkey;
@@ -64,7 +64,7 @@ SELECT
 FROM
     view_base_table
 GROUP BY
-    KEY
+    key
 HAVING
     length(data) > 0;
 

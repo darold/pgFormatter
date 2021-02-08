@@ -140,7 +140,7 @@ SELECT
 -- should work with tuple-returning utilities, such as EXECUTE
 PREPARE test AS
 SELECT
-    1 AS FIRST,
+    1 AS first,
     2 AS second;
 
 EXECUTE test \gdesc

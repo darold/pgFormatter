@@ -32,7 +32,7 @@ SELECT
 FROM
     mytable
 WHERE
-    KEY = 1
+    key = 1
 FOR NO KEY UPDATE;
 SAVEPOINT s;
 UPDATE
@@ -40,6 +40,6 @@ UPDATE
 SET
     col1 = NULL
 WHERE
-    KEY = 1;
+    key = 1;
 ROLLBACK TO s;
 

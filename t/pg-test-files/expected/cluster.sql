@@ -438,35 +438,35 @@ BEGIN;
 UPDATE
     clustertest
 SET
-    KEY = 100
+    key = 100
 WHERE
-    KEY = 10;
+    key = 10;
 -- Test update where the new row version is found first in the scan
 UPDATE
     clustertest
 SET
-    KEY = 35
+    key = 35
 WHERE
-    KEY = 40;
+    key = 40;
 -- Test longer update chain
 UPDATE
     clustertest
 SET
-    KEY = 60
+    key = 60
 WHERE
-    KEY = 50;
+    key = 50;
 UPDATE
     clustertest
 SET
-    KEY = 70
+    key = 70
 WHERE
-    KEY = 60;
+    key = 60;
 UPDATE
     clustertest
 SET
-    KEY = 80
+    key = 80
 WHERE
-    KEY = 70;
+    key = 70;
 SELECT
     *
 FROM

@@ -32,7 +32,7 @@ ORDER BY
 SELECT
     prop,
     pg_index_column_has_property('onek_hundred'::regclass, 1, prop) AS btree,
-    pg_index_column_has_property('hash_i4_index'::regclass, 1, prop) AS HASH,
+    pg_index_column_has_property('hash_i4_index'::regclass, 1, prop) AS hash,
     pg_index_column_has_property('gcircleind'::regclass, 1, prop) AS gist,
     pg_index_column_has_property('sp_radix_ind'::regclass, 1, prop) AS spgist_radix,
     pg_index_column_has_property('sp_quad_ind'::regclass, 1, prop) AS spgist_quad,
@@ -47,7 +47,7 @@ ORDER BY
 SELECT
     prop,
     pg_index_has_property('onek_hundred'::regclass, prop) AS btree,
-    pg_index_has_property('hash_i4_index'::regclass, prop) AS HASH,
+    pg_index_has_property('hash_i4_index'::regclass, prop) AS hash,
     pg_index_has_property('gcircleind'::regclass, prop) AS gist,
     pg_index_has_property('sp_radix_ind'::regclass, prop) AS spgist,
     pg_index_has_property('botharrayidx'::regclass, prop) AS gin,

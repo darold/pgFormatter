@@ -1048,13 +1048,13 @@ CREATE temp TABLE upsert (
 
 INSERT INTO upsert
     VALUES (1, 'val')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         val = 'not seen';
 
 INSERT INTO upsert
     VALUES (1, 'val')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         val = 'seen with subselect ' || (
             SELECT
@@ -1078,7 +1078,7 @@ WITH aa AS (
     LIMIT 1)
     INSERT INTO upsert
         VALUES (1, 'x'), (999, 'y')
-    ON CONFLICT (KEY)
+    ON CONFLICT (key)
         DO UPDATE SET
             val = (
                 SELECT

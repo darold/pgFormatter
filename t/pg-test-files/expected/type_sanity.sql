@@ -93,7 +93,7 @@ WHERE
 -- Make sure typarray points to a varlena array type of our own base
 SELECT
     p1.oid,
-    p1.typname AS BASETYPE,
+    p1.typname AS basetype,
     p2.typname AS arraytype,
     p2.typelem,
     p2.typlen

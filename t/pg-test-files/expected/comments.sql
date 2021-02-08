@@ -2,7 +2,7 @@
 -- COMMENTS
 --
 SELECT
-    'trailing' AS FIRST;
+    'trailing' AS first;
 
 -- trailing single line
 SELECT

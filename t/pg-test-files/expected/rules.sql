@@ -351,7 +351,7 @@ SELECT
 FROM
     rtest_v1;
 
-* * Remember the DELETE RULE ON rtest_v1: It says * *
+* * Remember the DELETE rule ON rtest_v1: It says * *
     DO INSTEAD
     DELETE FROM rtest_t1
     WHERE a = old.a * * So this time BOTH ROWS WITH a = 2 must get deleted \p

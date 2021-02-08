@@ -1625,12 +1625,12 @@ INSERT INTO foo
     VALUES (847003, 'sub-alpha', 'GESS90');
 
 SELECT
-    json_build_object('turbines', json_object_agg(serial_num, json_build_object('name', name, 'type', TYPE)))
+    json_build_object('turbines', json_object_agg(serial_num, json_build_object('name', name, 'type', type)))
 FROM
     foo;
 
 SELECT
-    json_object_agg(name, TYPE)
+    json_object_agg(name, type)
 FROM
     foo;
 
@@ -1638,7 +1638,7 @@ INSERT INTO foo
     VALUES (999999, NULL, 'bar');
 
 SELECT
-    json_object_agg(name, TYPE)
+    json_object_agg(name, type)
 FROM
     foo;
 

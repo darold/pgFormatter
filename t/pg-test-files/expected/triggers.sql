@@ -2259,49 +2259,49 @@ CREATE TRIGGER upsert_after_trig
 
 INSERT INTO upsert
     VALUES (1, 'black')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
     VALUES (2, 'red')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
     VALUES (3, 'orange')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
     VALUES (4, 'green')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
     VALUES (5, 'purple')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
     VALUES (6, 'white')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
     VALUES (7, 'pink')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 
 INSERT INTO upsert
     VALUES (8, 'yellow')
-ON CONFLICT (KEY)
+ON CONFLICT (key)
     DO UPDATE SET
         color = 'updated ' || upsert.color;
 

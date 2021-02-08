@@ -3031,7 +3031,7 @@ SELECT
     ELSE
         'OTHER'
     END AS storage,
-    obj_description(c.oid, 'pg_class') AS DESC
+    obj_description(c.oid, 'pg_class') AS desc
 FROM
     pg_class c
     LEFT JOIN old_oids USING (relname)
@@ -3042,7 +3042,7 @@ ORDER BY
 
 SELECT
     conname,
-    obj_description(oid, 'pg_constraint') AS DESC
+    obj_description(oid, 'pg_constraint') AS desc
 FROM
     pg_constraint
 WHERE
@@ -3067,7 +3067,7 @@ SELECT
     ELSE
         'OTHER'
     END AS storage,
-    obj_description(c.oid, 'pg_class') AS DESC
+    obj_description(c.oid, 'pg_class') AS desc
 FROM
     pg_class c
     LEFT JOIN old_oids USING (relname)
@@ -3078,7 +3078,7 @@ ORDER BY
 
 SELECT
     conname,
-    obj_description(oid, 'pg_constraint') AS DESC
+    obj_description(oid, 'pg_constraint') AS desc
 FROM
     pg_constraint
 WHERE

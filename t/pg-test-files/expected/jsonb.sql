@@ -838,10 +838,10 @@ SELECT
     jsonb_typeof('{"c":3,"p":"o"}') AS object;
 
 SELECT
-    jsonb_typeof('[]') AS ARRAY;
+    jsonb_typeof('[]') AS array;
 
 SELECT
-    jsonb_typeof('["a", 1]') AS ARRAY;
+    jsonb_typeof('["a", 1]') AS array;
 
 SELECT
     jsonb_typeof('null') AS "null";
@@ -1028,12 +1028,12 @@ INSERT INTO foo
     VALUES (847003, 'sub-alpha', 'GESS90');
 
 SELECT
-    jsonb_build_object('turbines', jsonb_object_agg(serial_num, jsonb_build_object('name', name, 'type', TYPE)))
+    jsonb_build_object('turbines', jsonb_object_agg(serial_num, jsonb_build_object('name', name, 'type', type)))
 FROM
     foo;
 
 SELECT
-    jsonb_object_agg(name, TYPE)
+    jsonb_object_agg(name, type)
 FROM
     foo;
 
@@ -1041,7 +1041,7 @@ INSERT INTO foo
     VALUES (999999, NULL, 'bar');
 
 SELECT
-    jsonb_object_agg(name, TYPE)
+    jsonb_object_agg(name, type)
 FROM
     foo;
 
@@ -2512,23 +2512,23 @@ SELECT
     count(*)
 FROM (
     SELECT
-        (jsonb_each(j)).KEY
+        (jsonb_each(j)).key
     FROM
         testjsonb) AS wow;
 
 SELECT
-    KEY,
+    key,
     count(*)
 FROM (
     SELECT
-        (jsonb_each(j)).KEY
+        (jsonb_each(j)).key
     FROM
         testjsonb) AS wow
 GROUP BY
-    KEY
+    key
 ORDER BY
     count DESC,
-    KEY;
+    key;
 
 -- sort/hash
 SELECT

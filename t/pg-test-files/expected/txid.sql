@@ -112,7 +112,7 @@ COMMIT;
 -- test xid status functions
 BEGIN;
 SELECT
-    txid_current() AS COMMITTED \gset
+    txid_current() AS committed \gset
 COMMIT;
 
 BEGIN;
@@ -124,7 +124,7 @@ BEGIN;
 SELECT
     txid_current() AS inprogress \gset
 SELECT
-    txid_status (:committed) AS COMMITTED;
+    txid_status (:committed) AS committed;
 SELECT
     txid_status (:rolledback) AS rolledback;
 SELECT

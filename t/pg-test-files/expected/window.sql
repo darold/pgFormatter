@@ -2069,10 +2069,10 @@ CREATE AGGREGATE logging_agg_strict_initcond (anyelement) (
 
 -- test strict and non-strict cases
 SELECT
-    p::text || ',' || i::text || ':' || COALESCE(v::text, 'NULL') AS ROW,
+    p::text || ',' || i::text || ':' || COALESCE(v::text, 'NULL') AS row,
     logging_agg_nonstrict (v) OVER wnd AS nstrict,
     logging_agg_nonstrict_initcond (v) OVER wnd AS nstrict_init,
-    logging_agg_strict (v::text) OVER wnd AS STRICT,
+    logging_agg_strict (v::text) OVER wnd AS strict,
     logging_agg_strict_initcond (v) OVER wnd AS strict_init
 FROM (
     VALUES (1, 1, NULL),
@@ -2095,7 +2095,7 @@ SELECT
         COALESCE(v::text, 'NULL')
     ELSE
         '-'
-    END AS ROW,
+    END AS row,
     logging_agg_nonstrict (v) FILTER (WHERE f) OVER wnd AS nstrict_filt,
     logging_agg_nonstrict_initcond (v) FILTER (WHERE f) OVER wnd AS nstrict_init_filt,
     logging_agg_strict (v::text) FILTER (WHERE f) OVER wnd AS strict_filt,
@@ -2117,7 +2117,7 @@ ORDER BY
 
 -- test that volatile arguments disable moving-aggregate mode
 SELECT
-    i::text || ':' || COALESCE(v::text, 'NULL') AS ROW,
+    i::text || ':' || COALESCE(v::text, 'NULL') AS row,
     logging_agg_strict (v::text) OVER wnd AS inverse,
     logging_agg_strict (v::text || CASE WHEN random() < 0 THEN
             '?'
@@ -2133,7 +2133,7 @@ ORDER BY
     i;
 
 SELECT
-    i::text || ':' || COALESCE(v::text, 'NULL') AS ROW,
+    i::text || ':' || COALESCE(v::text, 'NULL') AS row,
     logging_agg_strict (v::text) FILTER (WHERE TRUE) OVER wnd AS inverse,
     logging_agg_strict (v::text) FILTER (WHERE random() >= 0) OVER wnd AS noinverse
 FROM (

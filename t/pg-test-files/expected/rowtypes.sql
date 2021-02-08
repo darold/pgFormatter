@@ -183,7 +183,7 @@ SELECT
 SELECT
     ROW (1,
         2) < ROW (1,
-        NULL) AS NULL;
+        NULL) AS null;
 
 SELECT
     ROW (1,
@@ -214,7 +214,7 @@ SELECT
         2,
         3) < ROW (1,
         NULL,
-        4) AS NULL;
+        4) AS null;
 
 SELECT
     ROW (1,
@@ -1206,7 +1206,7 @@ EXPLAIN (
 )
 SELECT
     r,
-    r IS NULL AS ISNULL,
+    r IS NULL AS isnull,
     r IS NOT NULL AS isnotnull
 FROM (
     VALUES (1, ROW (1, 2)),
@@ -1218,7 +1218,7 @@ FROM (
 
 SELECT
     r,
-    r IS NULL AS ISNULL,
+    r IS NULL AS isnull,
     r IS NOT NULL AS isnotnull
 FROM (
     VALUES (1, ROW (1, 2)),
@@ -1241,7 +1241,7 @@ EXPLAIN (
         (NULL, NULL))
 SELECT
     r,
-    r IS NULL AS ISNULL,
+    r IS NULL AS isnull,
     r IS NOT NULL AS isnotnull
 FROM
     r;
@@ -1278,7 +1278,7 @@ WITH r (
 ))
 SELECT
     r,
-    r IS NULL AS ISNULL,
+    r IS NULL AS isnull,
     r IS NOT NULL AS isnotnull
 FROM
     r;

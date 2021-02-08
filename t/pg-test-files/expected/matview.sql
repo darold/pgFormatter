@@ -69,7 +69,7 @@ FROM
 WHERE
     oid = 'mvtest_tm'::regclass;
 
-CREATE UNIQUE INDEX mvtest_tm_type ON mvtest_tm (TYPE);
+CREATE UNIQUE INDEX mvtest_tm_type ON mvtest_tm (type);
 
 SELECT
     *
@@ -314,7 +314,7 @@ SELECT
     v.totamt AS vtot
 FROM
     mvtest_tm m
-    LEFT JOIN mvtest_tv v USING (TYPE)
+    LEFT JOIN mvtest_tv v USING (type)
 ORDER BY
     TYPE;
 

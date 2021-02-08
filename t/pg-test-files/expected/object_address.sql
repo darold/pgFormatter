@@ -285,7 +285,7 @@ SELECT
 
 -- test successful cases
 WITH objects (
-    TYPE,
+    type,
     name,
     args
 ) AS (
@@ -350,7 +350,7 @@ SELECT
     ROW (pg_identify_object (addr1.classid, addr1.objid, addr1.objsubid)) = ROW (pg_identify_object (addr2.classid, addr2.objid, addr2.objsubid))
 FROM
     objects,
-    pg_get_object_address(TYPE, name, args) addr1,
+    pg_get_object_address(type, name, args) addr1,
     pg_identify_object_as_address(classid, objid, objsubid) ioa (typ, nms, args),
     pg_get_object_address(typ, nms, ioa.args) AS addr2
 ORDER BY

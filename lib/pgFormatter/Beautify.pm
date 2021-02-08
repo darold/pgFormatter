@@ -950,7 +950,6 @@ sub beautify
 		    next;
 	    }
 	    $self->{ '_is_in_generated' } = 0 if ($self->{ '_is_in_create' } and $self->{ '_parenthesis_level' } == 1);
-	    #$self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' });
 	    $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' } and !$self->{ '_is_in_policy' });
 	    if (defined $self->_next_token and $self->_next_token !~ /^(AS|WITH|,)$/i
 			    and (!$self->_is_comment($self->_next_token) or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }[1] ne ','))
@@ -3045,14 +3044,18 @@ sub _is_keyword
     {
         return 0 if (uc($token) eq 'LEVEL' and uc($next_token) ne 'SECURITY');
         return 0 if (uc($token) eq 'EVENT' and uc($next_token) ne 'TRIGGER');
-	return 0 if (uc($token) eq 'NOTICE' and uc($last_token) ne 'RAISE');
     }
+    return 0 if ($token =~ /^(LOGIN|RULE)$/i and !$self->{ '_is_in_create' } and !$self->{ '_is_in_alter' } and !$self->{ '_is_in_drop' } and !$self->{ '_is_in_rule' });
     return 0 if (uc($token) eq 'COMMENT' and (not defined $next_token or $next_token) !~ /^ON|IS$/i);
 
     if (defined $last_token)
     {
+	return 0 if (uc($token) eq 'KEY' and $last_token !~ /^(PRIMARY|FOREIGN|PARTITION|NO)$/i);
+        return 0 if ($token =~ /^(BTREE|HASH|GIST|SPGIST|GIN|BRIN)$/i and $last_token !~ /^(USING|BY)$/i);
+	return 0 if (uc($token) eq 'NOTICE' and uc($last_token) ne 'RAISE');
         return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' }) and $last_token =~ /^(OF|FROM)$/i);
-        return 0 if ($token =~ /^(CONSTRAINT|INDEX|TRUE|FALSE)$/i and uc($last_token) eq 'AS');
+        return 0 if (uc($last_token) eq 'AS' and $token !~ /^(IDENTITY|SELECT|ENUM|TRANSACTION|UPDATE|DELETE|INSERT|MATERIALIZED|ON|VALUES|RESTRICTIVE|PERMISSIVE|UGLY|EXECUTE|STORAGE|OPERATOR|RANGE|NOT)$/i);
+	return 0 if ($token =~ /^(TYPE|SCHEMA)$/i and $last_token =~ /^(\(|,|\||\))/i);
     }
 
     if ($DEBUG and defined $token and grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } }) {
@@ -3568,7 +3571,7 @@ sub set_dicts
 	FIRST FOLLOWING FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GENERATED GRANT GROUP GROUPING HAVING HASHES HASH
 	IDENTITY IF ILIKE IMMUTABLE IN INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD
 	INTERSECT INTO INVOKER IS ISNULL ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING
-	LEAKPROOF LEFT LEFTARG LEVEL LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCATION LOCK LOCKED LOGGED LOGIN
+	LEAKPROOF LEFT LEFTARG LEVEL LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCK LOCKED LOGGED LOGIN
 	LOOP MAPPING MATCH MAXVALUE MERGES MINVALUE MODULUS MOVE NATURAL NEXT NOTHING NOTICE ORDINALITY
         NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OFF OF OIDS ON ONLY OPEN OPERATOR OR ORDER
         OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE RANGE
