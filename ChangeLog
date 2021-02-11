@@ -1,3 +1,73 @@
+February 11 2021 - v5.0
+
+This major release fixes issues reported by users since the last six
+months with some improvements and new features.
+
+New options and features:
+
+  * Add new option -M | --multiline to enable multi-line search
+    with placeholder regexp specified at command line with -p
+    or --placeholder.
+  * Fix improper handling of constants between quotes in all kind
+    of queries and especially in function body. They were sometime
+    corrupted by extra space before of after single quotes or some
+    words was identified as keywords and turned upper case.
+  * Add keywords ALWAYS, DISABLE, ENABLE, LEVEL and STORED.
+  * Improve formatting of CREATE POLICY which doesn't the need anymore
+    that alternate formatting (-t) be enabled.
+  * More fix of false positive keywords detection following their place.
+  * Add REGCLASS, REGCONFIG, REGDICTIONARY, REGNAMESPACE, REGOPER,
+    REGOPERATOR, REGPROC, REGPROCEDURE, REGROLE, REGTYPE, to list of
+    data types.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix false positive detection of keyword following their place.
+    Thanks to allprecisely for the report.
+  - Add quick regression test for constant handling.
+  - Fix formatting for RAISE, CAST and EXCEPTION.
+  - Fix case of NEW/OLD in triggers code
+  - Fix improper handling of columns and tables aliases between
+    double quotes.
+  - Don't assume HOME variable exists in Makefile.PL. Thanks to
+    Samyak Bakliwal for the patch.
+  - Add new option -M | --multiline to enable multi-line search
+    with placeholder regexp specified at command line with -p
+     or --placeholder. Thanks to Taro Sato for the feature request.
+  - Fix generated columns formatting. Thanks to Oliver Ni for the
+    report.
+  - Include regression test to not wrap URL hint and update the
+    documentation.
+  - Adding example for regular expression preserving the URL and
+    to prevent it from being wrapped. Thanks to Clement Aubert for
+    the patch.
+  - Improve RLS policy formatting when alternate format is enabled.
+    Thanks to madflow for the report.
+  - Change download URL in favor of GitHub releases.
+  - Fix detection of identifier with quoted schema and/or table.
+    Thanks to Robert for the report.
+  - Fix formatting of numbers with signed exponents. Thanks to Jakob
+    Egger for the report.
+  - Fix HTML footer in CGI mode.
+  - Fix formatting of CREATE TABLE using a CTE. Thanks to prichardson211
+    for the report.
+  - Replace deprecated TG_RELNAME with TG_TABLE_NAME. Thanks to Andreas
+    Karlsson fot the patch.
+  - Fix regression in COPY formatting. Thanks to Paul Melnikow for the
+    report.
+  - Fix CTE formatting with NOT MATERIALIZED clause. Thanks to Sergey
+    Shepelev for the report.
+  - Update regression tests with the addition of oid types and fix
+    for C functions formatting.
+  - Fix error format string for extra-function and 2 typos. Thanks to
+    Sven Klemm for the patch.
+  - Fix formatting for C functions with obj_file and link_symbol.
+    Thanks to Sven Klemm for the patch.
+  - Fix typo in CGI text. Thanks to Justin Hawkins for the report.
+  - Add oid types to list of data types. Thanks to Sven Klemm for
+    the patch.
+
+
 August 31 2020 - v4.4
 
 This is a maintenance release to fix issues reported by users since

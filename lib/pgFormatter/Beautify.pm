@@ -19,12 +19,12 @@ pgFormatter::Beautify - Library for pretty-printing SQL queries
 
 =head1 VERSION
 
-Version 4.4
+Version 5.0
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '4.4';
+our $VERSION = '5.0';
 
 # Inclusion of code from Perl package SQL::Beautify
 # Copyright (C) 2009 by Jonas Kramer
@@ -4315,7 +4315,7 @@ Please report any bugs or feature requests to: https://github.com/darold/pgForma
 
 =head1 COPYRIGHT
 
-Copyright 2012-2020 Gilles Darold. All rights reserved.
+Copyright 2012-2021 Gilles Darold. All rights reserved.
 
 =head1 LICENSE
 
