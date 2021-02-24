@@ -225,6 +225,16 @@ sub query
 
     $self->{ 'query' } = $new_value if defined $new_value;
 
+    $self->{idx_code} = 0;
+
+    # Replace any COMMENT constant between single quote 
+    while ($self->{ 'query' } =~ s/IS\s+([EU]*'(?:[^;]*)')\s*;/IS TEXTVALUE$self->{idx_code};/is)
+    {
+        $self->{dynamic_code}{$self->{idx_code}} = $1;
+	$self->{dynamic_code}{$self->{idx_code}} =~ s/([\n\r])\s+([EU]*'(?:[^']*)')/$1 . ($self->{ 'space' } x $self->{ 'spaces' }) . $2/gsei;
+        $self->{idx_code}++;
+    }
+
     # Replace any \\ by BSLHPGF
     $self->{ 'query' } =~ s/\\\\/BSLHPGF/sg;
     # Replace any \' by PGFBSLHQ
@@ -4015,28 +4025,27 @@ sub _remove_dynamic_code
         @dynsep = $$str =~ /EXECUTE\s+(\$[^\$\s]*\$)/igs;
     }
 
-    my $idx = 0;
     foreach my $sep (@dynsep)
     {
-        while ($$str =~ s/(\Q$sep\E.*?\Q$sep\E)/TEXTVALUE$idx/s)
+        while ($$str =~ s/(\Q$sep\E.*?\Q$sep\E)/TEXTVALUE$self->{idx_code}/s)
 	{
-            $self->{dynamic_code}{$idx} = $1;
-            $idx++;
+            $self->{dynamic_code}{$self->{idx_code}} = $1;
+            $self->{idx_code}++;
         }
     }
 
     # Replace any COMMENT constant between single quote 
-    while ($$str =~ s/IS\s+('(?:.*?)')\s*;/IS TEXTVALUE$idx;/s)
+    while ($$str =~ s/IS\s+('(?:.*?)')\s*;/IS TEXTVALUE$self->{idx_code};/s)
     {
-        $self->{dynamic_code}{$idx} = $1;
-        $idx++;
+        $self->{dynamic_code}{$self->{idx_code}} = $1;
+        $self->{idx_code}++;
     }
 
     # keep untouched parts between double single quotes
-    while ($$str =~ s/(PGFESCQ1(?:[^\r\n\|;]*?)PGFESCQ1)/TEXTVALUE$idx/s)
+    while ($$str =~ s/(PGFESCQ1(?:[^\r\n\|;]*?)PGFESCQ1)/TEXTVALUE$self->{idx_code}/s)
     {
-        $self->{dynamic_code}{$idx} = $1;
-        $idx++;
+        $self->{dynamic_code}{$self->{idx_code}} = $1;
+        $self->{idx_code}++;
     }
 }
 

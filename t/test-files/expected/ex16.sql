@@ -60,3 +60,8 @@ $comment$;
 
 COMMENT ON TABLE foo2 IS 'Hello world';
 
+-- Multi-line comment
+COMMENT ON TABLE test IS E'foo\n'
+    'bar\n'
+    'bat';
+
