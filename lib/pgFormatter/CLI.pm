@@ -160,7 +160,7 @@ sub save_output {
         $fh = \*STDOUT;
     }
     print $fh $self->{ 'ready' };
-    close $fh;
+    close $fh if ( $self->{ 'cfg' }->{ 'output' } ne '-' );
     return;
 }
 
@@ -290,7 +290,7 @@ sub load_sql {
         $fh = \*STDIN;
     }
     $self->{ 'query' } = <$fh>;
-    close $fh;
+    close $fh if ( $self->{ 'cfg' }->{ 'input' } ne '-' );
     return;
 }
 
