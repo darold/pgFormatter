@@ -1411,7 +1411,7 @@ sub beautify
 	elsif (uc($token) eq 'RETURNS')
 	{
             $self->_new_line($token,$last);
-            $self->_over($token,$last);
+            $self->_over($token,$last) if (uc($self->_next_token) ne 'NULL');
         }
         # and before WINDOW
 	elsif (uc($token) eq 'WINDOW')
