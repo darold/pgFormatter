@@ -653,8 +653,9 @@ FROM
             FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id, b1.t FROM join_bar b1
-                JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
+                b1.id, b1.t
+            FROM join_bar b1
+            JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
         AND join_foo.id > ss.id - 1;
 
 $$);
@@ -720,8 +721,9 @@ FROM
             FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id, b1.t FROM join_bar b1
-                JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
+                b1.id, b1.t
+            FROM join_bar b1
+            JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
         AND join_foo.id > ss.id - 1;
 
 $$);
@@ -787,8 +789,9 @@ FROM
             FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id, b1.t FROM join_bar b1
-                JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
+                b1.id, b1.t
+            FROM join_bar b1
+            JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
         AND join_foo.id > ss.id - 1;
 
 $$);
@@ -854,8 +857,9 @@ FROM
             FROM join_foo
         LEFT JOIN (
             SELECT
-                b1.id, b1.t FROM join_bar b1
-                JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
+                b1.id, b1.t
+            FROM join_bar b1
+            JOIN join_bar b2 USING (id)) ss ON join_foo.id < ss.id + 1
         AND join_foo.id > ss.id - 1;
 
 $$);

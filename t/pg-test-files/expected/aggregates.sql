@@ -451,7 +451,8 @@ SELECT
         SELECT
             max((
                 SELECT
-                    i.unique2 FROM tenk1 i
+                    i.unique2
+                FROM tenk1 i
                 WHERE
                     i.unique1 = o.unique1)))
 FROM
@@ -1572,7 +1573,8 @@ SELECT
         SELECT
             max((
                 SELECT
-                    i.unique2 FROM tenk1 i
+                    i.unique2
+                FROM tenk1 i
                 WHERE
                     i.unique1 = o.unique1)) FILTER (WHERE o.unique1 < 10))
 FROM

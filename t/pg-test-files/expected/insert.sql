@@ -55,8 +55,9 @@ INSERT INTO inserttest
         SELECT
             2), (
         SELECT
-            i FROM (
-                VALUES (3)) AS foo (i)), 'values are fun!');
+            i
+        FROM (
+            VALUES (3)) AS foo (i)), 'values are fun!');
 
 SELECT
     *

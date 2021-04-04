@@ -694,7 +694,8 @@ INSERT INTO parts (partnum,
 INSERT INTO shipped_view (ordnum, partnum, value)
     VALUES (0, 1, (
             SELECT
-                COST FROM parts
+                COST
+            FROM parts
             WHERE
                 partnum = '1'));
 

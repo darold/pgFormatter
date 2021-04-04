@@ -248,8 +248,8 @@ CREATE FUNCTION functest_F_2 (int)
 CREATE FUNCTION functest_F_3 (int)
     RETURNS bool
     LANGUAGE 'sql'
-        RETURNS NULL ON NULL INPUT
-        AS 'SELECT $1 < 50'
+    RETURNS NULL ON NULL INPUT
+    AS 'SELECT $1 < 50'
 ;
 
 CREATE FUNCTION functest_F_4 (int)

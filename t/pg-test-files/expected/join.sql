@@ -1916,7 +1916,8 @@ FROM
 WHERE
     1 = (
         SELECT
-            1 FROM int8_tbl t3
+            1
+        FROM int8_tbl t3
         WHERE
             ss.y IS NOT NULL LIMIT 1)
 ORDER BY
@@ -1936,7 +1937,8 @@ FROM
 WHERE
     1 = (
         SELECT
-            1 FROM int8_tbl t3
+            1
+        FROM int8_tbl t3
         WHERE
             ss.y IS NOT NULL LIMIT 1)
 ORDER BY
@@ -4402,19 +4404,25 @@ FROM
 -- also errors:
 DELETE FROM xx1 USING (
     SELECT
-        * FROM int4_tbl
+        *
+    FROM
+        int4_tbl
     WHERE
         f1 = x1) ss;
 
 DELETE FROM xx1 USING (
     SELECT
-        * FROM int4_tbl
+        *
+    FROM
+        int4_tbl
     WHERE
         f1 = xx1.x1) ss;
 
 DELETE FROM xx1 USING LATERAL (
     SELECT
-        * FROM int4_tbl
+        *
+    FROM
+        int4_tbl
     WHERE
         f1 = x1) ss;
 

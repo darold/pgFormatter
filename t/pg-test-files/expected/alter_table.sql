@@ -3719,7 +3719,7 @@ CREATE FUNCTION test_strict (text)
     RETURNS text
     AS 'select coalesce($1, ''got passed a null'');'
     LANGUAGE sql
-        RETURNS NULL ON NULL input;
+    RETURNS NULL ON NULL input;
 
 SELECT
     test_strict (NULL);
@@ -3739,7 +3739,7 @@ SELECT
     non_strict (NULL);
 
 ALTER FUNCTION non_strict (text)
-    RETURNS NULL ON NULL input;
+RETURNS NULL ON NULL input;
 
 SELECT
     non_strict (NULL);

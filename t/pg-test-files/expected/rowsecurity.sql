@@ -1978,7 +1978,8 @@ WHERE
 INSERT INTO document
     VALUES (2, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_carol', 'my first novel')
 ON CONFLICT (did)
@@ -1998,7 +1999,8 @@ INSERT INTO document
 INSERT INTO document
     VALUES (33, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_bob', 'Some novel, replaces sci-fi')
 -- takes UPDATE path
@@ -2011,7 +2013,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (2, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
 ON CONFLICT (did)
@@ -2024,7 +2027,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (78, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
 ON CONFLICT (did)
@@ -2039,7 +2043,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (78, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
 ON CONFLICT (did)
@@ -2054,7 +2059,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (78, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
 ON CONFLICT (did)
@@ -2070,7 +2076,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (79, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
 ON CONFLICT (did)
@@ -2086,7 +2093,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (79, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
 ON CONFLICT (did)
@@ -2130,7 +2138,8 @@ SET SESSION AUTHORIZATION regress_rls_bob;
 INSERT INTO document
     VALUES (79, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
 ON CONFLICT (did)
@@ -2146,7 +2155,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (2, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'technology'), 1, 'regress_rls_bob', 'my first novel')
 ON CONFLICT (did)
@@ -2181,7 +2191,8 @@ SET SESSION AUTHORIZATION regress_rls_bob;
 INSERT INTO document
     VALUES (80, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_carol', 'my first novel')
 ON CONFLICT (did)
@@ -2194,7 +2205,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (4, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
 ON CONFLICT (did)
@@ -2205,7 +2217,8 @@ ON CONFLICT (did)
 INSERT INTO document
     VALUES (1, (
             SELECT
-                cid FROM category
+                cid
+            FROM category
             WHERE
                 cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
 ON CONFLICT (did)

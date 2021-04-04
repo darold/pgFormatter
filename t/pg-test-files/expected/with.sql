@@ -2248,7 +2248,8 @@ WITH aa AS (
 INSERT INTO withz
     VALUES (1, (
             SELECT
-                b || ' insert' FROM aa
+                b || ' insert'
+            FROM aa
             WHERE
                 a = 1))
 ON CONFLICT (k)

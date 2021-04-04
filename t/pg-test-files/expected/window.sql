@@ -348,7 +348,8 @@ ORDER BY
 SELECT
     lead(ten, (
             SELECT
-                two FROM tenk1
+                two
+            FROM tenk1
             WHERE
                 s.unique2 = unique2)) OVER (PARTITION BY four ORDER BY ten)
 FROM

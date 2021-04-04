@@ -27,7 +27,8 @@ SELECT
             SELECT
                 CASE WHEN i <> 40 THEN
                     i
-                END FROM generate_series(1, 100) i));
+                END
+            FROM generate_series(1, 100) i));
 
 SELECT
     num_nulls (NULL);
@@ -55,7 +56,8 @@ SELECT
             SELECT
                 CASE WHEN i <> 40 THEN
                     i
-                END FROM generate_series(1, 100) i));
+                END
+            FROM generate_series(1, 100) i));
 
 -- special cases
 SELECT

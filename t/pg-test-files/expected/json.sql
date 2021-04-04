@@ -1525,7 +1525,8 @@ SELECT
                     row_to_json(r)
                 FROM (
                     SELECT
-                        relkind, oid::regclass AS name FROM pg_class
+                        relkind, oid::regclass AS name
+                    FROM pg_class
                     WHERE
                         relname = 'pg_class') r)));
 

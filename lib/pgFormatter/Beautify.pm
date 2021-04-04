@@ -12,6 +12,7 @@ our $DEBUG_SP = 0;
 
 # PostgreSQL functions that use a FROM clause
 our @have_from_clause = qw( extract overlay substring trim );
+our @extract_keywords = qw(century day decade dow doy epoch hour isodow isoyear microseconds millennium minute month quarter second timezone timezone_minute week year);
 
 =head1 NAME
 
@@ -1979,11 +1980,26 @@ sub beautify
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
 		    $self->_back($token, $last) if ((uc($token) ne 'VALUES' or $self->{ '_current_sql_stmt' } ne 'INSERT') and (uc($token) ne 'WHERE' or $self->{'_is_in_with' } < 2 or $self->{ '_level' } > 1));
+		    if (uc($token) eq 'WHERE' and $self->{'_is_in_function' }
+				    and $self->{ '_is_subquery' } <= 2
+		    )
+		    {
+			    #print STDERR "ZZZZZZZZZZZZZZZZZZZZZZ\n", $self->_dump_var if (uc($token) eq 'WHERE');
+			    $self->_over($token, $last);
+		    }
 		    $self->_new_line($token,$last) if (!$self->{ '_is_in_rule' } and ($last !~ /^DEFAULT$/i or $self->_next_token() ne ';'));
                 }
             }
 	    else
 	    {
+		    #print STDERR "ZZZZZZZZZZZZZZZZZZZZZZ\n", $self->_dump_var;
+		if (uc($token) eq 'FROM' and $self->{ '_is_in_sub_query' }
+				and !grep(/^$last$/i, @extract_keywords)
+				and ($self->{ '_insert_values' } or $self->{ '_is_in_function' }))
+		{
+                    $self->_new_line($token,$last);
+		    $self->_back($token, $last);
+		}
                 $self->_add_token( $token );
                 $last = $self->_set_last($token, $last);
                 next;
@@ -2447,8 +2463,9 @@ sub beautify
             }
         }
 
-        elsif (($token =~ /^USING$/i and !$self->{ '_is_in_order_by' } and !$self->{ '_is_in_exception' }) or
-		(uc($token) eq 'WITH' and uc($self->_next_token()) eq 'CHECK' and $self->{ '_is_in_policy' })
+        elsif (($token =~ /^USING$/i and !$self->{ '_is_in_order_by' } and !$self->{ '_is_in_exception' }
+				and ($self->{ '_current_sql_stmt' } ne 'DELETE' or uc($self->_next_token) !~ /^(\(|LATERAL)$/i))
+			or (uc($token) eq 'WITH' and uc($self->_next_token()) eq 'CHECK' and $self->{ '_is_in_policy' })
 	)
 	{
             if (!$self->{ '_is_in_from' })

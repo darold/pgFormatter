@@ -1016,7 +1016,8 @@ RESET ROLE;
 SELECT
     has_foreign_data_wrapper_privilege('regress_test_role', (
             SELECT
-                oid FROM pg_foreign_data_wrapper
+                oid
+            FROM pg_foreign_data_wrapper
             WHERE
                 fdwname = 'foo'), 'USAGE');
 
@@ -1026,25 +1027,29 @@ SELECT
 SELECT
     has_foreign_data_wrapper_privilege((
         SELECT
-            oid FROM pg_roles
+            oid
+        FROM pg_roles
         WHERE
             rolname = 'regress_test_role'), (
         SELECT
-            oid FROM pg_foreign_data_wrapper
+            oid
+        FROM pg_foreign_data_wrapper
         WHERE
             fdwname = 'foo'), 'USAGE');
 
 SELECT
     has_foreign_data_wrapper_privilege((
         SELECT
-            oid FROM pg_foreign_data_wrapper
+            oid
+        FROM pg_foreign_data_wrapper
         WHERE
             fdwname = 'foo'), 'USAGE');
 
 SELECT
     has_foreign_data_wrapper_privilege((
         SELECT
-            oid FROM pg_roles
+            oid
+        FROM pg_roles
         WHERE
             rolname = 'regress_test_role'), 'foo', 'USAGE');
 
@@ -1060,7 +1065,8 @@ SELECT
 SELECT
     has_server_privilege('regress_test_role', (
             SELECT
-                oid FROM pg_foreign_server
+                oid
+            FROM pg_foreign_server
             WHERE
                 srvname = 's8'), 'USAGE');
 
@@ -1070,25 +1076,29 @@ SELECT
 SELECT
     has_server_privilege((
         SELECT
-            oid FROM pg_roles
+            oid
+        FROM pg_roles
         WHERE
             rolname = 'regress_test_role'), (
         SELECT
-            oid FROM pg_foreign_server
+            oid
+        FROM pg_foreign_server
         WHERE
             srvname = 's8'), 'USAGE');
 
 SELECT
     has_server_privilege((
         SELECT
-            oid FROM pg_foreign_server
+            oid
+        FROM pg_foreign_server
         WHERE
             srvname = 's8'), 'USAGE');
 
 SELECT
     has_server_privilege((
         SELECT
-            oid FROM pg_roles
+            oid
+        FROM pg_roles
         WHERE
             rolname = 'regress_test_role'), 's8', 'USAGE');
 
