@@ -1984,7 +1984,6 @@ sub beautify
 				    and $self->{ '_is_subquery' } <= 2
 		    )
 		    {
-			    #print STDERR "ZZZZZZZZZZZZZZZZZZZZZZ\n", $self->_dump_var if (uc($token) eq 'WHERE');
 			    $self->_over($token, $last);
 		    }
 		    $self->_new_line($token,$last) if (!$self->{ '_is_in_rule' } and ($last !~ /^DEFAULT$/i or $self->_next_token() ne ';'));
@@ -1992,7 +1991,6 @@ sub beautify
             }
 	    else
 	    {
-		    #print STDERR "ZZZZZZZZZZZZZZZZZZZZZZ\n", $self->_dump_var;
 		if (uc($token) eq 'FROM' and $self->{ '_is_in_sub_query' }
 				and !grep(/^$last$/i, @extract_keywords)
 				and ($self->{ '_insert_values' } or $self->{ '_is_in_function' }))
