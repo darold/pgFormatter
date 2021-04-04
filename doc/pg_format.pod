@@ -179,6 +179,7 @@ This option activate an alternative formatting that adds:
 
   * newline in procedure/function parameter list
   * new line in PUBLICATION and POLICY DDL
+  * keep enumeration in GROUP BY clause on a single line
 
 Expect this list grow following alternative thoughts.
 

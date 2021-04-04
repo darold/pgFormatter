@@ -2118,6 +2118,9 @@ sub beautify
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i or (uc($token) eq 'ON' and uc($self->_next_token()) eq 'CONFLICT'))
 	{
+	    if ($self->{ 'format_type' } and uc($token) eq 'GROUP' and uc($self->_next_token()) eq 'BY') {
+                $self->{ 'no_break' } = 1;
+            }
 	    if (uc($token) eq 'ORDER' and uc($self->_next_token()) eq 'BY') {
 		    $self->{ '_is_in_order_by' } = 1;
 	    } else {
