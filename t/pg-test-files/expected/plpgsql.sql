@@ -393,7 +393,7 @@ CREATE FUNCTION tg_hslot_biu ()
     AS '
 DECLARE
     sname text;
-    xname HSlot.slotname % TYPE;
+    xname HSlot.slotname%TYPE;
     hubrec record;
 BEGIN
     SELECT
@@ -1386,8 +1386,8 @@ BEGIN
         RETURN retval;
     END IF;
     IF sltype = ''IF'' THEN
-        DECLARE syrow SYSTEM % RowType;
-        ifrow IFace % ROWTYPE;
+        DECLARE syrow System%RowType;
+        ifrow IFace%ROWTYPE;
         BEGIN
             SELECT
                 INTO ifrow *
@@ -2329,7 +2329,7 @@ CREATE FUNCTION test_table_func_row ()
     RETURNS SETOF found_test_tbl
     AS '
 DECLARE
-    ROW found_test_tbl % ROWTYPE;
+    ROW found_test_tbl%ROWTYPE;
 BEGIN
     FOR ROW IN
     SELECT
@@ -3240,7 +3240,7 @@ CREATE OR REPLACE FUNCTION execute_into_test (varchar)
     AS $$
 DECLARE
     _r record;
-    _rt eifoo % rowtype;
+    _rt eifoo%rowtype;
     _v eitype;
     i int;
     j int;
@@ -6674,12 +6674,12 @@ INSERT INTO partitioned_table
     VALUES (1, 'Row 1');
 INSERT INTO partitioned_table
     VALUES (2, 'Row 2');
-CREATE OR REPLACE FUNCTION get_from_partitioned_table (partitioned_table.a % TYPE)
+CREATE OR REPLACE FUNCTION get_from_partitioned_table (partitioned_table.a%type)
     RETURNS partitioned_table
     AS $$
 DECLARE
-    a_val partitioned_table.a % TYPE;
-    result partitioned_table % ROWTYPE;
+    a_val partitioned_table.a%TYPE;
+    result partitioned_table%ROWTYPE;
 BEGIN
     a_val := $1;
     SELECT
@@ -6697,11 +6697,11 @@ SELECT
 FROM
     get_from_partitioned_table (1) AS t;
 CREATE OR REPLACE FUNCTION list_partitioned_table ()
-    RETURNS SETOF partitioned_table.a % TYPE
+    RETURNS SETOF partitioned_table.a%TYPE
     AS $$
 DECLARE
-    ROW partitioned_table % ROWTYPE;
-    a_val partitioned_table.a % TYPE;
+    ROW partitioned_table%ROWTYPE;
+    a_val partitioned_table.a%TYPE;
 BEGIN
     FOR ROW IN
     SELECT

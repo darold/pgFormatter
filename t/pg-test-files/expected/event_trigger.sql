@@ -388,7 +388,7 @@ SELECT
 FROM
     dropped_objects
 WHERE
-    TYPE = 'schema';
+    type = 'schema';
 
 DROP ROLE regress_evt_user;
 

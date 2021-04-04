@@ -555,6 +555,8 @@ sub tokenize_sql
 		|
 		(?:COPY\s+[^\s]+\s+\((?:.*?)\\\.)		# COPY and its content
 		|
+		[^\s\(,]+\%(?:ROWTYPE|TYPE)      # single line comments
+		|
 		(?:\s*--)[\ \t\S]*      # single line comments
 		|
 		(?:\-\|\-) # range operator "is adjacent to"
@@ -616,9 +618,9 @@ sub tokenize_sql
 		|
 		[^\s\*\/\-\\;:,]+                 # anything else
         )
-    }smx;
+    }ismx;
 
-    my @query = grep { /\S/ } $query =~ m{$re}smxg;
+    my @query = grep { /\S/ } $query =~ m{$re}simxg;
 
     # Revert position when a comment is before a comma
     if ($self->{ 'comma' } eq 'end')
@@ -3084,6 +3086,10 @@ sub _is_keyword
         return 0 if ( ($self->{ '_is_in_type' } or $self->{ '_is_in_create' }) and $last_token =~ /^(OF|FROM)$/i);
         return 0 if (uc($last_token) eq 'AS' and $token !~ /^(IDENTITY|SELECT|ENUM|TRANSACTION|UPDATE|DELETE|INSERT|MATERIALIZED|ON|VALUES|RESTRICTIVE|PERMISSIVE|UGLY|EXECUTE|STORAGE|OPERATOR|RANGE|NOT)$/i);
 	return 0 if ($token =~ /^(TYPE|SCHEMA)$/i and $last_token =~ /^(COLUMN|\(|,|\||\))/i);
+	return 0 if ($token =~ /^TYPE$/i and $last_token !~ /^(CREATE|DROP|ALTER|FOR)$/i
+			and !$self->{ '_is_in_alter' }
+			and !grep({ uc($_) eq uc( $next_token ) } @{ $self->{ 'types' } })
+	);
     }
 
     if ($DEBUG and defined $token and grep { $_ eq uc( $token ) } @{ $self->{ 'keywords' } }) {

@@ -11,40 +11,40 @@ INSERT INTO mvtest_t
 -- we want a view based on the table, too, since views present additional challenges
 CREATE VIEW mvtest_tv AS
 SELECT
-    TYPE,
+    type,
     sum(amt) AS totamt
 FROM
     mvtest_t
 GROUP BY
-    TYPE;
+    type;
 
 SELECT
     *
 FROM
     mvtest_tv
 ORDER BY
-    TYPE;
+    type;
 
 -- create a materialized view with no data, and confirm correct behavior
 EXPLAIN (
     COSTS OFF
 ) CREATE MATERIALIZED VIEW mvtest_tm AS
 SELECT
-    TYPE,
+    type,
     sum(amt) AS totamt
 FROM
     mvtest_t
 GROUP BY
-    TYPE WITH NO DATA;
+    type WITH NO DATA;
 
 CREATE MATERIALIZED VIEW mvtest_tm AS
 SELECT
-    TYPE,
+    type,
     sum(amt) AS totamt
 FROM
     mvtest_t
 GROUP BY
-    TYPE WITH NO DATA;
+    type WITH NO DATA;
 
 SELECT
     relispopulated
@@ -58,7 +58,7 @@ SELECT
 FROM
     mvtest_tm
 ORDER BY
-    TYPE;
+    type;
 
 REFRESH MATERIALIZED VIEW mvtest_tm;
 
@@ -76,7 +76,7 @@ SELECT
 FROM
     mvtest_tm
 ORDER BY
-    TYPE;
+    type;
 
 -- create various views
 EXPLAIN (
@@ -87,7 +87,7 @@ SELECT
 FROM
     mvtest_tv
 ORDER BY
-    TYPE;
+    type;
 
 CREATE MATERIALIZED VIEW mvtest_tvm AS
 SELECT
@@ -95,7 +95,7 @@ SELECT
 FROM
     mvtest_tv
 ORDER BY
-    TYPE;
+    type;
 
 SELECT
     *
@@ -179,14 +179,14 @@ SELECT
 FROM
     mvtest_tm
 ORDER BY
-    TYPE;
+    type;
 
 SELECT
     *
 FROM
     mvtest_tvm
 ORDER BY
-    TYPE;
+    type;
 
 REFRESH MATERIALIZED VIEW CONCURRENTLY mvtest_tm;
 
@@ -197,14 +197,14 @@ SELECT
 FROM
     mvtest_tm
 ORDER BY
-    TYPE;
+    type;
 
 SELECT
     *
 FROM
     mvtest_tvm
 ORDER BY
-    TYPE;
+    type;
 
 RESET search_path;
 
@@ -309,14 +309,14 @@ FROM
 
 -- test join of mv and view
 SELECT
-    TYPE,
+    type,
     m.totamt AS mtot,
     v.totamt AS vtot
 FROM
     mvtest_tm m
     LEFT JOIN mvtest_tv v USING (type)
 ORDER BY
-    TYPE;
+    type;
 
 -- make sure that dependencies are reported properly when they block the drop
 DROP TABLE mvtest_t;
