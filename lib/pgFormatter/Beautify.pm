@@ -1998,7 +1998,7 @@ sub beautify
 	    else
 	    {
 		if (uc($token) eq 'FROM' and $self->{ '_is_in_sub_query' }
-				and !grep(/^$last$/i, @extract_keywords)
+				and !grep(/^\Q$last\E$/i, @extract_keywords)
 				and ($self->{ '_insert_values' } or $self->{ '_is_in_function' }))
 		{
                     $self->_new_line($token,$last);
