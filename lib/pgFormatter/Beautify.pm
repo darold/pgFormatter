@@ -151,6 +151,8 @@ Takes options as hash. Following options are recognized:
 
 =item * no_extra_line - do not add an extra empty line at end of the output
 
+=item * keep_newline - preserve empty line in plpgsql code 
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -165,7 +167,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline) ) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -612,7 +614,11 @@ sub tokenize_sql
                 |
                 (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$) # dollar expressions - eg $_$ $3 $$ $BODY$
                 |
-                \n                      # newline
+                (?:\r\n){2,}                      # empty line Windows
+                |
+                \n{2,}                      # empty line Unix
+                |
+                \r{2,}                      # empty line Mac
                 |
                 [\t\ ]+                 # any kind of white spaces
 		|
@@ -621,6 +627,9 @@ sub tokenize_sql
     }ismx;
 
     my @query = grep { /\S/ } $query =~ m{$re}simxg;
+    if ($self->{ 'keep_newline' }) {
+	    @query = grep { /(?:\S|^[\r\n]+$)/ } $query =~ m{$re}simxg;
+    }
 
     # Revert position when a comment is before a comma
     if ($self->{ 'comma' } eq 'end')
@@ -636,7 +645,6 @@ sub tokenize_sql
     }
 
     #print STDERR "DEBUG KWDLIST: ", join(' | ', @query), "\n";
-
     $self->{ '_tokens' } = \@query;
 }
 
@@ -813,6 +821,13 @@ sub beautify
     {
         my $rule = $self->_get_rule( $token );
 
+	if ($self->{ 'keep_newline' } and $self->{ '_is_in_block' } >= 0 and $token =~ /^[\r\n]+$/s
+		and defined $last and $last eq ';'
+	)
+	{
+	     $self->_add_token( $token, $last );
+	     next;
+	}
 	# Replace concat operator found in some SGBD into || for normalization
 	if (lc($token) eq 'concat' && defined $self->_next_token() && $self->_next_token ne '(') {
 		$token = '||';
@@ -2545,9 +2560,9 @@ sub beautify
             $self->_new_line($token,$last);
             $self->_add_token($token);
         }
-
         else
 	{
+	     next if ($self->{'keep_newline'} and $token =~ /^\s+$/);
 
 	     if ($self->{ '_fct_code_delimiter' } and $self->{ '_fct_code_delimiter' } =~ /^'.*'$/) {
 	 	$self->{ '_fct_code_delimiter' } = "";
@@ -2602,15 +2617,17 @@ sub beautify
 		      {
                           $self->_set_level(pop(@{ $self->{ '_level_parenthesis' } }) || 1, $token, $last);
                       }
-                 }
+                }
                 if (defined $last and uc($last) eq 'UPDATE' and $self->{ '_current_sql_stmt' } eq 'UPDATE')
 		{
 			$self->_new_line($token,$last);
 			  $self->_over($token,$last);
 		}
+
                 if (defined $last and uc($last) eq 'AS' and uc($token) eq 'WITH') {
 			$self->_new_line($token,$last);
 		}
+
   		if (uc($token) eq 'INSERT' and defined $last and $last eq ';')
   		{
 		      if ($#{ $self->{ '_level_stack' } } >= 0) {
@@ -2619,6 +2636,7 @@ sub beautify
 			  $self->_back($token,$last);
 		      }
 		}
+
 		if  (($self->{ '_is_in_policy' } > 1 || ($self->{ '_is_in_policy' } && $self->{ '_is_in_sub_query' })) && $token =~ /^(ALL|SELECT|UPDATE|DELETE|INSERT)$/i)
 		{
 		     $self->_new_line($token,$last);
@@ -2634,7 +2652,10 @@ sub beautify
 	 	 {
                      $self->_new_line($token,$last);
 		 }
+
+		 # Finally add the token without further condition
                  $self->_add_token( $token, $last );
+
 		 # Reset CREATE statement flag when using CTE
 		 if ($self->{ '_is_in_create' } && $self->{ '_is_in_with' }
 			 && uc($token) eq 'WITH' && uc($last) eq 'AS')
@@ -2708,6 +2729,16 @@ sub _add_token
         if ( $wrap ) {
             $token = $wrap->[ 0 ] . $token . $wrap->[ 1 ];
         }
+    }
+
+    if ($self->{keep_newline} and $self->{ '_is_in_block' } >= 0 and $token =~ /^[\r\n]+$/s
+	    and defined $last_token and $last_token eq ';'
+    )
+    {
+	$token =~ s/^[\r\n]+$/\n/s;
+        $self->{ 'content' } =~ s/\s+$/\n/s;
+        $self->{ 'content' } .= $token if ($self->{ 'content' } !~ /[\n]{2,}$/s);
+	return;
     }
 
     my $last_is_dot = defined( $last_token ) && $last_token eq '.';
@@ -3518,6 +3549,8 @@ Currently defined defaults:
 
 =item no_extra_line => 0
 
+=item keep_newline => 0
+
 =back
 
 =cut
@@ -3555,6 +3588,7 @@ sub set_defaults
     $self->{ 'wrap_after' }    = 0;
     $self->{ 'wrap_comment' }  = 0;
     $self->{ 'no_extra_line' } = 0;
+    $self->{ 'keep_newline' }  = 0;
 
     return;
 }

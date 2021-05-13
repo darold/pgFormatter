@@ -108,6 +108,7 @@ sub beautify {
     $args{ 'config' }       = $self->{ 'cfg' }->{ 'config' };
     $args{ 'no_rcfile' }    = $self->{ 'cfg' }->{ 'no-rcfile' };
     $args{ 'inplace' }      = $self->{ 'cfg' }->{ 'inplace' };
+    $args{ 'keep_newline' } = $self->{ 'cfg' }->{ 'keep-newline' };
     $args{ 'extra_function' } = $self->{ 'cfg' }->{ 'extra-function' };
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
@@ -228,6 +229,7 @@ Options:
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
     -i | --inplace        : override input file with formatted content.
+    -k | --keep-newline   : preserve empty line in plpgsql code.
     -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
@@ -317,6 +319,7 @@ sub get_command_line_args
         'nogrouping|g!',
         'help|h!',
         'function-case|f=i',
+        'keep-newline|k!',
         'no-extra-line|L!',
         'maxlength|m=i',
         'multiline|M!',

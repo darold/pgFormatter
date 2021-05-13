@@ -151,6 +151,7 @@ sub set_config {
     $self->{ 'numbering' }    //= 0;
     $self->{ 'redshift' }     //= 0;
     $self->{ 'colorize' }     //= 1;
+    $self->{ 'keep_newline' } //= 0;
     $self->{ 'extra_function' }//= '';
 
     if ($self->{ 'tabs' })
@@ -214,7 +215,7 @@ sub get_params {
     # shortcut
     my $cgi = $self->{ 'cgi' };
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift) ) {
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshifti keep_newline) ) {
         $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
     }
 
@@ -271,6 +272,7 @@ sub sanitize_params {
     $self->{ 'wrap_after' }   = 0 if ($self->{ 'wrap_after' } !~ /^\d{1,2}$/);
     $self->{ 'numbering' }    = 0 if ($self->{ 'numbering' } !~ /^\d{1,2}$/);
     $self->{ 'redshift' }     = 0 if $self->{ 'redshift' } !~ /^(0|1)$/;
+    $self->{ 'keep_newline' }   = 0 if $self->{ 'keep_newline' } !~ /^(0|1)$/;
 
     if ( $self->{ 'show_example' } ) {
         $self->{ 'content' } = q{
@@ -317,6 +319,7 @@ sub beautify_query {
     $args{ 'no_grouping' }  = 1 if $self->{ 'nogrouping' };
     $args{ 'numbering' }    = 1 if $self->{ 'numbering' };
     $args{ 'redshift' }     = 1 if $self->{ 'redshift' };
+    $args{ 'keep_newline' } = 1 if $self->{ 'keep_newline' };
 
     $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
 
@@ -373,6 +376,7 @@ sub print_body {
     my $chk_nogrouping  = $self->{ 'nogrouping' } ? 'checked="checked" ' : '';
     my $chk_numbering   = $self->{ 'numbering' } ? 'checked="checked" ' : '';
     my $chk_redshift    = $self->{ 'redshift' } ? 'checked="checked" ' : '';
+    my $chk_keepnewline = $self->{ 'keep_newline' } ? 'checked="checked" ' : '';
 
     my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
     $kw_toggle{ $self->{ 'uc_keyword' } } = ' selected="selected"';
@@ -406,6 +410,9 @@ sub print_body {
       <input type="checkbox" id="id_comma_break" name="comma_break" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_comma_break/>
       <label for="id_comma_break">New-line after comma (insert)</label>
       <br />
+      <input type="checkbox" id="id_keep_newline" name="keep_newline" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_keepnewline/>
+      <label for="id_keep_newline">Keep empty lines</label>
+      <br />
       <input type="checkbox" id="id_format_type" name="format_type" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_format_type/>
       <label for="id_format_type">Alternate formatting</label>
       <br />
@@ -413,10 +420,10 @@ sub print_body {
       <label for="id_no_grouping">No transaction grouping</label>
       <br />
       <input type="checkbox" id="id_numbering" name="numbering" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_numbering/>
-      <label for="id_no_grouping">Statement numbering</label>
+      <label for="id_numbering">Statement numbering</label>
       <br />
       <input type="checkbox" id="id_redshift" name="redshift" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_redshift/>
-      <label for="id_no_grouping">Redshift keywords</label>
+      <label for="id_redshift">Redshift keywords</label>
       </div>
     </fieldset>
       <br />
