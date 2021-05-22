@@ -350,8 +350,13 @@ sub get_command_line_args
         exit 0;
     }
 
-    if ( !$cfg{ 'no-rcfile' } ) {
-        $cfg{ 'config' } //= (exists  $ENV{HOME}) ? "$ENV{HOME}/.pg_format" : ".pg_format";
+    if ( !$cfg{ 'no-rcfile' } )
+    {
+	if (-e ".pg_format") {
+		$cfg{ 'config' } //= ".pg_format";
+	} else {
+		$cfg{ 'config' } //= (exists  $ENV{HOME}) ? "$ENV{HOME}/.pg_format" : ".pg_format";
+	}
     }
 
     if ( defined $cfg{ 'config' } && -f $cfg{ 'config' } )
