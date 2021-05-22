@@ -385,10 +385,8 @@ FROM
     TIMESTAMP_TBL t,
     INTERVAL_TBL i
 WHERE
-    t.d1 BETWEEN '1990-01-01'
-    AND '2001-01-01'
-    AND i.f1 BETWEEN '00:00'
-    AND '23:00'
+    t.d1 BETWEEN '1990-01-01' AND '2001-01-01'
+    AND i.f1 BETWEEN '00:00' AND '23:00'
 ORDER BY
     1,
     2;
@@ -515,10 +513,8 @@ SELECT
 FROM
     TIMESTAMP_TBL
 WHERE
-    d1 BETWEEN '13-jun-1957'
-    AND '1-jan-1997'
-    OR d1 BETWEEN '1-jan-1999'
-    AND '1-jan-2010';
+    d1 BETWEEN '13-jun-1957' AND '1-jan-1997'
+    OR d1 BETWEEN '1-jan-1999' AND '1-jan-2010';
 
 SELECT
     '' AS "16",

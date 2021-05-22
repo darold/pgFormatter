@@ -434,8 +434,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 BETWEEN '1902-01-01'
-    AND '2038-01-01';
+    d1 BETWEEN '1902-01-01' AND '2038-01-01';
 
 SELECT
     '' AS date_trunc_week,
@@ -463,8 +462,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 BETWEEN timestamp with time zone '1902-01-01'
-    AND timestamp with time zone '2038-01-01';
+    d1 BETWEEN timestamp with time zone '1902-01-01' AND timestamp with time zone '2038-01-01';
 
 SELECT
     '' AS "54",
@@ -478,8 +476,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 BETWEEN '1902-01-01'
-    AND '2038-01-01';
+    d1 BETWEEN '1902-01-01' AND '2038-01-01';
 
 SELECT
     '' AS "54",
@@ -490,8 +487,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 BETWEEN '1902-01-01'
-    AND '2038-01-01';
+    d1 BETWEEN '1902-01-01' AND '2038-01-01';
 
 SELECT
     '' AS "54",
@@ -502,8 +498,7 @@ SELECT
 FROM
     TIMESTAMPTZ_TBL
 WHERE
-    d1 BETWEEN '1902-01-01'
-    AND '2038-01-01';
+    d1 BETWEEN '1902-01-01' AND '2038-01-01';
 
 -- TO_CHAR()
 SELECT

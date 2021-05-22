@@ -1827,8 +1827,7 @@ SELECT
 FROM
     dupindexcols
 WHERE
-    f1 BETWEEN 'WA'
-    AND 'ZZZ'
+    f1 BETWEEN 'WA' AND 'ZZZ'
     AND id < 1000
     AND f1 ~<~ 'YX';
 
@@ -1837,8 +1836,7 @@ SELECT
 FROM
     dupindexcols
 WHERE
-    f1 BETWEEN 'WA'
-    AND 'ZZZ'
+    f1 BETWEEN 'WA' AND 'ZZZ'
     AND id < 1000
     AND f1 ~<~ 'YX';
 

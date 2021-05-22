@@ -755,12 +755,10 @@ INHERITS (
 );
 
 ALTER TABLE nv_child_2010
-    ADD CHECK (d BETWEEN '2010-01-01'::date
-        AND '2010-12-31'::date) NOT valid;
+    ADD CHECK (d BETWEEN '2010-01-01'::date AND '2010-12-31'::date) NOT valid;
 
 ALTER TABLE nv_child_2011
-    ADD CHECK (d BETWEEN '2011-01-01'::date
-        AND '2011-12-31'::date) NOT valid;
+    ADD CHECK (d BETWEEN '2011-01-01'::date AND '2011-12-31'::date) NOT valid;
 
 EXPLAIN (
     COSTS OFF
@@ -770,8 +768,7 @@ SELECT
 FROM
     nv_parent
 WHERE
-    d BETWEEN '2011-08-01'
-    AND '2011-08-31';
+    d BETWEEN '2011-08-01' AND '2011-08-31';
 
 CREATE TABLE nv_child_2009 (
     CHECK (d BETWEEN '2009-01-01'::date AND '2009-12-31'::date)
@@ -788,8 +785,7 @@ SELECT
 FROM
     nv_parent
 WHERE
-    d BETWEEN '2011-08-01'::date
-    AND '2011-08-31'::date;
+    d BETWEEN '2011-08-01'::date AND '2011-08-31'::date;
 
 EXPLAIN (
     COSTS OFF
@@ -799,8 +795,7 @@ SELECT
 FROM
     nv_parent
 WHERE
-    d BETWEEN '2009-08-01'::date
-    AND '2009-08-31'::date;
+    d BETWEEN '2009-08-01'::date AND '2009-08-31'::date;
 
 -- after validation, the constraint should be used
 ALTER TABLE nv_child_2011 VALIDATE CONSTRAINT nv_child_2011_d_check;
@@ -813,13 +808,11 @@ SELECT
 FROM
     nv_parent
 WHERE
-    d BETWEEN '2009-08-01'::date
-    AND '2009-08-31'::date;
+    d BETWEEN '2009-08-01'::date AND '2009-08-31'::date;
 
 -- add an inherited NOT VALID constraint
 ALTER TABLE nv_parent
-    ADD CHECK (d BETWEEN '2001-01-01'::date
-        AND '2099-12-31'::date) NOT valid;
+    ADD CHECK (d BETWEEN '2001-01-01'::date AND '2099-12-31'::date) NOT valid;
 
 \d nv_child_2009
 -- we leave nv_parent and children around to help test pg_dump logic

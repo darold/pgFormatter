@@ -1743,8 +1743,7 @@ SELECT
 FROM
     ab
 WHERE
-    a BETWEEN $1
-    AND $2
+    a BETWEEN $1 AND $2
     AND b <= $3;
 
 -- Execute query 5 times to allow choose_custom_plan
@@ -1782,8 +1781,7 @@ SELECT
 FROM
     ab
 WHERE
-    a BETWEEN $1
-    AND $2
+    a BETWEEN $1 AND $2
     AND b < 3;
 
 -- Execute query 5 times to allow choose_custom_plan
@@ -1820,8 +1818,7 @@ SELECT
 FROM
     ab
 WHERE
-    a BETWEEN $1
-    AND $2
+    a BETWEEN $1 AND $2
     AND b < (
         SELECT
             3);
@@ -1850,8 +1847,7 @@ SELECT
 FROM
     ab
 WHERE
-    b BETWEEN $1
-    AND $2
+    b BETWEEN $1 AND $2
     AND a < (
         SELECT
             3);
@@ -2001,8 +1997,7 @@ SELECT
 FROM
     ab
 WHERE
-    a BETWEEN $1
-    AND $2
+    a BETWEEN $1 AND $2
     AND b < 4;
 
 -- Encourage use of parallel plans

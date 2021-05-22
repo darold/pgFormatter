@@ -814,6 +814,7 @@ sub beautify
     $self->{ '_is_subquery' } = 0;
     $self->{ '_mysql_delimiter' } = '';
     $self->{ '_is_in_generated' } = 0;
+    $self->{ '_is_in_between' } = 0;
 
     @{ $self->{ '_begin_level' } } = ();
 
@@ -852,6 +853,14 @@ sub beautify
 		$self->_add_token($token, $last);
                 $self->_new_line($token,$last);
 		$self->{ 'content' } .= "\n";
+		$last = $self->_set_last($token, $last);
+		next;
+	}
+
+	if (uc($token) eq 'BETWEEN')
+	{
+		$self->{ '_is_in_between' } = 1;
+		$self->_add_token($token, $last);
 		$last = $self->_set_last($token, $last);
 		next;
 	}
@@ -1798,6 +1807,7 @@ sub beautify
             $self->{ 'no_break' } = 0;
 	    $self->{ '_is_in_generated' } = 0;
             $self->{ '_is_in_where' } = 0;
+	    $self->{ '_is_in_between' } = 0;
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_join' } = 0;
             $self->{ '_is_in_create' } = 0;
@@ -2428,12 +2438,13 @@ sub beautify
         elsif ( $token =~ /^(?:AND|OR)$/i )
 	{
             $self->{ '_is_in_where' } = 0;
-
             # Try to detect AND in BETWEEN clause to prevent newline insert
-            if (uc($token) eq 'AND' and ($self->_next_token() =~ /^\d+$/ || (defined $last && $last =~ /^(PRECEDING|FOLLOWING|ROW)$/i)))
+            if (uc($token) eq 'AND' and ($self->{ '_is_in_between' }
+			    || (defined $last && $last =~ /^(PRECEDING|FOLLOWING|ROW)$/i)))
 	    {
                 $self->_add_token( $token );
                 $last = $self->_set_last($token, $last);
+	        $self->{ '_is_in_between' } = 0;
                 next;
             }
             $self->{ 'no_break' } = 0;
@@ -2651,25 +2662,25 @@ sub beautify
 		     $last = $self->_set_last($token, $last);
 		     next;
 		}
- 		 $self->{ '_is_in_policy' }++ if ($token =~ /^SELECT$/i and $self->{ '_is_in_policy' });
-		 if ($self->{ 'comma_break' } and $self->{ '_current_sql_stmt' } eq 'INSERT' && $last eq '(')
-	 	 {
-                     $self->_new_line($token,$last);
-		 }
+ 		$self->{ '_is_in_policy' }++ if ($token =~ /^SELECT$/i and $self->{ '_is_in_policy' });
+		if ($self->{ 'comma_break' } and $self->{ '_current_sql_stmt' } eq 'INSERT' && $last eq '(')
+	 	{
+                    $self->_new_line($token,$last);
+		}
 
-		 # Finally add the token without further condition
-                 $self->_add_token( $token, $last );
+		# Finally add the token without further condition
+                $self->_add_token( $token, $last );
 
-		 # Reset CREATE statement flag when using CTE
-		 if ($self->{ '_is_in_create' } && $self->{ '_is_in_with' }
-			 && uc($token) eq 'WITH' && uc($last) eq 'AS')
-		 {
-			 $self->{ '_is_in_create' } = 0;
-		 }
-                 if (defined $last && uc($last) eq 'LANGUAGE' && (!defined $self->_next_token || $self->_next_token ne ';'))
-                 {
-                     $self->_new_line($token,$last);
-                 }
+		# Reset CREATE statement flag when using CTE
+		if ($self->{ '_is_in_create' } && $self->{ '_is_in_with' }
+			&& uc($token) eq 'WITH' && uc($last) eq 'AS')
+		{
+		    $self->{ '_is_in_create' } = 0;
+		}
+                if (defined $last && uc($last) eq 'LANGUAGE' && (!defined $self->_next_token || $self->_next_token ne ';'))
+                {
+                    $self->_new_line($token,$last);
+                }
             }
         }
 
