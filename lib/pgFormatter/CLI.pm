@@ -291,6 +291,7 @@ sub load_sql {
     } else {
         $fh = \*STDIN;
     }
+    binmode($fh, ":encoding(utf8)");
     $self->{ 'query' } = <$fh>;
     close $fh if ( $self->{ 'cfg' }->{ 'input' } ne '-' );
     return;

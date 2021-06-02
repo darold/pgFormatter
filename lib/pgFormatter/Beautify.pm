@@ -4,6 +4,11 @@ use strict;
 use warnings;
 use warnings qw( FATAL );
 use Encode qw( decode );
+use utf8;
+
+binmode STDIN, ':utf8';
+binmode STDOUT, ':utf8';
+binmode STDERR, ':utf8';
 
 use Text::Wrap;
 
