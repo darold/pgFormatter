@@ -2294,6 +2294,13 @@ sub beautify
 		$self->_set_level($self->{ '_level_stack' }[-1], $token, $last) if ($#{ $self->{ '_level_stack' } } >= 0);
 	        $self->_over($token,$last);
 	    }
+	    if ($self->{ '_is_in_case' } && defined $self->_next_token() and
+		    $self->_next_token() eq '(' and $self->{ '_tokens' }[1] !~ /^(SELECT|CASE)$/i
+	    )
+	    {
+		$self->_set_level($self->{ '_level_stack' }[-1], $token, $last) if ($#{ $self->{ '_level_stack' } } >= 0);
+	        $self->_over($token,$last);
+	    }
             $self->{ '_is_in_if' } = 0;
         }
 

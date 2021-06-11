@@ -143,9 +143,9 @@ FROM
 SELECT
     '' AS "Five",
     CASE WHEN i >= 3 THEN
-    (i + i)
-ELSE
-    i
+        (i + i)
+    ELSE
+        i
     END AS "Simplest Math"
 FROM
     CASE_TBL;
@@ -247,9 +247,9 @@ UPDATE
     CASE_TBL
 SET
     i = CASE WHEN i >= 3 THEN
-    (- i)
-ELSE
-    (2 * i)
+        (- i)
+    ELSE
+        (2 * i)
     END;
 
 SELECT
@@ -261,9 +261,9 @@ UPDATE
     CASE_TBL
 SET
     i = CASE WHEN i >= 2 THEN
-    (2 * i)
-ELSE
-    (3 * i)
+        (2 * i)
+    ELSE
+        (3 * i)
     END;
 
 SELECT
@@ -275,9 +275,9 @@ UPDATE
     CASE_TBL
 SET
     i = CASE WHEN b.i >= 2 THEN
-    (2 * j)
-ELSE
-    (3 * j)
+        (2 * j)
+    ELSE
+        (3 * j)
     END
 FROM
     CASE2_TBL b
