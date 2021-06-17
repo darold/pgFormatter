@@ -1113,7 +1113,7 @@ sub beautify
             $self->{ '_is_in_publication' } = 1;
         } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^CONVERSION$/i) {
 	    $self->{ '_is_in_conversion' } = 1;
-        } elsif ($token =~ /^CREATE|DROP$/i && $self->_next_token =~ /^OPERATOR$/i) {
+        } elsif ($token =~ /^(CREATE|DROP)$/i && $self->_next_token =~ /^OPERATOR$/i) {
 	    $self->{ '_is_in_operator' } = 1;
             $self->{ '_is_in_drop' } = 1 if ($token =~ /^DROP$/i);
         } elsif ($token =~ /^ALTER$/i) {
