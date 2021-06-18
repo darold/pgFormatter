@@ -1101,19 +1101,19 @@ sub beautify
 	} elsif ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_index' } = 1;
 	}
-        if ($token =~ /^CREATE$/i && $self->_next_token !~ /^(EVENT|UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
+        if ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token !~ /^(EVENT|UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
 	    $self->{ '_is_in_create' } = 1;
-        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^RULE$/i) {
+        } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^RULE$/i) {
 	    $self->{ '_is_in_rule' } = 1;
-        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^EVENT$/i) {
+        } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^EVENT$/i) {
 	    $self->{ '_is_in_trigger' } = 1;
-        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^TYPE$/i) {
+        } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^TYPE$/i) {
             $self->{ '_is_in_type' } = 1;
-        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^PUBLICATION$/i) {
+        } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^PUBLICATION$/i) {
             $self->{ '_is_in_publication' } = 1;
-        } elsif ($token =~ /^CREATE$/i && $self->_next_token =~ /^CONVERSION$/i) {
+        } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^CONVERSION$/i) {
 	    $self->{ '_is_in_conversion' } = 1;
-        } elsif ($token =~ /^CREATE|DROP$/i && $self->_next_token =~ /^OPERATOR$/i) {
+        } elsif ($token =~ /^(CREATE|DROP)$/i and defined $self->_next_token && $self->_next_token =~ /^OPERATOR$/i) {
 	    $self->{ '_is_in_operator' } = 1;
             $self->{ '_is_in_drop' } = 1 if ($token =~ /^DROP$/i);
         } elsif ($token =~ /^ALTER$/i) {
@@ -1131,7 +1131,7 @@ sub beautify
         } elsif ($token =~ /^AGGREGATE$/i and $self->{ '_is_in_create' }) {
             $self->{ '_is_in_aggregate' } = 1;
             $self->{ '_has_order_by' } = 1;
-        } elsif ($token =~ /^EVENT$/i && $self->_next_token =~ /^TRIGGER$/i) {
+        } elsif ($token =~ /^EVENT$/i and defined $self->_next_token && $self->_next_token =~ /^TRIGGER$/i) {
 	    $self->_over($token, $last);
             $self->{ '_is_in_index' } = 1;
         }
