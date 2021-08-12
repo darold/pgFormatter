@@ -933,7 +933,7 @@ SELECT
 -- 2010-01-01 12:34:56.789012+00
 -- edge cases
 SELECT
-    to_timestamp(- 210866803200);
+    to_timestamp(-210866803200);
 
 --   4714-11-24 00:00:00+00 BC
 -- upper limit varies between integer and float timestamps, so hard to test

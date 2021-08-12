@@ -433,8 +433,8 @@ FROM
 UPDATE
     arrtest1
 SET
-    i[- 3] = - 3,
-    t[- 3] = 'minus-three';
+    i[-3] = - 3,
+    t[-3] = 'minus-three';
 
 SELECT
     *
@@ -488,7 +488,7 @@ FROM
 UPDATE
     arrtest1
 SET
-    i[- 5: - 3] = ARRAY[- 15, - 14, - 13],
+    i[- 5: - 3] = ARRAY[-15, -14, -13],
     t[- 5: - 3] = ARRAY['m15', 'm14', 'm13'];
 
 SELECT
@@ -499,7 +499,7 @@ FROM
 UPDATE
     arrtest1
 SET
-    i[- 7: - 6] = ARRAY[- 17, NULL],
+    i[- 7: - 6] = ARRAY[-17, NULL],
     t[- 7: - 6] = ARRAY['m17', NULL];
 
 SELECT
@@ -510,7 +510,7 @@ FROM
 UPDATE
     arrtest1
 SET
-    i[- 12: - 10] = ARRAY[- 22, NULL, - 20],
+    i[- 12: - 10] = ARRAY[-22, NULL, -20],
     t[- 12: - 10] = ARRAY['m22', NULL, 'm20'];
 
 SELECT
@@ -1091,7 +1091,7 @@ SELECT
 
 -- nulls later in the bitmap
 SELECT
-    - 1 != ALL (ARRAY (
+    -1 != ALL (ARRAY (
             SELECT
                 NULLIF (g.i, 900)
             FROM
@@ -1696,7 +1696,7 @@ SELECT
     unnest(ARRAY[1, 2, 3, NULL, 4, NULL, NULL, 5, 6]::text[]);
 
 SELECT
-    abs(unnest(ARRAY[1, 2, NULL, - 3]));
+    abs(unnest(ARRAY[1, 2, NULL, -3]));
 
 SELECT
     array_remove(ARRAY[1, 2, 2, 3], 2);
@@ -1830,13 +1830,13 @@ SELECT
     op,
     width_bucket(op::numeric, ARRAY[1, 3, 5, 10.0]::numeric[]) AS wb_n1,
     width_bucket(op::numeric, ARRAY[0, 5.5, 9.99]::numeric[]) AS wb_n2,
-    width_bucket(op::numeric, ARRAY[- 6, - 5, 2.0]::numeric[]) AS wb_n3,
+    width_bucket(op::numeric, ARRAY[-6, -5, 2.0]::numeric[]) AS wb_n3,
     width_bucket(op::float8, ARRAY[1, 3, 5, 10.0]::float8[]) AS wb_f1,
     width_bucket(op::float8, ARRAY[0, 5.5, 9.99]::float8[]) AS wb_f2,
-    width_bucket(op::float8, ARRAY[- 6, - 5, 2.0]::float8[]) AS wb_f3
+    width_bucket(op::float8, ARRAY[-6, -5, 2.0]::float8[]) AS wb_f3
 FROM (
-    VALUES (- 5.2),
-        (- 0.0000000001),
+    VALUES (-5.2),
+        (-0.0000000001),
         (0.000000000001),
         (1),
         (1.99999999999999),
@@ -1860,7 +1860,7 @@ SELECT
     op,
     width_bucket(op, ARRAY[1, 3, 9, 'NaN', 'NaN']::float8[]) AS wb
 FROM (
-    VALUES (- 5.2::float8),
+    VALUES (-5.2::float8),
         (4::float8),
         (77::float8),
         ('NaN'::float8)) v (op);

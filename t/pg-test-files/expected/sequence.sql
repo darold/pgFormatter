@@ -8,18 +8,18 @@ CREATE SEQUENCE sequence_testx
     INCREMENT BY 0;
 
 CREATE SEQUENCE sequence_testx
-    INCREMENT BY - 1
+    INCREMENT BY -1
     MINVALUE 20;
 
 CREATE SEQUENCE sequence_testx
     INCREMENT BY 1
-    MAXVALUE - 20;
+    MAXVALUE -20;
 
 CREATE SEQUENCE sequence_testx
-    INCREMENT BY - 1 START 10;
+    INCREMENT BY -1 START 10;
 
 CREATE SEQUENCE sequence_testx
-    INCREMENT BY 1 START - 10;
+    INCREMENT BY 1 START -10;
 
 CREATE SEQUENCE sequence_testx
     CACHE 0;
@@ -59,27 +59,27 @@ CREATE SEQUENCE sequence_test8
 
 CREATE SEQUENCE sequence_test9
     AS integer
-    INCREMENT BY - 1;
+    INCREMENT BY -1;
 
 CREATE SEQUENCE sequence_test10
     AS integer
-    MINVALUE - 100000 START 1;
+    MINVALUE -100000 START 1;
 
 CREATE SEQUENCE sequence_test11
     AS smallint;
 
 CREATE SEQUENCE sequence_test12
     AS smallint
-    INCREMENT - 1;
+    INCREMENT -1;
 
 CREATE SEQUENCE sequence_test13
     AS smallint
-    MINVALUE - 32768;
+    MINVALUE -32768;
 
 CREATE SEQUENCE sequence_test14
     AS smallint
     MAXVALUE 32767
-    INCREMENT - 1;
+    INCREMENT -1;
 
 CREATE SEQUENCE sequence_testx
     AS text;
@@ -93,7 +93,7 @@ CREATE SEQUENCE sequence_testx
 
 CREATE SEQUENCE sequence_testx
     AS smallint
-    MINVALUE - 100000;
+    MINVALUE -100000;
 
 ALTER SEQUENCE sequence_test5
     AS smallint;
@@ -118,7 +118,7 @@ ALTER SEQUENCE sequence_test10
 -- fail, min has to be adjusted
 ALTER SEQUENCE sequence_test10
     AS smallint
-    MINVALUE - 20000;
+    MINVALUE -20000;
 
 -- ok now
 ALTER SEQUENCE sequence_test11
@@ -179,14 +179,14 @@ INSERT INTO serialTest2 (f1)
     VALUES ('test_defaults');
 
 INSERT INTO serialTest2 (f1, f2, f3, f4, f5, f6)
-    VALUES ('test_max_vals', 2147483647, 32767, 32767, 9223372036854775807, 9223372036854775807), ('test_min_vals', - 2147483648, - 32768, - 32768, - 9223372036854775808, - 9223372036854775808);
+    VALUES ('test_max_vals', 2147483647, 32767, 32767, 9223372036854775807, 9223372036854775807), ('test_min_vals', -2147483648, -32768, -32768, -9223372036854775808, -9223372036854775808);
 
 -- All these INSERTs should fail:
 INSERT INTO serialTest2 (f1, f3)
-    VALUES ('bogus', - 32769);
+    VALUES ('bogus', -32769);
 
 INSERT INTO serialTest2 (f1, f4)
-    VALUES ('bogus', - 32769);
+    VALUES ('bogus', -32769);
 
 INSERT INTO serialTest2 (f1, f3)
     VALUES ('bogus', 32768);
@@ -195,10 +195,10 @@ INSERT INTO serialTest2 (f1, f4)
     VALUES ('bogus', 32768);
 
 INSERT INTO serialTest2 (f1, f5)
-    VALUES ('bogus', - 9223372036854775809);
+    VALUES ('bogus', -9223372036854775809);
 
 INSERT INTO serialTest2 (f1, f6)
-    VALUES ('bogus', - 9223372036854775809);
+    VALUES ('bogus', -9223372036854775809);
 
 INSERT INTO serialTest2 (f1, f5)
     VALUES ('bogus', 9223372036854775808);
@@ -358,7 +358,7 @@ CREATE SEQUENCE sequence_test2
     START WITH 32;
 
 CREATE SEQUENCE sequence_test4
-    INCREMENT BY - 1;
+    INCREMENT BY -1;
 
 SELECT
     nextval('sequence_test2');
@@ -422,9 +422,9 @@ SELECT
 
 -- error
 ALTER SEQUENCE sequence_test2
-    RESTART WITH - 24 START WITH - 24 INCREMENT BY - 4
-    MINVALUE - 36
-    MAXVALUE - 5 CYCLE;
+    RESTART WITH -24 START WITH -24 INCREMENT BY -4
+    MINVALUE -36
+    MAXVALUE -5 CYCLE;
 
 SELECT
     nextval('sequence_test2');
@@ -443,7 +443,7 @@ SELECT
 
 -- cycled
 ALTER SEQUENCE sequence_test2
-    RESTART WITH - 24 NO CYCLE;
+    RESTART WITH -24 NO CYCLE;
 
 SELECT
     nextval('sequence_test2');
@@ -467,7 +467,7 @@ MAXVALUE 36
 MINVALUE 5 CYCLE;
 
 SELECT
-    setval('sequence_test2', - 100);
+    setval('sequence_test2', -100);
 
 -- error
 SELECT

@@ -902,7 +902,7 @@ SELECT
     make_date(2013, 7, 15);
 
 SELECT
-    make_date(- 44, 3, 15);
+    make_date(-44, 3, 15);
 
 SELECT
     make_time(8, 20, 0.0);
@@ -915,7 +915,7 @@ SELECT
     make_date(2013, 13, 1);
 
 SELECT
-    make_date(2013, 11, - 1);
+    make_date(2013, 11, -1);
 
 SELECT
     make_time(10, 55, 100.1);

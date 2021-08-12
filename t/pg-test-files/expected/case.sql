@@ -19,28 +19,28 @@ INSERT INTO CASE_TBL
     VALUES (2, 20.2);
 
 INSERT INTO CASE_TBL
-    VALUES (3, - 30.3);
+    VALUES (3, -30.3);
 
 INSERT INTO CASE_TBL
     VALUES (4, NULL);
 
 INSERT INTO CASE2_TBL
-    VALUES (1, - 1);
+    VALUES (1, -1);
 
 INSERT INTO CASE2_TBL
-    VALUES (2, - 2);
+    VALUES (2, -2);
 
 INSERT INTO CASE2_TBL
-    VALUES (3, - 3);
+    VALUES (3, -3);
 
 INSERT INTO CASE2_TBL
-    VALUES (2, - 4);
+    VALUES (2, -4);
 
 INSERT INTO CASE2_TBL
     VALUES (1, NULL);
 
 INSERT INTO CASE2_TBL
-    VALUES (NULL, - 6);
+    VALUES (NULL, -6);
 
 --
 -- Simplest examples without tables

@@ -1331,7 +1331,7 @@ INSERT INTO s1 (
         x,
         md5(x::text)
     FROM
-        generate_series(- 10, 10) x);
+        generate_series(-10, 10) x);
 
 CREATE TABLE s2 (
     x int,
@@ -1343,7 +1343,7 @@ INSERT INTO s2 (
         x,
         md5(x::text)
     FROM
-        generate_series(- 6, 6) x);
+        generate_series(-6, 6) x);
 
 GRANT SELECT ON s1, s2 TO regress_rls_bob;
 
@@ -1847,7 +1847,7 @@ INSERT INTO b1 (
         x,
         md5(x::text)
     FROM
-        generate_series(- 10, 10) x);
+        generate_series(-10, 10) x);
 
 CREATE POLICY p1 ON b1
     USING (a % 2 = 0);
@@ -1889,7 +1889,7 @@ WHERE
     f_leak (b);
 
 INSERT INTO bv1
-    VALUES (- 1, 'xxx');
+    VALUES (-1, 'xxx');
 
 -- should fail view WCO
 INSERT INTO bv1

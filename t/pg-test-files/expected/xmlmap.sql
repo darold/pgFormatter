@@ -6,7 +6,7 @@ CREATE TABLE testxmlschema.test1 (
 );
 
 INSERT INTO testxmlschema.test1
-    VALUES (1, 'one'), (2, 'two'), (- 1, NULL);
+    VALUES (1, 'one'), (2, 'two'), (-1, NULL);
 
 CREATE DOMAIN testxmldomain AS varchar;
 

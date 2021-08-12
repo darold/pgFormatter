@@ -488,7 +488,7 @@ INSERT INTO pitable
     VALUES (ARRAY[42]);
 
 INSERT INTO pitable
-    VALUES (ARRAY[- 1]);
+    VALUES (ARRAY[-1]);
 
 -- fail
 INSERT INTO pitable
@@ -830,7 +830,7 @@ ALTER DOMAIN con
     ADD CHECK (VALUE > 0);
 
 INSERT INTO domcontest
-    VALUES (- 5);
+    VALUES (-5);
 
 -- fails
 INSERT INTO domcontest
@@ -844,7 +844,7 @@ ALTER DOMAIN con
     DROP CONSTRAINT t;
 
 INSERT INTO domcontest
-    VALUES (- 5);
+    VALUES (-5);
 
 --fails
 INSERT INTO domcontest
@@ -1132,7 +1132,7 @@ CREATE TABLE ddtest2 (
 );
 
 INSERT INTO ddtest2
-    VALUES (ROW (- 1));
+    VALUES (ROW (-1));
 
 ALTER DOMAIN posint
     ADD CONSTRAINT c1 CHECK (value >= 0);
@@ -1219,7 +1219,7 @@ INSERT INTO ddtest2
 
 -- fail
 INSERT INTO ddtest2
-    VALUES (- 2);
+    VALUES (-2);
 
 -- fail
 INSERT INTO ddtest2
@@ -1357,7 +1357,7 @@ SELECT
     array_elem_check (3);
 
 SELECT
-    array_elem_check (- 1);
+    array_elem_check (-1);
 
 DROP FUNCTION array_elem_check (int);
 

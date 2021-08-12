@@ -1,7 +1,7 @@
 SELECT
     size,
     pg_size_pretty(size),
-    pg_size_pretty(- 1 * size)
+    pg_size_pretty(-1 * size)
 FROM (
     VALUES (10::bigint),
         (1000::bigint),
@@ -13,7 +13,7 @@ FROM (
 SELECT
     size,
     pg_size_pretty(size),
-    pg_size_pretty(- 1 * size)
+    pg_size_pretty(-1 * size)
 FROM (
     VALUES (10::numeric),
         (1000::numeric),

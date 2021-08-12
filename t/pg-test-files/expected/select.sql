@@ -649,7 +649,7 @@ SELECT
     sillysrf (42);
 
 SELECT
-    sillysrf (- 1)
+    sillysrf (-1)
 ORDER BY
     1;
 

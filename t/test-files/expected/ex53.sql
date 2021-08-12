@@ -38,8 +38,8 @@ CREATE TABLE FKTABLE (
 );
 
 CREATE TABLE FKTABLE (
-    ftest1 int DEFAULT - 1,
-    ftest2 int DEFAULT - 2,
+    ftest1 int DEFAULT -1,
+    ftest2 int DEFAULT -2,
     ftest3 int,
     CONSTRAINT constrname2 FOREIGN KEY (ftest1, ftest2) REFERENCES PKTABLE MATCH FULL ON DELETE SET DEFAULT ON UPDATE SET DEFAULT
 );
@@ -237,4 +237,11 @@ WITH a AS (
 \set user `echo $PGRST_DB_USER`
 \set passwd `echo $PGRST_DB_PWD`
 CREATE ROLE :user WITH LOGIN noinherit PASSWORD :'passwd';
+
+SELECT
+    -11,
+    -10 * -1.3,
+    -1.3 * 10, (1 + 2) - -9,
+    ARRAY[-15, -14, -13],
+    fnsum (-12 + 34);
 

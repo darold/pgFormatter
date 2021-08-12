@@ -525,7 +525,7 @@ SELECT
 SELECT
     x,
     sind (x),
-    sind (x) IN (- 1, - 0.5, 0, 0.5, 1) AS sind_exact
+    sind (x) IN (-1, -0.5, 0, 0.5, 1) AS sind_exact
 FROM (
     VALUES (0),
         (30),
@@ -540,7 +540,7 @@ FROM (
 SELECT
     x,
     cosd (x),
-    cosd (x) IN (- 1, - 0.5, 0, 0.5, 1) AS cosd_exact
+    cosd (x) IN (-1, -0.5, 0, 0.5, 1) AS cosd_exact
 FROM (
     VALUES (0),
         (60),
@@ -555,9 +555,9 @@ FROM (
 SELECT
     x,
     tand (x),
-    tand (x) IN ('-Infinity'::float8, - 1, 0, 1, 'Infinity'::float8) AS tand_exact,
+    tand (x) IN ('-Infinity'::float8, -1, 0, 1, 'Infinity'::float8) AS tand_exact,
     cotd (x),
-    cotd (x) IN ('-Infinity'::float8, - 1, 0, 1, 'Infinity'::float8) AS cotd_exact
+    cotd (x) IN ('-Infinity'::float8, -1, 0, 1, 'Infinity'::float8) AS cotd_exact
 FROM (
     VALUES (0),
         (45),
@@ -572,12 +572,12 @@ FROM (
 SELECT
     x,
     asind (x),
-    asind (x) IN (- 90, - 30, 0, 30, 90) AS asind_exact,
+    asind (x) IN (-90, -30, 0, 30, 90) AS asind_exact,
     acosd (x),
     acosd (x) IN (0, 60, 90, 120, 180) AS acosd_exact
 FROM (
-    VALUES (- 1),
-        (- 0.5),
+    VALUES (-1),
+        (-0.5),
         (0),
         (0.5),
         (1)) AS t (x);
@@ -585,10 +585,10 @@ FROM (
 SELECT
     x,
     atand (x),
-    atand (x) IN (- 90, - 45, 0, 45, 90) AS atand_exact
+    atand (x) IN (-90, -45, 0, 45, 90) AS atand_exact
 FROM (
     VALUES ('-Infinity'::float8),
-        (- 1),
+        (-1),
         (0),
         (1),
         ('Infinity'::float8)) AS t (x);
@@ -597,7 +597,7 @@ SELECT
     x,
     y,
     atan2d (y, x),
-    atan2d (y, x) IN (- 90, 0, 90, 180) AS atan2d_exact
+    atan2d (y, x) IN (-90, 0, 90, 180) AS atan2d_exact
 FROM (
     SELECT
         10 * cosd (a),

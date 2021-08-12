@@ -76,7 +76,7 @@ SELECT
     RIGHT ('ahoj',
         i)
 FROM
-    generate_series(- 5, 5) t (i)
+    generate_series(-5, 5) t (i)
 ORDER BY
     i;
 
@@ -250,7 +250,7 @@ SELECT
     format('>>%2$*1$L<<', 10, NULL);
 
 SELECT
-    format('>>%2$*1$L<<', - 10, NULL);
+    format('>>%2$*1$L<<', -10, NULL);
 
 SELECT
     format('>>%*s<<', 10, 'Hello');

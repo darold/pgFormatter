@@ -47,22 +47,22 @@ INSERT INTO J1_TBL
     VALUES (NULL, 0, 'zero');
 
 INSERT INTO J2_TBL
-    VALUES (1, - 1);
+    VALUES (1, -1);
 
 INSERT INTO J2_TBL
     VALUES (2, 2);
 
 INSERT INTO J2_TBL
-    VALUES (3, - 3);
+    VALUES (3, -3);
 
 INSERT INTO J2_TBL
     VALUES (2, 4);
 
 INSERT INTO J2_TBL
-    VALUES (5, - 5);
+    VALUES (5, -5);
 
 INSERT INTO J2_TBL
-    VALUES (5, - 5);
+    VALUES (5, -5);
 
 INSERT INTO J2_TBL
     VALUES (0, NULL);
@@ -1695,7 +1695,7 @@ FROM
         SELECT
             a.code,
             coalesce(b_grp.cnt, 0) AS b_cnt,
-            - 1 AS const
+            -1 AS const
         FROM
             a
             LEFT JOIN (
@@ -1781,7 +1781,7 @@ FROM (
         int8_tbl a) AS ss1
     FULL OUTER JOIN (
     SELECT
-        COALESCE(q2, - 1) AS qq
+        COALESCE(q2, -1) AS qq
     FROM
         int8_tbl b) AS ss2 USING (qq)
     INNER JOIN tenk1 c ON qq = unique2;
@@ -1796,7 +1796,7 @@ FROM (
         int8_tbl a) AS ss1
     FULL OUTER JOIN (
     SELECT
-        COALESCE(q2, - 1) AS qq
+        COALESCE(q2, -1) AS qq
     FROM
         int8_tbl b) AS ss2 USING (qq)
     INNER JOIN tenk1 c ON qq = unique2;
@@ -2274,7 +2274,7 @@ FROM (
     SELECT
         unique1,
         q1,
-        coalesce(unique1, - 1) + q1 AS fault
+        coalesce(unique1, -1) + q1 AS fault
     FROM
         int8_tbl
     LEFT JOIN tenk1 ON (q2 = unique2)) ss
@@ -2289,7 +2289,7 @@ FROM (
     SELECT
         unique1,
         q1,
-        coalesce(unique1, - 1) + q1 AS fault
+        coalesce(unique1, -1) + q1 AS fault
     FROM
         int8_tbl
     LEFT JOIN tenk1 ON (q2 = unique2)) ss
@@ -3604,7 +3604,7 @@ FROM
     tenk1 b
     JOIN LATERAL (
         VALUES (a.unique1),
-            (- 1)) ss (x) ON b.unique2 = ss.x;
+            (-1)) ss (x) ON b.unique2 = ss.x;
 
 SELECT
     count(*)
@@ -3613,7 +3613,7 @@ FROM
     tenk1 b
     JOIN LATERAL (
         VALUES (a.unique1),
-            (- 1)) ss (x) ON b.unique2 = ss.x;
+            (-1)) ss (x) ON b.unique2 = ss.x;
 
 -- lateral injecting a strange outer join condition
 EXPLAIN (

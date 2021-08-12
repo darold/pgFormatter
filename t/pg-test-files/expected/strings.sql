@@ -425,13 +425,13 @@ insert into toasttest values(decode(repeat('1234567890',10000),'escape'));
 -- If the starting position is zero or less, then return from the start of the string
 -- adjusting the length to be consistent with the " negative START " per SQL.
     SELECT
-        substr(f1, - 1, 5)
+        substr(f1, -1, 5)
     FROM
         toasttest;
 
 -- If the length is less than zero, an ERROR is thrown.
 SELECT
-    substr(f1, 5, - 1)
+    substr(f1, 5, -1)
 FROM
     toasttest;
 
@@ -677,7 +677,7 @@ SELECT
     lpad('hi', 5);
 
 SELECT
-    lpad('hi', - 5, 'xy');
+    lpad('hi', -5, 'xy');
 
 SELECT
     lpad('hello', 2);
@@ -692,7 +692,7 @@ SELECT
     rpad('hi', 5);
 
 SELECT
-    rpad('hi', - 5, 'xy');
+    rpad('hi', -5, 'xy');
 
 SELECT
     rpad('hello', 2);
@@ -725,7 +725,7 @@ SELECT
     repeat('Pg', 4);
 
 SELECT
-    repeat('Pg', - 4);
+    repeat('Pg', -4);
 
 SELECT
     trim(E'\\000'::bytea FROM E'\\000Tom\\000'::bytea);

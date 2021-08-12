@@ -692,7 +692,7 @@ INSERT INTO partitioned2
     VALUES (1, 'hello');
 
 CREATE TABLE part2_1 PARTITION OF partitioned2
-FOR VALUES FROM (- 1, 'aaaaa') TO (100, 'ccccc');
+FOR VALUES FROM (-1, 'aaaaa') TO (100, 'ccccc');
 
 \d+ part2_1
 DROP TABLE partitioned, partitioned2;
@@ -1293,7 +1293,7 @@ CREATE FUNCTION my_int4_sort (int4, int4)
         WHEN $1 > $2 THEN
             1
         ELSE
-            - 1
+            -1
         END;
 
 $$;

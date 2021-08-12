@@ -220,7 +220,7 @@ FROM
 SELECT
     id
 FROM
-    test_tablesample TABLESAMPLE BERNOULLI (- 1);
+    test_tablesample TABLESAMPLE BERNOULLI (-1);
 SELECT
     id
 FROM
@@ -228,7 +228,7 @@ FROM
 SELECT
     id
 FROM
-    test_tablesample TABLESAMPLE SYSTEM (- 1);
+    test_tablesample TABLESAMPLE SYSTEM (-1);
 SELECT
     id
 FROM

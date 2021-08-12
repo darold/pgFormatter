@@ -137,7 +137,7 @@ INHERITS (
 );
 
 INSERT INTO foochild
-    VALUES (123, 'child', 999, - 123);
+    VALUES (123, 'child', 999, -123);
 
 ALTER TABLE foo
     ADD COLUMN f4 int8 DEFAULT 99;

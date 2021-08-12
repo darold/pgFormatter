@@ -171,3 +171,5 @@ CREATE VIEW v AS
 \set user `echo $PGRST_DB_USER`
 \set passwd `echo $PGRST_DB_PWD`
 CREATE ROLE :user WITH LOGIN noinherit PASSWORD :'passwd';
+
+select -11,  -10 * -1.3, -1.3 * 10, (1+2) - -9, ARRAY[- 15, -14, -13], fnsum(-12+34);

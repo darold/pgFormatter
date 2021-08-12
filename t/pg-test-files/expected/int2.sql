@@ -256,22 +256,22 @@ SELECT
 
 -- check sane handling of INT16_MIN overflow cases
 SELECT
-    (- 32768)::int2 * (- 1)::int2;
+    (-32768)::int2 * (-1)::int2;
 
 SELECT
-    (- 32768)::int2 / (- 1)::int2;
+    (-32768)::int2 / (-1)::int2;
 
 SELECT
-    (- 32768)::int2 % (- 1)::int2;
+    (-32768)::int2 % (-1)::int2;
 
 -- check rounding when casting from float
 SELECT
     x,
     x::int2 AS int2_value
 FROM (
-    VALUES (- 2.5::float8),
-        (- 1.5::float8),
-        (- 0.5::float8),
+    VALUES (-2.5::float8),
+        (-1.5::float8),
+        (-0.5::float8),
         (0.0::float8),
         (0.5::float8),
         (1.5::float8),
@@ -282,9 +282,9 @@ SELECT
     x,
     x::int2 AS int2_value
 FROM (
-    VALUES (- 2.5::numeric),
-        (- 1.5::numeric),
-        (- 0.5::numeric),
+    VALUES (-2.5::numeric),
+        (-1.5::numeric),
+        (-0.5::numeric),
         (0.0::numeric),
         (0.5::numeric),
         (1.5::numeric),

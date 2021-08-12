@@ -3,7 +3,7 @@
 --
 -- Back off displayed precision a little bit to reduce platform-to-platform
 -- variation in results.
-SET extra_float_digits TO - 3;
+SET extra_float_digits TO -3;
 
 --
 -- Points

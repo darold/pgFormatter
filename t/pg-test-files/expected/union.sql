@@ -1268,7 +1268,7 @@ $$;
 
 CREATE temp TABLE t3 AS
 SELECT
-    generate_series(- 1000, 1000) AS x;
+    generate_series(-1000, 1000) AS x;
 
 CREATE INDEX t3i ON t3 (expensivefunc (x));
 

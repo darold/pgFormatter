@@ -1688,7 +1688,7 @@ SELECT
     has_table_privilege('pg_authid', 'sel');
 
 SELECT
-    has_table_privilege(- 999999, 'pg_authid', 'update');
+    has_table_privilege(-999999, 'pg_authid', 'update');
 
 SELECT
     has_table_privilege(1, 'select');

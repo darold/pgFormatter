@@ -51,7 +51,7 @@ FROM
 -- VALUES test
 --
 INSERT INTO inserttest
-    VALUES (10, 20, '40'), (- 1, 2, DEFAULT), ((
+    VALUES (10, 20, '40'), (-1, 2, DEFAULT), ((
         SELECT
             2), (
         SELECT
@@ -606,7 +606,7 @@ INSERT INTO part_default
     VALUES (1);
 
 INSERT INTO part_default
-    VALUES (- 1);
+    VALUES (-1);
 
 SELECT
     tableoid::regclass,
@@ -1099,10 +1099,10 @@ INSERT INTO mcrparted1
     VALUES (9, 1000, 1);
 
 INSERT INTO mcrparted
-    VALUES (10, 5, - 1);
+    VALUES (10, 5, -1);
 
 INSERT INTO mcrparted1
-    VALUES (10, 5, - 1);
+    VALUES (10, 5, -1);
 
 INSERT INTO mcrparted
     VALUES (2, 1, 0);
@@ -1125,10 +1125,10 @@ INSERT INTO mcrparted2
 
 -- no partition exists, nor does mcrparted3 accept it
 INSERT INTO mcrparted
-    VALUES (11, 1, - 1);
+    VALUES (11, 1, -1);
 
 INSERT INTO mcrparted3
-    VALUES (11, 1, - 1);
+    VALUES (11, 1, -1);
 
 -- routed to mcrparted5
 INSERT INTO mcrparted
@@ -1341,7 +1341,7 @@ MAXVALUE);
 \d+ mcrparted7_gt_common_lt_d
 \d+ mcrparted8_ge_d
 INSERT INTO mcrparted
-    VALUES ('aaa', 0), ('b', 0), ('bz', 10), ('c', - 10), ('comm', - 10), ('common', - 10), ('common', 0), ('common', 10), ('commons', 0), ('d', - 10), ('e', 0);
+    VALUES ('aaa', 0), ('b', 0), ('bz', 10), ('c', -10), ('comm', -10), ('common', -10), ('common', 0), ('common', 10), ('commons', 0), ('d', -10), ('e', 0);
 
 SELECT
     tableoid::regclass,

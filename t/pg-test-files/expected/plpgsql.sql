@@ -2676,14 +2676,14 @@ DECLARE
 BEGIN
     my_id_user = sp_id_user (a_login);
     IF my_id_user > 0 THEN
-        RETURN - 1;
+        RETURN -1;
         -- error code for existing user
     END IF;
     INSERT INTO users (login)
         VALUES (a_login);
     my_id_user = sp_id_user (a_login);
     IF my_id_user = 0 THEN
-        RETURN - 2;
+        RETURN -2;
         -- error code for insertion failure
     END IF;
     RETURN my_id_user;
@@ -4324,7 +4324,7 @@ BEGIN
         s.x,
         s.x > 0
     FROM
-        generate_series(- 8, lim) s (x)
+        generate_series(-8, lim) s (x)
 WHERE
     s.x % 2 = 0;
 END;
@@ -5196,16 +5196,16 @@ LANGUAGE plpgsql
 IMMUTABLE STRICT;
 
 SELECT
-    pleast (10, 1, 2, 3, - 16);
+    pleast (10, 1, 2, 3, -16);
 
 SELECT
-    pleast (10.2, 2.2, - 1.1);
+    pleast (10.2, 2.2, -1.1);
 
 SELECT
-    pleast (10.2, 10, - 20);
+    pleast (10.2, 10, -20);
 
 SELECT
-    pleast (10, 20, - 1.0);
+    pleast (10, 20, -1.0);
 
 -- in case of conflict, non-variadic version is preferred
 CREATE OR REPLACE FUNCTION pleast (numeric)
@@ -5530,7 +5530,7 @@ SAVEPOINT s1;
 SELECT
     cast_invoker (20150718);
 SELECT
-    cast_invoker (- 1);
+    cast_invoker (-1);
 -- fails
 ROLLBACK TO SAVEPOINT s1;
 
@@ -5797,7 +5797,7 @@ CREATE OR REPLACE FUNCTION unreserved_test ()
 DECLARE
     RETURN int := 42;
 BEGIN
-    RETURN := RETURN + 1;
+    RETURN := RETURN +1;
     RETURN RETURN;
 END
 $$
@@ -6425,7 +6425,7 @@ BEGIN
             UNION ALL
             SELECT
                 level1_no,
-                - 1 AS delta
+                -1 AS delta
             FROM
                 d) w
         GROUP BY

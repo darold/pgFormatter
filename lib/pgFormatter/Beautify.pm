@@ -19,6 +19,8 @@ our $DEBUG_SP = 0;
 our @have_from_clause = qw( extract overlay substring trim );
 our @extract_keywords = qw(century day decade dow doy epoch hour isodow isoyear microseconds millennium minute month quarter second timezone timezone_minute week year);
 
+our $math_operators = qr{^(?:\+|\-|\*|\/|\%|\^|\|\/|\|\|\/|\!|\!\!|\@|\&|\||\#|\~|<<|>>)$};
+
 =head1 NAME
 
 pgFormatter::Beautify - Library for pretty-printing SQL queries
@@ -652,6 +654,23 @@ sub tokenize_sql
 		}
 	    }
     }
+
+    # Fix token split of negative numbers
+    if ($#query > 2)
+    {
+        for (my $i = 2; $i <= $#query; $i++)
+        {
+	    if ($query[$i] =~ /^[\d\.]+$/ && $query[$i-1] =~ /^[\+\-]$/
+			    and ($query[$i-2] =~ /$math_operators/ or $query[$i-2] =~ /^(?:,|\(|\[)$/
+					or $self->_is_keyword( $query[$i-2]))
+	    )
+	    {
+		    $query[$i] = $query[$i-1] . $query[$i];
+		    $query[$i-1] = '';
+	    }
+        }
+    }
+    @query = grep(!/^$/, @query);
 
     #print STDERR "DEBUG KWDLIST: ", join(' | ', @query), "\n";
     $self->{ '_tokens' } = \@query;

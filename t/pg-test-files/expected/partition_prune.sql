@@ -1156,14 +1156,14 @@ CREATE TABLE part (
 PARTITION BY LIST (a);
 
 CREATE TABLE part_p1 PARTITION OF part
-FOR VALUES IN (- 2, - 1, 0, 1, 2);
+FOR VALUES IN (-2, -1, 0, 1, 2);
 
 CREATE TABLE part_p2 PARTITION OF part DEFAULT PARTITION BY RANGE (a);
 
 CREATE TABLE part_p2_p1 PARTITION OF part_p2 DEFAULT;
 
 INSERT INTO part
-    VALUES (- 1, - 1), (1, 1), (2, NULL), (NULL, - 2), (NULL, NULL);
+    VALUES (-1, -1), (1, 1), (2, NULL), (NULL, -2), (NULL, NULL);
 
 EXPLAIN (
     COSTS OFF
@@ -2220,7 +2220,7 @@ CREATE TABLE xy_1 (
 );
 
 INSERT INTO xy_1
-    VALUES (100, - 10);
+    VALUES (100, -10);
 
 SET enable_bitmapscan = 0;
 
@@ -2256,7 +2256,7 @@ WHERE
     a = $1
     AND b = (
         SELECT
-            - 10);
+            -10);
 
 -- Ensure the xy_1 subplan is not pruned.
 EXPLAIN (

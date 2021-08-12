@@ -3268,16 +3268,16 @@ SELECT
     '["a","b","c"]'::jsonb - 0;
 
 SELECT
-    '["a","b","c"]'::jsonb - - 1;
+    '["a","b","c"]'::jsonb - -1;
 
 SELECT
-    '["a","b","c"]'::jsonb - - 2;
+    '["a","b","c"]'::jsonb - -2;
 
 SELECT
-    '["a","b","c"]'::jsonb - - 3;
+    '["a","b","c"]'::jsonb - -3;
 
 SELECT
-    '["a","b","c"]'::jsonb - - 4;
+    '["a","b","c"]'::jsonb - -4;
 
 SELECT
     '{"a":1 , "b":2, "c":3}'::jsonb - '{b}'::text[];

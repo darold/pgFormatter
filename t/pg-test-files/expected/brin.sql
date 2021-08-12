@@ -249,7 +249,7 @@ SELECT
 -- ok, no change expected
 -- Tests for brin_desummarize_range
 SELECT
-    brin_desummarize_range ('brinidx', - 1);
+    brin_desummarize_range ('brinidx', -1);
 
 -- error, invalid range
 SELECT
@@ -306,7 +306,7 @@ SELECT
 
 -- invalid block number values
 SELECT
-    brin_summarize_range('brin_summarize_idx', - 1);
+    brin_summarize_range('brin_summarize_idx', -1);
 
 SELECT
     brin_summarize_range('brin_summarize_idx', 4294967296);

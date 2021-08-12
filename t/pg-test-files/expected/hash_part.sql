@@ -32,7 +32,7 @@ SELECT
 
 -- remainder too small
 SELECT
-    satisfies_hash_partition ('mchash'::regclass, 1, - 1, NULL);
+    satisfies_hash_partition ('mchash'::regclass, 1, -1, NULL);
 
 -- remainder too large
 SELECT

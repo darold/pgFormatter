@@ -158,7 +158,7 @@ SELECT
 FROM
     circle_tbl
 WHERE
-    f1 && circle(point(1, - 2), 1)
+    f1 && circle(point(1, -2), 1)
 ORDER BY
     area(f1);
 
@@ -379,7 +379,7 @@ SELECT
 FROM
     circle_tbl
 WHERE
-    f1 && circle(point(1, - 2), 1)
+    f1 && circle(point(1, -2), 1)
 ORDER BY
     area(f1);
 
@@ -388,7 +388,7 @@ SELECT
 FROM
     circle_tbl
 WHERE
-    f1 && circle(point(1, - 2), 1)
+    f1 && circle(point(1, -2), 1)
 ORDER BY
     area(f1);
 
@@ -1471,7 +1471,7 @@ FROM
     onek;
 
 INSERT INTO onek_with_null (unique1, unique2)
-    VALUES (NULL, - 1), (NULL, NULL);
+    VALUES (NULL, -1), (NULL, NULL);
 
 CREATE UNIQUE INDEX onek_nulltest ON onek_with_null (unique2, unique1);
 

@@ -1315,7 +1315,7 @@ INHERITS (
 );
 
 INSERT INTO c1
-    VALUES (1, - 1, 2);
+    VALUES (1, -1, 2);
 
 ALTER TABLE p2
     ADD CONSTRAINT cc CHECK (f2 > 0);
@@ -1334,7 +1334,7 @@ ALTER TABLE p2
     ADD CHECK (f2 > 0);
 
 INSERT INTO c1
-    VALUES (1, - 1, 2);
+    VALUES (1, -1, 2);
 
 -- fail
 CREATE TABLE c2 (

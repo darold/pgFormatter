@@ -512,7 +512,7 @@ $$;
 
 ALTER TABLE rewriteme
     ADD COLUMN onemore int DEFAULT 0,
-    ADD COLUMN another int DEFAULT - 1,
+    ADD COLUMN another int DEFAULT -1,
     ALTER COLUMN foo TYPE numeric(10, 4);
 
 -- shouldn't trigger a table_rewrite event

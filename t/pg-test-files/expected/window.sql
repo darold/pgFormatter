@@ -202,7 +202,7 @@ WHERE
     unique2 < 10;
 
 SELECT
-    lead(ten * 2, 1, - 1) OVER (PARTITION BY four ORDER BY ten),
+    lead(ten * 2, 1, -1) OVER (PARTITION BY four ORDER BY ten),
     ten,
     four
 FROM
@@ -1092,7 +1092,7 @@ SELECT
     x,
     last_value(x) OVER (ORDER BY x::smallint DESC RANGE BETWEEN CURRENT ROW AND 2147450885 FOLLOWING)
 FROM
-    generate_series(- 32766, - 32764) x;
+    generate_series(-32766, -32764) x;
 
 SELECT
     x,
@@ -1104,7 +1104,7 @@ SELECT
     x,
     last_value(x) OVER (ORDER BY x DESC RANGE BETWEEN CURRENT ROW AND 5 FOLLOWING)
 FROM
-    generate_series(- 2147483646, - 2147483644) x;
+    generate_series(-2147483646, -2147483644) x;
 
 SELECT
     x,
@@ -1116,7 +1116,7 @@ SELECT
     x,
     last_value(x) OVER (ORDER BY x DESC RANGE BETWEEN CURRENT ROW AND 5 FOLLOWING)
 FROM
-    generate_series(- 9223372036854775806, - 9223372036854775804) x;
+    generate_series(-9223372036854775806, -9223372036854775804) x;
 
 -- Test in_range for other numeric datatypes
 CREATE temp TABLE numerics (
@@ -1128,7 +1128,7 @@ CREATE temp TABLE numerics (
 
 INSERT INTO numerics
     VALUES (0, '-infinity', '-infinity', '-1000'), -- numeric type lacks infinities
-    (1, - 3, - 3, - 3), (2, - 1, - 1, - 1), (3, 0, 0, 0), (4, 1.1, 1.1, 1.1), (5, 1.12, 1.12, 1.12), (6, 2, 2, 2), (7, 100, 100, 100), (8, 'infinity', 'infinity', '1000'), (9, 'NaN', 'NaN', 'NaN');
+    (1, -3, -3, -3), (2, -1, -1, -1), (3, 0, 0, 0), (4, 1.1, 1.1, 1.1), (5, 1.12, 1.12, 1.12), (6, 2, 2, 2), (7, 100, 100, 100), (8, 'infinity', 'infinity', '1000'), (9, 'NaN', 'NaN', 'NaN');
 
 SELECT
     id,
@@ -1353,14 +1353,14 @@ FROM
     empsalary;
 
 SELECT
-    max(enroll_date) OVER (ORDER BY salary RANGE BETWEEN - 1 PRECEDING AND 2 FOLLOWING EXCLUDE TIES),
+    max(enroll_date) OVER (ORDER BY salary RANGE BETWEEN -1 PRECEDING AND 2 FOLLOWING EXCLUDE TIES),
     salary,
     enroll_date
 FROM
     empsalary;
 
 SELECT
-    max(enroll_date) OVER (ORDER BY salary RANGE BETWEEN 1 PRECEDING AND - 2 FOLLOWING EXCLUDE TIES),
+    max(enroll_date) OVER (ORDER BY salary RANGE BETWEEN 1 PRECEDING AND -2 FOLLOWING EXCLUDE TIES),
     salary,
     enroll_date
 FROM

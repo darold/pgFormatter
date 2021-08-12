@@ -1092,10 +1092,10 @@ SELECT
 -- fail
 -- test with variadic call parameter
 SELECT
-    myleast (VARIADIC ARRAY[1, 2, 3, 4, - 1]);
+    myleast (VARIADIC ARRAY[1, 2, 3, 4, -1]);
 
 SELECT
-    myleast (VARIADIC ARRAY[1.1, - 5.5]);
+    myleast (VARIADIC ARRAY[1.1, -5.5]);
 
 --test with empty variadic call parameter
 SELECT

@@ -244,15 +244,15 @@ CREATE TABLE PKTABLE (
 );
 
 CREATE TABLE FKTABLE (
-    ftest1 int DEFAULT - 1,
-    ftest2 int DEFAULT - 2,
+    ftest1 int DEFAULT -1,
+    ftest2 int DEFAULT -2,
     ftest3 int,
     CONSTRAINT constrname2 FOREIGN KEY (ftest1, ftest2) REFERENCES PKTABLE MATCH FULL ON DELETE SET DEFAULT ON UPDATE SET DEFAULT
 );
 
 -- Insert a value in PKTABLE for default
 INSERT INTO PKTABLE
-    VALUES (- 1, - 2, 'The Default!');
+    VALUES (-1, -2, 'The Default!');
 
 -- Insert test data into PKTABLE
 INSERT INTO PKTABLE
@@ -873,8 +873,8 @@ CREATE TABLE PKTABLE (
 
 CREATE TABLE FKTABLE (
     ftest1 int DEFAULT 0,
-    ftest2 int DEFAULT - 1,
-    ftest3 int DEFAULT - 2,
+    ftest2 int DEFAULT -1,
+    ftest3 int DEFAULT -2,
     ftest4 int,
     CONSTRAINT constrname3 FOREIGN KEY (ftest1, ftest2, ftest3) REFERENCES PKTABLE ON DELETE SET NULL ON UPDATE SET DEFAULT
 );
@@ -893,7 +893,7 @@ INSERT INTO PKTABLE
     VALUES (2, 4, 5, 'test4');
 
 INSERT INTO PKTABLE
-    VALUES (2, - 1, 5, 'test5');
+    VALUES (2, -1, 5, 'test5');
 
 -- Insert Foreign Key values
 INSERT INTO FKTABLE

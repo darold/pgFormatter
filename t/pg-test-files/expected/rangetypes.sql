@@ -166,7 +166,7 @@ SELECT
 FROM
     numrange_test
 WHERE
-    range_contained_by(numrange(- 1e7, - 10000.1), nr);
+    range_contained_by(numrange(- 1e7, -10000.1), nr);
 
 SELECT
     *
@@ -208,7 +208,7 @@ SELECT
 FROM
     numrange_test
 WHERE
-    nr < numrange(- 1000.0, - 1000.0, '[]');
+    nr < numrange(-1000.0, -1000.0, '[]');
 
 SELECT
     *
@@ -250,7 +250,7 @@ SELECT
 FROM
     numrange_test
 WHERE
-    nr > numrange(- 1001.0, - 1000.0, '[]');
+    nr > numrange(-1001.0, -1000.0, '[]');
 
 SELECT
     *
@@ -1206,7 +1206,7 @@ CREATE TABLE float8range_test (
 );
 
 INSERT INTO float8range_test
-    VALUES (float8range (- 100.00007, '1.111113e9'), 42);
+    VALUES (float8range (-100.00007, '1.111113e9'), 42);
 
 SELECT
     *

@@ -537,38 +537,38 @@ SELECT
 -- all false
 SELECT
     ROW (1,
-        - 2)::testtype1 < ROW (1,
-        - 3)::testtype1;
+        -2)::testtype1 < ROW (1,
+        -3)::testtype1;
 
 SELECT
     ROW (1,
-        - 2)::testtype1 <= ROW (1,
-        - 3)::testtype1;
+        -2)::testtype1 <= ROW (1,
+        -3)::testtype1;
 
 SELECT
     ROW (1,
-        - 2)::testtype1 = ROW (1,
-        - 3)::testtype1;
+        -2)::testtype1 = ROW (1,
+        -3)::testtype1;
 
 SELECT
     ROW (1,
-        - 2)::testtype1 <> ROW (1,
-        - 2)::testtype1;
+        -2)::testtype1 <> ROW (1,
+        -2)::testtype1;
 
 SELECT
     ROW (1,
-        - 3)::testtype1 >= ROW (1,
-        - 2)::testtype1;
+        -3)::testtype1 >= ROW (1,
+        -2)::testtype1;
 
 SELECT
     ROW (1,
-        - 3)::testtype1 > ROW (1,
-        - 2)::testtype1;
+        -3)::testtype1 > ROW (1,
+        -2)::testtype1;
 
 -- true, but see *< below
 SELECT
     ROW (1,
-        - 2)::testtype1 < ROW (1,
+        -2)::testtype1 < ROW (1,
         3)::testtype1;
 
 -- mismatches
@@ -659,39 +659,39 @@ SELECT
 -- all false
 SELECT
     ROW (1,
-        - 2)::testtype1 *< ROW (1,
-        - 3)::testtype1;
+        -2)::testtype1 *< ROW (1,
+        -3)::testtype1;
 
 SELECT
     ROW (1,
-        - 2)::testtype1 *<= ROW (1,
-        - 3)::testtype1;
+        -2)::testtype1 *<= ROW (1,
+        -3)::testtype1;
 
 SELECT
     ROW (1,
-        - 2)::testtype1 *= ROW (1,
-        - 3)::testtype1;
+        -2)::testtype1 *= ROW (1,
+        -3)::testtype1;
 
 SELECT
     ROW (1,
-        - 2)::testtype1 *<> ROW (1,
-        - 2)::testtype1;
+        -2)::testtype1 *<> ROW (1,
+        -2)::testtype1;
 
 SELECT
     ROW (1,
-        - 3)::testtype1 *>= ROW (1,
-        - 2)::testtype1;
+        -3)::testtype1 *>= ROW (1,
+        -2)::testtype1;
 
 SELECT
     ROW (1,
-        - 3)::testtype1 *> ROW (1,
-        - 2)::testtype1;
+        -3)::testtype1 *> ROW (1,
+        -2)::testtype1;
 
 -- This returns the "wrong" order because record_image_cmp works on
 -- unsigned datums without knowing about the actual data type.
 SELECT
     ROW (1,
-        - 2)::testtype1 *< ROW (1,
+        -2)::testtype1 *< ROW (1,
         3)::testtype1;
 
 -- other types
@@ -707,8 +707,8 @@ SELECT
         TRUE)::testtype2;
 
 SELECT
-    ROW (- 2,
-        TRUE)::testtype2 *< ROW (- 1,
+    ROW (-2,
+        TRUE)::testtype2 *< ROW (-1,
         TRUE)::testtype2;
 
 SELECT

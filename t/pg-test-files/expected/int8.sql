@@ -17,7 +17,7 @@ INSERT INTO INT8_TBL
     VALUES ('4567890123456789', '123');
 
 INSERT INTO INT8_TBL
-    VALUES (+ 4567890123456789, '4567890123456789');
+    VALUES (+4567890123456789, '4567890123456789');
 
 INSERT INTO INT8_TBL
     VALUES ('+4567890123456789', '-4567890123456789');
@@ -424,15 +424,15 @@ FROM
 
 SELECT
     '' AS to_char_3,
-    to_char((q1 * - 1), '9999999999999999PR'),
-    to_char((q2 * - 1), '9999999999999999.999PR')
+    to_char((q1 * -1), '9999999999999999PR'),
+    to_char((q2 * -1), '9999999999999999.999PR')
 FROM
     INT8_TBL;
 
 SELECT
     '' AS to_char_4,
-    to_char((q1 * - 1), '9999999999999999S'),
-    to_char((q2 * - 1), 'S9999999999999999')
+    to_char((q1 * -1), '9999999999999999S'),
+    to_char((q2 * -1), 'S9999999999999999')
 FROM
     INT8_TBL;
 
@@ -698,40 +698,40 @@ SELECT
 
 -- check sane handling of INT64_MIN overflow cases
 SELECT
-    (- 9223372036854775808)::int8 * (- 1)::int8;
+    (-9223372036854775808)::int8 * (-1)::int8;
 
 SELECT
-    (- 9223372036854775808)::int8 / (- 1)::int8;
+    (-9223372036854775808)::int8 / (-1)::int8;
 
 SELECT
-    (- 9223372036854775808)::int8 % (- 1)::int8;
+    (-9223372036854775808)::int8 % (-1)::int8;
 
 SELECT
-    (- 9223372036854775808)::int8 * (- 1)::int4;
+    (-9223372036854775808)::int8 * (-1)::int4;
 
 SELECT
-    (- 9223372036854775808)::int8 / (- 1)::int4;
+    (-9223372036854775808)::int8 / (-1)::int4;
 
 SELECT
-    (- 9223372036854775808)::int8 % (- 1)::int4;
+    (-9223372036854775808)::int8 % (-1)::int4;
 
 SELECT
-    (- 9223372036854775808)::int8 * (- 1)::int2;
+    (-9223372036854775808)::int8 * (-1)::int2;
 
 SELECT
-    (- 9223372036854775808)::int8 / (- 1)::int2;
+    (-9223372036854775808)::int8 / (-1)::int2;
 
 SELECT
-    (- 9223372036854775808)::int8 % (- 1)::int2;
+    (-9223372036854775808)::int8 % (-1)::int2;
 
 -- check rounding when casting from float
 SELECT
     x,
     x::int8 AS int8_value
 FROM (
-    VALUES (- 2.5::float8),
-        (- 1.5::float8),
-        (- 0.5::float8),
+    VALUES (-2.5::float8),
+        (-1.5::float8),
+        (-0.5::float8),
         (0.0::float8),
         (0.5::float8),
         (1.5::float8),
@@ -742,9 +742,9 @@ SELECT
     x,
     x::int8 AS int8_value
 FROM (
-    VALUES (- 2.5::numeric),
-        (- 1.5::numeric),
-        (- 0.5::numeric),
+    VALUES (-2.5::numeric),
+        (-1.5::numeric),
+        (-0.5::numeric),
         (0.0::numeric),
         (0.5::numeric),
         (1.5::numeric),

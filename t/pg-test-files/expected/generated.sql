@@ -964,7 +964,7 @@ CREATE TRIGGER gtest4
     EXECUTE PROCEDURE gtest_trigger_func ();
 
 INSERT INTO gtest26 (a)
-    VALUES (- 2), (0), (3);
+    VALUES (-2), (0), (3);
 
 SELECT
     *
@@ -976,7 +976,7 @@ ORDER BY
 UPDATE
     gtest26
 SET
-    a = a * - 2;
+    a = a * -2;
 
 SELECT
     *

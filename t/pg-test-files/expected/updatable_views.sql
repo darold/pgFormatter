@@ -16,7 +16,7 @@ SELECT
     i,
     'Row ' || i
 FROM
-    generate_series(- 2, 2) g (i);
+    generate_series(-2, 2) g (i);
 
 CREATE VIEW ro_view1 AS SELECT DISTINCT
     a,
@@ -481,7 +481,7 @@ SELECT
     i,
     'Row ' || i
 FROM
-    generate_series(- 2, 2) g (i);
+    generate_series(-2, 2) g (i);
 
 CREATE VIEW rw_view1 AS
 SELECT
@@ -567,7 +567,7 @@ SELECT
     i,
     'Row ' || i
 FROM
-    generate_series(- 2, 2) g (i);
+    generate_series(-2, 2) g (i);
 
 CREATE VIEW rw_view1 AS
 SELECT
@@ -668,7 +668,7 @@ SELECT
     i,
     'Row ' || i
 FROM
-    generate_series(- 2, 2) g (i);
+    generate_series(-2, 2) g (i);
 
 CREATE VIEW rw_view1 AS
 SELECT
@@ -896,7 +896,7 @@ SELECT
     i,
     'Row ' || i
 FROM
-    generate_series(- 2, 2) g (i);
+    generate_series(-2, 2) g (i);
 
 CREATE VIEW rw_view1 AS
 SELECT
@@ -1157,7 +1157,7 @@ SELECT
     i,
     'Row ' || i
 FROM
-    generate_series(- 2, 2) g (i);
+    generate_series(-2, 2) g (i);
 
 CREATE VIEW rw_view1 AS
 SELECT
@@ -1785,7 +1785,7 @@ CREATE TABLE base_tbl (
 );
 
 INSERT INTO base_tbl
-    VALUES (1, 2), (4, 5), (3, - 3);
+    VALUES (1, 2), (4, 5), (3, -3);
 
 CREATE VIEW rw_view1 AS
 SELECT
@@ -1801,7 +1801,7 @@ FROM
     rw_view1;
 
 INSERT INTO rw_view1
-    VALUES (7, - 8);
+    VALUES (7, -8);
 
 SELECT
     *
@@ -2071,7 +2071,7 @@ INSERT INTO base_tbl_parent
 SELECT
     *
 FROM
-    generate_series(- 8, - 1);
+    generate_series(-8, -1);
 
 INSERT INTO base_tbl_child
 SELECT
@@ -2113,17 +2113,17 @@ ORDER BY
     a;
 
 INSERT INTO rw_view1
-    VALUES (- 100), (100);
+    VALUES (-100), (100);
 
 INSERT INTO rw_view2
-    VALUES (- 200), (200);
+    VALUES (-200), (200);
 
 UPDATE
     rw_view1
 SET
     a = a * 10
 WHERE
-    a IN (- 1, 1);
+    a IN (-1, 1);
 
 -- Should produce -10 and 10
 UPDATE
@@ -2131,7 +2131,7 @@ UPDATE
 SET
     a = a * 10
 WHERE
-    a IN (- 2, 2);
+    a IN (-2, 2);
 
 -- Should produce -20 and 20
 UPDATE
@@ -2139,7 +2139,7 @@ UPDATE
 SET
     a = a * 10
 WHERE
-    a IN (- 3, 3);
+    a IN (-3, 3);
 
 -- Should produce -30 only
 UPDATE
@@ -2147,23 +2147,23 @@ UPDATE
 SET
     a = a * 10
 WHERE
-    a IN (- 4, 4);
+    a IN (-4, 4);
 
 -- Should produce -40 only
 DELETE FROM rw_view1
-WHERE a IN (- 5, 5);
+WHERE a IN (-5, 5);
 
 -- Should delete -5 and 5
 DELETE FROM ONLY rw_view1
-WHERE a IN (- 6, 6);
+WHERE a IN (-6, 6);
 
 -- Should delete -6 and 6
 DELETE FROM rw_view2
-WHERE a IN (- 7, 7);
+WHERE a IN (-7, 7);
 
 -- Should delete -7 only
 DELETE FROM ONLY rw_view2
-WHERE a IN (- 8, 8);
+WHERE a IN (-8, 8);
 
 -- Should delete -8 only
 SELECT
@@ -2240,7 +2240,7 @@ CREATE TABLE base_tbl (
 );
 
 INSERT INTO base_tbl
-    VALUES (1, 2), (2, 3), (1, - 1);
+    VALUES (1, 2), (2, 3), (1, -1);
 
 CREATE VIEW rw_view1 AS
 SELECT
@@ -2332,7 +2332,7 @@ WHERE
     table_name = 'rw_view2';
 
 INSERT INTO rw_view2
-    VALUES (- 5);
+    VALUES (-5);
 
 -- should fail
 INSERT INTO rw_view2
@@ -2377,7 +2377,7 @@ WHERE
     table_name = 'rw_view2';
 
 INSERT INTO rw_view2
-    VALUES (- 10);
+    VALUES (-10);
 
 -- ok, but not in view
 INSERT INTO rw_view2
@@ -2395,7 +2395,7 @@ ALTER VIEW rw_view1 SET (check_option = here);
 ALTER VIEW rw_view1 SET (check_option = local);
 
 INSERT INTO rw_view2
-    VALUES (- 20);
+    VALUES (-20);
 
 -- should fail
 INSERT INTO rw_view2
@@ -2458,7 +2458,7 @@ ORDER BY
     table_name;
 
 INSERT INTO rw_view1
-    VALUES (- 1);
+    VALUES (-1);
 
 -- ok
 INSERT INTO rw_view1
@@ -2466,7 +2466,7 @@ INSERT INTO rw_view1
 
 -- ok
 INSERT INTO rw_view2
-    VALUES (- 2);
+    VALUES (-2);
 
 -- ok, but not in view
 INSERT INTO rw_view2
@@ -2474,7 +2474,7 @@ INSERT INTO rw_view2
 
 -- ok
 INSERT INTO rw_view3
-    VALUES (- 3);
+    VALUES (-3);
 
 -- should fail
 INSERT INTO rw_view3
@@ -2703,7 +2703,7 @@ WHERE
     a > 0 WITH LOCAL CHECK OPTION;
 
 INSERT INTO rw_view2
-    VALUES (- 5);
+    VALUES (-5);
 
 -- should fail
 INSERT INTO rw_view2
@@ -2761,7 +2761,7 @@ CREATE RULE rw_view1_upd_rule AS ON UPDATE
             a = OLD.a;
 
 INSERT INTO rw_view2
-    VALUES (- 10);
+    VALUES (-10);
 
 -- ok, but not in view (doesn't fail rw_view2's check)
 INSERT INTO rw_view2
@@ -3515,7 +3515,7 @@ INSERT INTO v2
 
 -- ok
 INSERT INTO v2
-    VALUES (- 2, 'minus two', 20);
+    VALUES (-2, 'minus two', 20);
 
 -- not allowed
 INSERT INTO v2
@@ -3589,7 +3589,7 @@ INSERT INTO v1
 
 -- ok
 INSERT INTO v1
-    VALUES (- 1, 'invalid');
+    VALUES (-1, 'invalid');
 
 -- should fail
 DROP VIEW v1;

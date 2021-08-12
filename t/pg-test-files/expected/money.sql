@@ -339,13 +339,13 @@ SELECT
     12345678901234567::money;
 
 SELECT
-    (- 12345)::money;
+    (-12345)::money;
 
 SELECT
-    (- 1234567890)::money;
+    (-1234567890)::money;
 
 SELECT
-    (- 12345678901234567)::money;
+    (-12345678901234567)::money;
 
 SELECT
     1234567890::int4::money;
@@ -357,13 +357,13 @@ SELECT
     12345678901234567::numeric::money;
 
 SELECT
-    (- 1234567890)::int4::money;
+    (-1234567890)::int4::money;
 
 SELECT
-    (- 12345678901234567)::int8::money;
+    (-12345678901234567)::int8::money;
 
 SELECT
-    (- 12345678901234567)::numeric::money;
+    (-12345678901234567)::numeric::money;
 
 -- Cast from money
 SELECT

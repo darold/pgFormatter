@@ -1443,14 +1443,14 @@ DROP TABLE ceil_floor_round;
 -- Check rounding, it should round ties away from zero.
 SELECT
     i AS pow,
-    round((- 2.5 * 10 ^ i)::numeric, - i),
-    round((- 1.5 * 10 ^ i)::numeric, - i),
-    round((- 0.5 * 10 ^ i)::numeric, - i),
+    round((-2.5 * 10 ^ i)::numeric, - i),
+    round((-1.5 * 10 ^ i)::numeric, - i),
+    round((-0.5 * 10 ^ i)::numeric, - i),
     round((0.5 * 10 ^ i)::numeric, - i),
     round((1.5 * 10 ^ i)::numeric, - i),
     round((2.5 * 10 ^ i)::numeric, - i)
 FROM
-    generate_series(- 5, 5) AS t (i);
+    generate_series(-5, 5) AS t (i);
 
 -- Testing for width_bucket(). For convenience, we test both the
 -- numeric and float8 versions of the function in this file.
@@ -1459,7 +1459,7 @@ SELECT
     width_bucket(5.0, 3.0, 4.0, 0);
 
 SELECT
-    width_bucket(5.0, 3.0, 4.0, - 5);
+    width_bucket(5.0, 3.0, 4.0, -5);
 
 SELECT
     width_bucket(3.5, 3.0, 3.0, 888);
@@ -1468,7 +1468,7 @@ SELECT
     width_bucket(5.0::float8, 3.0::float8, 4.0::float8, 0);
 
 SELECT
-    width_bucket(5.0::float8, 3.0::float8, 4.0::float8, - 5);
+    width_bucket(5.0::float8, 3.0::float8, 4.0::float8, -5);
 
 SELECT
     width_bucket(3.5::float8, 3.0::float8, 3.0::float8, 888);
@@ -1500,8 +1500,8 @@ SELECT
     width_bucket(operand_f8, 2, 8, 4) AS wb_3f,
     width_bucket(operand_num, 5.0, 5.5, 20) AS wb_4,
     width_bucket(operand_f8, 5.0, 5.5, 20) AS wb_4f,
-    width_bucket(operand_num, - 25, 25, 10) AS wb_5,
-    width_bucket(operand_f8, - 25, 25, 10) AS wb_5f
+    width_bucket(operand_num, -25, 25, 10) AS wb_5,
+    width_bucket(operand_f8, -25, 25, 10) AS wb_5f
 FROM
     width_bucket_test;
 
@@ -1928,10 +1928,10 @@ SELECT
 -- Test code path for raising to integer powers
 --
 SELECT
-    10.0 ^ - 2147483648 AS rounds_to_zero;
+    10.0 ^ -2147483648 AS rounds_to_zero;
 
 SELECT
-    10.0 ^ - 2147483647 AS rounds_to_zero;
+    10.0 ^ -2147483647 AS rounds_to_zero;
 
 SELECT
     10.0 ^ 2147483647 AS overflows;
@@ -1950,14 +1950,14 @@ SELECT
     1.2 ^ 345;
 
 SELECT
-    0.12 ^ (- 20);
+    0.12 ^ (-20);
 
 -- cases that used to error out
 SELECT
-    0.12 ^ (- 25);
+    0.12 ^ (-25);
 
 SELECT
-    0.5678 ^ (- 85);
+    0.5678 ^ (-85);
 
 --
 -- Tests for raising to non-integer powers
@@ -1967,7 +1967,7 @@ SELECT
     0.0 ^ 0.0;
 
 SELECT
-    (- 12.34) ^ 0.0;
+    (-12.34) ^ 0.0;
 
 SELECT
     12.34 ^ 0.0;
@@ -1993,23 +1993,23 @@ SELECT
 
 -- invalid inputs
 SELECT
-    0.0 ^ (- 12.34);
+    0.0 ^ (-12.34);
 
 SELECT
-    (- 12.34) ^ 1.2;
+    (-12.34) ^ 1.2;
 
 -- cases that used to generate inaccurate results
 SELECT
     32.1 ^ 9.8;
 
 SELECT
-    32.1 ^ (- 9.8);
+    32.1 ^ (-9.8);
 
 SELECT
     12.3 ^ 45.6;
 
 SELECT
-    12.3 ^ (- 45.6);
+    12.3 ^ (-45.6);
 
 -- big test
 SELECT
@@ -2033,13 +2033,13 @@ SELECT
     exp(32.999);
 
 SELECT
-    exp(- 32.999);
+    exp(-32.999);
 
 SELECT
     exp(123.456);
 
 SELECT
-    exp(- 123.456);
+    exp(-123.456);
 
 -- big test
 SELECT
@@ -2061,7 +2061,7 @@ FROM
 SELECT
     *
 FROM
-    generate_series(4.0::numeric, - 1.5::numeric, - 2.2::numeric);
+    generate_series(4.0::numeric, -1.5::numeric, -2.2::numeric);
 
 -- Trigger errors
 SELECT
@@ -2114,7 +2114,7 @@ FROM
 --
 -- Invalid inputs
 SELECT
-    ln(- 12.34);
+    ln(-12.34);
 
 SELECT
     ln(0.0);
@@ -2149,7 +2149,7 @@ SELECT
 --
 -- invalid inputs
 SELECT
-    log(- 12.34);
+    log(-12.34);
 
 SELECT
     log(0.0);
@@ -2178,13 +2178,13 @@ SELECT
 --
 -- invalid inputs
 SELECT
-    log(- 12.34, 56.78);
+    log(-12.34, 56.78);
 
 SELECT
-    log(- 12.34, - 56.78);
+    log(-12.34, -56.78);
 
 SELECT
-    log(12.34, - 56.78);
+    log(12.34, -56.78);
 
 SELECT
     log(0.0, 12.34);
@@ -2233,10 +2233,10 @@ SELECT
     scale (110123.12475871856128);
 
 SELECT
-    scale (- 1123.12471856128);
+    scale (-1123.12471856128);
 
 SELECT
-    scale (- 13.000000000000000);
+    scale (-13.000000000000000);
 
 --
 -- Tests for SUM()
@@ -2248,7 +2248,7 @@ FROM
     generate_series(1, 100000);
 
 SELECT
-    SUM((- 9999)::numeric)
+    SUM((-9999)::numeric)
 FROM
     generate_series(1, 100000);
 

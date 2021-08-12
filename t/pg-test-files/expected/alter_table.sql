@@ -1124,14 +1124,14 @@ ALTER TABLE atacc2
 
 -- fail and then succeed on atacc2
 INSERT INTO atacc2 (test2)
-    VALUES (- 3);
+    VALUES (-3);
 
 INSERT INTO atacc2 (test2)
     VALUES (3);
 
 -- fail and then succeed on atacc3
 INSERT INTO atacc3 (test2)
-    VALUES (- 3);
+    VALUES (-3);
 
 INSERT INTO atacc3 (test2)
     VALUES (3);
@@ -1244,11 +1244,11 @@ ALTER TABLE atacc1
 
 -- check constraint is not there on child
 INSERT INTO atacc2 (test)
-    VALUES (- 3);
+    VALUES (-3);
 
 -- check constraint is there on parent
 INSERT INTO atacc1 (test)
-    VALUES (- 3);
+    VALUES (-3);
 
 INSERT INTO atacc1 (test)
     VALUES (3);
@@ -5770,7 +5770,7 @@ CREATE FUNCTION at_test_sql_partop (int4, int4)
         WHEN $1 > $2 THEN
             1
         ELSE
-            - 1
+            -1
         END;
 
 $$;
