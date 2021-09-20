@@ -137,7 +137,7 @@ INSTALLATION
 
     then just use it as
 
-            echo file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
+            cat file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
 
 SPECIAL FORMATTING
   Option -W, --wrap-after
