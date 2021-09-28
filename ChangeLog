@@ -1,3 +1,53 @@
+September 28 2021 - v5.1
+
+This maintenance release fixes issues reported by users since the last six
+months with some improvements and new features.
+
+New options and features:
+
+  * Alternate format type (option -t) now keep enumeration in GROUP BY
+    clause on a single line.
+  * Add new option -k or --keep-newline to preserve empty line in plpgsql
+    code.
+  * Look for .pg_format configuration file in local directory first then
+    in the $HOME directory.
+  - Force UTF8 encoding for all I/O to solve unicode character in object
+    name parsing issues.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix typo in documentation with use of echo instead of cat. Thanks to
+    Сергей Бурладян for the patch.
+  - Fix space added after negative sign of numbers. Thanks to Carlos Hanson
+    for the report.
+  - Formatting words with CREATE prefix or DROP suffix raises a deadly
+    warning. Thanks to Martin Jan Kohler for the patch.
+  - Fix indentation in CASE clause. Thanks to jonyscathe for the report.
+  - Force UTF8 encoding for all I/O to solve unicode character in object name
+    parsing issues. Thanks to Monson Shao for the report.
+  - Fix formatting of the BETWEEN clause. Thanks to Monson Shao for the report.
+  - Look for .pg_format configuration file in local directory first then in the
+    $HOME directory. Thanks to Peter Lithammer for the suggestion.
+  - Add option -k or --keep-newline to preserve empty line in plpgsql code.
+    This doesn't work with comments for the moment. Thanks to Andrey Larionov
+    for the feature request.
+  - Fix "Unmatched ) in regex;" error. Thanks to Hew Wolff for the report.
+  - Fix an other use of uninitialized value in substitution iterator. Thanks to
+    Christophe Courtois for the report.
+  - Fix false positives for TYPE keyword and fix %TYPE and %ROWTYPE. Thanks to
+    Hew Wolff for the report
+  - Option -t (alternate format type) now keep enumeration in GROUP BY clause
+    on a single line. Thanks to MeadMaker pfassina for the feature request.
+  - Remove temporary debug code
+  - Fix indentation of FROM and WHERE in subquery. Thanks to Hew Wolff and
+    Sergey Shepelev for the report.
+  - Fix indentation before RETURNS when it is a RETURNS NULL ON clause.
+  - Fix seadly warning: Filehandle STDIN reopened as $[...] only for output.
+    Thanks to Andrew Dunstan for the report.
+  - Fix formatting of multi-line comment. Thanks to Jacob Beard for the report.
+  - Fix use of uninitialized value in pattern match. Thanks to arlt for the
+    report.
+
 February 11 2021 - v5.0
 
 This major release fixes issues reported by users since the last six
