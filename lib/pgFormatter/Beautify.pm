@@ -2796,7 +2796,7 @@ sub _add_token
 	{
 	    if ($token ne ')'
                                             && defined($last_token)
-                                            && $last_token ne '::' 
+                                            && $last_token !~ '::$'
                                             && $last_token ne '[' 
 					    && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
                 )
@@ -2892,7 +2892,7 @@ sub _add_token
     # Be sure that we not going to modify a constant
     if ($self->{ '_is_in_create' } < 2 and $token !~ /^[E]*'.*'$/)
     {
-	    @cast = split(/::/, $token);
+	    @cast = split(/::/, $token, -1);
 	    $token = shift(@cast) if ($#cast >= 0);
 	    @next_cast = split(/::/, $next_token);
 	    $next_token = shift(@next_cast) if ($#next_cast >= 0);

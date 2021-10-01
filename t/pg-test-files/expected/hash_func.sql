@@ -105,7 +105,7 @@ SELECT
     hashcharextended(v, 0)::bit(32) AS extended0,
     hashcharextended(v, 1)::bit(32) AS extended1
 FROM (
-    VALUES (NULL "char"),
+    VALUES (NULL::"char"),
         ('1'),
         ('x'),
         ('X'),
