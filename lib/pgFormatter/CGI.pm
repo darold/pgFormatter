@@ -486,14 +486,22 @@ sub print_body {
   <table><tr><td>
 _END_OF_HTML_
 
-    if ( ( $self->{ 'show_example' } ) || ( !$self->{ 'content' } ) ) {
+    if ( ( $self->{ 'show_example' } ) || ( !$self->{ 'content' } ) )
+    {
         $self->{ 'content' } = 'Enter your SQL code here...' unless $self->{ 'content' };
         print
 qq{<textarea name="content" id="sqlcontent" onfocus="if (done == 0) this.value=''; done = 1; set_bg_color('sqlcontent', '#f5f3de');" onblur="set_bg_color('sqlcontent', 'white');" onchange="maxlength_textarea(this, $self->{ 'maxlength' })">};
         print "$self->{ 'content' }</textarea>";
     }
-    else {
+    else
+    {
         print qq{<div class="sql" id="sql"><pre>$self->{ 'content' }</pre></div>};
+	print qq{
+	</td></tr>
+	<tr><td align="center"><div class="sql">
+    <input id="copycode" type="button" style="background-color: #ff7400" value="&nbsp;Copy to clipboard&nbsp;" onclick="if (!navigator.clipboard) {return false;} var copied=document.getElementById('sql').innerText;navigator.clipboard.writeText(copied); return false;"/>
+        <p></p>
+};
     }
     print
 qq{<textarea name="original_content" id="originalcontent" style="display: none;">$self->{ 'original_content' }</textarea>};
