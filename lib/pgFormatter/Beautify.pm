@@ -3546,6 +3546,10 @@ sub anonymize
 
     $query =~ s/\$EMPTYSTRING\$/''/gs;
 
+    foreach my $k (keys %{ $self->{ 'keyword_constant' } }) {
+	    $self->{ 'keyword_constant' }{$k} = "'" . $self->_generate_anonymized_string('', $self->{ 'keyword_constant' }{$k}, '') . "'";
+    }
+
     $self->query( $query );
 }
 

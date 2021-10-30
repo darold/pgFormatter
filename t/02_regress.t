@@ -1,4 +1,4 @@
-use Test::Simple tests => 67;
+use Test::Simple tests => 68;
 use File::Temp qw/ tempfile /;
 
 my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
@@ -21,6 +21,7 @@ foreach my $f (@files)
 	$opt = "-k " if ($f =~ m#/ex64.sql$#);
 	$opt = "-f 2 -u 2 -U 2 " if ($f =~ m#/ex60.sql$#);
 	$opt = "--comma-break -U 2" if ($f =~ m#/ex57.sql$#);
+	$opt = "--anonymize" if ($f =~ m#/ex66.sql$#);
 	$opt = "-w 60 -C -p 'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'" if ($f =~ m#/ex62.sql$#);
 	$opt = "--keyword-case 2 --function-case 1 --comma-start --wrap-after 1 --wrap-limit 40 --tabs --spaces 4 " if ($f =~ m#/ex58.sql$#);
 	if ($f =~ m#/ex61.sql$#)
@@ -35,6 +36,9 @@ foreach my $f (@files)
 	$f =~ s/test-files\//test-files\/expected\//;
 	if (lc($ARGV[0]) eq 'update') {
 		`cp -f /tmp/output.sql $f`;
+	} elsif ($f =~ m#/ex66.sql$#) {
+		my @ret = `grep "confirmed|hello|'Y'|'N'" /tmp/output.sql`;
+		ok( $#ret < 0, "Test anonymize");
 	} else { 
 		my @diff = `diff -u /tmp/output.sql $f | grep "^[+-]" | grep -v "^[+-]\t\$" | grep -v "^[+-][+-][+-]"`;
 		ok( $#diff < 0, "Test file $f");
