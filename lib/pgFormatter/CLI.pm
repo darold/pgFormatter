@@ -6,7 +6,7 @@ use warnings;
 # UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
 use warnings qw( FATAL );
 use utf8;
-use open qw( :std );
+use open qw( :std :encoding(UTF-8) );
 use Encode qw( decode );
 
 =head1 NAME
@@ -157,7 +157,7 @@ sub save_output {
     if ( $self->{ 'cfg' }->{ 'output' } ne '-' ) {
         $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
         open $fh, '>', $self->{ 'cfg' }->{ 'output' };
-    } else {  
+    } else {
         $fh = \*STDOUT;
     }
     print $fh $self->{ 'ready' };
