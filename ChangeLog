@@ -1,3 +1,27 @@
+December 03 2021 - v5.2
+
+This maintenance release fixes issues reported by users since the last six
+months with some improvements and new features.
+
+New options and features:
+
+  * Allow to pass multiple files when using --inplace. Thanks to mieszko4
+    for the patch.
+  * Add a button to copy formatted text to clipboard in the CGI interface.
+    Thanks to Yan Sheng for the feature request.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix bad formatting of materialized view ddl with parameters. Thanks to
+    Wilson Lin for the report.
+  - Fix/unicode and --inplace argument causing an error. Thanks to mieszko4
+    for the patch.
+  - Fix anonymizing disabled in last version. Thanks to Nikolas Poniros for
+    the report.
+  - Correctly format casts to quoted types. Thanks to Adam Vartanian for the
+    patch.
+
+
 September 28 2021 - v5.1
 
 This maintenance release fixes issues reported by users since the last six
