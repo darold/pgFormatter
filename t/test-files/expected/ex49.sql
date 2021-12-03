@@ -161,3 +161,19 @@ CREATE AGGREGATE myaggn08a (
     INITCOND = '{}'
 );
 
+CREATE MATERIALIZED VIEW v AS
+SELECT
+    sum(x) AS x,
+    sum(y) AS y,
+    sum(z) AS z
+FROM
+    t;
+
+CREATE MATERIALIZED VIEW v WITH (storage_param = 1) AS
+SELECT
+    sum(x) AS x,
+    sum(y) AS y,
+    sum(z) AS z
+FROM
+    t;
+

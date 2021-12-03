@@ -839,6 +839,7 @@ sub beautify
     $self->{ '_mysql_delimiter' } = '';
     $self->{ '_is_in_generated' } = 0;
     $self->{ '_is_in_between' } = 0;
+    $self->{ '_is_in_materialized' } = 0;
 
     @{ $self->{ '_begin_level' } } = ();
 
@@ -887,6 +888,11 @@ sub beautify
 		$self->_add_token($token, $last);
 		$last = $self->_set_last($token, $last);
 		next;
+	}
+
+	# mark when we are processing a materialized view to avoid formating issue with parameters
+	if (uc($token) eq 'MATERIALIZED' and uc($self->_next_token) eq 'VIEW') {
+		$self->{ '_is_in_materialized' } = 1;
 	}
 
         ####
@@ -979,10 +985,11 @@ sub beautify
 	{
 		if (!$self->{ '_is_in_partition' } and !$self->{ '_is_in_publication' } and !$self->{ '_is_in_policy' })
 		{
-			$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' }
+			$self->{ '_is_in_with' } = 1 if (!$self->{ '_is_in_using' } and !$self->{ '_is_in_materialized' }
 					and uc($self->_next_token) ne 'ORDINALITY' and uc($last) ne 'START');
 			$self->{ 'no_break' } = 1 if (uc($self->_next_token) eq 'ORDINALITY');
 		}
+		$self->{ '_is_in_materialized' } = 0;
         }
         elsif ($token =~ /^WITH$/i && uc($self->_next_token) eq 'ORDINALITY')
 	{
@@ -990,10 +997,12 @@ sub beautify
 	}
         elsif ($token =~ /^(AS|IS)$/i && defined $self->_next_token && $self->_next_token =~ /^(NOT|\()$/)
 	{
+	    $self->{ '_is_in_materialized' } = 0;
             $self->{ '_is_in_with' }++ if ($self->{ '_is_in_with' } == 1);
         }
         elsif ($self->{ '_is_in_create' } && $token =~ /^AS$/i && defined $self->_next_token && uc($self->_next_token) eq 'SELECT')
 	{
+	    $self->{ '_is_in_materialized' } = 0;
             $self->{ '_is_in_create' } = 0;
         }
         elsif ( $token eq '[' )
@@ -1026,6 +1035,7 @@ sub beautify
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token
 			    and uc($self->_next_token) eq 'AS' and !$self->{ '_is_in_with'})
 	    {
+	        $self->{ '_is_in_materialized' } = 0;
                 $self->_new_line($token,$last) if ($last ne '(' and !$self->{ '_is_in_create' });
 	    	if ($self->{ '_is_in_returns_table' } and !$self->{ '_parenthesis_level' })
 		{
@@ -1227,12 +1237,16 @@ sub beautify
             }
         }
         # Desactivate index like formatting when RETURN(S) keyword is found
-        elsif ($token =~ /^(RETURN|RETURNS)$/i) {
+        elsif ($token =~ /^(RETURN|RETURNS)$/i)
+	{
             $self->{ '_is_in_index' } = 0;
 	    if (uc($token) eq 'RETURNS' and uc ($self->_next_token()) eq 'TABLE') {
 		    $self->{ '_is_in_returns_table' } = 1;
 	    }
-        } elsif ($token =~ /^AS$/i) {
+        }
+	elsif ($token =~ /^AS$/i)
+	{
+	    $self->{ '_is_in_materialized' } = 0;
             if ( !$self->{ '_is_in_index' } and $self->{ '_is_in_from' } and $last eq ')' and uc($token) eq 'AS' and $self->_next_token() eq '(') {
                 $self->{ '_is_in_index' } = 1;
             } else {
@@ -1879,6 +1893,7 @@ sub beautify
 	    $self->{ '_not_a_type' } = 0;
             $self->{ '_is_subquery' } = 0;
 	    $self->{ '_is_in_order_by' } = 0;
+	    $self->{ '_is_in_materialized' } = 0;
 
 	    if ( $self->{ '_insert_values' } )
 	    {

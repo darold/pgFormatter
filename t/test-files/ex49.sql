@@ -164,3 +164,19 @@ CREATE aggregate my_sum_init (
 
 CREATE AGGREGATE myaggn08a (BASETYPE = anyelement, SFUNC = tf2p, STYPE = int[], FINALFUNC = ffnp, INITCOND = '{}');
 
+
+create materialized view v as
+select
+  sum(x) as x,
+  sum(y) as y,
+  sum(z) as z
+from
+  t;
+
+create materialized view v with (storage_param=1) as
+select
+  sum(x) as x,
+  sum(y) as y,
+  sum(z) as z
+from
+  t;
