@@ -4262,24 +4262,26 @@ SELECT
     col_description('comment_test'::regclass, 1) AS comment;
 
 SELECT
-    indexrelid::regclass::text AS index, obj_description(indexrelid, 'pg_class') AS comment
-    FROM
-        pg_index
-    WHERE
-        indrelid = 'comment_test'::regclass
-    ORDER BY
-        1,
-        2;
+    indexrelid::regclass::text AS index,
+    obj_description(indexrelid, 'pg_class') AS comment
+FROM
+    pg_index
+WHERE
+    indrelid = 'comment_test'::regclass
+ORDER BY
+    1,
+    2;
 
 SELECT
-    conname AS constraint, obj_description(oid, 'pg_constraint') AS comment
-    FROM
-        pg_constraint
-    WHERE
-        conrelid = 'comment_test'::regclass
-    ORDER BY
-        1,
-        2;
+    conname AS constraint,
+    obj_description(oid, 'pg_constraint') AS comment
+FROM
+    pg_constraint
+WHERE
+    conrelid = 'comment_test'::regclass
+ORDER BY
+    1,
+    2;
 
 -- Change the datatype of all the columns. ALTER TABLE is optimized to not
 -- rebuild an index if the new data type is binary compatible with the old
@@ -4308,24 +4310,26 @@ SELECT
     col_description('comment_test'::regclass, 1) AS comment;
 
 SELECT
-    indexrelid::regclass::text AS index, obj_description(indexrelid, 'pg_class') AS comment
-    FROM
-        pg_index
-    WHERE
-        indrelid = 'comment_test'::regclass
-    ORDER BY
-        1,
-        2;
+    indexrelid::regclass::text AS index,
+    obj_description(indexrelid, 'pg_class') AS comment
+FROM
+    pg_index
+WHERE
+    indrelid = 'comment_test'::regclass
+ORDER BY
+    1,
+    2;
 
 SELECT
-    conname AS constraint, obj_description(oid, 'pg_constraint') AS comment
-    FROM
-        pg_constraint
-    WHERE
-        conrelid = 'comment_test'::regclass
-    ORDER BY
-        1,
-        2;
+    conname AS constraint,
+    obj_description(oid, 'pg_constraint') AS comment
+FROM
+    pg_constraint
+WHERE
+    conrelid = 'comment_test'::regclass
+ORDER BY
+    1,
+    2;
 
 -- Check compatibility for foreign keys and comments. This is done
 -- separately as rebuilding the column type of the parent leads
@@ -4354,24 +4358,26 @@ SELECT
     col_description('comment_test_child'::regclass, 1) AS comment;
 
 SELECT
-    indexrelid::regclass::text AS index, obj_description(indexrelid, 'pg_class') AS comment
-    FROM
-        pg_index
-    WHERE
-        indrelid = 'comment_test_child'::regclass
-    ORDER BY
-        1,
-        2;
+    indexrelid::regclass::text AS index,
+    obj_description(indexrelid, 'pg_class') AS comment
+FROM
+    pg_index
+WHERE
+    indrelid = 'comment_test_child'::regclass
+ORDER BY
+    1,
+    2;
 
 SELECT
-    conname AS constraint, obj_description(oid, 'pg_constraint') AS comment
-    FROM
-        pg_constraint
-    WHERE
-        conrelid = 'comment_test_child'::regclass
-    ORDER BY
-        1,
-        2;
+    conname AS constraint,
+    obj_description(oid, 'pg_constraint') AS comment
+FROM
+    pg_constraint
+WHERE
+    conrelid = 'comment_test_child'::regclass
+ORDER BY
+    1,
+    2;
 
 -- Check that we map relation oids to filenodes and back correctly.  Only
 -- display bad mappings so the test output doesn't change all the time.  A

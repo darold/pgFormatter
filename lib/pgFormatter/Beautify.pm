@@ -1218,7 +1218,7 @@ sub beautify
         # in update statement. CREATE statement are not subject to this rule
         ####
         if (! $self->{ '_is_in_create' } and $token =~ /^(INDEX|PRIMARY|CONSTRAINT)$/i) {
-            $self->{ '_is_in_index' } = 1;
+            $self->{ '_is_in_index' } = 1 if ($last =~ /^(ALTER|CREATE|UNIQUE|USING|ADD)$/i);
         } elsif (! $self->{ '_is_in_create' } and uc($token) eq 'SET') {
             $self->{ '_is_in_index' } = 1 if ($self->{ '_current_sql_stmt' } ne 'UPDATE');
         } elsif ($self->{ '_is_in_create' } and (uc($token) eq 'UNIQUE' or ($token =~ /^(PRIMARY|FOREIGN)$/i and uc($self->_next_token) eq 'KEY'))) {
