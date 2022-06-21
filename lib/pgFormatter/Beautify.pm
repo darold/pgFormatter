@@ -1825,7 +1825,7 @@ sub beautify
 			       && $self->{ '_is_in_operator' } != 1
 			       && !$self->{ '_has_order_by' }
                                && $self->{ '_current_sql_stmt' } !~ /^(GRANT|REVOKE)$/
-                               && $self->_next_token !~ /^('$|\s*\-\-)/i
+			       && ($self->_next_token !~ /^('$|\s*\-\-)/is or ($self->_next_token !~ /^'$/is and $self->{ 'no_comments' }))
                                && !$self->{ '_parenthesis_function_level' }
 			       && (!$self->{ '_col_count' } or $self->{ '_col_count' } > ($self->{ 'wrap_after' } - 1))
                                || ($self->{ '_is_in_with' } and !$self->{ 'wrap_after' })
@@ -1848,7 +1848,7 @@ sub beautify
             $self->_add_token( $token );
 	    $add_newline = 0 if ($self->{ '_is_in_value' } and $self->{ '_parenthesis_level_value' });
 	    $add_newline = 0 if ($self->{ '_is_in_function' } or $self->{ '_is_in_statistics' });
-	    $add_newline = 0 if (defined $self->_next_token and $self->_is_comment($self->_next_token));
+	    $add_newline = 0 if (defined $self->_next_token and !$self->{ 'no_comments' } and $self->_is_comment($self->_next_token));
 	    $add_newline = 0 if (defined $self->_next_token and $self->_next_token =~ /KEYWCONST/ and $self->{ '_tokens' }[1] =~ /^(LANGUAGE|STRICT)$/i);
 	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT'));
         }

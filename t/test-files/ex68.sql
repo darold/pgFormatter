@@ -28,3 +28,36 @@ SELECT 'a'
 'b'
 'c',
 'hello';
+
+
+CREATE SCHEMA hollywood
+    CREATE TABLE films (title text, release date, awards text[])
+    CREATE VIEW winners AS
+        SELECT title, release FROM films WHERE awards IS NOT NULL;
+
+
+CREATE SCHEMA evttrig
+        CREATE TABLE one (col_a SERIAL PRIMARY KEY, col_b text DEFAULT 'forty two')
+        CREATE INDEX one_idx ON one (col_b)
+        CREATE TABLE two (col_c INTEGER CHECK (col_c > 0) REFERENCES one DEFAULT 42);
+
+CREATE SCHEMA test_ns_schema_1
+       CREATE UNIQUE INDEX abc_a_idx ON abc (a)
+
+       CREATE VIEW abc_view AS
+              SELECT a+1 AS a, b+1 AS b FROM abc
+
+       CREATE TABLE abc (
+              a serial,
+              b int UNIQUE
+       )
+       CREATE UNIQUE INDEX abc_a_idx2 ON abc (b);
+
+
+CREATE TABLE IF NOT EXISTS hello
+(
+  foo char(20) NOT NULL UNIQUE,
+
+  -- A comment
+  bar char(25)
+);
