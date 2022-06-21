@@ -1522,7 +1522,8 @@ CREATE OR REPLACE FUNCTION insert_tt (text)
     RETURNS int
     AS $$
     INSERT INTO tt (data)
-        VALUES ($1), ($1 || $1)
+        VALUES ($1),
+        ($1 || $1)
     RETURNING
         f1
 $$
@@ -1541,7 +1542,8 @@ CREATE OR REPLACE FUNCTION insert_tt2 (text, text)
     RETURNS SETOF int
     AS $$
     INSERT INTO tt (data)
-        VALUES ($1), ($2)
+        VALUES ($1),
+        ($2)
     RETURNING
         f1
 $$
@@ -1721,7 +1723,8 @@ CREATE FUNCTION testrngfunc ()
     RETURNS SETOF record
     AS $$
     INSERT INTO rngfunc
-        VALUES (1, 2), (3, 4)
+        VALUES (1, 2),
+        (3, 4)
     RETURNING
         *;
 

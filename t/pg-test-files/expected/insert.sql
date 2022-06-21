@@ -51,13 +51,17 @@ FROM
 -- VALUES test
 --
 INSERT INTO inserttest
-    VALUES (10, 20, '40'), (-1, 2, DEFAULT), ((
-        SELECT
-            2), (
-        SELECT
-            i
-        FROM (
-            VALUES (3)) AS foo (i)), 'values are fun!');
+    VALUES (10, 20, '40'),
+    (-1, 2, DEFAULT),
+    ((
+            SELECT
+                2),
+            (
+                SELECT
+                    i
+                FROM (
+                    VALUES (3)) AS foo (i)),
+                'values are fun!');
 
 SELECT
     *
@@ -100,7 +104,8 @@ INSERT INTO inserttest (f2[1], f2[2])
     VALUES (1, 2);
 
 INSERT INTO inserttest (f2[1], f2[2])
-    VALUES (3, 4), (5, 6);
+    VALUES (3, 4),
+    (5, 6);
 
 INSERT INTO inserttest (f2[1], f2[2])
 SELECT
@@ -115,7 +120,8 @@ INSERT INTO inserttest (f3.if1, f3.if2)
     VALUES (1, ARRAY['foo']);
 
 INSERT INTO inserttest (f3.if1, f3.if2)
-    VALUES (1, '{foo}'), (2, '{bar}');
+    VALUES (1, '{foo}'),
+    (2, '{bar}');
 
 INSERT INTO inserttest (f3.if1, f3.if2)
 SELECT
@@ -130,7 +136,8 @@ INSERT INTO inserttest (f3.if2[1], f3.if2[2])
     VALUES ('foo', 'bar');
 
 INSERT INTO inserttest (f3.if2[1], f3.if2[2])
-    VALUES ('foo', 'bar'), ('baz', 'quux');
+    VALUES ('foo', 'bar'),
+    ('baz', 'quux');
 
 INSERT INTO inserttest (f3.if2[1], f3.if2[2])
 SELECT
@@ -141,7 +148,8 @@ INSERT INTO inserttest (f4[1].if2[1], f4[1].if2[2])
     VALUES ('foo', 'bar');
 
 INSERT INTO inserttest (f4[1].if2[1], f4[1].if2[2])
-    VALUES ('foo', 'bar'), ('baz', 'quux');
+    VALUES ('foo', 'bar'),
+    ('baz', 'quux');
 
 INSERT INTO inserttest (f4[1].if2[1], f4[1].if2[2])
 SELECT
@@ -167,7 +175,8 @@ CREATE RULE irule1 AS ON INSERT TO inserttest2
 CREATE RULE irule2 AS ON INSERT TO inserttest2
     DO ALSO
     INSERT INTO inserttest (f4[1].if1, f4[1].if2[2])
-    VALUES (1, 'fool'), (NEW.f1, NEW.f2);
+    VALUES (1, 'fool'),
+    (NEW.f1, NEW.f2);
 
 CREATE RULE irule3 AS ON INSERT TO inserttest2
     DO ALSO
@@ -471,7 +480,8 @@ FOR VALUES FROM (25) TO (30);
 TRUNCATE list_parted;
 
 INSERT INTO list_parted
-    VALUES ('aa'), ('cc');
+    VALUES ('aa'),
+    ('cc');
 
 INSERT INTO list_parted
 SELECT
@@ -561,7 +571,8 @@ INSERT INTO hash_parted
 
 -- direct insert of values divisible by 4 - ok;
 INSERT INTO hpart0
-    VALUES (12), (16);
+    VALUES (12),
+    (16);
 
 -- fail;
 INSERT INTO hpart0
@@ -1275,7 +1286,8 @@ ALTER TABLE donothingbrtrig_test ATTACH PARTITION donothingbrtrig_test2
 FOR VALUES IN (2);
 
 INSERT INTO donothingbrtrig_test
-    VALUES (1, 'foo'), (2, 'bar');
+    VALUES (1, 'foo'),
+    (2, 'bar');
 
 SELECT
     tableoid::regclass,
@@ -1341,7 +1353,17 @@ MAXVALUE);
 \d+ mcrparted7_gt_common_lt_d
 \d+ mcrparted8_ge_d
 INSERT INTO mcrparted
-    VALUES ('aaa', 0), ('b', 0), ('bz', 10), ('c', -10), ('comm', -10), ('common', -10), ('common', 0), ('common', 10), ('commons', 0), ('d', -10), ('e', 0);
+    VALUES ('aaa', 0),
+    ('b', 0),
+    ('bz', 10),
+    ('c', -10),
+    ('comm', -10),
+    ('common', -10),
+    ('common', 0),
+    ('common', 10),
+    ('commons', 0),
+    ('d', -10),
+    ('e', 0);
 
 SELECT
     tableoid::regclass,

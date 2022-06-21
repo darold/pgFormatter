@@ -35,7 +35,10 @@ CREATE TABLE collate_test2 (
 );
 
 INSERT INTO collate_test1
-    VALUES (1, 'abc'), (2, 'Abc'), (3, 'bbc'), (4, 'ABD');
+    VALUES (1, 'abc'),
+    (2, 'Abc'),
+    (3, 'bbc'),
+    (4, 'ABD');
 
 INSERT INTO collate_test2
 SELECT
@@ -169,7 +172,8 @@ CREATE TABLE collate_test10 (
 );
 
 INSERT INTO collate_test10
-    VALUES (1, 'hij', 'hij'), (2, 'HIJ', 'HIJ');
+    VALUES (1, 'hij', 'hij'),
+    (2, 'HIJ', 'HIJ');
 
 SELECT
     a,
@@ -770,14 +774,16 @@ CREATE TABLE collate_test20 (
 );
 
 INSERT INTO collate_test20
-    VALUES ('foo'), ('bar');
+    VALUES ('foo'),
+    ('bar');
 
 CREATE TABLE collate_test21 (
     f2 text COLLATE "POSIX" REFERENCES collate_test20
 );
 
 INSERT INTO collate_test21
-    VALUES ('foo'), ('bar');
+    VALUES ('foo'),
+    ('bar');
 
 INSERT INTO collate_test21
     VALUES ('baz');
@@ -788,7 +794,9 @@ CREATE TABLE collate_test22 (
 );
 
 INSERT INTO collate_test22
-    VALUES ('foo'), ('bar'), ('baz');
+    VALUES ('foo'),
+    ('bar'),
+    ('baz');
 
 ALTER TABLE collate_test22
     ADD FOREIGN KEY (f2) REFERENCES collate_test20;

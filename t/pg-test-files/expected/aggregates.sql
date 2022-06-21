@@ -271,7 +271,11 @@ CREATE TABLE regr_test (
 );
 
 INSERT INTO regr_test
-    VALUES (10, 150), (20, 250), (30, 350), (80, 540), (100, 200);
+    VALUES (10, 150),
+    (20, 250),
+    (30, 350),
+    (80, 540),
+    (100, 200);
 
 SELECT
     count(*),
@@ -920,16 +924,20 @@ WHERE
     f1 IS NOT NULL;
 
 INSERT INTO minmaxtest
-    VALUES (11), (12);
+    VALUES (11),
+    (12);
 
 INSERT INTO minmaxtest1
-    VALUES (13), (14);
+    VALUES (13),
+    (14);
 
 INSERT INTO minmaxtest2
-    VALUES (15), (16);
+    VALUES (15),
+    (16);
 
 INSERT INTO minmaxtest3
-    VALUES (17), (18);
+    VALUES (17),
+    (18);
 
 EXPLAIN (
     COSTS OFF
@@ -1926,7 +1934,7 @@ BEGIN
             RETURN new_state;
         END IF;
         RETURN NULL;
-    elsif n IS NOT NULL THEN
+    ELSIF n IS NOT NULL THEN
         state.total := state.total + n;
         state.count := state.count + 1;
         RETURN state;
@@ -2089,7 +2097,7 @@ BEGIN
             RETURN new_state;
         END IF;
         RETURN NULL;
-    elsif n IS NOT NULL THEN
+    ELSIF n IS NOT NULL THEN
         state := state + n;
         RETURN state;
     END IF;

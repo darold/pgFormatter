@@ -978,10 +978,12 @@ CREATE TEMP TABLE t2 (
 );
 
 INSERT INTO t1
-    VALUES ('a', 'b'), ('x', 'y');
+    VALUES ('a', 'b'),
+    ('x', 'y');
 
 INSERT INTO t2
-    VALUES ('ab'), ('xy');
+    VALUES ('ab'),
+    ('xy');
 
 SET enable_seqscan = OFF;
 
@@ -1044,10 +1046,16 @@ INHERITS (
 );
 
 INSERT INTO t1c
-    VALUES ('v', 'w'), ('c', 'd'), ('m', 'n'), ('e', 'f');
+    VALUES ('v', 'w'),
+    ('c', 'd'),
+    ('m', 'n'),
+    ('e', 'f');
 
 INSERT INTO t2c
-    VALUES ('vw'), ('cd'), ('mn'), ('ef');
+    VALUES ('vw'),
+    ('cd'),
+    ('mn'),
+    ('ef');
 
 CREATE INDEX t1c_ab_idx ON t1c ((a || b));
 

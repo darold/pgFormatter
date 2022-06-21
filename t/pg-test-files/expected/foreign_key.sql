@@ -1909,7 +1909,8 @@ CREATE temp TABLE selfref (
 );
 
 INSERT INTO selfref (a, b)
-    VALUES (0, 0), (1, 1);
+    VALUES (0, 0),
+    (1, 1);
 
 BEGIN;
 UPDATE
@@ -1948,7 +1949,9 @@ CREATE temp TABLE defc (
 );
 
 INSERT INTO defp
-    VALUES (0), (1), (2);
+    VALUES (0),
+    (1),
+    (2);
 
 INSERT INTO defc
     VALUES (2);
@@ -2373,7 +2376,10 @@ INSERT INTO fk_partitioned_fk_3 (a, b)
 
 -- but if we insert the values that make them valid, then they work
 INSERT INTO fk_notpartitioned_pk
-    VALUES (500, 501), (1500, 1501), (2500, 2502), (2501, 2503);
+    VALUES (500, 501),
+    (1500, 1501),
+    (2500, 2502),
+    (2501, 2503);
 
 INSERT INTO fk_partitioned_fk (a, b)
     VALUES (500, 501);
@@ -2801,13 +2807,15 @@ CREATE TABLE fk_partitioned_fk_2_2 PARTITION OF fk_partitioned_fk_2
 FOR VALUES FROM (1000) TO (2000);
 
 INSERT INTO fk_partitioned_fk_2
-    VALUES (1600, 601), (1600, 1601);
+    VALUES (1600, 601),
+    (1600, 1601);
 
 ALTER TABLE fk_partitioned_fk ATTACH PARTITION fk_partitioned_fk_2
 FOR VALUES IN (1600);
 
 INSERT INTO fk_notpartitioned_pk
-    VALUES (1600, 601), (1600, 1601);
+    VALUES (1600, 601),
+    (1600, 1601);
 
 ALTER TABLE fk_partitioned_fk ATTACH PARTITION fk_partitioned_fk_2
 FOR VALUES IN (1600);
@@ -3096,10 +3104,20 @@ INSERT INTO fk
 
 -- insert into the referenced table, now they should work
 INSERT INTO pk
-    VALUES (1), (1000), (2000), (3000), (4000), (4500);
+    VALUES (1),
+    (1000),
+    (2000),
+    (3000),
+    (4000),
+    (4500);
 
 INSERT INTO fk
-    VALUES (1), (1000), (2000), (3000), (4000), (4500);
+    VALUES (1),
+    (1000),
+    (2000),
+    (3000),
+    (4000),
+    (4500);
 
 -- should fail: referencing value present
 DELETE FROM pk
@@ -3251,14 +3269,20 @@ FOR VALUES FROM (1000) TO (1400);
 CREATE TABLE droppk2_d PARTITION OF droppk2 DEFAULT;
 
 INSERT INTO droppk
-    VALUES (1), (1000), (1500), (2000);
+    VALUES (1),
+    (1000),
+    (1500),
+    (2000);
 
 CREATE TABLE dropfk (
     a int REFERENCES droppk
 );
 
 INSERT INTO dropfk
-    VALUES (1), (1000), (1500), (2000);
+    VALUES (1),
+    (1000),
+    (1500),
+    (2000);
 
 -- these should all fail
 ALTER TABLE droppk DETACH PARTITION droppk_d;
@@ -3468,7 +3492,8 @@ DROP TABLE fk;
 TRUNCATE TABLE pk;
 
 INSERT INTO pk
-    VALUES (20), (50);
+    VALUES (20),
+    (50);
 
 CREATE TABLE fk (
     a int
@@ -3491,7 +3516,8 @@ ALTER TABLE fk
 CREATE TABLE fk_d PARTITION OF fk DEFAULT;
 
 INSERT INTO fk
-    VALUES (20), (50);
+    VALUES (20),
+    (50);
 
 UPDATE
     pk
@@ -3514,7 +3540,9 @@ DROP TABLE fk;
 TRUNCATE TABLE pk;
 
 INSERT INTO pk
-    VALUES (20), (30), (50);
+    VALUES (20),
+    (30),
+    (50);
 
 CREATE TABLE fk (
     id int,
@@ -3538,7 +3566,8 @@ ALTER TABLE fk
 CREATE TABLE fk_d PARTITION OF fk DEFAULT;
 
 INSERT INTO fk
-    VALUES (1, 20), (2, 30);
+    VALUES (1, 20),
+    (2, 30);
 
 DELETE FROM pk
 WHERE a = 20
@@ -3565,7 +3594,8 @@ DROP TABLE fk;
 TRUNCATE TABLE pk;
 
 INSERT INTO pk
-    VALUES (20), (30);
+    VALUES (20),
+    (30);
 
 CREATE TABLE fk (
     a int DEFAULT 50
@@ -3588,7 +3618,8 @@ ALTER TABLE fk
 CREATE TABLE fk_d PARTITION OF fk DEFAULT;
 
 INSERT INTO fk
-    VALUES (20), (30);
+    VALUES (20),
+    (30);
 
 DELETE FROM pk
 WHERE a = 20;

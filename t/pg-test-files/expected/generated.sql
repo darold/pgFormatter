@@ -198,7 +198,9 @@ CREATE TABLE gtestx (
 );
 
 INSERT INTO gtestx
-    VALUES (11, 1), (22, 2), (33, 3);
+    VALUES (11, 1),
+    (22, 2),
+    (33, 3);
 
 SELECT
     *
@@ -319,7 +321,9 @@ CREATE TABLE gtest3 (
 );
 
 INSERT INTO gtest3 (a)
-    VALUES (1), (2), (3);
+    VALUES (1),
+    (2),
+    (3);
 
 SELECT
     *
@@ -346,7 +350,8 @@ ORDER BY
 TRUNCATE gtest1;
 
 INSERT INTO gtest1 (a)
-    VALUES (1), (2);
+    VALUES (1),
+    (2);
 
 SELECT
     *
@@ -358,7 +363,8 @@ ORDER BY
 TRUNCATE gtest3;
 
 INSERT INTO gtest3 (a)
-    VALUES (1), (2);
+    VALUES (1),
+    (2);
 
 SELECT
     *
@@ -393,7 +399,8 @@ CREATE TABLE gtest4 (
 );
 
 INSERT INTO gtest4
-    VALUES (1), (6);
+    VALUES (1),
+    (6);
 
 SELECT
     *
@@ -411,7 +418,8 @@ CREATE TABLE gtest_tableoid (
 );
 
 INSERT INTO gtest_tableoid
-    VALUES (1), (2);
+    VALUES (1),
+    (2);
 
 SELECT
     *
@@ -450,7 +458,8 @@ CREATE TABLE gtest11s (
 );
 
 INSERT INTO gtest11s
-    VALUES (1, 10), (2, 20);
+    VALUES (1, 10),
+    (2, 20);
 
 GRANT SELECT (a, c) ON gtest11s TO regress_user11;
 
@@ -471,7 +480,8 @@ CREATE TABLE gtest12s (
 );
 
 INSERT INTO gtest12s
-    VALUES (1, 10), (2, 20);
+    VALUES (1, 10),
+    (2, 20);
 
 GRANT SELECT (a, c) ON gtest12s TO regress_user11;
 
@@ -636,7 +646,9 @@ WHERE
 
 \d gtest22c
 INSERT INTO gtest22c
-    VALUES (1), (2), (3);
+    VALUES (1),
+    (2),
+    (3);
 
 SET enable_seqscan TO OFF;
 
@@ -706,7 +718,9 @@ CREATE TABLE gtest23a (
 );
 
 INSERT INTO gtest23a
-    VALUES (1, 11), (2, 22), (3, 33);
+    VALUES (1, 11),
+    (2, 22),
+    (3, 33);
 
 CREATE TABLE gtest23x (
     a int PRIMARY KEY,
@@ -745,7 +759,9 @@ CREATE TABLE gtest23p (
 );
 
 INSERT INTO gtest23p
-    VALUES (1), (2), (3);
+    VALUES (1),
+    (2),
+    (3);
 
 CREATE TABLE gtest23q (
     a int PRIMARY KEY,
@@ -850,7 +866,8 @@ CREATE TABLE gtest25 (
 );
 
 INSERT INTO gtest25
-    VALUES (3), (4);
+    VALUES (3),
+    (4);
 
 ALTER TABLE gtest25
     ADD COLUMN b int GENERATED ALWAYS AS (a * 3) STORED;
@@ -877,7 +894,8 @@ CREATE TABLE gtest27 (
 );
 
 INSERT INTO gtest27 (a)
-    VALUES (3), (4);
+    VALUES (3),
+    (4);
 
 ALTER TABLE gtest27
     ALTER COLUMN a TYPE text;
@@ -964,7 +982,9 @@ CREATE TRIGGER gtest4
     EXECUTE PROCEDURE gtest_trigger_func ();
 
 INSERT INTO gtest26 (a)
-    VALUES (-2), (0), (3);
+    VALUES (-2),
+    (0),
+    (3);
 
 SELECT
     *

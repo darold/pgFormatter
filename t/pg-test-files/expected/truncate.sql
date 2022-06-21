@@ -342,7 +342,8 @@ LANGUAGE plpgsql;
 
 -- basic before trigger
 INSERT INTO trunc_trigger_test
-    VALUES (1, 'foo', 'bar'), (2, 'baz', 'quux');
+    VALUES (1, 'foo', 'bar'),
+    (2, 'baz', 'quux');
 
 CREATE TRIGGER t
     BEFORE TRUNCATE ON trunc_trigger_test
@@ -377,7 +378,8 @@ TRUNCATE trunc_trigger_log;
 
 -- same test with an after trigger
 INSERT INTO trunc_trigger_test
-    VALUES (1, 'foo', 'bar'), (2, 'baz', 'quux');
+    VALUES (1, 'foo', 'bar'),
+    (2, 'baz', 'quux');
 
 CREATE TRIGGER tt
     AFTER TRUNCATE ON trunc_trigger_test
@@ -524,9 +526,13 @@ CREATE FUNCTION tp_ins_data ()
     AS $$
 BEGIN
     INSERT INTO truncprim
-        VALUES (1), (100), (150);
+        VALUES (1),
+        (100),
+        (150);
     INSERT INTO truncpart
-        VALUES (1), (100), (150);
+        VALUES (1),
+        (100),
+        (150);
 END
 $$;
 

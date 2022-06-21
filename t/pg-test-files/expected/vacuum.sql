@@ -215,7 +215,8 @@ CREATE FUNCTION wrap_do_analyze (c int)
 CREATE INDEX ON vaccluster (wrap_do_analyze (i));
 
 INSERT INTO vaccluster
-    VALUES (1), (2);
+    VALUES (1),
+    (2);
 
 ANALYZE vaccluster;
 

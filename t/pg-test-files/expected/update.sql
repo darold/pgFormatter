@@ -1400,7 +1400,15 @@ CREATE TABLE non_parted (
 );
 
 INSERT INTO non_parted
-    VALUES (1), (1), (1), (2), (2), (2), (3), (3), (3);
+    VALUES (1),
+    (1),
+    (1),
+    (2),
+    (2),
+    (2),
+    (3),
+    (3),
+    (3);
 
 UPDATE
     list_parted t1

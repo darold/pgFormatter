@@ -721,7 +721,9 @@ CREATE TABLE parted_tab_part3 PARTITION OF parted_tab
 FOR VALUES IN (3);
 
 INSERT INTO parted_tab
-    VALUES (1, 'a'), (2, 'a'), (3, 'a');
+    VALUES (1, 'a'),
+    (2, 'a'),
+    (3, 'a');
 
 UPDATE
     parted_tab
@@ -752,7 +754,9 @@ ORDER BY
 TRUNCATE parted_tab;
 
 INSERT INTO parted_tab
-    VALUES (1, 'a'), (2, 'a'), (3, 'a');
+    VALUES (1, 'a'),
+    (2, 'a'),
+    (3, 'a');
 
 UPDATE
     parted_tab
@@ -815,7 +819,10 @@ CREATE TABLE mlparted_tab_part2b PARTITION OF mlparted_tab_part2
 FOR VALUES IN ('b');
 
 INSERT INTO mlparted_tab
-    VALUES (1, 'a'), (2, 'a'), (2, 'b'), (3, 'a');
+    VALUES (1, 'a'),
+    (2, 'a'),
+    (2, 'b'),
+    (3, 'a');
 
 UPDATE
     mlparted_tab mlp
@@ -1578,7 +1585,9 @@ CREATE TABLE inh_fk_1 (
 );
 
 INSERT INTO inh_fk_1
-    VALUES (1), (2), (3);
+    VALUES (1),
+    (2),
+    (3);
 
 CREATE TABLE inh_fk_2 (
     x int PRIMARY KEY,
@@ -1586,7 +1595,9 @@ CREATE TABLE inh_fk_2 (
 );
 
 INSERT INTO inh_fk_2
-    VALUES (11, 1), (22, 2), (33, 3);
+    VALUES (11, 1),
+    (22, 2),
+    (33, 3);
 
 CREATE TABLE inh_fk_2_child ()
 INHERITS (
@@ -1594,7 +1605,8 @@ INHERITS (
 );
 
 INSERT INTO inh_fk_2_child
-    VALUES (111, 1), (222, 2);
+    VALUES (111, 1),
+    (222, 2);
 
 DELETE FROM inh_fk_1
 WHERE a = 1;

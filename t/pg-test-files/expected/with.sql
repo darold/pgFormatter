@@ -573,7 +573,22 @@ CREATE TEMPORARY TABLE tree (
 );
 
 INSERT INTO tree
-    VALUES (1, NULL), (2, 1), (3, 1), (4, 2), (5, 2), (6, 2), (7, 3), (8, 3), (9, 4), (10, 4), (11, 7), (12, 7), (13, 7), (14, 9), (15, 11), (16, 11);
+    VALUES (1, NULL),
+    (2, 1),
+    (3, 1),
+    (4, 2),
+    (5, 2),
+    (6, 2),
+    (7, 3),
+    (8, 3),
+    (9, 4),
+    (10, 4),
+    (11, 7),
+    (12, 7),
+    (13, 7),
+    (14, 9),
+    (15, 11),
+    (16, 11);
 
 --
 -- get all paths from "second level" nodes to leaf nodes
@@ -659,7 +674,12 @@ CREATE temp TABLE graph (
 );
 
 INSERT INTO graph
-    VALUES (1, 2, 'arc 1 -> 2'), (1, 3, 'arc 1 -> 3'), (2, 3, 'arc 2 -> 3'), (1, 4, 'arc 1 -> 4'), (4, 5, 'arc 4 -> 5'), (5, 1, 'arc 5 -> 1');
+    VALUES (1, 2, 'arc 1 -> 2'),
+    (1, 3, 'arc 1 -> 3'),
+    (2, 3, 'arc 2 -> 3'),
+    (1, 4, 'arc 1 -> 4'),
+    (4, 5, 'arc 4 -> 5'),
+    (5, 1, 'arc 5 -> 1');
 
 WITH RECURSIVE search_graph (
     f,
@@ -1869,7 +1889,16 @@ FROM
 -- INSERT ... RETURNING
 WITH t AS (
 INSERT INTO y
-        VALUES (11), (12), (13), (14), (15), (16), (17), (18), (19), (20)
+        VALUES (11),
+        (12),
+        (13),
+        (14),
+        (15),
+        (16),
+        (17),
+        (18),
+        (19),
+        (20)
     RETURNING
         *)
     SELECT
@@ -2402,7 +2431,9 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-        VALUES (21), (22), (23)
+        VALUES (21),
+        (22),
+        (23)
     RETURNING
         *)
     SELECT
@@ -2424,7 +2455,9 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-        VALUES (31), (32), (33)
+        VALUES (31),
+        (32),
+        (33)
     RETURNING
         *)
     SELECT
@@ -2457,7 +2490,9 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-        VALUES (41), (42), (43)
+        VALUES (41),
+        (42),
+        (43)
     RETURNING
         *)
     SELECT
@@ -2494,10 +2529,12 @@ INSERT INTO parent
     VALUES (1, 'p1');
 
 INSERT INTO child1
-    VALUES (11, 'c11'), (12, 'c12');
+    VALUES (11, 'c11'),
+    (12, 'c12');
 
 INSERT INTO child2
-    VALUES (23, 'c21'), (24, 'c22');
+    VALUES (23, 'c21'),
+    (24, 'c22');
 
 WITH rcte AS (
     SELECT

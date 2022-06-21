@@ -73,10 +73,12 @@ CREATE temp TABLE quadtable (
 );
 
 INSERT INTO quadtable
-    VALUES (1, ((3.3, 4.4), (5.5, 6.6)));
+    VALUES (1, ((3.3, 4.4),
+        (5.5, 6.6)));
 
 INSERT INTO quadtable
-    VALUES (2, ((NULL, 4.4), (5.5, 6.6)));
+    VALUES (2, ((NULL, 4.4),
+        (5.5, 6.6)));
 
 SELECT
     *
@@ -852,7 +854,9 @@ CREATE FUNCTION price_key_from_input (price_input)
 $$
 LANGUAGE SQL;
 INSERT INTO price
-    VALUES (1, FALSE, 42), (10, FALSE, 100), (11, TRUE, 17.99);
+    VALUES (1, FALSE, 42),
+    (10, FALSE, 100),
+    (11, TRUE, 17.99);
 UPDATE
     price
 SET

@@ -1765,6 +1765,13 @@ sub beautify
         elsif ( $token eq ',' )
 	{
             my $add_newline = 0;
+	    # Format INSERT with multiple values
+	    if ($self->{ '_current_sql_stmt' } eq 'INSERT' and $last eq ')' and $self->_next_token eq '(') {
+		    $self->_new_line($token,$last) if ($self->{ 'comma' } eq 'start');
+		    $self->_add_token( $token );
+		    $self->_new_line($token,$last) if ($self->{ 'comma' } eq 'end');
+		    next;
+	    }
 	    $self->{ '_is_in_constraint' } = 0 if ($self->{ '_is_in_constraint' } == 1);
 	    $self->{ '_col_count' }++ if (!$self->{ '_is_in_function' });
             if (($self->{ '_is_in_over' } or $self->{ '_has_order_by' }) and !$self->{ '_parenthesis_level' } and !$self->{ '_parenthesis_function_level' })

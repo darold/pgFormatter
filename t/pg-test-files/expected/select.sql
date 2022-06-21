@@ -289,7 +289,13 @@ CREATE TEMP TABLE foo (
 );
 
 INSERT INTO foo
-    VALUES (42), (3), (10), (7), (NULL), (NULL), (1);
+    VALUES (42),
+    (3),
+    (10),
+    (7),
+    (NULL),
+    (NULL),
+    (1);
 
 SELECT
     *

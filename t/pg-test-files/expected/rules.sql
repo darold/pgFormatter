@@ -2336,12 +2336,14 @@ CREATE TABLE rules_log (
 );
 
 INSERT INTO rules_src
-    VALUES (1, 2), (11, 12);
+    VALUES (1, 2),
+    (11, 12);
 
 CREATE RULE r1 AS ON UPDATE
     TO rules_src
         DO ALSO
-        INSERT INTO rules_log VALUES (OLD.*, 'old'), (NEW.*, 'new');
+        INSERT INTO rules_log VALUES (OLD.*, 'old'),
+        (NEW.*, 'new');
 
 UPDATE
     rules_src

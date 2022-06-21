@@ -245,7 +245,8 @@ ON CONFLICT (key, key, key)
 
 -- Succeed, since multi-assignment does not involve subquery:
 INSERT INTO insertconflicttest
-    VALUES (1, 'Apple'), (2, 'Orange')
+    VALUES (1, 'Apple'),
+    (2, 'Orange')
 ON CONFLICT (key)
     DO UPDATE SET
         (fruit, key) = (excluded.fruit, excluded.key);
@@ -1045,28 +1046,32 @@ CREATE TABLE selfconflict (
 
 BEGIN TRANSACTION ISOLATION level read COMMITTED;
 INSERT INTO selfconflict
-    VALUES (1, 1), (1, 2)
+    VALUES (1, 1),
+    (1, 2)
 ON CONFLICT
     DO NOTHING;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level REPEATABLE read;
 INSERT INTO selfconflict
-    VALUES (2, 1), (2, 2)
+    VALUES (2, 1),
+    (2, 2)
 ON CONFLICT
     DO NOTHING;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level SERIALIZABLE;
 INSERT INTO selfconflict
-    VALUES (3, 1), (3, 2)
+    VALUES (3, 1),
+    (3, 2)
 ON CONFLICT
     DO NOTHING;
 COMMIT;
 
 BEGIN TRANSACTION ISOLATION level read COMMITTED;
 INSERT INTO selfconflict
-    VALUES (4, 1), (4, 2)
+    VALUES (4, 1),
+    (4, 2)
 ON CONFLICT (f1)
     DO UPDATE SET
         f2 = 0;
@@ -1074,7 +1079,8 @@ COMMIT;
 
 BEGIN TRANSACTION ISOLATION level REPEATABLE read;
 INSERT INTO selfconflict
-    VALUES (5, 1), (5, 2)
+    VALUES (5, 1),
+    (5, 2)
 ON CONFLICT (f1)
     DO UPDATE SET
         f2 = 0;
@@ -1082,7 +1088,8 @@ COMMIT;
 
 BEGIN TRANSACTION ISOLATION level SERIALIZABLE;
 INSERT INTO selfconflict
-    VALUES (6, 1), (6, 2)
+    VALUES (6, 1),
+    (6, 2)
 ON CONFLICT (f1)
     DO UPDATE SET
         f2 = 0;
@@ -1257,7 +1264,9 @@ ORDER BY
 TRUNCATE parted_conflict_test;
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (1, 'a'), (2, 'a'), (4, 'a')
+    VALUES (1, 'a'),
+    (2, 'a'),
+    (4, 'a')
 ON CONFLICT (a)
     DO UPDATE SET
         b = excluded.b
@@ -1265,7 +1274,9 @@ ON CONFLICT (a)
         excluded.b = 'b';
 
 INSERT INTO parted_conflict_test (a, b)
-    VALUES (1, 'b'), (2, 'c'), (4, 'b')
+    VALUES (1, 'b'),
+    (2, 'c'),
+    (4, 'b')
 ON CONFLICT (a)
     DO UPDATE SET
         b = excluded.b

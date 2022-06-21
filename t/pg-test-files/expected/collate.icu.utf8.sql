@@ -44,7 +44,10 @@ CREATE TABLE collate_test3 (
 );
 
 INSERT INTO collate_test1
-    VALUES (1, 'abc'), (2, 'äbc'), (3, 'bbc'), (4, 'ABC');
+    VALUES (1, 'abc'),
+    (2, 'äbc'),
+    (3, 'bbc'),
+    (4, 'ABC');
 
 INSERT INTO collate_test2
 SELECT
@@ -226,7 +229,8 @@ CREATE TABLE collate_test10 (
 );
 
 INSERT INTO collate_test10
-    VALUES (1, 'hij', 'hij'), (2, 'HIJ', 'HIJ');
+    VALUES (1, 'hij', 'hij'),
+    (2, 'HIJ', 'HIJ');
 
 SELECT
     a,
@@ -368,7 +372,16 @@ CREATE TABLE collate_test6 (
 );
 
 INSERT INTO collate_test6
-    VALUES (1, 'abc'), (2, 'ABC'), (3, '123'), (4, 'ab1'), (5, 'a1!'), (6, 'a c'), (7, '!.;'), (8, '   '), (9, 'äbç'), (10, 'ÄBÇ');
+    VALUES (1, 'abc'),
+    (2, 'ABC'),
+    (3, '123'),
+    (4, 'ab1'),
+    (5, 'a1!'),
+    (6, 'a c'),
+    (7, '!.;'),
+    (8, '   '),
+    (9, 'äbç'),
+    (10, 'ÄBÇ');
 
 SELECT
     b,
@@ -1388,13 +1401,19 @@ CREATE TABLE test3cs (
 );
 
 INSERT INTO test1cs
-    VALUES ('abc'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('def'),
+    ('ghi');
 
 INSERT INTO test2cs
-    VALUES ('ABC'), ('ghi');
+    VALUES ('ABC'),
+    ('ghi');
 
 INSERT INTO test3cs
-    VALUES ('abc'), ('ABC'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('ABC'),
+    ('def'),
+    ('ghi');
 
 SELECT
     x
@@ -1565,13 +1584,19 @@ CREATE INDEX ON test3ci (x text_pattern_ops);
 
 -- error
 INSERT INTO test1ci
-    VALUES ('abc'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('def'),
+    ('ghi');
 
 INSERT INTO test2ci
-    VALUES ('ABC'), ('ghi');
+    VALUES ('ABC'),
+    ('ghi');
 
 INSERT INTO test3ci
-    VALUES ('abc'), ('ABC'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('ABC'),
+    ('def'),
+    ('ghi');
 
 SELECT
     x
@@ -1747,13 +1772,19 @@ CREATE INDEX ON test3bpci (x bpchar_pattern_ops);
 
 -- error
 INSERT INTO test1bpci
-    VALUES ('abc'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('def'),
+    ('ghi');
 
 INSERT INTO test2bpci
-    VALUES ('ABC'), ('ghi');
+    VALUES ('ABC'),
+    ('ghi');
 
 INSERT INTO test3bpci
-    VALUES ('abc'), ('ABC'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('ABC'),
+    ('def'),
+    ('ghi');
 
 SELECT
     x
@@ -2055,7 +2086,10 @@ CREATE TABLE test4 (
 );
 
 INSERT INTO test4
-    VALUES (1, 'cote'), (2, 'côte'), (3, 'coté'), (4, 'côté');
+    VALUES (1, 'cote'),
+    (2, 'côte'),
+    (3, 'coté'),
+    (4, 'côté');
 
 SELECT
     *
@@ -2093,7 +2127,9 @@ CREATE TABLE test10pk (
 );
 
 INSERT INTO test10pk
-    VALUES ('abc'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('def'),
+    ('ghi');
 
 CREATE TABLE test10fk (
     x text COLLATE case_insensitive REFERENCES test10pk (x) ON UPDATE CASCADE ON DELETE CASCADE
@@ -2154,7 +2190,9 @@ CREATE TABLE test11pk (
 );
 
 INSERT INTO test11pk
-    VALUES ('abc'), ('def'), ('ghi');
+    VALUES ('abc'),
+    ('def'),
+    ('ghi');
 
 CREATE TABLE test11fk (
     x text COLLATE case_sensitive REFERENCES test11pk (x) ON UPDATE CASCADE ON DELETE CASCADE

@@ -6,7 +6,11 @@ CREATE TABLE mvtest_t (
 );
 
 INSERT INTO mvtest_t
-    VALUES (1, 'x', 2), (2, 'x', 3), (3, 'y', 5), (4, 'y', 7), (5, 'z', 11);
+    VALUES (1, 'x', 2),
+    (2, 'x', 3),
+    (3, 'y', 5),
+    (4, 'y', 7),
+    (5, 'z', 11);
 
 -- we want a view based on the table, too, since views present additional challenges
 CREATE VIEW mvtest_tv AS
@@ -472,7 +476,9 @@ CREATE TABLE mvtest_boxes (
 );
 
 INSERT INTO mvtest_boxes (b)
-    VALUES ('(32,32),(31,31)'), ('(2.0000004,2.0000004),(1,1)'), ('(1.9999996,1.9999996),(1,1)');
+    VALUES ('(32,32),(31,31)'),
+    ('(2.0000004,2.0000004),(1,1)'),
+    ('(1.9999996,1.9999996),(1,1)');
 
 CREATE MATERIALIZED VIEW mvtest_boxmv AS
 SELECT

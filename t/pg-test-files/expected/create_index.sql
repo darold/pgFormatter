@@ -1406,7 +1406,9 @@ CREATE TABLE cwi_test (
 
 -- add some data so that all tests have something to work with.
 INSERT INTO cwi_test
-    VALUES (1, 2), (3, 4), (5, 6);
+    VALUES (1, 2),
+    (3, 4),
+    (5, 6);
 
 CREATE UNIQUE INDEX cwi_uniq_idx ON cwi_test (a, b);
 
@@ -1471,7 +1473,8 @@ FROM
     onek;
 
 INSERT INTO onek_with_null (unique1, unique2)
-    VALUES (NULL, -1), (NULL, NULL);
+    VALUES (NULL, -1),
+    (NULL, NULL);
 
 CREATE UNIQUE INDEX onek_nulltest ON onek_with_null (unique2, unique1);
 
@@ -2268,7 +2271,9 @@ CREATE TABLE concur_reindex_tab4 (
 );
 
 INSERT INTO concur_reindex_tab4
-    VALUES (1), (1), (2);
+    VALUES (1),
+    (1),
+    (2);
 
 -- This trick creates an invalid index.
 CREATE UNIQUE INDEX CONCURRENTLY concur_reindex_ind5 ON concur_reindex_tab4 (c1);

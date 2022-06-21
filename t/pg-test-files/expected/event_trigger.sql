@@ -290,7 +290,8 @@ CREATE TABLE undroppable_objs (
 );
 
 INSERT INTO undroppable_objs
-    VALUES ('table', 'schema_one.table_three'), ('table', 'audit_tbls.schema_two_table_three');
+    VALUES ('table', 'schema_one.table_three'),
+    ('table', 'audit_tbls.schema_two_table_three');
 
 CREATE TABLE dropped_objects (
     type text,

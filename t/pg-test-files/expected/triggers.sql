@@ -507,7 +507,8 @@ ORDER BY
     2;
 
 INSERT INTO main_table (a)
-    VALUES (123), (456);
+    VALUES (123),
+    (456);
 
 DELETE FROM main_table
 WHERE a IN (123, 456);
@@ -1059,7 +1060,8 @@ CREATE TABLE min_updates_test (
 );
 
 INSERT INTO min_updates_test
-    VALUES ('a', 1, 2), ('b', '2', NULL);
+    VALUES ('a', 1, 2),
+    ('b', '2', NULL);
 
 CREATE TRIGGER z_min_update
     BEFORE UPDATE ON min_updates_test
@@ -1366,7 +1368,9 @@ CREATE TABLE country_table (
 );
 
 INSERT INTO country_table (country_name, continent)
-    VALUES ('Japan', 'Asia'), ('UK', 'Europe'), ('USA', 'North America')
+    VALUES ('Japan', 'Asia'),
+    ('UK', 'Europe'),
+    ('USA', 'North America')
 RETURNING
     *;
 
@@ -2222,7 +2226,7 @@ BEGIN
     IF (TG_OP = 'UPDATE') THEN
         RAISE warning 'before update (old): %', OLD.*::text;
         RAISE warning 'before update (new): %', NEW.*::text;
-    elsif (TG_OP = 'INSERT') THEN
+    ELSIF (TG_OP = 'INSERT') THEN
         RAISE warning 'before insert (new): %', NEW.*::text;
         IF NEW.key % 2 = 0 THEN
             NEW.key := NEW.key + 1;
@@ -2246,7 +2250,7 @@ BEGIN
     IF (TG_OP = 'UPDATE') THEN
         RAISE warning 'after update (old): %', OLD.*::text;
         RAISE warning 'after update (new): %', NEW.*::text;
-    elsif (TG_OP = 'INSERT') THEN
+    ELSIF (TG_OP = 'INSERT') THEN
         RAISE warning 'after insert (new): %', NEW.*::text;
     END IF;
     RETURN NULL;
@@ -2586,7 +2590,8 @@ WITH ins (
     a
 ) AS (
 INSERT INTO parted2_stmt_trig
-        VALUES (1), (2)
+        VALUES (1),
+        (2)
     RETURNING
         a)
     INSERT INTO parted_stmt_trig
@@ -2660,7 +2665,8 @@ CREATE TRIGGER qqq
     EXECUTE PROCEDURE trigger_notice ();
 
 INSERT INTO parted_trig
-    VALUES (50), (1500);
+    VALUES (50),
+    (1500);
 
 DROP TABLE parted_trig;
 
@@ -2743,7 +2749,8 @@ CREATE TRIGGER parted_trig_odd
 -- we should hear barking for every insert, but parted_trig_odd only emits
 -- noise for odd values of a. parted_trig does it for all inserts.
 INSERT INTO parted_irreg
-    VALUES (1, 'aardvark'), (2, 'aanimals');
+    VALUES (1, 'aardvark'),
+    (2, 'aanimals');
 
 INSERT INTO parted1_irreg
     VALUES ('aardwolf', 2);
@@ -2806,7 +2813,8 @@ SET constraints parted_trig DEFERRED;
 INSERT INTO parted_constr
     VALUES (1, 'aardvark');
 INSERT INTO parted1_constr
-    VALUES (2, 'aardwolf'), (3, 'aasvogel');
+    VALUES (2, 'aardwolf'),
+    (3, 'aasvogel');
 COMMIT;
 
 DROP TABLE parted_constr_ancestor;
@@ -2856,7 +2864,18 @@ ALTER TABLE parted_trigger ATTACH PARTITION parted_trigger_3
 FOR VALUES FROM (2000) TO (3000);
 
 INSERT INTO parted_trigger
-    VALUES (0, 'a'), (1, 'bbb'), (2, 'bcd'), (3, 'c'), (1000, 'c'), (1001, 'ddd'), (1002, 'efg'), (1003, 'f'), (2000, 'e'), (2001, 'fff'), (2002, 'ghi'), (2003, 'h');
+    VALUES (0, 'a'),
+    (1, 'bbb'),
+    (2, 'bcd'),
+    (3, 'c'),
+    (1000, 'c'),
+    (1001, 'ddd'),
+    (1002, 'efg'),
+    (1003, 'f'),
+    (2000, 'e'),
+    (2001, 'fff'),
+    (2002, 'ghi'),
+    (2003, 'h');
 
 UPDATE
     parted_trigger
@@ -2984,7 +3003,10 @@ ALTER TABLE parted_trigger ATTACH PARTITION parted_trigger_3
 FOR VALUES FROM (2000) TO (3000);
 
 INSERT INTO parted_trigger
-    VALUES (0, 'a'), (1000, 'c'), (2000, 'e'), (2001, 'eeee');
+    VALUES (0, 'a'),
+    (1000, 'c'),
+    (2000, 'e'),
+    (2001, 'eeee');
 
 UPDATE
     parted_trigger
@@ -3273,7 +3295,9 @@ CREATE TRIGGER intercept_insert_child3
 
 -- insert, parent trigger sees post-modification parent-format tuple
 INSERT INTO parent
-    VALUES ('AAA', 42), ('BBB', 42), ('CCC', 66);
+    VALUES ('AAA', 42),
+    ('BBB', 42),
+    ('CCC', 66);
 
 DROP TABLE child1, child2, child3, parent;
 
@@ -3565,21 +3589,26 @@ CREATE TRIGGER my_table_update_trig
 
 -- inserts only
 INSERT INTO my_table
-    VALUES (1, 'AAA'), (2, 'BBB')
+    VALUES (1, 'AAA'),
+    (2, 'BBB')
 ON CONFLICT (a)
     DO UPDATE SET
         b = my_table.b || ':' || excluded.b;
 
 -- mixture of inserts and updates
 INSERT INTO my_table
-    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD')
+    VALUES (1, 'AAA'),
+    (2, 'BBB'),
+    (3, 'CCC'),
+    (4, 'DDD')
 ON CONFLICT (a)
     DO UPDATE SET
         b = my_table.b || ':' || excluded.b;
 
 -- updates only
 INSERT INTO my_table
-    VALUES (3, 'CCC'), (4, 'DDD')
+    VALUES (3, 'CCC'),
+    (4, 'DDD')
 ON CONFLICT (a)
     DO UPDATE SET
         b = my_table.b || ':' || excluded.b;
@@ -3615,21 +3644,26 @@ CREATE TRIGGER iocdu_tt_parted_update_trig
 
 -- inserts only
 INSERT INTO iocdu_tt_parted
-    VALUES (1, 'AAA'), (2, 'BBB')
+    VALUES (1, 'AAA'),
+    (2, 'BBB')
 ON CONFLICT (a)
     DO UPDATE SET
         b = iocdu_tt_parted.b || ':' || excluded.b;
 
 -- mixture of inserts and updates
 INSERT INTO iocdu_tt_parted
-    VALUES (1, 'AAA'), (2, 'BBB'), (3, 'CCC'), (4, 'DDD')
+    VALUES (1, 'AAA'),
+    (2, 'BBB'),
+    (3, 'CCC'),
+    (4, 'DDD')
 ON CONFLICT (a)
     DO UPDATE SET
         b = iocdu_tt_parted.b || ':' || excluded.b;
 
 -- updates only
 INSERT INTO iocdu_tt_parted
-    VALUES (3, 'CCC'), (4, 'DDD')
+    VALUES (3, 'CCC'),
+    (4, 'DDD')
 ON CONFLICT (a)
     DO UPDATE SET
         b = iocdu_tt_parted.b || ':' || excluded.b;
@@ -3685,10 +3719,17 @@ CREATE TRIGGER trig_table_delete_trig
     EXECUTE PROCEDURE dump_delete ();
 
 INSERT INTO refd_table
-    VALUES (1, 'one'), (2, 'two'), (3, 'three');
+    VALUES (1, 'one'),
+    (2, 'two'),
+    (3, 'three');
 
 INSERT INTO trig_table
-    VALUES (1, 'one a'), (1, 'one b'), (2, 'two a'), (2, 'two b'), (3, 'three a'), (3, 'three b');
+    VALUES (1, 'one a'),
+    (1, 'one b'),
+    (2, 'two a'),
+    (2, 'two b'),
+    (3, 'three a'),
+    (3, 'three b');
 
 UPDATE
     refd_table
@@ -3733,7 +3774,9 @@ CREATE TRIGGER self_ref_s_trig
     EXECUTE PROCEDURE dump_delete ();
 
 INSERT INTO self_ref
-    VALUES (1, NULL), (2, 1), (3, 2);
+    VALUES (1, NULL),
+    (2, 1),
+    (3, 2);
 
 DELETE FROM self_ref
 WHERE a = 1;
@@ -3742,7 +3785,10 @@ WHERE a = 1;
 DROP TRIGGER self_ref_r_trig ON self_ref;
 
 INSERT INTO self_ref
-    VALUES (1, NULL), (2, 1), (3, 2), (4, 3);
+    VALUES (1, NULL),
+    (2, 1),
+    (3, 2),
+    (4, 3);
 
 DELETE FROM self_ref
 WHERE a = 1;
