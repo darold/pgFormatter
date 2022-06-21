@@ -2875,15 +2875,19 @@ DROP ROLE regress_other_partitioned_fk_owner;
 -- Test creating a constraint at the parent that already exists in partitions.
 -- There should be no duplicated constraints, and attempts to drop the
 -- constraint in partitions should raise appropriate errors.
-CREATE SCHEMA fkpart0 CREATE TABLE pkey (
-    a int PRIMARY KEY)
-CREATE TABLE fk_part (
-    a int
+CREATE SCHEMA fkpart0
+    CREATE TABLE pkey (
+        a int PRIMARY KEY)
+    CREATE TABLE fk_part (
+        a int
 )
-PARTITION BY LIST (a) CREATE TABLE fk_part_1 PARTITION OF fk_part (FOREIGN KEY (a) REFERENCES fkpart0.pkey)
-FOR VALUES IN (1) CREATE TABLE fk_part_23 PARTITION OF fk_part (FOREIGN KEY (a) REFERENCES fkpart0.pkey)
+PARTITION BY LIST (a)
+    CREATE TABLE fk_part_1 PARTITION OF fk_part (FOREIGN KEY (a) REFERENCES fkpart0.pkey)
+FOR VALUES IN (1)
+    CREATE TABLE fk_part_23 PARTITION OF fk_part (FOREIGN KEY (a) REFERENCES fkpart0.pkey)
 FOR VALUES IN (2, 3)
-PARTITION BY LIST (a) CREATE TABLE fk_part_23_2 PARTITION OF fk_part_23
+PARTITION BY LIST (a)
+    CREATE TABLE fk_part_23_2 PARTITION OF fk_part_23
 FOR VALUES IN (2);
 
 ALTER TABLE fkpart0.fk_part
@@ -2924,14 +2928,17 @@ ALTER TABLE fkpart0.fk_part_56_5
 
 -- verify that attaching and detaching partitions maintains the right set of
 -- triggers
-CREATE SCHEMA fkpart1 CREATE TABLE pkey (
-    a int PRIMARY KEY)
-CREATE TABLE fk_part (
-    a int
+CREATE SCHEMA fkpart1
+    CREATE TABLE pkey (
+        a int PRIMARY KEY)
+    CREATE TABLE fk_part (
+        a int
 )
-PARTITION BY LIST (a) CREATE TABLE fk_part_1 PARTITION OF fk_part
+PARTITION BY LIST (a)
+    CREATE TABLE fk_part_1 PARTITION OF fk_part
 FOR VALUES IN (1)
-PARTITION BY LIST (a) CREATE TABLE fk_part_1_1 PARTITION OF fk_part_1
+PARTITION BY LIST (a)
+    CREATE TABLE fk_part_1_1 PARTITION OF fk_part_1
 FOR VALUES IN (1);
 
 ALTER TABLE fkpart1.fk_part
@@ -2965,15 +2972,18 @@ WHERE a = 1;
 
 -- verify that attaching and detaching partitions manipulates the inheritance
 -- properties of their FK constraints correctly
-CREATE SCHEMA fkpart2 CREATE TABLE pkey (
-    a int PRIMARY KEY)
-CREATE TABLE fk_part (
-    a int,
-    CONSTRAINT fkey FOREIGN KEY (a) REFERENCES fkpart2.pkey
+CREATE SCHEMA fkpart2
+    CREATE TABLE pkey (
+        a int PRIMARY KEY)
+    CREATE TABLE fk_part (
+        a int,
+        CONSTRAINT fkey FOREIGN KEY (a) REFERENCES fkpart2.pkey
 )
-PARTITION BY LIST (a) CREATE TABLE fk_part_1 PARTITION OF fkpart2.fk_part
+PARTITION BY LIST (a)
+    CREATE TABLE fk_part_1 PARTITION OF fkpart2.fk_part
 FOR VALUES IN (1)
-PARTITION BY LIST (a) CREATE TABLE fk_part_1_1 (a int, CONSTRAINT my_fkey FOREIGN KEY (a) REFERENCES fkpart2.pkey);
+PARTITION BY LIST (a)
+    CREATE TABLE fk_part_1_1 (a int, CONSTRAINT my_fkey FOREIGN KEY (a) REFERENCES fkpart2.pkey);
 
 ALTER TABLE fkpart2.fk_part_1 ATTACH PARTITION fkpart2.fk_part_1_1
 FOR VALUES IN (1);
@@ -3641,10 +3651,12 @@ DROP TABLE fk;
 
 -- test for reported bug: relispartition not set
 -- https://postgr.es/m/CA+HiwqHMsRtRYRWYTWavKJ8x14AFsv7bmAV46mYwnfD3vy8goQ@mail.gmail.com
-CREATE SCHEMA fkpart7 CREATE TABLE pkpart (
-    a int
+CREATE SCHEMA fkpart7
+    CREATE TABLE pkpart (
+        a int
 )
-PARTITION BY LIST (a) CREATE TABLE pkpart1 PARTITION OF pkpart
+PARTITION BY LIST (a)
+    CREATE TABLE pkpart1 PARTITION OF pkpart
 FOR VALUES IN (1);
 
 ALTER TABLE fkpart7.pkpart1

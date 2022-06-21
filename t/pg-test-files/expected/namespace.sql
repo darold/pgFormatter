@@ -1,14 +1,16 @@
 --
 -- Regression tests for schemas (namespaces)
 --
-CREATE SCHEMA test_ns_schema_1 CREATE UNIQUE INDEX abc_a_idx ON abc (
-    a)
-CREATE VIEW abc_view AS
-SELECT
-    a + 1 AS a,
-    b + 1 AS b
-FROM
-    abc CREATE TABLE abc (
+CREATE SCHEMA test_ns_schema_1
+    CREATE UNIQUE INDEX abc_a_idx ON abc (
+        a)
+    CREATE VIEW abc_view AS
+    SELECT
+        a + 1 AS a,
+        b + 1 AS b
+    FROM
+        abc
+    CREATE TABLE abc (
         a serial,
         b int UNIQUE
 );
@@ -61,9 +63,9 @@ CREATE SCHEMA IF NOT EXISTS test_ns_schema_renamed;
 
 -- ok with notice
 CREATE SCHEMA IF NOT EXISTS test_ns_schema_renamed -- fail, disallowed
-CREATE TABLE abc (
-    a serial,
-    b int UNIQUE
+    CREATE TABLE abc (
+        a serial,
+        b int UNIQUE
 );
 
 DROP SCHEMA test_ns_schema_renamed CASCADE;

@@ -164,12 +164,14 @@ SELECT
     cache_test_2 ();
 
 --- Check that change of search_path is honored when re-using cached plan
-CREATE SCHEMA s1 CREATE TABLE abc (
-    f1 int
+CREATE SCHEMA s1
+    CREATE TABLE abc (
+        f1 int
 );
 
-CREATE SCHEMA s2 CREATE TABLE abc (
-    f1 int
+CREATE SCHEMA s2
+    CREATE TABLE abc (
+        f1 int
 );
 
 INSERT INTO s1.abc

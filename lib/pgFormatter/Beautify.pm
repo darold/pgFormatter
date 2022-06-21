@@ -787,6 +787,7 @@ sub beautify
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_in_join' } = 0;
     $self->{ '_is_in_create' } = 0;
+    $self->{ '_is_in_create_schema' } = 0;
     $self->{ '_is_in_rule' } = 0;
     $self->{ '_is_in_create_function' } = 0;
     $self->{ '_is_in_alter' } = 0;
@@ -1133,6 +1134,16 @@ sub beautify
 		$self->{ '_is_in_index' } = 1;
 	}
         if ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token !~ /^(EVENT|UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
+	    if ($self->_next_token =~ /^SCHEMA$/i) {
+		    $self->{ '_is_in_create_schema' } = 1;
+	    }
+	    elsif ($self->{ '_is_in_create_schema' })
+	    {
+		    # we are certainly in a create schema statement
+		    $self->_new_line($token,$last);
+		    $self->{ '_level' } = 1;
+		    $self->{ '_is_in_create_schema' }++;
+	    }
 	    $self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^RULE$/i) {
 	    $self->{ '_is_in_rule' } = 1;
@@ -1165,6 +1176,14 @@ sub beautify
         } elsif ($token =~ /^EVENT$/i and defined $self->_next_token && $self->_next_token =~ /^TRIGGER$/i) {
 	    $self->_over($token, $last);
             $self->{ '_is_in_index' } = 1;
+        } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^INDEX|UNIQUE/i)
+	{
+	    if ($self->{ '_is_in_create_schema' })
+	    {
+		    $self->_new_line($token,$last);
+		    $self->{ '_level' } = 1;
+		    $self->{ '_is_in_create_schema' }++;
+	    }
         }
 
 	if ($self->{ '_is_in_using' } and defined $self->_next_token and $self->_next_token =~ /^(OPERATOR|AS)$/i) {
@@ -1705,7 +1724,7 @@ sub beautify
 				and $self->_next_token !~ /^LOOP$/i
 			)
 		{
-			$self->_back($token, $last);
+		    $self->_back($token, $last);
 		}
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
 		if ($self->{ '_is_in_type' })
@@ -1858,6 +1877,7 @@ sub beautify
             $self->{ '_is_in_from' } = 0;
             $self->{ '_is_in_join' } = 0;
             $self->{ '_is_in_create' } = 0;
+	    $self->{ '_is_in_create_schema' } = 0;
             $self->{ '_is_in_alter' } = 0;
 	    $self->{ '_is_in_rule' } = 0;
             $self->{ '_is_in_publication' } = 0;
@@ -1935,7 +1955,7 @@ sub beautify
             # End of statement; remove all indentation when we are not in a BEGIN/END block
             if (!$self->{ '_is_in_declare' } and $self->{ '_is_in_block' } == -1)
 	    {
-                $self->_reset_level($token, $last);
+		    $self->_reset_level($token, $last);
             }
 	    elsif (not defined $self->_next_token or $self->_next_token !~ /^INSERT$/)
 	    {
@@ -1961,7 +1981,8 @@ sub beautify
 
             if ($self->_next_token =~ /^(UPDATE|KEY|NO|VALUES)$/i)
 	    {
-		$self->_back($token, $last) if (!$self->{ '_has_limit' } and ($#{$self->{ '_level_stack' }} == -1 or  $self->{ '_level' } > $self->{ '_level_stack' }[-1]));
+		$self->_back($token, $last) if (!$self->{ '_has_limit' } and ($#{$self->{ '_level_stack' }} == -1
+					or  $self->{ '_level' } > $self->{ '_level_stack' }[-1]));
                 $self->_new_line($token,$last);
 		$self->{ '_has_limit' } = 0;
             }

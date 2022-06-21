@@ -421,13 +421,14 @@ $$;
 CREATE EVENT TRIGGER regress_event_trigger_report_dropped ON sql_drop
     EXECUTE PROCEDURE event_trigger_report_dropped ();
 
-CREATE SCHEMA evttrig CREATE TABLE one (
-    col_a serial PRIMARY KEY,
-    col_b text DEFAULT 'forty two')
-CREATE INDEX one_idx ON one (
-    col_b)
-CREATE TABLE two (
-    col_c integer CHECK (col_c > 0) REFERENCES one DEFAULT 42
+CREATE SCHEMA evttrig
+    CREATE TABLE one (
+        col_a serial PRIMARY KEY,
+        col_b text DEFAULT 'forty two')
+    CREATE INDEX one_idx ON one (
+        col_b)
+    CREATE TABLE two (
+        col_c integer CHECK (col_c > 0) REFERENCES one DEFAULT 42
 );
 
 -- Partitioned tables with a partitioned index

@@ -5,11 +5,14 @@
 -- SQL string continuation syntax
 -- E021-03 character string literals
 SELECT
-    'first line' ' - next line' ' - third line' AS "Three lines to one";
+    'first line'
+    ' - next line'
+	    ' - third line' AS "Three lines to one";
 
 -- illegal string continuation syntax
 SELECT
-    'first line' ' - next line'
+    'first line'
+    ' - next line'
     /* this comment is not allowed here */
     ' - third line' AS "Illegal comment within continuation";
 
