@@ -949,6 +949,7 @@ sub beautify
 	        }
             }
 	    $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
+	    $self->{ '_is_in_cast' } = 0 if ((not defined $self->_next_token or uc($self->_next_token) !~ /^(WITH|WITHOUT)$/) and (!$self->{ '_parenthesis_level' } or !$self->{ '_parenthesis_function_level' }));
 
 	    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_sub_query' }) {
 		$self->{ '_is_in_sub_query' }--;
@@ -1134,15 +1135,15 @@ sub beautify
 		$self->{ '_is_in_index' } = 1;
 	}
         if ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token !~ /^(EVENT|UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
-	    if ($self->_next_token =~ /^SCHEMA$/i) {
-		    $self->{ '_is_in_create_schema' } = 1;
+            if ($self->_next_token =~ /^SCHEMA$/i) {
+	        $self->{ '_is_in_create_schema' } = 1;
 	    }
 	    elsif ($self->{ '_is_in_create_schema' })
 	    {
-		    # we are certainly in a create schema statement
-		    $self->_new_line($token,$last);
-		    $self->{ '_level' } = 1;
-		    $self->{ '_is_in_create_schema' }++;
+		# we are certainly in a create schema statement
+		$self->_new_line($token,$last);
+		$self->{ '_level' } = 1;
+		$self->{ '_is_in_create_schema' }++;
 	    }
 	    $self->{ '_is_in_create' } = 1;
         } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^RULE$/i) {
@@ -1333,7 +1334,8 @@ sub beautify
         if (uc($token) eq 'AS' and (!$self->{ '_fct_code_delimiter' } || $self->_next_token =~ /CODEPART/)
                                and $self->{ '_current_sql_stmt' } =~ /^(FUNCTION|PROCEDURE)$/i)
         {
-            if ($self->{ '_is_in_create' } and !$self->{ '_is_in_with' } and !$self->{ '_is_in_cast' })
+	    if ($self->{ '_is_in_create' } and !$self->{ '_is_in_with' } and !$self->{ '_is_in_cast' }
+			    and $self->_next_token !~ /^(IMPLICIT|ASSIGNMENT)$/i)
 	    {
                 $self->_new_line($token,$last);
                 $self->_add_token( $token );
@@ -1342,7 +1344,7 @@ sub beautify
 	    } else {
                 $self->_add_token( $token );
             }
-	    if ($self->_next_token !~ /CODEPART/ || $self->_next_token =~ /^'/)
+	    if ($self->_next_token !~ /(CODEPART|IMPLICIT|ASSIGNMENT)/ || $self->_next_token =~ /^'/)
 	    {
                 $self->{ '_fct_code_delimiter' } = '1' if (!$self->{ '_is_in_cast' });
 	    }
@@ -1387,7 +1389,6 @@ sub beautify
 	        $self->{ '_fct_code_delimiter' } = $token;
 	    }
             $self->_add_token( $token );
-            $last = $self->_set_last($token, $last);
 	    if (!$self->{ '_is_in_create_function' } or $self->_next_token ne ','
 			    or $self->{ '_tokens' }[1] !~ /KEYWCONST/) {
 		    $self->_new_line($token,$last);
@@ -1405,6 +1406,7 @@ sub beautify
 		$self->{ '_is_in_function' } = 0;
 		$self->{ '_is_in_create_function' } = 0;
             }
+            $last = $self->_set_last($token, $last);
             next;
         }
 
@@ -1701,7 +1703,8 @@ sub beautify
                 my $add_nl = 0;
                 $add_nl = 1 if ($self->{ '_is_in_create' } > 1
 		    and defined $last and $last ne '('
-                    and (not defined $self->_next_token or $self->_next_token =~ /^(PARTITION|AS|;)$/i or ($self->_next_token =~ /^ON$/i and !$self->{ '_parenthesis_level' }))
+		    and !$self->{ '_is_in_cast' }
+                    and (not defined $self->_next_token or $self->_next_token =~ /^(TABLESPACE|PARTITION|AS|;)$/i or ($self->_next_token =~ /^ON$/i and !$self->{ '_parenthesis_level' }))
                 );
                 $add_nl = 1 if ($self->{ '_is_in_type' } == 1
 		    and $self->_next_token !~ /^AS$/i
@@ -1942,12 +1945,14 @@ sub beautify
 	    }
             $self->{ '_current_sql_stmt' } = '';
             $self->{ 'break' } = "\n" unless ( $self->{ 'spaces' } != 0 );
-            $self->_new_line($token,$last) if (uc($last) ne 'VALUES');
+	    #$self->_new_line($token,$last) if ($last !~ /^(VALUES|IMPLICIT|ASSIGNMENT)$/i);
+            $self->_new_line($token,$last) if ($last !~ /^VALUES$/i);
             # Add an additional newline after ; when we are not in a function
             if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' }
 			    and !$self->{ '_is_in_declare' } and uc($last) ne 'VALUES')
 	    {
 		$self->{ '_new_line' } = 0;
+		#$self->_new_line($token,$last) if ($last !~ /^(IMPLICIT|ASSIGNMENT)$/i);
                 $self->_new_line($token,$last);
 		$self->{ 'stmt_number' }++;
 		$self->{ 'content' } .= "-- Statement # $self->{ 'stmt_number' }\n" if ($self->{ 'numbering' } and $#{ $self->{ '_tokens' } } > 0);

@@ -81,3 +81,13 @@ CREATE TABLE IF NOT EXISTS hello (
     bar char(25)
 );
 
+CREATE TABLE stock (
+    id character varying(6) NOT NULL DEFAULT lpad(cast(nextval('stock_id_seq'::regclass) AS character varying(6)), 6, '0'),
+    part_number text NOT NULL,
+    quantity integer NOT NULL
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
