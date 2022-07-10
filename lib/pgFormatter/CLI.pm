@@ -68,7 +68,7 @@ sub run {
     foreach my $input (@inputs)
     {
         $self->{ 'cfg' }->{ 'input' } = $input;
-        $self->{ 'cfg' }->{ 'output' } = '-'; # Set output to default value.
+        $self->{ 'cfg' }->{ 'output' } ||= '-'; # Set output to default value.
 
         $self->validate_args();
         $self->logmsg( 'DEBUG', 'Starting to parse SQL file: %s', $self->{ 'cfg' }->{ 'input' } );
