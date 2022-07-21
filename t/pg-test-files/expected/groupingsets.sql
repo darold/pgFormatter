@@ -223,8 +223,8 @@ FROM
 GROUP BY
     GROUPING SETS ((),
     GROUPING SETS ((),
-    GROUPING SETS (((a,
-                b)))))
+    GROUPING SETS (a,
+                b)))
 ORDER BY
     1 DESC;
 
@@ -263,8 +263,8 @@ SELECT
 FROM
     gstest2
 GROUP BY
-    GROUPING SETS (GROUPING SETS ((a,
-                b)))
+    GROUPING SETS (GROUPING SETS (a,
+                b))
 ORDER BY
     1 DESC;
 
@@ -287,7 +287,7 @@ GROUP BY
     GROUPING SETS (GROUPING SETS (a,
             GROUPING SETS (a,
                 GROUPING SETS (a),
-                ((a)),
+                (a),
                 a,
                 GROUPING SETS (a),
                 (a)),

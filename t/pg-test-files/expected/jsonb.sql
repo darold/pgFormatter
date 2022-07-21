@@ -785,19 +785,19 @@ SELECT
     jsonb_exists_any ('{"a":null, "b":"qq"}', '{}'::text[]);
 
 SELECT
-    jsonb '{"a":null, "b":"qq"}' ? | ARRAY['a', 'b'];
+    jsonb '{"a":null, "b":"qq"}' ?| ARRAY['a', 'b'];
 
 SELECT
-    jsonb '{"a":null, "b":"qq"}' ? | ARRAY['b', 'a'];
+    jsonb '{"a":null, "b":"qq"}' ?| ARRAY['b', 'a'];
 
 SELECT
-    jsonb '{"a":null, "b":"qq"}' ? | ARRAY['c', 'a'];
+    jsonb '{"a":null, "b":"qq"}' ?| ARRAY['c', 'a'];
 
 SELECT
-    jsonb '{"a":null, "b":"qq"}' ? | ARRAY['c', 'd'];
+    jsonb '{"a":null, "b":"qq"}' ?| ARRAY['c', 'd'];
 
 SELECT
-    jsonb '{"a":null, "b":"qq"}' ? | '{}'::text[];
+    jsonb '{"a":null, "b":"qq"}' ?| '{}'::text[];
 
 SELECT
     jsonb_exists_all ('{"a":null, "b":"qq"}', ARRAY['a', 'b']);
@@ -2042,7 +2042,7 @@ SELECT
 FROM
     testjsonb
 WHERE
-    j ? | ARRAY['public', 'disabled'];
+    j ?| ARRAY['public', 'disabled'];
 
 SELECT
     count(*)
@@ -2257,7 +2257,7 @@ SELECT
 FROM
     testjsonb
 WHERE
-    j ? | ARRAY['public', 'disabled'];
+    j ?| ARRAY['public', 'disabled'];
 
 SELECT
     count(*)

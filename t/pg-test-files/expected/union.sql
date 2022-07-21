@@ -619,7 +619,7 @@ SELECT
     q1
 FROM
     int8_tbl
-INTERSECT (((
+INTERSECT (
             SELECT
                 q2
             FROM
@@ -628,7 +628,7 @@ INTERSECT (((
             SELECT
                 q2
             FROM
-                int8_tbl)))
+                int8_tbl)
 ORDER BY
     1;
 
@@ -671,7 +671,7 @@ SELECT
     q1
 FROM
     int8_tbl
-UNION ALL (((
+UNION ALL ((
             SELECT
                 q2
             FROM
@@ -682,7 +682,7 @@ UNION ALL (((
             FROM
                 int8_tbl
             ORDER BY
-                1)));
+                1));
 
 (((
             SELECT
@@ -740,14 +740,14 @@ SELECT
     q1
 FROM
     int8_tbl
-EXCEPT (((
+EXCEPT (
             SELECT
                 q2
             FROM
                 int8_tbl
             ORDER BY
                 q2
-            LIMIT 1)))
+            LIMIT 1)
 ORDER BY
     1;
 

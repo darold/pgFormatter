@@ -121,12 +121,12 @@ EXPLAIN (
 SELECT
     (
         SELECT
-            max((
+            max(
                 SELECT
                     pa1.b
                 FROM part_pa_test pa1
                 WHERE
-                    pa1.a = pa2.a)))
+                    pa1.a = pa2.a))
 FROM
     part_pa_test pa2;
 DROP TABLE part_pa_test;
@@ -223,7 +223,7 @@ GROUP BY
 -- test prepared statement
 PREPARE tenk1_count (integer) AS
 SELECT
-    count((unique1))
+    count(unique1)
 FROM
     tenk1
 WHERE
@@ -317,13 +317,13 @@ EXPLAIN (
     COSTS OFF
 )
 SELECT
-    count((unique1))
+    count(unique1)
 FROM
     tenk1
 WHERE
     hundred > 1;
 SELECT
-    count((unique1))
+    count(unique1)
 FROM
     tenk1
 WHERE

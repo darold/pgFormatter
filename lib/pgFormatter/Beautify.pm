@@ -2779,6 +2779,9 @@ sub beautify
         $self->_new_line();
     }
 
+    # Attempt to eliminate redundant parenthesis in DML queries
+    while ($self->{ 'content' } =~ s/(\s+(?:WHERE|SELECT|FROM)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1($2)$3/igs) {};
+
     return;
 }
 

@@ -31,9 +31,9 @@ FROM (
 
 SELECT
     *
-FROM ((
+FROM (
         SELECT
-            1 AS x)) ss;
+            1 AS x) ss;
 
 (
     SELECT
@@ -58,9 +58,9 @@ SELECT
             2);
 
 SELECT
-    (((
+    ((
                 SELECT
-                    2))
+                    2)
         UNION
         SELECT
             2);
@@ -71,14 +71,14 @@ SELECT
             ARRAY[1, 2, 3])[1];
 
 SELECT
-    ((
+    (
             SELECT
-                ARRAY[1, 2, 3]))[2];
+                ARRAY[1, 2, 3])[2];
 
 SELECT
-    (((
+    (
                 SELECT
-                    ARRAY[1, 2, 3])))[3];
+                    ARRAY[1, 2, 3])[3];
 
 -- Set up some simple test tables
 CREATE TABLE SUBSELECT_TBL (
@@ -1328,9 +1328,9 @@ SELECT
 FROM
     generate_series(1, 10) AS s (i),
     LATERAL (
-        VALUES ((
+        VALUES (
                     SELECT
-                        s.i + 1)),
+                        s.i + 1),
                 (s.i + 101)) AS val (x)
 WHERE
     s.i < 10

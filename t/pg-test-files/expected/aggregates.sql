@@ -453,12 +453,12 @@ HAVING
 SELECT
     (
         SELECT
-            max((
+            max(
                 SELECT
                     i.unique2
                 FROM tenk1 i
                 WHERE
-                    i.unique1 = o.unique1)))
+                    i.unique1 = o.unique1))
 FROM
     tenk1 o;
 
@@ -1579,12 +1579,12 @@ FROM (
 SELECT
     (
         SELECT
-            max((
+            max(
                 SELECT
                     i.unique2
                 FROM tenk1 i
                 WHERE
-                    i.unique1 = o.unique1)) FILTER (WHERE o.unique1 < 10))
+                    i.unique1 = o.unique1) FILTER (WHERE o.unique1 < 10))
 FROM
     tenk1 o;
 

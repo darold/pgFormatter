@@ -73,7 +73,7 @@ SELECT
 FROM
     POINT_TBL p1
 WHERE
-    p1.f1 ? | point '(5.1,34.5)';
+    p1.f1 ?| point '(5.1,34.5)';
 
 -- Slope
 SELECT
@@ -268,7 +268,7 @@ SELECT
 FROM
     LINE_TBL
 WHERE
-    ? | s;
+    ?| s;
 
 -- Horizontal
 SELECT
@@ -296,7 +296,7 @@ FROM
     LINE_TBL l1,
     LINE_TBL l2
 WHERE
-    l1.s ? || l2.s;
+    l1.s ?| | l2.s;
 
 -- Perpendicular to line
 SELECT
@@ -399,7 +399,7 @@ SELECT
 FROM
     LSEG_TBL
 WHERE
-    ? | s;
+    ?| s;
 
 -- Horizontal
 SELECT
@@ -491,7 +491,7 @@ FROM
     LSEG_TBL l1,
     LSEG_TBL l2
 WHERE
-    l1.s ? || l2.s;
+    l1.s ?| | l2.s;
 
 -- Perpendicular with line segment
 SELECT

@@ -1554,11 +1554,11 @@ WITH cte (
 )
 SELECT
     *
-FROM ((
+FROM (
         SELECT
             foo
         FROM
-            cte)) q;
+            cte) q;
 
 -- test CTE referencing an outer-level variable (to see that changed-parameter
 -- signaling still works properly after fixing this bug)
@@ -1581,11 +1581,11 @@ SELECT
             foo
 ) AS (
             VALUES (f1))
-        VALUES ((
+        VALUES (
                 SELECT
                     foo
                 FROM
-                    cte)))
+                    cte))
 FROM
     int4_tbl;
 

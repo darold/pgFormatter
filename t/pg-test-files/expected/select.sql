@@ -239,9 +239,9 @@ FROM
                     SELECT
                         i
                     FROM (
-                        VALUES (10000), (2), (389), (1000), (2000), ((
+                        VALUES (10000), (2), (389), (1000), (2000), (
                                 SELECT
-                                    10029))) AS foo (i)
+                                    10029)) AS foo (i)
                     ORDER BY
                         i ASC
                     LIMIT 1))) bar (i)
