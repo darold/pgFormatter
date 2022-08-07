@@ -1,3 +1,27 @@
+
+August 07 2022 - v5.3
+
+This maintenance release fixes issues reported by users since the last six
+months.  Here is the complete list of changes and acknowledgments:
+
+  - Remove some useless parenthesis in DML statement. Thanks to Marc Cousin
+    for the request.
+  - Fix -o | --output that was always forced to stdout.
+    Thanks to Linekio and Joraao Bernardo for the report.
+  - Fix unsupported json operator ?|. Thanks to Jack Thibaut for the report.
+  - Fix formatting of create table with option and tablespace. Thanks to
+    jonyscathe for the report.
+  - Fix wrong wrapping in create table when --nocomment was used. Thanks to
+    Alexander Haase for the report.
+  - Fix nested CREATE SCHEMA formatting. Thanks to GabenGar for the report.
+  - Fix invalid multi-line string constant formatting. Thanks to zaneduffield
+    for the report.
+  - Force multiple INSERT values to be on separate lines. Previous behavior
+    was to keep all values on the same line. Thanks to Damien-B for the report.
+  - Add missing ELSIF keyword. Thanks to ideev for the report.
+  - Fix bad indentation when INDEX is present in target list. Thanks to Marc
+    Cousin for the report.
+
 December 03 2021 - v5.2
 
 This maintenance release fixes issues reported by users since the last six
