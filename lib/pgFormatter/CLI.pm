@@ -61,7 +61,7 @@ sub run {
     my $self = shift;
     $self->get_command_line_args();
 
-    $self->show_help_and_die( 2, 'can not use multiple input files with -i | --inplace.' ) if (@ARGV > 1 && $self->{ 'cfg' }->{ 'inplace' } == 0);
+    $self->show_help_and_die( 2, 'can not use -i | --inplace option together with the -o | --output option.' ) if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'output' });
 
     my @inputs = @ARGV == 0 ? ('-') : @ARGV;
 
@@ -69,6 +69,7 @@ sub run {
     {
         $self->{ 'cfg' }->{ 'input' } = $input;
         $self->{ 'cfg' }->{ 'output' } ||= '-'; # Set output to default value.
+
 
         $self->validate_args();
         $self->logmsg( 'DEBUG', 'Starting to parse SQL file: %s', $self->{ 'cfg' }->{ 'input' } );
@@ -395,7 +396,7 @@ sub get_command_line_args
 
     # Set default configuration
     $cfg{ 'spaces' }        //= 4;
-    $cfg{ 'output' }        //= '-';
+    $cfg{ 'output' }        //= '';
     $cfg{ 'function-case' } //= 0;
     $cfg{ 'keyword-case' }  //= 2;
     $cfg{ 'type-case' }     //= 1;
@@ -454,18 +455,18 @@ sub validate_args {
     $self->show_help_and_die( 2, 'function-case can be only one of: 0, 1, 2, or 3.' ) unless $self->{ 'cfg' }->{ 'function-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'keyword-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'keyword-case' } =~ m{\A[0123]\z};
     $self->show_help_and_die( 2, 'type-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'type-case' } =~ m{\A[0123]\z};
-    $self->show_help_and_die( 2, 'can not use -i | --inplace with an output file (-o | --output) .' ) if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'output' } ne '-');
+
+    # Force output file to be the same as inout file when the inplace option is used
+    if ($self->{ 'cfg' }->{ 'inplace' })
+    {
+        $self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
+    }
 
     if ($self->{ 'cfg' }->{ 'comma-end' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'end';
     }
     elsif ($self->{ 'cfg' }->{ 'comma-start' }) {
         $self->{ 'cfg' }->{ 'comma' } = 'start';
-    }
-
-    if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'input' } ne '-')
-    {
-        $self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
     }
 
     return;
