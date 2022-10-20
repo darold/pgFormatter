@@ -48,10 +48,11 @@ output=
 # Set regex to find code that must not be changed.
 placeholder=
 
-# Use multi-line search for placeholder regex
+# Use multi-line search for placeholder regex.
 multiline=0
 
 # Add RedShift keyworks to the list of SQL keyworks.
+# (obsolete use extra-keyword=redshift instead)
 redshift=0
 
 # Dynamic code separator, default to single quote.
@@ -63,7 +64,7 @@ spaces=4
 # Try another formatting type for some statements.
 format-type=0
 
-# Use tabs instead of space characters, when used spaces is set to 1 whatever is its value
+# Use tabs instead of space characters, when used spaces is set to 1 whatever is its value.
 tabs=0
 
 # Wrap queries at a certain length.
@@ -75,5 +76,9 @@ wrap-after=0
 # with --wrap-limit, apply reformatting to comments.
 wrap-comment=0
 
-# Add a list of function to be formatted as PG internal functions
+# Add a list of function to be formatted as PG internal functions.
 #extra-function=/opt/pgFormatter/functions.lst
+
+# Add a list of keywords to be formatted as PG internal keywords.
+# Special value redshift mean use internal defined redshift keywords.
+#extra-keyword=/opt/pgFormatter/epas.kw

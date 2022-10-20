@@ -32,8 +32,8 @@ Options:
                             confidential data before formatting.
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -B | --comma-break    : in insert statement, add a newline after each comma.
-    -c | --config FILE    : use a configuration file. Default is to use local
-                            file .pg_format or ~/.pg_format if they exists.
+    -c | --config FILE    : use a configuration file. Default is to not use
+                            configuration file or ~/.pg_format if it exists.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -55,6 +55,7 @@ Options:
     -o | --output file    : define the filename for the output. Default: stdout.
     -p | --placeholder RE : set regex to find code that must not be changed.
     -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
+                            Obsolete now, use --extra-keyword 'reshift' instead.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
     -t | --format-type    : try another formatting type for some statements.
@@ -72,8 +73,12 @@ Options:
                             Default: puts every item on its own line.
     -X | --no-rcfile      : do not read ~/.pg_format automatically. The
                             --config / -c option overrides it.
-    --extra-function FILE : file containing a list of function to use the same
+    --extra-function FILE : file containing a list of functions to use the same
                             formatting as PostgreSQL internal function.
+    --extra-keyword FILE  : file containing a list of keywords to use the same
+                            formatting as PostgreSQL internal keyword. Use
+			    special value 'redshift' for support to Redshift
+			    keywords defined internaly in pgFormatter.
 
 Examples:
 
@@ -224,6 +229,19 @@ but it can not detect user defined function. It is possible to defined a list
 of functions into a file (one function name per line) and give it to pgFormatter
 through the --extra-function option that will be formatter as PostgreSQL
 internal functions.
+
+=head2 Option --extra-keyword
+
+pgFormatter applies some formatting to the PostgreSQL internal keywords but it
+can not detect keywords for other database. It is possible to defined a list
+of keywords into a file (one keyword per line) and give it to pgFormatter
+through the --extra-keyword option that will be formatter as PostgreSQL
+internal functions.
+
+You can also pass a special value 'redshift' that will load the keywords
+defined internally in pgFormatter for this database. This was historically
+possible through the -r | --redshift option that is now obsolete and will
+be removed in the future.
 
 =head1 HINTS
 

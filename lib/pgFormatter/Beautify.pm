@@ -154,7 +154,7 @@ Takes options as hash. Following options are recognized:
 
 =item * numbering - statement numbering as a comment before each query
 
-=item * redshift - add Redshift keywords
+=item * redshift - add Redshift keywords (obsolete, use --extra-keyword)
 
 =item * no_extra_line - do not add an extra empty line at end of the output
 
@@ -174,7 +174,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline) ) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline)) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -3797,13 +3797,6 @@ sub set_dicts
 	TEXT255 TEXT32K TIMESTAMP TOP TRUNCATECOLUMNS UNLOAD WALLET ADDQUOTES
         );
 
-    if ($self->{ 'redshift' })
-    {
-        for my $k ( @redshift_keywords ) {
-            next if grep { $k eq $_ } @pg_keywords;
-            push @pg_keywords, $k;
-        }
-    }
 
     for my $k ( @pg_keywords ) {
         next if grep { $k eq $_ } @sql_keywords;
@@ -4161,6 +4154,7 @@ sub set_dicts
     $self->{ 'dict' }->{ 'pg_keywords' }   = \@pg_keywords;
     $self->{ 'dict' }->{ 'pg_types' }      = \@pg_types;
     $self->{ 'dict' }->{ 'sql_keywords' }  = \@sql_keywords;
+    $self->{ 'dict' }->{ 'redshift_keywords' } = \@redshift_keywords;
     $self->{ 'dict' }->{ 'pg_functions' }  = ();
     map { $self->{ 'dict' }->{ 'pg_functions' }{$_} = ''; } @pg_functions;
     $self->{ 'dict' }->{ 'copy_keywords' } = \@copy_keywords;

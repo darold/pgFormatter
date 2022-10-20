@@ -123,6 +123,9 @@ sub beautify {
     $args{ 'inplace' }      = $self->{ 'cfg' }->{ 'inplace' };
     $args{ 'keep_newline' } = $self->{ 'cfg' }->{ 'keep-newline' };
     $args{ 'extra_function' } = $self->{ 'cfg' }->{ 'extra-function' };
+    $args{ 'extra_keyword' }  = $self->{ 'cfg' }->{ 'extra-keyword' };
+    # Backward compatibility
+    $args{ 'extra_keyword' }  = 'redshift' if (!$self->{ 'cfg' }->{ 'extra-keyword' } && $self->{ 'cfg' }->{ 'redshift' });
 
     if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
         $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
@@ -143,6 +146,23 @@ sub beautify {
 	    } else {
 		    warn("WARNING: can not read file $args{ 'extra_function' }\n");
 	    }
+    }
+    if ($args{ 'extra_keyword' } && $args{ 'extra_keyword' } ne 'redshift' && -e $args{ 'extra_keyword' })
+    {
+	    if (open(my $fh, '<', $args{ 'extra_keyword' }))
+	    {
+		    my @fcts = ();
+		    while (my $l = <$fh>) {
+			    chomp($l);
+			    push(@fcts, split(/^[\s,;]+$/, $l));
+		    }
+		    $beautifier->add_keywords(@fcts);
+		    close($fh);
+	    } else {
+		    warn("WARNING: can not read file $args{ 'extra_keyword' }\n");
+	    }
+    } elsif ($args{ 'extra_keyword' } eq 'redshift' or $args{ 'redshift' }) {
+	    $beautifier->add_keywords(@{ $beautifier->{ 'dict' }->{ 'redshift_keywords' } });
     }
     $beautifier->query( $self->{ 'query' } );
     $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
@@ -252,6 +272,7 @@ Options:
     -o | --output file    : define the filename for the output. Default: stdout.
     -p | --placeholder RE : set regex to find code that must not be changed.
     -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
+                            Obsolete now, use --extra-keyword 'reshift' instead.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
     -t | --format-type    : try another formatting type for some statements.
@@ -269,8 +290,12 @@ Options:
                             Default: puts every item on its own line.
     -X | --no-rcfile      : do not read ~/.pg_format automatically. The
                             --config / -c option overrides it.
-    --extra-function FILE : file containing a list of function to use the same
+    --extra-function FILE : file containing a list of functions to use the same
                             formatting as PostgreSQL internal function.
+    --extra-keyword FILE  : file containing a list of keywords to use the same
+                            formatting as PostgreSQL internal keyword. Use
+			    special value 'redshift' for support to Redshift
+			    keywords defined internaly in pgFormatter.
 
 Examples:
 
@@ -353,6 +378,7 @@ sub get_command_line_args
         'wrap-after|W=i',
         'inplace|i!',
 	'extra-function=s',
+	'extra-keyword=s',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
@@ -413,6 +439,8 @@ sub get_command_line_args
     $cfg{ 'redshift' }      //= 0;
     $cfg{ 'no-extra-line' } //= 0;
     $cfg{ 'inplace' }       //= 0;
+    $cfg{ 'extra-keyword' } //= '';
+    $cfg{ 'extra-keyword' }   = 'redshift' if ($cfg{ 'redshift' });
 
     if ($cfg{ 'tabs' })
     {
@@ -434,6 +462,11 @@ sub get_command_line_args
 
     if ( $cfg{ 'extra-function' } && !-e $cfg{ 'extra-function' }) {
         printf 'FATAL: file for extra function list does not exists: %s%s', $cfg{ 'extra-function' } , "\n";
+        exit 0;
+    }
+
+    if ($cfg{ 'extra-keyword' } && $cfg{ 'extra-keyword' } ne 'redshift' && !-e $cfg{ 'extra-keyword' }) {
+        printf 'FATAL: file for extra keyword list does not exists: %s%s', $cfg{ 'extra-keyword' } , "\n";
         exit 0;
     }
 
