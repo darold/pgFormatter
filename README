@@ -106,10 +106,13 @@ DESCRIPTION
 INSTALLATION
     Download the tarball from github and unpack the archive as follow:
 
-            tar xzf pgFormatter-x.x.tar.gz
-            cd pgFormatter-x.x/
+            version=5.3 #please use the latest release version from github
+            wget https://github.com/darold/pgFormatter/archive/refs/tags/v${version}.tar.gz
+            tar xzf v${version}.tar.gz
+            cd pgFormatter-${version}/
             perl Makefile.PL
             make && sudo make install
+            cd ../ && rm -rf v${version}.tar.gz && rm -rf pgFormatter-${version} #clean up
 
     This will copy the Perl script pg_format in /usr/local/bin/pg_format
     directory by default and the man page into
