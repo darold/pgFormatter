@@ -949,9 +949,9 @@ sub beautify
 	        }
             }
 	    $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
-	    $self->{ '_is_in_cast' } = 0 if ((not defined $self->_next_token or uc($self->_next_token) !~ /^(WITH|WITHOUT)$/) and (!$self->{ '_parenthesis_level' } or !$self->{ '_parenthesis_function_level' }));
+	    $self->{ '_is_in_cast' } = 0 if ((not defined $self->_next_token or $self->_next_token !~ /^(WITH|WITHOUT)$/i) and (!$self->{ '_parenthesis_level' } or !$self->{ '_parenthesis_function_level' }));
 
-	    if (!$self->{ '_parenthesis_level' } && $self->{ '_is_in_sub_query' }) {
+	    if (!$self->{ '_parenthesis_level' } and $self->{ '_is_in_sub_query' } and ((!$self->{ '_is_in_order_by' } and defined $self->_next_token) or $self->_next_token =~ /^(FROM|GROUP)$/i)) {
 		$self->{ '_is_in_sub_query' }--;
 		$self->_back($token, $last);
 	    }
