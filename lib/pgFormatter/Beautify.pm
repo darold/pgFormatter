@@ -1563,7 +1563,7 @@ sub beautify
             $last = $self->_set_last($token, $last);
 	    next;
         }
-        elsif ($token =~ /^TRIGGER$/i and defined $last and $last =~ /^(CREATE|CONSTRAINT)$/i)
+        elsif ($token =~ /^TRIGGER$/i and defined $last and $last =~ /^(CREATE|CONSTRAINT|REPLACE)$/i)
 	{
             $self->{ '_is_in_trigger' } = 1;
             $self->_add_token( $token );
