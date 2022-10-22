@@ -115,28 +115,31 @@ BEGIN
                 RAISE NOTICE '% contains unpinned initdb-created object(s)', relnm;
             END IF;
         END LOOP;
-    end$$;
-    -- **************** pg_class ****************
-    -- Look for system tables with varlena columns but no toast table. All
-    -- system tables with toastable columns should have toast tables, with
-    -- the following exceptions:
-    -- 1. pg_class, pg_attribute, and pg_index, due to fear of recursive
-    -- dependencies as toast tables depend on them.
-    -- 2. pg_largeobject and pg_largeobject_metadata.  Large object catalogs
-    -- and toast tables are mutually exclusive and large object data is handled
-    -- as user data by pg_upgrade, which would cause failures.
-    SELECT
-        relname,
-        attname,
-        atttypid::regtype
-    FROM
-        pg_class c
-        JOIN pg_attribute a ON c.oid = attrelid
-    WHERE
-        c.oid < 16384
-        AND reltoastrelid = 0
-        AND relkind = 'r'
-        AND attstorage != 'p'
-    ORDER BY
-        1,
-        2;
+END
+$$;
+
+-- **************** pg_class ****************
+-- Look for system tables with varlena columns but no toast table. All
+-- system tables with toastable columns should have toast tables, with
+-- the following exceptions:
+-- 1. pg_class, pg_attribute, and pg_index, due to fear of recursive
+-- dependencies as toast tables depend on them.
+-- 2. pg_largeobject and pg_largeobject_metadata.  Large object catalogs
+-- and toast tables are mutually exclusive and large object data is handled
+-- as user data by pg_upgrade, which would cause failures.
+SELECT
+    relname,
+    attname,
+    atttypid::regtype
+FROM
+    pg_class c
+    JOIN pg_attribute a ON c.oid = attrelid
+WHERE
+    c.oid < 16384
+    AND reltoastrelid = 0
+    AND relkind = 'r'
+    AND attstorage != 'p'
+ORDER BY
+    1,
+    2;
+

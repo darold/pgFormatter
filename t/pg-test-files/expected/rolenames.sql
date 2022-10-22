@@ -22,7 +22,6 @@ CREATE OR REPLACE FUNCTION chkrolattr ()
                 ('None', '-')) AS v (uname, keyword) ON (r.rolname = v.uname)
     ORDER BY
         1;
-
 $$
 LANGUAGE SQL;
 
@@ -50,7 +49,6 @@ WHERE (r.rolname) IN ('Public', 'current_user', 'regress_testrol1', 'regress_tes
 ORDER BY
     1,
     2;
-
 $$
 LANGUAGE SQL;
 
@@ -71,7 +69,6 @@ CREATE OR REPLACE FUNCTION chkumapping ()
     JOIN pg_foreign_server s ON (s.oid = m.umserver)
 ORDER BY
     2;
-
 $$
 LANGUAGE SQL;
 

@@ -87,7 +87,8 @@ CREATE FUNCTION my_int_eq (int, int)
     LANGUAGE internal
     STRICT IMMUTABLE PARALLEL SAFE
     AS $$
-    int4eq$$;
+    int4eq
+$$;
 
 -- By default, planner does not think that's selective
 EXPLAIN (
@@ -119,8 +120,10 @@ WHERE
 CREATE FUNCTION my_gen_series (int, int)
     RETURNS SETOF integer
     LANGUAGE internal
-    STRICT IMMUTABLE PARALLEL SAFE AS
-$$ generate_series_int4$$ SUPPORT test_support_func;
+    STRICT IMMUTABLE PARALLEL SAFE
+    AS $$
+    generate_series_int4
+$$ SUPPORT test_support_func;
 
 EXPLAIN (
     COSTS OFF

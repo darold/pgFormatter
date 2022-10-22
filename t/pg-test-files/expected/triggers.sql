@@ -1627,8 +1627,12 @@ FROM
 CREATE FUNCTION no_op_trig_fn ()
     RETURNS TRIGGER
     LANGUAGE plpgsql
-    AS 'begin RETURN NULL; end'
-;
+    AS '
+BEGIN
+    RETURN NULL;
+
+END;
+';
 
 CREATE TRIGGER no_op_trig
     INSTEAD OF INSERT OR UPDATE OR DELETE ON european_city_view

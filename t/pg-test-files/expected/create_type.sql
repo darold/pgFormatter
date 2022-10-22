@@ -124,7 +124,6 @@ CREATE FUNCTION get_default_test ()
         *
     FROM
         default_test;
-
 '
 LANGUAGE SQL;
 

@@ -14,8 +14,17 @@ INSERT INTO rngfunc2
 
 CREATE FUNCTION rngfunct (int)
     RETURNS SETOF rngfunc2
-    AS 'SELECT * FROM rngfunc2 WHERE rngfuncid = $1 ORDER BY f2;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        *
+    FROM
+        rngfunc2
+    WHERE
+        rngfuncid = $1
+    ORDER BY
+        f2;
+'
+LANGUAGE SQL;
 
 -- function with ORDINALITY
 SELECT
@@ -350,8 +359,11 @@ INSERT INTO rngfunc
 -- sql, proretset = f, prorettype = b
 CREATE FUNCTION getrngfunc1 (int)
     RETURNS int
-    AS 'SELECT $1;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        $1;
+'
+LANGUAGE SQL;
 
 SELECT
     *
@@ -394,8 +406,15 @@ DROP VIEW vw_getrngfunc;
 -- sql, proretset = t, prorettype = b
 CREATE FUNCTION getrngfunc2 (int)
     RETURNS SETOF int
-    AS 'SELECT rngfuncid FROM rngfunc WHERE rngfuncid = $1;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        rngfuncid
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+'
+LANGUAGE SQL;
 
 SELECT
     *
@@ -438,8 +457,15 @@ DROP VIEW vw_getrngfunc;
 -- sql, proretset = t, prorettype = b
 CREATE FUNCTION getrngfunc3 (int)
     RETURNS SETOF text
-    AS 'SELECT rngfuncname FROM rngfunc WHERE rngfuncid = $1;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        rngfuncname
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+'
+LANGUAGE SQL;
 
 SELECT
     *
@@ -482,8 +508,15 @@ DROP VIEW vw_getrngfunc;
 -- sql, proretset = f, prorettype = c
 CREATE FUNCTION getrngfunc4 (int)
     RETURNS rngfunc
-    AS 'SELECT * FROM rngfunc WHERE rngfuncid = $1;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        *
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+'
+LANGUAGE SQL;
 
 SELECT
     *
@@ -526,8 +559,15 @@ DROP VIEW vw_getrngfunc;
 -- sql, proretset = t, prorettype = c
 CREATE FUNCTION getrngfunc5 (int)
     RETURNS SETOF rngfunc
-    AS 'SELECT * FROM rngfunc WHERE rngfuncid = $1;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        *
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+'
+LANGUAGE SQL;
 
 SELECT
     *
@@ -570,8 +610,15 @@ DROP VIEW vw_getrngfunc;
 -- sql, proretset = f, prorettype = record
 CREATE FUNCTION getrngfunc6 (int)
     RETURNS RECORD
-    AS 'SELECT * FROM rngfunc WHERE rngfuncid = $1;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        *
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+'
+LANGUAGE SQL;
 
 SELECT
     *
@@ -619,8 +666,15 @@ DROP VIEW vw_getrngfunc;
 -- sql, proretset = t, prorettype = record
 CREATE FUNCTION getrngfunc7 (int)
     RETURNS SETOF record
-    AS 'SELECT * FROM rngfunc WHERE rngfuncid = $1;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        *
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+'
+LANGUAGE SQL;
 
 SELECT
     *
@@ -668,8 +722,23 @@ DROP VIEW vw_getrngfunc;
 -- plpgsql, proretset = f, prorettype = b
 CREATE FUNCTION getrngfunc8 (int)
     RETURNS int
-    AS 'DECLARE rngfuncint int; BEGIN SELECT rngfuncid into rngfuncint FROM rngfunc WHERE rngfuncid = $1; RETURN rngfuncint; END;'
-    LANGUAGE plpgsql;
+    AS '
+DECLARE
+    rngfuncint int;
+
+BEGIN
+    SELECT
+        rngfuncid INTO rngfuncint
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+
+RETURN rngfuncint;
+
+END;
+'
+LANGUAGE plpgsql;
 
 SELECT
     *
@@ -712,8 +781,23 @@ DROP VIEW vw_getrngfunc;
 -- plpgsql, proretset = f, prorettype = c
 CREATE FUNCTION getrngfunc9 (int)
     RETURNS rngfunc
-    AS 'DECLARE rngfunctup rngfunc%ROWTYPE; BEGIN SELECT * into rngfunctup FROM rngfunc WHERE rngfuncid = $1; RETURN rngfunctup; END;'
-    LANGUAGE plpgsql;
+    AS '
+DECLARE
+    rngfunctup rngfunc%ROWTYPE;
+
+BEGIN
+    SELECT
+        * INTO rngfunctup
+    FROM
+        rngfunc
+    WHERE
+        rngfuncid = $1;
+
+RETURN rngfunctup;
+
+END;
+'
+LANGUAGE plpgsql;
 
 SELECT
     *
@@ -847,14 +931,29 @@ CREATE TYPE rngfunc_rescan_t AS (
 
 CREATE FUNCTION rngfunc_sql (int, int)
     RETURNS SETOF rngfunc_rescan_t
-    AS 'SELECT i, nextval(''rngfunc_rescan_seq1'') FROM generate_series($1,$2) i;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        i,
+        nextval(''rngfunc_rescan_seq1'')
+    FROM
+        generate_series($1, $2) i;
+'
+LANGUAGE SQL;
 
 -- plpgsql functions use materialize mode
 CREATE FUNCTION rngfunc_mat (int, int)
     RETURNS SETOF rngfunc_rescan_t
-    AS 'begin for i in $1..$2 loop return next (i, nextval(''rngfunc_rescan_seq2'')); end loop; end;'
-    LANGUAGE plpgsql;
+    AS '
+BEGIN
+    FOR i IN $1..$2 LOOP
+        RETURN NEXT (i,
+            nextval(''rngfunc_rescan_seq2''));
+
+END LOOP;
+
+END;
+'
+LANGUAGE plpgsql;
 
 --invokes ExecReScanFunctionScan - all these cases should materialize the function only once
 -- LEFT JOIN on a condition that the planner can't prove to be true is used to ensure the function
@@ -1283,8 +1382,11 @@ DROP SEQUENCE rngfunc_rescan_seq2;
 -- Test cases involving OUT parameters
 --
 CREATE FUNCTION rngfunc (IN f1 int, out f2 int)
-AS 'select $1+1'
-    LANGUAGE sql;
+AS '
+    SELECT
+        $1 + 1;
+'
+LANGUAGE sql;
 
 SELECT
     rngfunc (42);
@@ -1302,25 +1404,37 @@ FROM
 -- explicit spec of return type is OK
 CREATE OR REPLACE FUNCTION rngfunc (IN f1 int, out f2 int)
     RETURNS int
-    AS 'select $1+1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1 + 1;
+'
+LANGUAGE sql;
 
 -- error, wrong result type
 CREATE OR REPLACE FUNCTION rngfunc (IN f1 int, out f2 int)
     RETURNS float
-    AS 'select $1+1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1 + 1;
+'
+LANGUAGE sql;
 
 -- with multiple OUT params you must get a RECORD result
 CREATE OR REPLACE FUNCTION rngfunc (IN f1 int, out f2 int, out f3 text)
     RETURNS int
-    AS 'select $1+1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1 + 1;
+'
+LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION rngfunc (IN f1 int, out f2 int, out f3 text)
     RETURNS record
-    AS 'select $1+1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1 + 1;
+'
+LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION rngfuncr (IN f1 int, out f2 int, out text)
 AS $$
@@ -1383,8 +1497,12 @@ DROP FUNCTION rngfuncb (IN f1 int, INOUT f2 int);
 -- For my next trick, polymorphic OUT parameters
 --
 CREATE FUNCTION dup (f1 anyelement, f2 out anyelement, f3 out anyarray)
-AS 'select $1, array[$1,$1]'
-    LANGUAGE sql;
+AS '
+    SELECT
+        $1,
+        ARRAY[$1, $1];
+'
+LANGUAGE sql;
 
 SELECT
     dup (22);
@@ -1403,15 +1521,23 @@ FROM
 
 -- fails, as we are attempting to rename first argument
 CREATE OR REPLACE FUNCTION dup (INOUT f2 anyelement, out f3 anyarray)
-AS 'select $1, array[$1,$1]'
-    LANGUAGE sql;
+AS '
+    SELECT
+        $1,
+        ARRAY[$1, $1];
+'
+LANGUAGE sql;
 
 DROP FUNCTION dup (anyelement);
 
 -- equivalent behavior, though different name exposed for input arg
 CREATE OR REPLACE FUNCTION dup (INOUT f2 anyelement, out f3 anyarray)
-AS 'select $1, array[$1,$1]'
-    LANGUAGE sql;
+AS '
+    SELECT
+        $1,
+        ARRAY[$1, $1];
+'
+LANGUAGE sql;
 
 SELECT
     dup (22);
@@ -1420,8 +1546,12 @@ DROP FUNCTION dup (anyelement);
 
 -- fails, no way to deduce outputs
 CREATE FUNCTION bad (f1 int, out f2 anyelement, out f3 anyarray)
-AS 'select $1, array[$1,$1]'
-    LANGUAGE sql;
+AS '
+    SELECT
+        $1,
+        ARRAY[$1, $1];
+'
+LANGUAGE sql;
 
 --
 -- table functions
@@ -1698,7 +1828,6 @@ CREATE FUNCTION testrngfunc ()
         VALUES (1, 2)
     RETURNING
         *;
-
 $$
 LANGUAGE sql;
 
@@ -1727,7 +1856,6 @@ CREATE FUNCTION testrngfunc ()
         (3, 4)
     RETURNING
         *;
-
 $$
 LANGUAGE sql;
 
@@ -1779,7 +1907,6 @@ CREATE OR REPLACE FUNCTION get_first_user ()
     ORDER BY
         userid
     LIMIT 1;
-
 $$
 LANGUAGE sql
 STABLE;
@@ -1801,7 +1928,6 @@ CREATE OR REPLACE FUNCTION get_users ()
         users
     ORDER BY
         userid;
-
 $$
 LANGUAGE sql
 STABLE;
@@ -1897,7 +2023,6 @@ CREATE OR REPLACE FUNCTION rngfuncbar ()
     UNION ALL
     SELECT
         'bar'::varchar;
-
 $$
 LANGUAGE sql
 STABLE;

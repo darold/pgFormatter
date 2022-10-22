@@ -715,8 +715,11 @@ ORDER BY
 
 CREATE FUNCTION dup (anyelement)
     RETURNS anyelement
-    AS 'select $1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1;
+'
+LANGUAGE sql;
 
 SELECT
     a,

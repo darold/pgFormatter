@@ -647,9 +647,14 @@ ORDER BY
 -- But ORDER BY on a set-valued expression does
 CREATE FUNCTION sillysrf (int)
     RETURNS SETOF int
-    AS 'values (1),(10),(2),($1)'
-    LANGUAGE sql
-    IMMUTABLE;
+    AS '
+    VALUES (1),
+    (10),
+    (2),
+    ($1);
+'
+LANGUAGE sql
+IMMUTABLE;
 
 SELECT
     sillysrf (42);

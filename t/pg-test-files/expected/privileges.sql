@@ -1261,13 +1261,19 @@ TO regress_priv_user2;
 -- fail
 CREATE FUNCTION priv_testfunc1 (int)
     RETURNS int
-    AS 'select 2 * $1;'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        2 * $1;
+'
+LANGUAGE sql;
 
 CREATE FUNCTION priv_testfunc2 (int)
     RETURNS int
-    AS 'select 3 * $1;'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        3 * $1;
+'
+LANGUAGE sql;
 
 CREATE AGGREGATE priv_testagg1 (int) (
     SFUNC = int4pl,
@@ -1275,8 +1281,11 @@ CREATE AGGREGATE priv_testagg1 (int) (
 );
 
 CREATE PROCEDURE priv_testproc1 (int)
-    AS 'select $1;'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1;
+'
+LANGUAGE sql;
 
 REVOKE ALL ON FUNCTION priv_testfunc1 (int), priv_testfunc2 (int), priv_testagg1 (int) FROM PUBLIC;
 
@@ -1308,9 +1317,16 @@ GRANT ALL PRIVILEGES ON PROCEDURE priv_testproc1 (int) TO regress_priv_user4;
 
 CREATE FUNCTION priv_testfunc4 (boolean)
     RETURNS text
-    AS 'select col1 from atest2 where col2 = $1;'
-    LANGUAGE sql
-    SECURITY DEFINER;
+    AS '
+    SELECT
+        col1
+    FROM
+        atest2
+    WHERE
+        col2 = $1;
+'
+LANGUAGE sql
+SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION priv_testfunc4 (boolean) TO regress_priv_user3;
 
@@ -1323,8 +1339,11 @@ SELECT
 -- ok
 CREATE FUNCTION priv_testfunc3 (int)
     RETURNS int
-    AS 'select 2 * $1;'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        2 * $1;
+'
+LANGUAGE sql;
 
 -- fail
 SELECT
@@ -2107,8 +2126,9 @@ CREATE FUNCTION dogrant_ok ()
     RETURNS void
     LANGUAGE sql
     SECURITY DEFINER
-    AS 'GRANT regress_priv_group2 TO regress_priv_user5'
-;
+    AS '
+    GRANT regress_priv_group2 TO regress_priv_user5;
+';
 
 GRANT regress_priv_group2 TO regress_priv_user5;
 
@@ -2141,8 +2161,9 @@ CREATE FUNCTION dogrant_fails ()
     RETURNS void
     LANGUAGE sql
     SECURITY DEFINER
-    AS 'GRANT regress_priv_group2 TO regress_priv_user5'
-;
+    AS '
+    GRANT regress_priv_group2 TO regress_priv_user5;
+';
 
 SELECT
     dogrant_fails ();
@@ -2513,8 +2534,11 @@ SET ROLE regress_priv_user1;
 
 CREATE FUNCTION testns.foo ()
     RETURNS int
-    AS 'select 1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        1;
+'
+LANGUAGE sql;
 
 CREATE AGGREGATE testns.agg1 (int) (
     SFUNC = int4pl,
@@ -2522,8 +2546,11 @@ CREATE AGGREGATE testns.agg1 (int) (
 );
 
 CREATE PROCEDURE testns.bar ()
-    AS 'select 1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        1;
+'
+LANGUAGE sql;
 
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.foo()', 'EXECUTE');
@@ -2543,8 +2570,11 @@ DROP FUNCTION testns.foo ();
 
 CREATE FUNCTION testns.foo ()
     RETURNS int
-    AS 'select 1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        1;
+'
+LANGUAGE sql;
 
 DROP AGGREGATE testns.agg1 (int);
 
@@ -2556,8 +2586,11 @@ CREATE AGGREGATE testns.agg1 (int) (
 DROP PROCEDURE testns.bar ();
 
 CREATE PROCEDURE testns.bar ()
-    AS 'select 1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        1;
+'
+LANGUAGE sql;
 
 SELECT
     has_function_privilege('regress_priv_user2', 'testns.foo()', 'EXECUTE');
@@ -2664,8 +2697,11 @@ SELECT
 -- false
 CREATE FUNCTION testns.priv_testfunc (int)
     RETURNS int
-    AS 'select 3 * $1;'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        3 * $1;
+'
+LANGUAGE sql;
 
 CREATE AGGREGATE testns.priv_testagg (int) (
     SFUNC = int4pl,
@@ -2673,8 +2709,11 @@ CREATE AGGREGATE testns.priv_testagg (int) (
 );
 
 CREATE PROCEDURE testns.priv_testproc (int)
-    AS 'select 3'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        3;
+'
+LANGUAGE sql;
 
 SELECT
     has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE');

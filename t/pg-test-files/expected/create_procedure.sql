@@ -68,7 +68,7 @@ CREATE PROCEDURE ptest3 (y text)
 LANGUAGE SQL
 AS $$
     CALL ptest1 (y);
-        CALL ptest1 ($1);
+    CALL ptest1 ($1);
 $$;
 
 CALL ptest3 ('b');
@@ -93,7 +93,7 @@ CREATE PROCEDURE ptest4b (INOUT b int, INOUT a int)
 LANGUAGE SQL
 AS $$
     CALL ptest4a (a, b);
-        -- error, not supported
+    -- error, not supported
 $$;
 
 DROP PROCEDURE ptest4a;

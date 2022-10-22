@@ -3,7 +3,6 @@ CREATE FUNCTION alter_op_test_fn (boolean, boolean)
     AS $$
     SELECT
         NULL::boolean;
-
 $$
 LANGUAGE sql
 IMMUTABLE;

@@ -30,7 +30,6 @@ CREATE FUNCTION casttestfunc (casttesttype)
     AS $$
     SELECT
         1;
-
 $$;
 
 SELECT
@@ -78,7 +77,6 @@ CREATE FUNCTION int4_casttesttype (int4)
     AS $$
     SELECT
         ('foo'::text || $1::text)::casttesttype;
-
 $$;
 
 CREATE CAST (int4 AS casttesttype) WITH FUNCTION int4_casttesttype (int4) AS IMPLICIT;

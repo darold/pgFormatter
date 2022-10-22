@@ -54,7 +54,6 @@ CREATE FUNCTION ADD (integer, integer)
     AS $_$
     SELECT
         $1 + $2;
-
 $_$;
 
 DO $$
@@ -131,7 +130,6 @@ CREATE OR REPLACE FUNCTION chkrolattr ()
                 ('None', '-')) AS v (uname, keyword) ON (r.rolname = v.uname)
     ORDER BY
         1;
-
 $$
 LANGUAGE SQL;
 

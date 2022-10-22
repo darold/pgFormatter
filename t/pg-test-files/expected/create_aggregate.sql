@@ -57,9 +57,12 @@ COMMENT ON AGGREGATE newcnt ("any") IS 'an agg(any) comment';
 -- multi-argument aggregate
 CREATE FUNCTION sum3 (int8, int8, int8)
     RETURNS int8
-    AS 'select $1 + $2 + $3'
-    LANGUAGE sql
-    STRICT IMMUTABLE;
+    AS '
+    SELECT
+        $1 + $2 + $3;
+'
+LANGUAGE sql
+STRICT IMMUTABLE;
 
 CREATE AGGREGATE sum2 (int8, int8) (
     SFUNC = sum3,
@@ -76,15 +79,21 @@ CREATE TYPE aggtype AS (
 
 CREATE FUNCTION aggf_trans (aggtype[], integer, integer, text)
     RETURNS aggtype[]
-    AS 'select array_append($1,ROW($2,$3,$4)::aggtype)'
-    LANGUAGE sql
-    STRICT IMMUTABLE;
+    AS '
+    SELECT
+        array_append($1, ROW ($2, $3, $4)::aggtype);
+'
+LANGUAGE sql
+STRICT IMMUTABLE;
 
 CREATE FUNCTION aggfns_trans (aggtype[], integer, integer, text)
     RETURNS aggtype[]
-    AS 'select array_append($1,ROW($2,$3,$4)::aggtype)'
-    LANGUAGE sql
-    IMMUTABLE;
+    AS '
+    SELECT
+        array_append($1, ROW ($2, $3, $4)::aggtype);
+'
+LANGUAGE sql
+IMMUTABLE;
 
 CREATE AGGREGATE aggfstr (integer, integer, text) (
     SFUNC = aggf_trans,
@@ -103,8 +112,12 @@ CREATE AGGREGATE aggfns (integer, integer, text) (
 CREATE FUNCTION least_accum (anyelement, VARIADIC anyarray)
     RETURNS anyelement
     LANGUAGE sql
-    AS 'select least($1, min($2[i])) from generate_subscripts($2,1) g(i)'
-;
+    AS '
+    SELECT
+        least ($1, min($2[i]))
+    FROM
+        generate_subscripts($2, 1) g (i);
+';
 
 CREATE AGGREGATE least_agg (VARIADIC items anyarray) (
     STYPE = anyelement,
@@ -269,9 +282,12 @@ ORDER by numeric) (
 -- can't change plain function to aggregate:
 CREATE FUNCTION sum4 (int8, int8, int8, int8)
     RETURNS int8
-    AS 'select $1 + $2 + $3 + $4'
-    LANGUAGE sql
-    STRICT IMMUTABLE;
+    AS '
+    SELECT
+        $1 + $2 + $3 + $4;
+'
+LANGUAGE sql
+STRICT IMMUTABLE;
 
 CREATE OR REPLACE AGGREGATE sum3 (int8, int8, int8) (
     STYPE = int8,
@@ -295,7 +311,6 @@ CREATE FUNCTION float8mi_n (float8, float8)
     AS $$
     SELECT
         $1 - $2;
-
 $$
 LANGUAGE SQL;
 
@@ -313,7 +328,6 @@ CREATE FUNCTION float8mi_int (float8, float8)
     AS $$
     SELECT
         CAST($1 - $2 AS int);
-
 $$
 LANGUAGE SQL;
 

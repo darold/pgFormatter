@@ -1255,44 +1255,44 @@ BEGIN
         PSlot
     WHERE
         slotname = $1;
-    IF NOT found THEN
-        RETURN '''';
-    END IF;
-    IF rec.backlink = '''' THEN
-        RETURN ''-'';
-    END IF;
-    bltype := substr(rec.backlink, 1, 2);
-    IF bltype = ''PL'' THEN
-        DECLARE rec record;
-        BEGIN
+        IF NOT found THEN
+            RETURN '''';
+        END IF;
+        IF rec.backlink = '''' THEN
+            RETURN ''-'';
+        END IF;
+        bltype := substr(rec.backlink, 1, 2);
+        IF bltype = ''PL'' THEN
+            DECLARE rec record;
+            BEGIN
+                SELECT
+                    INTO rec *
+                FROM
+                    PLine
+                WHERE
+                    slotname = "outer".rec.backlink;
+                    retval := ''Phone line '' || trim(rec.phonenumber);
+                    IF rec.comment != '''' THEN
+                        retval := retval || '' ('';
+                        retval := retval || rec.comment;
+                        retval := retval || '')'';
+                    END IF;
+                    RETURN retval;
+            END;
+        END IF;
+        IF bltype = ''WS'' THEN
             SELECT
                 INTO rec *
             FROM
-                PLine
+                WSlot
             WHERE
-                slotname = "outer".rec.backlink;
-            retval := ''Phone line '' || trim(rec.phonenumber);
-            IF rec.comment != '''' THEN
-                retval := retval || '' ('';
-                retval := retval || rec.comment;
-                retval := retval || '')'';
-            END IF;
-            RETURN retval;
-        END;
-    END IF;
-    IF bltype = ''WS'' THEN
-        SELECT
-            INTO rec *
-        FROM
-            WSlot
-        WHERE
-            slotname = rec.backlink;
-        retval := trim(rec.slotname) || '' in room '';
-        retval := retval || trim(rec.roomno);
-        retval := retval || '' -> '';
-        RETURN retval || wslot_slotlink_view (rec.slotname);
-    END IF;
-    RETURN rec.backlink;
+                slotname = rec.backlink;
+                retval := trim(rec.slotname) || '' in room '';
+                retval := retval || trim(rec.roomno);
+                retval := retval || '' -> '';
+                RETURN retval || wslot_slotlink_view (rec.slotname);
+        END IF;
+        RETURN rec.backlink;
 END;
 '
 LANGUAGE plpgsql;
@@ -3756,7 +3756,7 @@ BEGIN
     WHERE
         f1 > p1
         OR f1::text = p3 INTO STRICT x;
-    RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
+        RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
 LANGUAGE plpgsql;
@@ -3784,7 +3784,7 @@ BEGIN
     WHERE
         f1 > p1
         OR f1::text = p3 INTO STRICT x;
-    RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
+        RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
 LANGUAGE plpgsql;
@@ -5450,7 +5450,6 @@ CREATE FUNCTION sql_recurse (float8)
     SELECT
         recurse ($1)
     LIMIT 1;
-
 $$
 LANGUAGE sql;
 

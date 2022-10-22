@@ -1019,8 +1019,11 @@ CREATE TABLE p2 (
 
 CREATE FUNCTION p2text (p2)
     RETURNS text
-    AS 'select $1.f1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1.f1;
+'
+LANGUAGE sql;
 
 CREATE TABLE c1 (
     f3 int

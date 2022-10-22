@@ -3711,9 +3711,12 @@ DROP TYPE lockmodes;
 --
 CREATE FUNCTION test_strict (text)
     RETURNS text
-    AS 'select coalesce($1, ''got passed a null'');'
-    LANGUAGE sql
-    RETURNS NULL ON NULL input;
+    AS '
+    SELECT
+        coalesce($1, ''got passed a null'');
+'
+LANGUAGE sql
+RETURNS NULL ON NULL input;
 
 SELECT
     test_strict (NULL);
@@ -3725,9 +3728,12 @@ SELECT
 
 CREATE FUNCTION non_strict (text)
     RETURNS text
-    AS 'select coalesce($1, ''got passed a null'');'
-    LANGUAGE sql
-    called ON NULL input;
+    AS '
+    SELECT
+        coalesce($1, ''got passed a null'');
+'
+LANGUAGE sql
+called ON NULL input;
 
 SELECT
     non_strict (NULL);
@@ -3758,8 +3764,11 @@ FROM
 
 CREATE FUNCTION alter1.plus1 (int)
     RETURNS int
-    AS 'select $1+1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1 + 1;
+'
+LANGUAGE sql;
 
 CREATE DOMAIN alter1.posint integer CHECK (value > 0);
 
@@ -3771,8 +3780,11 @@ CREATE TYPE alter1.ctype AS (
 CREATE FUNCTION alter1.same (alter1.ctype, alter1.ctype)
     RETURNS boolean
     LANGUAGE sql
-    AS 'select $1.f1 is not distinct from $2.f1 and $1.f2 is not distinct from $2.f2'
-;
+    AS '
+    SELECT
+        $1.f1 IS NOT DISTINCT FROM $2.f1
+        AND $1.f2 IS NOT DISTINCT FROM $2.f2;
+';
 
 CREATE OPERATOR alter1.= (
     PROCEDURE = alter1.same,
@@ -5782,7 +5794,6 @@ CREATE FUNCTION at_test_sql_partop (int4, int4)
         ELSE
             -1
         END;
-
 $$;
 
 CREATE OPERATOR class at_test_sql_partop FOR TYPE int4

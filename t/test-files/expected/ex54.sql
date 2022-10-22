@@ -39,8 +39,11 @@ SELECT
     FALSE::boolean::text AS false;
 
 CREATE PROCEDURE testns.bar ()
-    AS 'select 1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        1;
+'
+LANGUAGE sql;
 
 ALTER TABLE test9b
     ALTER COLUMN b TYPE priv_testdomain1;

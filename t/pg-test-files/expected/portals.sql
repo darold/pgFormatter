@@ -298,8 +298,17 @@ FROM
 BEGIN;
 CREATE FUNCTION declares_cursor (text)
     RETURNS void
-    AS 'DECLARE c CURSOR FOR SELECT stringu1 FROM tenk1 WHERE stringu1 LIKE $1;'
-    LANGUAGE SQL;
+    AS '
+DECLARE
+    c CURSOR FOR
+        SELECT
+            stringu1
+        FROM
+            tenk1
+        WHERE
+            stringu1 LIKE $1;
+'
+LANGUAGE SQL;
 SELECT
     declares_cursor ('AB%');
 FETCH ALL FROM c;
@@ -316,15 +325,25 @@ CREATE temp TABLE tt1 (
 
 CREATE FUNCTION count_tt1_v ()
     RETURNS int8
-    AS 'select count(*) from tt1'
-    LANGUAGE sql
-    VOLATILE;
+    AS '
+    SELECT
+        count(*)
+    FROM
+        tt1;
+'
+LANGUAGE sql
+VOLATILE;
 
 CREATE FUNCTION count_tt1_s ()
     RETURNS int8
-    AS 'select count(*) from tt1'
-    LANGUAGE sql
-    STABLE;
+    AS '
+    SELECT
+        count(*)
+    FROM
+        tt1;
+'
+LANGUAGE sql
+STABLE;
 
 BEGIN;
 INSERT INTO tt1
@@ -973,9 +992,13 @@ DROP TABLE CURSOR;
 BEGIN;
 CREATE FUNCTION nochange (int)
     RETURNS int
-    AS 'select $1 limit 1'
-    LANGUAGE sql
-    STABLE;
+    AS '
+    SELECT
+        $1
+    LIMIT 1;
+'
+LANGUAGE sql
+STABLE;
 DECLARE c CURSOR FOR
     SELECT
         *

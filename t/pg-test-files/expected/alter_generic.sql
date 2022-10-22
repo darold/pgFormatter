@@ -34,14 +34,18 @@ SET SESSION AUTHORIZATION regress_alter_generic_user1;
 CREATE FUNCTION alt_func1 (int)
     RETURNS int
     LANGUAGE sql
-    AS 'SELECT $1 + 1'
-;
+    AS '
+    SELECT
+        $1 + 1;
+';
 
 CREATE FUNCTION alt_func2 (int)
     RETURNS int
     LANGUAGE sql
-    AS 'SELECT $1 - 1'
-;
+    AS '
+    SELECT
+        $1 - 1;
+';
 
 CREATE AGGREGATE alt_agg1 (
     SFUNC1 = int4pl,
@@ -104,14 +108,18 @@ SET SESSION AUTHORIZATION regress_alter_generic_user2;
 CREATE FUNCTION alt_func1 (int)
     RETURNS int
     LANGUAGE sql
-    AS 'SELECT $1 + 2'
-;
+    AS '
+    SELECT
+        $1 + 2;
+';
 
 CREATE FUNCTION alt_func2 (int)
     RETURNS int
     LANGUAGE sql
-    AS 'SELECT $1 - 2'
-;
+    AS '
+    SELECT
+        $1 - 2;
+';
 
 CREATE AGGREGATE alt_agg1 (
     SFUNC1 = int4pl,
@@ -295,8 +303,11 @@ WHERE
 --
 CREATE FUNCTION fn_opf12 (int4, int2)
     RETURNS bigint
-    AS 'SELECT NULL::bigint;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        NULL::bigint;
+'
+LANGUAGE SQL;
 
 ALTER OPERATOR FAMILY alt_opf12
     USING btree
@@ -313,8 +324,11 @@ CREATE OPERATOR FAMILY alt_opf13
     USING HASH;
 CREATE FUNCTION fn_opf13 (int4)
     RETURNS bigint
-    AS 'SELECT NULL::bigint;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        NULL::bigint;
+'
+LANGUAGE SQL;
 ALTER OPERATOR FAMILY alt_opf13
     USING HASH
         ADD FUNCTION 1 fn_opf13 (int4);
@@ -328,8 +342,11 @@ CREATE OPERATOR FAMILY alt_opf14
     USING btree;
 CREATE FUNCTION fn_opf14 (int4)
     RETURNS bigint
-    AS 'SELECT NULL::bigint;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        NULL::bigint;
+'
+LANGUAGE SQL;
 ALTER OPERATOR FAMILY alt_opf14
     USING btree
         ADD FUNCTION 1 fn_opf14 (int4);
@@ -343,8 +360,11 @@ CREATE OPERATOR FAMILY alt_opf15
     USING HASH;
 CREATE FUNCTION fn_opf15 (int4, int2)
     RETURNS bigint
-    AS 'SELECT NULL::bigint;'
-    LANGUAGE SQL;
+    AS '
+    SELECT
+        NULL::bigint;
+'
+LANGUAGE SQL;
 ALTER OPERATOR FAMILY alt_opf15
     USING HASH
         ADD FUNCTION 1 fn_opf15 (int4, int2);

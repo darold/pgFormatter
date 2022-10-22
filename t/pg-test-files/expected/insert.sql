@@ -523,7 +523,6 @@ CREATE OR REPLACE FUNCTION part_hashint4_noop (value int4, seed int8)
     AS $$
     SELECT
         value + seed;
-
 $$
 LANGUAGE sql
 IMMUTABLE;

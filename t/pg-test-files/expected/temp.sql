@@ -215,15 +215,17 @@ CREATE FUNCTION public.whoami ()
     RETURNS text
     AS $$
     SELECT
-        'public'::text$$
-        LANGUAGE sql;
+        'public'::text
+$$
+LANGUAGE sql;
 
 CREATE FUNCTION pg_temp.whoami ()
-    RETURNS text AS
+    RETURNS text
+    AS $$
+    SELECT
+        'temp'::text
 $$
-SELECT
-    'temp'::text$$
-    LANGUAGE sql;
+LANGUAGE sql;
 
 -- default should have pg_temp implicitly first, but only for tables
 SELECT

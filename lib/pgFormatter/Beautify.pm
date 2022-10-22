@@ -553,7 +553,9 @@ Code lifted from SQL::Beautify
 sub tokenize_sql
 {
     my $self  = shift;
-    my $query = $self->{ 'query' };
+    my $query = shift;
+    
+    $query ||= $self->{ 'query' };
 
     # just in case it has not been called in the main script
     $query = $self->query() if (!$query);
@@ -675,6 +677,9 @@ sub tokenize_sql
     @query = grep(!/^$/, @query);
 
     #print STDERR "DEBUG KWDLIST: ", join(' | ', @query), "\n";
+
+    return  @query if (wantarray);
+
     $self->{ '_tokens' } = \@query;
 }
 
@@ -779,6 +784,7 @@ sub beautify
     $self->{ '_current_sql_stmt' } = '';
     $self->{ '_is_meta_command' } = 0;
     $self->{ '_fct_code_delimiter' } = '';
+    $self->{ '_language_sql' } = 0;
     $self->{ '_first_when_in_case' } = 0;
     $self->{ '_is_in_if' } = 0;
     $self->{ '_is_in_conversion' } = 0;
@@ -1134,7 +1140,8 @@ sub beautify
 	} elsif ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_index' } = 1;
 	}
-        if ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token !~ /^(EVENT|UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i) {
+        if ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token !~ /^(EVENT|UNIQUE|INDEX|EXTENSION|TYPE|PUBLICATION|OPERATOR|RULE|CONVERSION|DOMAIN)$/i)
+	{
             if ($self->_next_token =~ /^SCHEMA$/i) {
 	        $self->{ '_is_in_create_schema' } = 1;
 	    }
@@ -1280,11 +1287,17 @@ sub beautify
 
 	if ($token =~ /^(BEGIN|DECLARE)$/i)
 	{
+		#	print STDERR "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ $token\n" if (uc($token) eq 'DECLARE');
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
 	    if (uc($token) eq 'BEGIN')
 	    {
 	        push( @{ $self->{ '_begin_level' } }, ($#{ $self->{ '_begin_level' } } < 0) ? 0 : $self->{ '_level' } );
 	    }
+#	    $self->_add_token( $token );
+#	    $self->_new_line($token,$last);
+#	    $self->_over($token,$last);
+#	    $last = $self->_set_last($token, $last);
+#	    next;
 	}
     
         ####
@@ -1340,13 +1353,24 @@ sub beautify
                 $self->_new_line($token,$last);
                 $self->_add_token( $token );
 		$self->_reset_level($token, $last) if ($self->_next_token !~ /CODEPARTB/);
-                $self->{ '_is_in_create' } = 0;
 	    } else {
                 $self->_add_token( $token );
             }
 	    if ($self->_next_token !~ /(CODEPART|IMPLICIT|ASSIGNMENT)/ || $self->_next_token =~ /^'/)
 	    {
-                $self->{ '_fct_code_delimiter' } = '1' if (!$self->{ '_is_in_cast' });
+		if (!$self->{ '_is_in_cast' } and $self->{ '_is_in_create' })
+		{
+		    # extract potential code joined with the code separator
+		    if ($self->{ '_tokens' }->[0] =~ s/^'(.)/$1/)
+		    {
+			$self->{ '_tokens' }->[0] =~ s/[;\s]*'$//;
+			my @tmp_arr = $self->tokenize_sql($self->{ '_tokens' }->[0]);
+			push(@tmp_arr, ";", "'");
+			shift(@{ $self->{ '_tokens' } });
+			unshift(@{ $self->{ '_tokens' } }, "'", @tmp_arr);
+	            }
+                    $self->{ '_fct_code_delimiter' } = '1';
+	        }
 	    }
             $self->{ '_is_in_create' } = 0;
             $last = $self->_set_last($token, $last);
@@ -1393,10 +1417,14 @@ sub beautify
 			    or $self->{ '_tokens' }[1] !~ /KEYWCONST/) {
 		    $self->_new_line($token,$last);
 	    }
-	    $self->_over($token,$last) if (defined $self->_next_token
-			    and $self->_next_token !~ /^(DECLARE|BEGIN)$/i);
+	    if (defined $self->_next_token
+			    and $self->_next_token !~ /^(DECLARE|BEGIN)$/i) {
+		$self->_over($token,$last);
+		$self->{ '_language_sql' } = 1;
+	    }
 
-	    if ($self->{ '_fct_code_delimiter' } eq "'") {
+	    if ($self->{ '_fct_code_delimiter' } eq "'")
+	    {
                 $self->{ '_is_in_block' } = -1;
                 $self->{ '_is_in_exception' } = 0;
                 $self->_reset_level($token, $last) if ($self->_next_token eq ';');
@@ -1405,10 +1433,17 @@ sub beautify
 		$self->{ '_is_in_procedure' } = 0;
 		$self->{ '_is_in_function' } = 0;
 		$self->{ '_is_in_create_function' } = 0;
+		$self->{ '_language_sql' } = 0;
             }
             $last = $self->_set_last($token, $last);
             next;
         }
+
+	# With SQL language the code delimiter can be include with the keyword, try to detect and fix it
+	if ($self->{ '_fct_code_delimiter' } and $token =~ s/(.)\Q$self->{ '_fct_code_delimiter' }\E$/$1/)
+	{
+		unshift(@{ $self->{ '_tokens' } }, $self->{ '_fct_code_delimiter' });
+	}
 
         # Desactivate the block mode when code delimiter is found for the second time
         if ($self->{ '_fct_code_delimiter' } && $token eq $self->{ '_fct_code_delimiter' })
@@ -1419,6 +1454,7 @@ sub beautify
             $self->_reset_level($token, $last);
             $self->{ '_fct_code_delimiter' } = '';
             $self->{ '_current_sql_stmt' } = '';
+	    $self->{ '_language_sql' } = 0;
             $self->_new_line($token,$last);
             $self->_add_token( $token );
             $last = $self->_set_last($token, $last);
@@ -1948,21 +1984,21 @@ sub beautify
 	    #$self->_new_line($token,$last) if ($last !~ /^(VALUES|IMPLICIT|ASSIGNMENT)$/i);
             $self->_new_line($token,$last) if ($last !~ /^VALUES$/i);
             # Add an additional newline after ; when we are not in a function
-            if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' }
+            if ($self->{ '_is_in_block' } == -1 and !$self->{ '_is_in_work' } and !$self->{ '_language_sql' }
 			    and !$self->{ '_is_in_declare' } and uc($last) ne 'VALUES')
 	    {
 		$self->{ '_new_line' } = 0;
-		#$self->_new_line($token,$last) if ($last !~ /^(IMPLICIT|ASSIGNMENT)$/i);
                 $self->_new_line($token,$last);
 		$self->{ 'stmt_number' }++;
 		$self->{ 'content' } .= "-- Statement # $self->{ 'stmt_number' }\n" if ($self->{ 'numbering' } and $#{ $self->{ '_tokens' } } > 0);
             }
             # End of statement; remove all indentation when we are not in a BEGIN/END block
-            if (!$self->{ '_is_in_declare' } and $self->{ '_is_in_block' } == -1)
+            if (!$self->{ '_is_in_declare' } and $self->{ '_is_in_block' } == -1 and !$self->{ '_fct_code_delimiter' })
 	    {
 		    $self->_reset_level($token, $last);
             }
-	    elsif (not defined $self->_next_token or $self->_next_token !~ /^INSERT$/)
+	    #elsif ((not defined $self->_next_token or $self->_next_token !~ /^INSERT$/) and !$self->{ '_fct_code_delimiter' })
+	    elsif (!$self->{ '_language_sql' } and (not defined $self->_next_token or $self->_next_token !~ /^INSERT$/))
 	    {
                 if ($#{ $self->{ '_level_stack' } } == -1) {
                         $self->_set_level(($self->{ '_is_in_declare' }) ? 1 : ($self->{ '_is_in_block' }+1), $token, $last);
@@ -2084,7 +2120,7 @@ sub beautify
 	    {
                 if (!$self->{ '_is_in_filter' } and ($token !~ /^SET$/i or !$self->{ '_is_in_index' }))
 		{
-		    $self->_back($token, $last) if ((uc($token) ne 'VALUES' or $self->{ '_current_sql_stmt' } ne 'INSERT') and (uc($token) ne 'WHERE' or $self->{'_is_in_with' } < 2 or $self->{ '_level' } > 1));
+			$self->_back($token, $last) if ((uc($token) ne 'VALUES' or $self->{ '_current_sql_stmt' } ne 'INSERT' and $last ne "'")and (uc($token) !~ /^WHERE$/i or $self->{'_is_in_with' } < 2 or $self->{ '_level' } > 1));
 		    if (uc($token) eq 'WHERE' and $self->{'_is_in_function' }
 				    and $self->{ '_is_subquery' } <= 2
 		    )
@@ -2662,6 +2698,7 @@ sub beautify
 
 	     if ($self->{ '_fct_code_delimiter' } and $self->{ '_fct_code_delimiter' } =~ /^'.*'$/) {
 	 	$self->{ '_fct_code_delimiter' } = "";
+		$self->{ '_language_sql' } = 0;
 	     }
 	     if ($self->{ '_is_in_block' } != -1 and !$self->{ '_fct_code_delimiter' })
 	     {
@@ -2749,8 +2786,19 @@ sub beautify
                     $self->_new_line($token,$last);
 		}
 
+		# Remove extra newline at end of code of SQL functions
+		if ($token eq "'" and $last eq ';' and $self->_next_token =~ /^(;|LANGUAGE|STRICT|SET|IMMUTABLE|STABLE|VOLATILE)$/i) {
+			$self->{ 'content' } =~ s/\s+$/\n/s;
+		}
+
 		# Finally add the token without further condition
                 $self->_add_token( $token, $last );
+		if ($last eq "'" and $token =~ /^(BEGIN|DECLARE)$/i)
+		{
+		    $last = $self->_set_last($token, $last);
+                    $self->_new_line($token,$last);
+                    $self->_over($token,$last);
+		}
 
 		# Reset CREATE statement flag when using CTE
 		if ($self->{ '_is_in_create' } && $self->{ '_is_in_with' }

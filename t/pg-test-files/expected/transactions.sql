@@ -600,8 +600,12 @@ FROM
 CREATE OR REPLACE FUNCTION max_xacttest ()
     RETURNS smallint
     LANGUAGE sql
-    AS 'select max(a) from xacttest'
-    STABLE;
+    AS '
+    SELECT
+        max(a)
+    FROM
+        xacttest;
+' STABLE;
 
 BEGIN;
 UPDATE
@@ -620,8 +624,12 @@ ROLLBACK;
 CREATE OR REPLACE FUNCTION max_xacttest ()
     RETURNS smallint
     LANGUAGE sql
-    AS 'select max(a) from xacttest'
-    VOLATILE;
+    AS '
+    SELECT
+        max(a)
+    FROM
+        xacttest;
+' VOLATILE;
 
 BEGIN;
 UPDATE
@@ -640,8 +648,14 @@ ROLLBACK;
 CREATE OR REPLACE FUNCTION max_xacttest ()
     RETURNS smallint
     LANGUAGE plpgsql
-    AS 'begin return max(a) from xacttest; end'
-    STABLE;
+    AS '
+BEGIN
+    RETURN max(a)
+FROM
+    xacttest;
+
+END;
+' STABLE;
 
 BEGIN;
 UPDATE
@@ -659,8 +673,14 @@ ROLLBACK;
 CREATE OR REPLACE FUNCTION max_xacttest ()
     RETURNS smallint
     LANGUAGE plpgsql
-    AS 'begin return max(a) from xacttest; end'
-    VOLATILE;
+    AS '
+BEGIN
+    RETURN max(a)
+FROM
+    xacttest;
+
+END;
+' VOLATILE;
 
 BEGIN;
 UPDATE

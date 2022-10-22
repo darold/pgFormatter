@@ -303,9 +303,13 @@ FROM
 BEGIN;
 CREATE FUNCTION vol (text)
     RETURNS text
-    AS 'begin return $1; end'
-    LANGUAGE plpgsql
-    VOLATILE;
+    AS '
+BEGIN
+    RETURN $1;
+END;
+'
+LANGUAGE plpgsql
+VOLATILE;
 SELECT
     CASE (
         CASE vol ('bar')
@@ -327,13 +331,25 @@ SELECT
 CREATE DOMAIN foodomain AS text;
 CREATE FUNCTION volfoo (text)
     RETURNS foodomain
-    AS 'begin return $1::foodomain; end'
-    LANGUAGE plpgsql
-    VOLATILE;
+    AS '
+BEGIN
+    RETURN $1::foodomain;
+END;
+'
+LANGUAGE plpgsql
+VOLATILE;
 CREATE FUNCTION inline_eq (foodomain, foodomain)
     RETURNS boolean
-    AS 'SELECT CASE $2::text WHEN $1::text THEN true ELSE false END'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        CASE $2::text
+        WHEN $1::text THEN
+            TRUE
+        ELSE
+            FALSE
+        END;
+'
+LANGUAGE sql;
 CREATE OPERATOR = (
     PROCEDURE = inline_eq,
     LEFTARG = foodomain,
@@ -355,16 +371,24 @@ BEGIN;
 CREATE DOMAIN arrdomain AS int[];
 CREATE FUNCTION make_ad (int, int)
     RETURNS arrdomain
-    AS 'declare x arrdomain;
-   begin
-     x := array[$1,$2];
-     return x;
-   end'
-    LANGUAGE plpgsql
-    VOLATILE;
+    AS '
+DECLARE
+    x arrdomain;
+BEGIN
+    x := ARRAY[$1, $2];
+RETURN x;
+END;
+'
+LANGUAGE plpgsql
+VOLATILE;
 CREATE FUNCTION ad_eq (arrdomain, arrdomain)
-    RETURNS boolean AS 'begin return array_eq($1, $2); end'
-    LANGUAGE plpgsql;
+    RETURNS boolean
+    AS '
+BEGIN
+    RETURN array_eq($1, $2);
+END;
+'
+LANGUAGE plpgsql;
 CREATE OPERATOR = (
     PROCEDURE = ad_eq,
     LEFTARG = arrdomain,

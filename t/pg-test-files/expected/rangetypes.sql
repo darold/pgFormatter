@@ -1274,8 +1274,11 @@ DROP TYPE textrange2;
 --
 CREATE FUNCTION anyarray_anyrange_func (a anyarray, r anyrange)
     RETURNS anyelement
-    AS 'select $1[1] + lower($2);'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        $1[1] + lower($2);
+'
+LANGUAGE sql;
 
 SELECT
     anyarray_anyrange_func (ARRAY[1, 2], int4range(10, 20));
@@ -1289,19 +1292,28 @@ DROP FUNCTION anyarray_anyrange_func (anyarray, anyrange);
 -- should fail
 CREATE FUNCTION bogus_func (anyelement)
     RETURNS anyrange
-    AS 'select int4range(1,10)'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        int4range(1, 10);
+'
+LANGUAGE sql;
 
 -- should fail
 CREATE FUNCTION bogus_func (int)
     RETURNS anyrange
-    AS 'select int4range(1,10)'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        int4range(1, 10);
+'
+LANGUAGE sql;
 
 CREATE FUNCTION range_add_bounds (anyrange)
     RETURNS anyelement
-    AS 'select lower($1) + upper($1)'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        lower($1) + upper($1);
+'
+LANGUAGE sql;
 
 SELECT
     range_add_bounds (int4range(1, 17));

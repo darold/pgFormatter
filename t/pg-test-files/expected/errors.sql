@@ -383,8 +383,11 @@ CREATE TEMPORARY TABLE foo (
 -- max_stack_depth is not set too high
 CREATE FUNCTION infinite_recurse ()
     RETURNS int
-    AS 'select infinite_recurse()'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        infinite_recurse ();
+'
+LANGUAGE sql;
 
 \set VERBOSITY terse
 SELECT

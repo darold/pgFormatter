@@ -100,8 +100,10 @@ CREATE FOREIGN DATA WRAPPER foo VALIDATOR postgresql_fdw_validator;
 CREATE FUNCTION invalid_fdw_handler ()
     RETURNS int
     LANGUAGE SQL
-    AS 'SELECT 1;'
-;
+    AS '
+    SELECT
+        1;
+';
 
 CREATE FOREIGN DATA WRAPPER test_fdw HANDLER invalid_fdw_handler;
 

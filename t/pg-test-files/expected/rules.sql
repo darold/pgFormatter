@@ -1167,8 +1167,15 @@ GROUP BY
 
 CREATE FUNCTION rtest_viewfunc1 (int4)
     RETURNS int4
-    AS 'select count(*)::int4 from rtest_view2 where a = $1'
-    LANGUAGE sql;
+    AS '
+    SELECT
+        count(*)::int4
+    FROM
+        rtest_view2
+    WHERE
+        a = $1;
+'
+LANGUAGE sql;
 
 CREATE VIEW rtest_vview5 AS
 SELECT
@@ -2702,9 +2709,12 @@ DROP TABLE hat_data;
 -- Note that the function is kept around to stress pg_dump.
 CREATE FUNCTION func_with_set_params ()
     RETURNS integer
-    AS 'select 1;'
-    LANGUAGE SQL
-    SET search_path TO PG_CATALOG SET extra_float_digits TO 2 SET work_mem TO '4MB' SET datestyle TO iso, mdy SET local_preload_libraries TO "Mixed/Case", 'c:/''a"/path', '', '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' IMMUTABLE STRICT;
+    AS '
+    SELECT
+        1;
+'
+LANGUAGE SQL
+SET search_path TO PG_CATALOG SET extra_float_digits TO 2 SET work_mem TO '4MB' SET datestyle TO iso, mdy SET local_preload_libraries TO "Mixed/Case", 'c:/''a"/path', '', '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' IMMUTABLE STRICT;
 
 SELECT
     pg_get_functiondef('func_with_set_params()'::regprocedure);

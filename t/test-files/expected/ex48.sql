@@ -67,8 +67,10 @@ WHERE
 CREATE FUNCTION sql_is_distinct_from (anyelement, anyelement)
     RETURNS boolean
     LANGUAGE sql
-    AS 'INSERT INTO dom_table VALUES (1, 2, 3)'
-;
+    AS '
+    INSERT INTO dom_table
+        VALUES (1, 2, 3);
+';
 
 INSERT INTO dom_table
     VALUES ('1');

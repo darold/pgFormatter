@@ -523,7 +523,6 @@ CREATE FUNCTION retset (a int)
     AS $$
     SELECT
         1;
-
 $$
 LANGUAGE SQL
 IMMUTABLE;
@@ -563,7 +562,6 @@ CREATE FUNCTION const_func ()
     AS $$
     SELECT
         1;
-
 $$
 LANGUAGE SQL
 IMMUTABLE;
@@ -599,7 +597,6 @@ CREATE FUNCTION immut_func (a int)
     AS $$
     SELECT
         a + random()::int;
-
 $$
 LANGUAGE SQL;
 
@@ -650,7 +647,6 @@ CREATE FUNCTION plusone (a int)
     AS $$
     SELECT
         a + 1;
-
 $$
 LANGUAGE SQL;
 
@@ -1295,7 +1291,6 @@ CREATE FUNCTION my_int4_sort (int4, int4)
         ELSE
             -1
         END;
-
 $$;
 
 CREATE OPERATOR CLASS test_int4_ops FOR TYPE int4

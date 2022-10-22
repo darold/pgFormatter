@@ -34,8 +34,9 @@ CREATE FUNCTION seclabel_four ()
     RETURNS integer
     AS $$
     SELECT
-        4$$
-        LANGUAGE sql;
+        4
+$$
+LANGUAGE sql;
 
 CREATE DOMAIN seclabel_domain AS text;
 

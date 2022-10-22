@@ -199,7 +199,6 @@ CREATE FUNCTION test_ambiguous_funcname (int)
     AS $$
     SELECT
         $1;
-
 $$
 LANGUAGE sql;
 
@@ -208,7 +207,6 @@ CREATE FUNCTION test_ambiguous_funcname (text)
     AS $$
     SELECT
         $1;
-
 $$
 LANGUAGE sql;
 

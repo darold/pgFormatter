@@ -227,7 +227,6 @@ CREATE FUNCTION make_table ()
         *
     FROM
         int8_tbl;
-
 $$
 LANGUAGE SQL;
 

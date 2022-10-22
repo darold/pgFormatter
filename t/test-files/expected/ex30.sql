@@ -44,7 +44,6 @@ CREATE FUNCTION ADD (integer, integer)
     AS $_$
     SELECT
         $1 + $2;
-
 $_$;
 
 CREATE FUNCTION dup (integer, OUT f1 integer, OUT f2 text)

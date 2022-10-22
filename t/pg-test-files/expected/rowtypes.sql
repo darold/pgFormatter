@@ -886,8 +886,7 @@ CREATE FUNCTION fcompos1 (v compos)
     AS $$
     INSERT INTO compos
         VALUES (v);
-
--- fail
+        -- fail
 $$
 LANGUAGE sql;
 
@@ -896,7 +895,6 @@ CREATE FUNCTION fcompos1 (v compos)
     AS $$
     INSERT INTO compos
         VALUES (v.*);
-
 $$
 LANGUAGE sql;
 
@@ -905,7 +903,6 @@ CREATE FUNCTION fcompos2 (v compos)
     AS $$
     SELECT
         fcompos1 (v);
-
 $$
 LANGUAGE sql;
 
@@ -914,7 +911,6 @@ CREATE FUNCTION fcompos3 (v compos)
     AS $$
     SELECT
         fcompos1 (fcompos3.v.*);
-
 $$
 LANGUAGE sql;
 
@@ -997,7 +993,8 @@ CREATE FUNCTION longname (fullname)
     LANGUAGE sql
     AS $$
     SELECT
-        $1.FIRST || ' ' || $1.last$$;
+        $1.FIRST || ' ' || $1.LAST
+$$;
 
 SELECT
     f.longname

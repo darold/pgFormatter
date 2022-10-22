@@ -21,20 +21,27 @@ SET search_path TO temp_func_test, public;
 CREATE FUNCTION functest_A_1 (text, date)
     RETURNS bool
     LANGUAGE 'sql'
-    AS 'SELECT $1 = ''abcd'' AND $2 > ''2001-01-01'''
-;
+    AS '
+    SELECT
+        $1 = ''abcd''
+        AND $2 > ''2001-01-01'';
+';
 
 CREATE FUNCTION functest_A_2 (text[])
     RETURNS int
     LANGUAGE 'sql'
-    AS 'SELECT $1[0]::int'
-;
+    AS '
+    SELECT
+        $1[0]::int;
+';
 
 CREATE FUNCTION functest_A_3 ()
     RETURNS bool
     LANGUAGE 'sql'
-    AS 'SELECT false'
-;
+    AS '
+    SELECT
+        FALSE;
+';
 
 SELECT
     proname,
@@ -53,29 +60,37 @@ ORDER BY
 CREATE FUNCTION functest_B_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
-    AS 'SELECT $1 > 0'
-;
+    AS '
+    SELECT
+        $1 > 0;
+';
 
 CREATE FUNCTION functest_B_2 (int)
     RETURNS bool
     LANGUAGE 'sql'
     IMMUTABLE
-    AS 'SELECT $1 > 0'
-;
+    AS '
+    SELECT
+        $1 > 0;
+';
 
 CREATE FUNCTION functest_B_3 (int)
     RETURNS bool
     LANGUAGE 'sql'
     STABLE
-    AS 'SELECT $1 = 0'
-;
+    AS '
+    SELECT
+        $1 = 0;
+';
 
 CREATE FUNCTION functest_B_4 (int)
     RETURNS bool
     LANGUAGE 'sql'
     VOLATILE
-    AS 'SELECT $1 < 0'
-;
+    AS '
+    SELECT
+        $1 < 0;
+';
 
 SELECT
     proname,
@@ -108,22 +123,28 @@ ORDER BY
 CREATE FUNCTION functest_C_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
-    AS 'SELECT $1 > 0'
-;
+    AS '
+    SELECT
+        $1 > 0;
+';
 
 CREATE FUNCTION functest_C_2 (int)
     RETURNS bool
     LANGUAGE 'sql'
     SECURITY DEFINER
-    AS 'SELECT $1 = 0'
-;
+    AS '
+    SELECT
+        $1 = 0;
+';
 
 CREATE FUNCTION functest_C_3 (int)
     RETURNS bool
     LANGUAGE 'sql'
     SECURITY INVOKER
-    AS 'SELECT $1 < 0'
-;
+    AS '
+    SELECT
+        $1 < 0;
+';
 
 SELECT
     proname,
@@ -158,15 +179,19 @@ ORDER BY
 CREATE FUNCTION functest_E_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
-    AS 'SELECT $1 > 100'
-;
+    AS '
+    SELECT
+        $1 > 100;
+';
 
 CREATE FUNCTION functest_E_2 (int)
     RETURNS bool
     LANGUAGE 'sql'
     LEAKPROOF
-    AS 'SELECT $1 > 100'
-;
+    AS '
+    SELECT
+        $1 > 100;
+';
 
 SELECT
     proname,
@@ -223,8 +248,10 @@ CREATE FUNCTION functest_E_3 (int)
     RETURNS bool
     LANGUAGE 'sql'
     LEAKPROOF
-    AS 'SELECT $1 < 200'
-;
+    AS '
+    SELECT
+        $1 < 200;
+';
 
 -- fail
 RESET SESSION AUTHORIZATION;
@@ -235,29 +262,37 @@ RESET SESSION AUTHORIZATION;
 CREATE FUNCTION functest_F_1 (int)
     RETURNS bool
     LANGUAGE 'sql'
-    AS 'SELECT $1 > 50'
-;
+    AS '
+    SELECT
+        $1 > 50;
+';
 
 CREATE FUNCTION functest_F_2 (int)
     RETURNS bool
     LANGUAGE 'sql'
     CALLED ON NULL INPUT
-    AS 'SELECT $1 = 50'
-;
+    AS '
+    SELECT
+        $1 = 50;
+';
 
 CREATE FUNCTION functest_F_3 (int)
     RETURNS bool
     LANGUAGE 'sql'
     RETURNS NULL ON NULL INPUT
-    AS 'SELECT $1 < 50'
-;
+    AS '
+    SELECT
+        $1 < 50;
+';
 
 CREATE FUNCTION functest_F_4 (int)
     RETURNS bool
     LANGUAGE 'sql'
     STRICT
-    AS 'SELECT $1 = 50'
-;
+    AS '
+    SELECT
+        $1 = 50;
+';
 
 SELECT
     proname,
@@ -303,20 +338,26 @@ SELECT
 CREATE FUNCTION functest_IS_1 (a int, b int DEFAULT 1, c text DEFAULT 'foo')
     RETURNS int
     LANGUAGE SQL
-    AS 'SELECT $1 + $2'
-;
+    AS '
+    SELECT
+        $1 + $2;
+';
 
 CREATE FUNCTION functest_IS_2 (out a int, b int DEFAULT 1)
     RETURNS int
     LANGUAGE SQL
-    AS 'SELECT $1'
-;
+    AS '
+    SELECT
+        $1;
+';
 
 CREATE FUNCTION functest_IS_3 (a int DEFAULT 1, out b int)
     RETURNS int
     LANGUAGE SQL
-    AS 'SELECT $1'
-;
+    AS '
+    SELECT
+        $1;
+';
 
 SELECT
     routine_name,
@@ -340,8 +381,10 @@ CREATE FUNCTION functest_B_2 (bigint)
     RETURNS bool
     LANGUAGE 'sql'
     IMMUTABLE
-    AS 'SELECT $1 > 0'
-;
+    AS '
+    SELECT
+        $1 > 0;
+';
 
 DROP FUNCTION functest_b_1;
 
@@ -355,20 +398,26 @@ DROP FUNCTION functest_b_2;
 CREATE FUNCTION functest1 (a int)
     RETURNS int
     LANGUAGE SQL
-    AS 'SELECT $1'
-;
+    AS '
+    SELECT
+        $1;
+';
 
 CREATE OR REPLACE FUNCTION functest1 (a int)
     RETURNS int
     LANGUAGE SQL
 WINDOW
-AS 'SELECT $1'
-;
+AS '
+    SELECT
+        $1;
+';
 
 CREATE OR REPLACE PROCEDURE functest1 (a int)
 LANGUAGE SQL
-AS 'SELECT $1'
-;
+AS '
+    SELECT
+        $1;
+';
 
 DROP FUNCTION functest1 (a int);
 

@@ -1436,8 +1436,11 @@ DROP DOMAIN di;
 CREATE FUNCTION sql_is_distinct_from (anyelement, anyelement)
     RETURNS boolean
     LANGUAGE sql
-    AS 'select $1 is distinct from $2 limit 1'
-;
+    AS '
+    SELECT
+        $1 IS DISTINCT FROM $2
+    LIMIT 1;
+';
 
 CREATE DOMAIN inotnull int CHECK (sql_is_distinct_from (value, NULL));
 
