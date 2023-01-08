@@ -611,13 +611,11 @@ DROP TABLE dposintatable;
 DROP DOMAIN posint CASCADE;
 
 -- Test not-null restrictions
-CREATE DOMAIN dnotnull varchar(15)
-NOT NULL;
+CREATE DOMAIN dnotnull varchar(15) NOT NULL;
 
 CREATE DOMAIN dnull varchar(15);
 
-CREATE DOMAIN dcheck varchar(15)
-NOT NULL CHECK (VALUE = 'a'
+CREATE DOMAIN dcheck varchar(15) NOT NULL CHECK (VALUE = 'a'
     OR VALUE = 'c'
     OR VALUE = 'd');
 
@@ -695,8 +693,7 @@ CREATE SEQUENCE ddef4_seq;
 
 CREATE DOMAIN ddef4 int4 DEFAULT nextval('ddef4_seq');
 
-CREATE DOMAIN ddef5 numeric(8, 2)
-NOT NULL DEFAULT '12.12';
+CREATE DOMAIN ddef5 numeric(8, 2) NOT NULL DEFAULT '12.12';
 
 CREATE TABLE defaulttest (
     col1 ddef1,
@@ -1031,8 +1028,7 @@ INSERT INTO domain_test
 ALTER TABLE domain_test
     ADD COLUMN c str_domain;
 
-CREATE DOMAIN str_domain2 AS text CHECK (value <> 'foo')
-DEFAULT 'foo';
+CREATE DOMAIN str_domain2 AS text CHECK (value <> 'foo') DEFAULT 'foo';
 
 -- should fail
 ALTER TABLE domain_test
@@ -1040,8 +1036,7 @@ ALTER TABLE domain_test
 
 -- Check that domain constraints on prepared statement parameters of
 -- unknown type are enforced correctly.
-CREATE DOMAIN pos_int AS int4 CHECK (value > 0)
-NOT NULL;
+CREATE DOMAIN pos_int AS int4 CHECK (value > 0) NOT NULL;
 
 PREPARE s1 AS
 SELECT

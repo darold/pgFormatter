@@ -801,6 +801,7 @@ sub beautify
     $self->{ '_is_in_publication' } = 0;
     $self->{ '_is_in_call' } = 0;
     $self->{ '_is_in_type' } = 0;
+    $self->{ '_is_in_domain' } = 0;
     $self->{ '_is_in_declare' } = 0;
     $self->{ '_is_in_block' } = -1;
     $self->{ '_is_in_work' } = 0;
@@ -1159,6 +1160,8 @@ sub beautify
 	    $self->{ '_is_in_trigger' } = 1;
         } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^TYPE$/i) {
             $self->{ '_is_in_type' } = 1;
+        } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^DOMAIN$/i) {
+            $self->{ '_is_in_domain' } = 1;
         } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^PUBLICATION$/i) {
             $self->{ '_is_in_publication' } = 1;
         } elsif ($token =~ /^CREATE$/i and defined $self->_next_token && $self->_next_token =~ /^CONVERSION$/i) {
@@ -1801,7 +1804,8 @@ sub beautify
 	    $self->{ '_is_subquery' }-- if ($self->{ '_is_subquery' }
 			    and defined $self->_next_token and $#{$self->{ '_tokens' }} >= 1
 			    and (uc($self->_next_token) eq 'AS' or $self->{ '_tokens' }->[ 1 ] eq ','));
-            if ($self->{ '_is_in_create' } <= 1) {
+            if ($self->{ '_is_in_create' } <= 1)
+	    {
                 my $next_tok = quotemeta($self->_next_token);
                 $self->_new_line($token,$last)
                     if (defined $self->_next_token
@@ -1818,6 +1822,7 @@ sub beautify
                     and !exists  $self->{ 'dict' }->{ 'symbols' }{ $next_tok }
 	    	    and !$self->{ '_is_in_over' }
 	            and !$self->{ '_is_in_cast' }
+	            and !$self->{ '_is_in_domain' }
                 );
             }
         }
@@ -1922,6 +1927,7 @@ sub beautify
             $self->{ '_is_in_publication' } = 0;
             $self->{ '_is_in_call' } = 0;
             $self->{ '_is_in_type' } = 0;
+            $self->{ '_is_in_domain' } = 0;
             $self->{ '_is_in_function' } = 0;
             $self->{ '_is_in_prodedure' } = 0;
             $self->{ '_is_in_index' } = 0;
