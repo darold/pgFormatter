@@ -264,7 +264,7 @@ sub query
 
     # Replace aliases using double quote
     my $j = 0;
-    while ($self->{ 'query' } =~ s/(\s+AS\s*)("[^"]+")/$1PGFALIAS$j/is)
+    while ($self->{ 'query' } =~ s/(\s+AS\s*)("+[^"]+"+)/$1PGFALIAS$j/is)
     {
 	    $self->{ 'alias_constant' }{$j} = $2;
 	    $j++;
