@@ -124,6 +124,7 @@ sub beautify {
     $args{ 'keep_newline' } = $self->{ 'cfg' }->{ 'keep-newline' };
     $args{ 'extra_function' } = $self->{ 'cfg' }->{ 'extra-function' };
     $args{ 'extra_keyword' }  = $self->{ 'cfg' }->{ 'extra-keyword' };
+    $args{ 'no_space_function' }  = $self->{ 'cfg' }->{ 'no-space-function' };
     # Backward compatibility
     $args{ 'extra_keyword' }  = 'redshift' if (!$self->{ 'cfg' }->{ 'extra-keyword' } && $self->{ 'cfg' }->{ 'redshift' });
 
@@ -296,6 +297,8 @@ Options:
                             formatting as PostgreSQL internal keyword. Use
 			    special value 'redshift' for support to Redshift
 			    keywords defined internaly in pgFormatter.
+    --no-space-function : remove space between function call and the open
+                            parenthesis.
 
 Examples:
 
@@ -379,6 +382,7 @@ sub get_command_line_args
         'inplace|i!',
 	'extra-function=s',
 	'extra-keyword=s',
+	'no-space-function!',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );

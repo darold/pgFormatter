@@ -79,6 +79,8 @@ Options:
                             formatting as PostgreSQL internal keyword. Use
 			    special value 'redshift' for support to Redshift
 			    keywords defined internaly in pgFormatter.
+    --no-space-function : remove space between function call and the open
+                            parenthesis.
 
 Examples:
 
@@ -114,10 +116,13 @@ following your distribution.
 
 Download the tarball from github and unpack the archive as follow:
 
-	tar xzf pgFormatter-x.x.tar.gz
-	cd pgFormatter-x.x/
+	version=5.3 #please use the latest release version from github
+	wget https://github.com/darold/pgFormatter/archive/refs/tags/v${version}.tar.gz
+	tar xzf v${version}.tar.gz
+	cd pgFormatter-${version}/
 	perl Makefile.PL
 	make && sudo make install
+	cd ../ && rm -rf v${version}.tar.gz && rm -rf pgFormatter-${version} #clean up
 
 This will copy the Perl script pg_format in /usr/local/bin/pg_format directory
 by default and the man page into /usr/local/share/man/man1/pg_format.1. Those are
@@ -143,7 +148,7 @@ If you have docker installed you can build a pgFormatter image using:
 
 then just use it as
 
-	echo file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
+	cat file.sql | docker run --rm -a stdin -a stdout -i darold.net/pgformatter -
 
 
 =head1 SPECIAL FORMATTING
@@ -242,6 +247,18 @@ You can also pass a special value 'redshift' that will load the keywords
 defined internally in pgFormatter for this database. This was historically
 possible through the -r | --redshift option that is now obsolete and will
 be removed in the future.
+
+=head2 Option --no-space-function
+
+Use this option to remove the space character between a function call
+and the open parenthesis that follow. By default pgFormatter adds a space
+character, for example:
+
+    DROP FUNCTION IF EXISTS app_public.hello (a text);
+
+When this option is used the resulting query is formatted as follow:
+
+    DROP FUNCTION IF EXISTS app_public.hello(a text);
 
 =head1 HINTS
 

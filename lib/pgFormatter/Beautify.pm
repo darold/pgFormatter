@@ -160,6 +160,8 @@ Takes options as hash. Following options are recognized:
 
 =item * keep_newline - preserve empty line in plpgsql code 
 
+=item * no_space_function - remove space before function call and open parenthesis
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -174,7 +176,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline)) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function)) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -797,6 +799,7 @@ sub beautify
     $self->{ '_is_in_create_schema' } = 0;
     $self->{ '_is_in_rule' } = 0;
     $self->{ '_is_in_create_function' } = 0;
+    $self->{ '_is_in_drop_function' } = 0;
     $self->{ '_is_in_alter' } = 0;
     $self->{ '_is_in_trigger' } = 0;
     $self->{ '_is_in_publication' } = 0;
@@ -1139,6 +1142,8 @@ sub beautify
         ####
         if ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{ '_is_in_create' } and !$self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_create_function' } = 1;
+	} elsif ($token =~ /^(FUNCTION|PROCEDURE)$/i and defined $last and uc($last) eq 'DROP') {
+		$self->{ '_is_in_drop_function' } = 1;
 	} elsif ($token =~ /^(FUNCTION|PROCEDURE)$/i and $self->{'_is_in_trigger'}) {
 		$self->{ '_is_in_index' } = 1;
 	}
@@ -1969,6 +1974,7 @@ sub beautify
             $self->{ '_is_subquery' } = 0;
 	    $self->{ '_is_in_order_by' } = 0;
 	    $self->{ '_is_in_materialized' } = 0;
+	    $self->{ '_is_in_drop_function' } = 0;
 
 	    if ( $self->{ '_insert_values' } )
 	    {
@@ -2920,7 +2926,10 @@ sub _add_token
 			if ($token =~ /AAKEYWCONST\d+AA\s+AAKEYWCONST\d+AA/) {
 				$token =~ s/(AAKEYWCONST\d+AA)/$sp$1/gs;
 			} else {
-				$self->{ 'content' } .= $sp;
+				$self->{ 'content' } .= $sp if (!$self->{ 'no_space_function' } or $token ne '('
+						or (!$self->{ '_is_in_drop_function' }
+							and !$self->{ '_is_in_create_function' }
+							and !$self->{ '_is_in_trigger' }));
 			}
 		    }
 	        }
@@ -3717,6 +3726,8 @@ Currently defined defaults:
 
 =item keep_newline => 0
 
+=item no_space_function => 0
+
 =back
 
 =cut
@@ -3755,6 +3766,7 @@ sub set_defaults
     $self->{ 'wrap_comment' }  = 0;
     $self->{ 'no_extra_line' } = 0;
     $self->{ 'keep_newline' }  = 0;
+    $self->{ 'no_space_function' } = 0;
 
     return;
 }

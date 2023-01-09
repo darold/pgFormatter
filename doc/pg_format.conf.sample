@@ -82,3 +82,7 @@ wrap-comment=0
 # Add a list of keywords to be formatted as PG internal keywords.
 # Special value redshift mean use internal defined redshift keywords.
 #extra-keyword=/opt/pgFormatter/epas.kw
+
+# Remove the space character between a function call and the open parenthesis that follow.
+no-space-function=0
+
