@@ -182,8 +182,8 @@ DROP TYPE nonesuch;
 
 --
 -- DROP OPERATOR
---
- missing everything DROP OPERATOR;
+-- missing everything
+DROP OPERATOR;
 
 -- bad operator name
 DROP OPERATOR equals;

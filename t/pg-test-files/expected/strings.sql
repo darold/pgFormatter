@@ -374,7 +374,8 @@ insert into toasttest values(repeat('1234567890',10000));
 insert into toasttest values(repeat('1234567890',10000));
 
 -- If the starting position is zero or less, then return from the start of the string
--- adjusting the length to be consistent with the " negative START " per SQL.
+-- adjusting the length to be consistent with the "
+    negative START " per SQL.
 SELECT substr(f1, -1, 5) from toasttest;
 
 -- If the length is less than zero, an ERROR is thrown.
@@ -426,7 +427,8 @@ insert into toasttest values(decode(repeat('1234567890',10000),'escape'));
 insert into toasttest values(decode(repeat('1234567890',10000),'escape'));
 
 -- If the starting position is zero or less, then return from the start of the string
--- adjusting the length to be consistent with the " negative START " per SQL.
+-- adjusting the length to be consistent with the "
+    negative START " per SQL.
     SELECT
         substr(f1, -1, 5)
     FROM

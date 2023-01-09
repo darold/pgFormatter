@@ -1868,7 +1868,8 @@ SELECT
     dfunc (a => /**/ 1);
 
 SELECT
-    dfunc (a => --comment to be removed by psql 1);
+    dfunc (a => --comment to be removed by psql
+        1);
 
 -- need DO to protect the -- from psql
 DO $$
@@ -1876,7 +1877,8 @@ DECLARE
     r integer;
 BEGIN
     SELECT
-        dfunc (a => -- comment 1) INTO r;
+        dfunc (a => -- comment
+            1) INTO r;
     RAISE info 'r = %', r;
 END;
 $$;

@@ -67,7 +67,8 @@ SELECT
     2;
 
 SELECT
-    2 != -- comment to be removed by psql 1;
+    2 != -- comment to be removed by psql
+    1;
 
 DO $$
     -- use DO to protect -- from psql
@@ -264,7 +265,8 @@ LANGUAGE sql
 IMMUTABLE;
 REVOKE EXECUTE ON FUNCTION fn_op5 (int8, int8) FROM regress_rol_op5;
 REVOKE EXECUTE ON FUNCTION fn_op5 (int8, int8) FROM PUBLIC;
--- Need to do this so that regress_rol_op3 is not allowed EXECUTE via PUBLIC SET ROLE regress_rol_op5;
+-- Need to do this so that regress_rol_op3 is not allowed EXECUTE via PUBLIC
+SET ROLE regress_rol_op5;
 CREATE OPERATOR "#*#" (
     LEFTARG = int8,
     RIGHTARG = int8,

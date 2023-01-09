@@ -797,7 +797,8 @@ ff-bg
        document.write(15);
 </script>
 </body>
-</html>', to_tsquery('english', 'sea&foo'), 'HighlightAll=true');
+</html>'
+, to_tsquery('english', 'sea&foo'), 'HighlightAll=true');
 
 SELECT
     ts_headline('simple', '1 2 3 1 3'::text, '1 <-> 3', 'MaxWords=2, MinWords=1');
