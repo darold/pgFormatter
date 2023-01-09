@@ -368,7 +368,8 @@ sub query
     $self->{ 'query' } = join('', @temp_content);
 
     # Store values of code that must not be changed following the given placeholder
-    if ($self->{ 'placeholder' }) {
+    if ($self->{ 'placeholder' })
+    {
 	if (!$self->{ 'multiline' }) 
 	{
 		while ( $self->{ 'query' } =~ s/($self->{ 'placeholder' })/PLACEHOLDER${i}PLACEHOLDER/)
@@ -2726,9 +2727,10 @@ sub beautify
                      $token =~ s/\s+$//s;
                      $token =~ s/^\s+//s;
                      $self->_add_token( $token );
-                     $self->_new_line($token,$last) if ($start || $self->{ 'content' } !~ /\n/s);
+		     $self->_new_line($token,$last) if ($start || ($self->{ 'content' } !~ /\n$/s && uc($self->_next_token) ne 'AS'));
                      # Add extra newline after the last comment if we are not in a block or a statement
-                     if (defined $self->_next_token and $self->_next_token !~ /^\s*--/) {
+                     if (defined $self->_next_token and $self->_next_token !~ /^\s*--/)
+		     {
                          $self->{ 'content' } .= "\n" if ($self->{ '_is_in_block' } == -1
 						 and !$self->{ '_is_in_declare' }
 						 and !$self->{ '_fct_code_delimiter' }
@@ -4292,9 +4294,14 @@ sub _quote_operator
 {
     my ($self, $str) = @_;
 
-    while ($$str =~ s/((?:CREATE|DROP|ALTER)\s+OPERATOR\s+(?:IF\s+EXISTS)?)\s*((:?[a-z0-9]+\.)?[\+\-\*\/<>=\~\!\@\#\%\^\&\|\`\?]+)\s*/$1 "$2" /is) {
-        push(@{ $self->{operator} }, $2) if (!grep(/^\Q$2\E$/, @{ $self->{operator} }));
+    my @lines = split(/[\n]/, $$str);
+    for (my $i = 0; $i <= $#lines; $i++)
+    {
+    	if ($lines[$i] =~ s/((?:CREATE|DROP|ALTER)\s+OPERATOR\s+(?:IF\s+EXISTS)?)\s*((:?[a-z0-9]+\.)?[\+\-\*\/<>=\~\!\@\#\%\^\&\|\`\?]+)\s*/$1 "$2" /i) {
+		push(@{ $self->{operator} }, $2) if (!grep(/^\Q$2\E$/, @{ $self->{operator} }));
+	}
     }
+    $$str = join("\n", @lines);
 
     my $idx = 0;
     while ($$str =~ s/(NEGATOR|COMMUTATOR)\s*=\s*([^,\)\s]+)/\U$1\E$idx/is) {
