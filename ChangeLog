@@ -1,3 +1,43 @@
+January 11 2022 - v5.4
+
+This maintenance release fixes issues reported by users since the last five
+months with some improvements and new features.
+
+New options and features:
+ 
+  - Add option --no-space-function, when used pgFormatter removes the
+    space character between a function call and the open parenthesis that
+    follow. By default pgFormatter adds a space character, for example:
+        DROP FUNCTION IF EXISTS app_public.hello (a text);
+    When this option is used the resulting query is formatted as follow:
+        DROP FUNCTION IF EXISTS app_public.hello(a text);
+    Available in CGI mode as a checkbox.
+  - Add command line option --extra-keyword to apply keywords formatting to
+    a list of additional keywords defined in a file (one keyword per line).
+    You can also pass a special value 'redshift' instead of a path to a file
+    to use the keywords defined internally in pgFormatter for this database.
+    This was historically possible through the -r | --redshift option that
+    is now obsolete and will be removed in the future. Thanks to Thom Brown
+    for the feature request.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Add option --no-space-function. Thanks to Aaron Merryman for the feature
+    request.
+  - Fix particular case of alias with double quote. Thanks to Carl Jackson
+    for the report.
+  - Fix some lines involuntary turned to comment. Thanks to Daniel Kukula
+    for the report.
+  - Fix CREATE DOMAIN formatting. Thanks to Daniel Kukula for the report.
+  - Add formatting of code from SQL function.
+  - Fix wrong indentation in ORDER BY clause. Thanks to Thom Brown for
+    the report.
+  - Fix CREATE TRIGGER formatting when there is a OR REPLACE clause. Thanks
+    to hexcowboy for the report.
+  - Fix documentation by using variable based installation instruction.
+    Thanks to Lav Patel for the patch.
+  - Add the possibility to format in place multiple files. Thanks to Benjamin
+    Yolken for the report.
 
 August 07 2022 - v5.3
 
