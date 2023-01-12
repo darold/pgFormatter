@@ -2733,7 +2733,7 @@ sub beautify
                      $token =~ s/\s+$//s;
                      $token =~ s/^\s+//s;
                      $self->_add_token( $token );
-		     $self->_new_line($token,$last) if ($start || ($self->{ 'content' } !~ /\n$/s && uc($self->_next_token) ne 'AS'));
+		     $self->_new_line($token,$last) if ($start || ($self->{ 'content' } !~ /\n$/s && defined $self->_next_token && uc($self->_next_token) ne 'AS'));
                      # Add extra newline after the last comment if we are not in a block or a statement
                      if (defined $self->_next_token and $self->_next_token !~ /^\s*--/)
 		     {
