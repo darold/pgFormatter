@@ -90,7 +90,7 @@ ORDER BY
 -- ordered months in vertical header, ordered years in horizontal header
 SELECT
     EXTRACT(year FROM d) AS year,
-    to_char(d, 'Mon') AS "" "month"" name",
+    to_char(d, 'Mon') AS """month"" name",
     EXTRACT(month FROM d) AS month,
     format('sum=%s avg=%s', sum(i), avg(i)::numeric(2, 1))
 FROM
