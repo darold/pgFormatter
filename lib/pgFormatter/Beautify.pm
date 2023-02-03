@@ -2930,6 +2930,11 @@ sub _add_token
 						or (!$self->{ '_is_in_drop_function' }
 							and !$self->{ '_is_in_create_function' }
 							and !$self->{ '_is_in_trigger' }));
+				if ($self->{ 'no_space_function' } and $token eq '(' and !$self->_is_keyword( $last_token, $token, undef ))
+				{
+					#	print STDERR "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU $last_token :: $token\n";
+					$self->{ 'content' } =~ s/$sp$//s;
+				}
 			}
 		    }
 	        }

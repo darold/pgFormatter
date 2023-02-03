@@ -25,6 +25,7 @@ foreach my $f (@files)
 	$opt = "--extra-keyword t/redshift.kw " if ($f =~ m#/ex69.sql$#);
 	$opt = "-w 60 -C -p 'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'" if ($f =~ m#/ex62.sql$#);
 	$opt = "--keyword-case 2 --function-case 1 --comma-start --wrap-after 1 --wrap-limit 40 --tabs --spaces 4 " if ($f =~ m#/ex58.sql$#);
+	$opt = "--no-space-function" if ($f =~ m#/ex70.sql$#);
 	if ($f =~ m#/ex61.sql$#)
 	{
 		my ($fh, $tmpfile) = tempfile('tmp_pgformatXXXX', SUFFIX => '.lst', TMPDIR => 1, O_TEMPORARY => 1, UNLINK => 1 );
