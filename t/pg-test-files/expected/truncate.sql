@@ -55,28 +55,49 @@ CREATE TABLE trunc_e (
 TRUNCATE TABLE truncate_a;
 
 -- fail
-TRUNCATE TABLE truncate_a, trunc_b;
+TRUNCATE TABLE
+    truncate_a,
+    trunc_b;
 
 -- fail
-TRUNCATE TABLE truncate_a, trunc_b, trunc_e;
+TRUNCATE TABLE
+    truncate_a,
+    trunc_b,
+    trunc_e;
 
 -- ok
-TRUNCATE TABLE truncate_a, trunc_e;
+TRUNCATE TABLE
+    truncate_a,
+    trunc_e;
 
 -- fail
 TRUNCATE TABLE trunc_c;
 
 -- fail
-TRUNCATE TABLE trunc_c, trunc_d;
+TRUNCATE TABLE
+    trunc_c,
+    trunc_d;
 
 -- fail
-TRUNCATE TABLE trunc_c, trunc_d, trunc_e;
+TRUNCATE TABLE
+    trunc_c,
+    trunc_d,
+    trunc_e;
 
 -- ok
-TRUNCATE TABLE trunc_c, trunc_d, trunc_e, truncate_a;
+TRUNCATE TABLE
+    trunc_c,
+    trunc_d,
+    trunc_e,
+    truncate_a;
 
 -- fail
-TRUNCATE TABLE trunc_c, trunc_d, trunc_e, truncate_a, trunc_b;
+TRUNCATE TABLE
+    trunc_c,
+    trunc_d,
+    trunc_e,
+    truncate_a,
+    trunc_b;
 
 -- ok
 TRUNCATE TABLE truncate_a RESTRICT;
@@ -107,13 +128,27 @@ INSERT INTO trunc_e
 
 TRUNCATE TABLE trunc_c;
 
-TRUNCATE TABLE trunc_c, truncate_a;
+TRUNCATE TABLE
+    trunc_c,
+    truncate_a;
 
-TRUNCATE TABLE trunc_c, truncate_a, trunc_d;
+TRUNCATE TABLE
+    trunc_c,
+    truncate_a,
+    trunc_d;
 
-TRUNCATE TABLE trunc_c, truncate_a, trunc_d, trunc_e;
+TRUNCATE TABLE
+    trunc_c,
+    truncate_a,
+    trunc_d,
+    trunc_e;
 
-TRUNCATE TABLE trunc_c, truncate_a, trunc_d, trunc_e, trunc_b;
+TRUNCATE TABLE
+    trunc_c,
+    truncate_a,
+    trunc_d,
+    trunc_e,
+    trunc_b;
 
 -- Verify that truncating did actually work
 SELECT
@@ -265,7 +300,9 @@ SELECT
     *
 FROM
     trunc_faa;
-TRUNCATE ONLY trunc_fb, ONLY trunc_fa;
+TRUNCATE ONLY
+    trunc_fb,
+    ONLY trunc_fa;
 SELECT
     *
 FROM
@@ -293,7 +330,9 @@ SELECT
     *
 FROM
     trunc_faa;
-TRUNCATE ONLY trunc_fb, trunc_fa;
+TRUNCATE ONLY
+    trunc_fb,
+    trunc_fa;
 SELECT
     *
 FROM
@@ -584,7 +623,9 @@ SELECT
     tp_ins_data ();
 
 -- should truncate everything
-TRUNCATE TABLE truncprim, truncpart;
+TRUNCATE TABLE
+    truncprim,
+    truncpart;
 
 SELECT
     *

@@ -833,6 +833,7 @@ sub beautify
     $self->{ '_is_in_partition' } = 0;
     $self->{ '_is_in_over' } = 0;
     $self->{ '_is_in_policy' } = 0;
+    $self->{ '_is_in_truncate' } = 0;
     $self->{ '_is_in_using' } = 0;
     $self->{ '_and_level' } = 0;
     $self->{ '_col_count' } = 0;
@@ -1608,6 +1609,44 @@ sub beautify
             $last = $self->_set_last($token, $last);
 	    next;
         }
+        elsif ($token =~ /^TRUNCATE$/i && $self->_next_token !~ /^(TABLE|ONLY|,)$/i)
+	{
+            $self->{ '_is_in_truncate' } = 1;
+            $self->_add_token( $token );
+            $last = $self->_set_last($token, $last);
+	    my $str_tmp = join(' ', @{ $self->{ '_tokens' } });
+	    $str_tmp =~ s/;.*//s;
+	    if ($str_tmp =~ / , /s)
+	    {
+                $self->_new_line($token,$last);
+                $self->_over($token,$last);
+                $self->{ '_is_in_truncate' } = 2;
+	    }
+	    next;
+        }
+        elsif ($token =~ /^(TABLE|ONLY)$/i && uc($last) eq 'TRUNCATE')
+	{
+            $self->{ '_is_in_truncate' } = 1;
+            $self->_add_token( $token );
+            $last = $self->_set_last($token, $last);
+	    my $str_tmp = join(' ', @{ $self->{ '_tokens' } });
+	    $str_tmp =~ s/;.*//s;
+	    if ($str_tmp =~ / , /s)
+	    {
+                $self->_new_line($token,$last);
+                $self->_over($token,$last);
+                $self->{ '_is_in_truncate' } = 2;
+	    }
+	    next;
+        }
+        elsif ($token =~ /^(RESTART|CASCADE)$/i && $self->{ '_is_in_truncate' } == 2)
+	{
+            $self->_new_line($token,$last);
+            $self->_back($token,$last);
+            $self->_add_token( $token );
+            $last = $self->_set_last($token, $last);
+	    next;
+        }
         elsif ($token =~ /^TRIGGER$/i and defined $last and $last =~ /^(CREATE|CONSTRAINT|REPLACE)$/i)
 	{
             $self->{ '_is_in_trigger' } = 1;
@@ -1900,6 +1939,7 @@ sub beautify
 	    $add_newline = 0 if ($self->{ '_is_in_function' } or $self->{ '_is_in_statistics' });
 	    $add_newline = 0 if (defined $self->_next_token and !$self->{ 'no_comments' } and $self->_is_comment($self->_next_token));
 	    $add_newline = 0 if (defined $self->_next_token and $self->_next_token =~ /KEYWCONST/ and $self->{ '_tokens' }[1] =~ /^(LANGUAGE|STRICT)$/i);
+	    $add_newline = 1 if ($self->{ '_is_in_truncate' });
 	    $self->_new_line($token,$last) if ($add_newline and $self->{ 'comma' } eq 'end' and ($self->{ 'comma_break' } || $self->{ '_current_sql_stmt' } ne 'INSERT'));
         }
 
@@ -1954,6 +1994,7 @@ sub beautify
             $self->{ '_is_in_partition' } = 0;
             $self->{ '_is_in_over' } = 0;
 	    $self->{ '_is_in_policy' } = 0;
+	    $self->{ '_is_in_truncate' } = 0;
 	    $self->{ '_is_in_trigger' } = 0;
 	    $self->{ '_is_in_using' } = 0;
 	    $self->{ '_and_level' } = 0;
