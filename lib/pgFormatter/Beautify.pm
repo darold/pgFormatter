@@ -810,6 +810,7 @@ sub beautify
     $self->{ '_is_in_block' } = -1;
     $self->{ '_is_in_work' } = 0;
     $self->{ '_is_in_function' } = 0;
+    $self->{ '_current_function' } = '';
     $self->{ '_is_in_statistics' } = 0;
     $self->{ '_is_in_cast' } = 0;
     $self->{ '_is_in_procedure' } = 0;
@@ -921,6 +922,7 @@ sub beautify
             if (uc($last) eq 'FUNCTION' and $token =~ /^\d+$/) {
                 $self->{ '_is_in_function' }++;
 	    } elsif ($word && exists $self->{ 'dict' }->{ 'pg_functions' }{$word}) {
+		$self->{ '_current_function' } = $word;
                 $self->{ '_is_in_function' }++ if ($self->{ '_is_in_create' } != 1 or $token =~ /^CAST$/i);
             # Try to detect user defined functions
 	    } elsif ($last ne '*' and !$self->_is_keyword($token, $self->_next_token(), $last)
@@ -1975,6 +1977,7 @@ sub beautify
             $self->{ '_is_in_type' } = 0;
             $self->{ '_is_in_domain' } = 0;
             $self->{ '_is_in_function' } = 0;
+            $self->{ '_current_function' } = '';
             $self->{ '_is_in_prodedure' } = 0;
             $self->{ '_is_in_index' } = 0;
 	    $self->{ '_is_in_statistics' } = 0;
@@ -2118,16 +2121,12 @@ sub beautify
 	    # Case of DISTINCT FROM clause
             if ($token =~ /^FROM$/i)
 	    {
-		    if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_fetch' } || $self->{ '_is_in_alter' } || $self->{ '_is_in_conversion' })
-		    {
+		if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_fetch' } || $self->{ '_is_in_alter' } || $self->{ '_is_in_conversion' })
+		{
 			$self->_add_token( $token );
 			$last = $self->_set_last($token, $last);
 			next;
-		    }
-	    }
-
-            if ($token =~ /^FROM$/i)
-	    {
+		}
                 $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' } && !$self->{ '_is_in_partition' });
             }
 
@@ -2188,10 +2187,16 @@ sub beautify
 	    {
 		if (uc($token) eq 'FROM' and $self->{ '_is_in_sub_query' }
 				and !grep(/^\Q$last\E$/i, @extract_keywords)
-				and ($self->{ '_insert_values' } or $self->{ '_is_in_function' }))
+				and ($self->{ '_insert_values' } or $self->{ '_is_in_function' })
+				and (!$self->{ '_is_in_function' } or
+					!grep(/^$self->{ '_current_function' }$/, @have_from_clause))
+		)
 		{
                     $self->_new_line($token,$last);
 		    $self->_back($token, $last);
+		}
+		if (uc($token) eq 'FROM') {
+			$self->{ '_current_function' } = '';
 		}
                 $self->_add_token( $token );
                 $last = $self->_set_last($token, $last);
