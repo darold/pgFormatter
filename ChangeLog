@@ -1,3 +1,23 @@
+Febuary 04 2023 - v5.5
+
+This maintenance release fixes some issues reported by users since the last
+month and some improvements.
+
+Improvements:
+ 
+  * Prevent newline in function supporting the FROM keyword like substring().
+  * Add multi-line formatting on TRUNCATE with a table list. Thanks to GabenGar
+    for the feature request.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix not respected --no-space-function behavior with SELECT of function.
+    Thanks to fenuks for the report.
+  - Update regression test result for fix on double quoted alias name. Thanks
+    to Christoph Berg for the report.
+  - Fix potential exception on uninitialized variable. Thanks to Nate Smith
+    for the report.
+
 January 11 2023 - v5.4
 
 This maintenance release fixes issues reported by users since the last five
