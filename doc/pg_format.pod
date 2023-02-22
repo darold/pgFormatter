@@ -114,6 +114,10 @@ following your distribution.
 
 =head1 INSTALLATION
 
+Following your Linux distribution you might need to install the autodie Perl module:
+
+	sudo yum -y install perl-autodie
+
 Download the tarball from github and unpack the archive as follow:
 
 	version=5.3 #please use the latest release version from github
