@@ -251,7 +251,9 @@ Options:
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -B | --comma-break    : in insert statement, add a newline after each comma.
     -c | --config FILE    : use a configuration file. Default is to not use
-                            configuration file or ~/.pg_format if it exists.
+                            configuration file unless files ./.pg_format or
+			    \$HOME/.pg_format or the XDG Base Directory file
+			    \$XDG_CONFIG_HOME/pg_format/pg_format.conf exist.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -289,8 +291,9 @@ Options:
     -w | --wrap-limit N   : wrap queries at a certain length.
     -W | --wrap-after N   : number of column after which lists must be wrapped.
                             Default: puts every item on its own line.
-    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
-                            --config / -c option overrides it.
+    -X | --no-rcfile      : don't read rc files automatically (./.pg_format or
+                            \$HOME/.pg_format or \$XDG_CONFIG_HOME/pg_format).
+			    The --config / -c option overrides it.
     --extra-function FILE : file containing a list of functions to use the same
                             formatting as PostgreSQL internal function.
     --extra-keyword FILE  : file containing a list of keywords to use the same
@@ -398,8 +401,10 @@ sub get_command_line_args
     {
 	if (-e ".pg_format") {
 		$cfg{ 'config' } //= ".pg_format";
-	} else {
-		$cfg{ 'config' } //= (exists  $ENV{HOME}) ? "$ENV{HOME}/.pg_format" : ".pg_format";
+	} elsif (-e "$ENV{HOME}/.pg_format") {
+		$cfg{ 'config' } //= "$ENV{HOME}/.pg_format";
+	} elsif (-e "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf") {
+		$cfg{ 'config' } //= "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf";
 	}
     }
 

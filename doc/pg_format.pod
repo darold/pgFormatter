@@ -33,7 +33,9 @@ Options:
     -b | --comma-start    : in a parameters list, start with the comma (see -e)
     -B | --comma-break    : in insert statement, add a newline after each comma.
     -c | --config FILE    : use a configuration file. Default is to not use
-                            configuration file or ~/.pg_format if it exists.
+                            configuration file unless files ./.pg_format or
+			    $HOME/.pg_format or the XDG Base Directory file
+			    $XDG_CONFIG_HOME/pg_format/pg_format.conf exist.
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
@@ -71,8 +73,9 @@ Options:
     -w | --wrap-limit N   : wrap queries at a certain length.
     -W | --wrap-after N   : number of column after which lists must be wrapped.
                             Default: puts every item on its own line.
-    -X | --no-rcfile      : do not read ~/.pg_format automatically. The
-                            --config / -c option overrides it.
+    -X | --no-rcfile      : don't read rc files automatically (./.pg_format or
+                            $HOME/.pg_format or $XDG_CONFIG_HOME/pg_format).
+			    The --config / -c option overrides it.
     --extra-function FILE : file containing a list of functions to use the same
                             formatting as PostgreSQL internal function.
     --extra-keyword FILE  : file containing a list of keywords to use the same
@@ -270,8 +273,9 @@ When this option is used the resulting query is formatted as follow:
 
 If the default settings of pg_format doesn't fit all your needs you can
 customize the behavior of pg_format by using a configuration file instead
-of repeating the command line option. By default pgFormatter look for file
-~/.pg_format but you can choose an alternate configuration file using command
+of repeating the command line option. By default pgFormatter look for files
+./.pg_format or $HOME/.pg_format or $XDG_CONFIG_HOME/pg_format/pg_format.conf
+if they exists but you can choose an alternate configuration file using command
 line option -c | --config
 
 To customize the CGI pg_format.cgi look for a configuration file named
@@ -279,8 +283,8 @@ pg_format.conf in the same directory as the CGI script.
 
 For a sample configuration file see doc/pg_format.conf.sample
 
-To prevent pg_format to look at ~/.pg_format file you can use the command
-line option -X | --no-rcfile
+To prevent pg_format to look at $XDG_CONFIG_HOME/pg_format or $HOME/.pg_format
+files you can use the command line option -X | --no-rcfile
 
 
 =head2 Formatting from stdin
