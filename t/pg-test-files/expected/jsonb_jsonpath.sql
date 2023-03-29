@@ -1,62 +1,62 @@
 SELECT
-    jsonb '{"a": 12}' @ ? '$';
+    jsonb '{"a": 12}' @? '$';
 
 SELECT
-    jsonb '{"a": 12}' @ ? '1';
+    jsonb '{"a": 12}' @? '1';
 
 SELECT
-    jsonb '{"a": 12}' @ ? '$.a.b';
+    jsonb '{"a": 12}' @? '$.a.b';
 
 SELECT
-    jsonb '{"a": 12}' @ ? '$.b';
+    jsonb '{"a": 12}' @? '$.b';
 
 SELECT
-    jsonb '{"a": 12}' @ ? '$.a + 2';
+    jsonb '{"a": 12}' @? '$.a + 2';
 
 SELECT
-    jsonb '{"a": 12}' @ ? '$.b + 2';
+    jsonb '{"a": 12}' @? '$.b + 2';
 
 SELECT
-    jsonb '{"a": {"a": 12}}' @ ? '$.a.a';
+    jsonb '{"a": {"a": 12}}' @? '$.a.a';
 
 SELECT
-    jsonb '{"a": {"a": 12}}' @ ? '$.*.a';
+    jsonb '{"a": {"a": 12}}' @? '$.*.a';
 
 SELECT
-    jsonb '{"b": {"a": 12}}' @ ? '$.*.a';
+    jsonb '{"b": {"a": 12}}' @? '$.*.a';
 
 SELECT
-    jsonb '{"b": {"a": 12}}' @ ? '$.*.b';
+    jsonb '{"b": {"a": 12}}' @? '$.*.b';
 
 SELECT
-    jsonb '{"b": {"a": 12}}' @ ? 'strict $.*.b';
+    jsonb '{"b": {"a": 12}}' @? 'strict $.*.b';
 
 SELECT
-    jsonb '{}' @ ? '$.*';
+    jsonb '{}' @? '$.*';
 
 SELECT
-    jsonb '{"a": 1}' @ ? '$.*';
+    jsonb '{"a": 1}' @? '$.*';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? 'lax $.**{1}';
+    jsonb '{"a": {"b": 1}}' @? 'lax $.**{1}';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? 'lax $.**{2}';
+    jsonb '{"a": {"b": 1}}' @? 'lax $.**{2}';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? 'lax $.**{3}';
+    jsonb '{"a": {"b": 1}}' @? 'lax $.**{3}';
 
 SELECT
-    jsonb '[]' @ ? '$[*]';
+    jsonb '[]' @? '$[*]';
 
 SELECT
-    jsonb '[1]' @ ? '$[*]';
+    jsonb '[1]' @? '$[*]';
 
 SELECT
-    jsonb '[1]' @ ? '$[1]';
+    jsonb '[1]' @? '$[1]';
 
 SELECT
-    jsonb '[1]' @ ? 'strict $[1]';
+    jsonb '[1]' @? 'strict $[1]';
 
 SELECT
     jsonb_path_query('[1]', 'strict $[1]');
@@ -65,10 +65,10 @@ SELECT
     jsonb_path_query('[1]', 'strict $[1]', silent => TRUE);
 
 SELECT
-    jsonb '[1]' @ ? 'lax $[10000000000000000]';
+    jsonb '[1]' @? 'lax $[10000000000000000]';
 
 SELECT
-    jsonb '[1]' @ ? 'strict $[10000000000000000]';
+    jsonb '[1]' @? 'strict $[10000000000000000]';
 
 SELECT
     jsonb_path_query('[1]', 'lax $[10000000000000000]');
@@ -77,46 +77,46 @@ SELECT
     jsonb_path_query('[1]', 'strict $[10000000000000000]');
 
 SELECT
-    jsonb '[1]' @ ? '$[0]';
+    jsonb '[1]' @? '$[0]';
 
 SELECT
-    jsonb '[1]' @ ? '$[0.3]';
+    jsonb '[1]' @? '$[0.3]';
 
 SELECT
-    jsonb '[1]' @ ? '$[0.5]';
+    jsonb '[1]' @? '$[0.5]';
 
 SELECT
-    jsonb '[1]' @ ? '$[0.9]';
+    jsonb '[1]' @? '$[0.9]';
 
 SELECT
-    jsonb '[1]' @ ? '$[1.2]';
+    jsonb '[1]' @? '$[1.2]';
 
 SELECT
-    jsonb '[1]' @ ? 'strict $[1.2]';
+    jsonb '[1]' @? 'strict $[1.2]';
 
 SELECT
-    jsonb '{"a": [1,2,3], "b": [3,4,5]}' @ ? '$ ? (@.a[*] >  @.b[*])';
+    jsonb '{"a": [1,2,3], "b": [3,4,5]}' @? '$ ? (@.a[*] >  @.b[*])';
 
 SELECT
-    jsonb '{"a": [1,2,3], "b": [3,4,5]}' @ ? '$ ? (@.a[*] >= @.b[*])';
+    jsonb '{"a": [1,2,3], "b": [3,4,5]}' @? '$ ? (@.a[*] >= @.b[*])';
 
 SELECT
-    jsonb '{"a": [1,2,3], "b": [3,4,"5"]}' @ ? '$ ? (@.a[*] >= @.b[*])';
+    jsonb '{"a": [1,2,3], "b": [3,4,"5"]}' @? '$ ? (@.a[*] >= @.b[*])';
 
 SELECT
-    jsonb '{"a": [1,2,3], "b": [3,4,"5"]}' @ ? 'strict $ ? (@.a[*] >= @.b[*])';
+    jsonb '{"a": [1,2,3], "b": [3,4,"5"]}' @? 'strict $ ? (@.a[*] >= @.b[*])';
 
 SELECT
-    jsonb '{"a": [1,2,3], "b": [3,4,null]}' @ ? '$ ? (@.a[*] >= @.b[*])';
+    jsonb '{"a": [1,2,3], "b": [3,4,null]}' @? '$ ? (@.a[*] >= @.b[*])';
 
 SELECT
-    jsonb '1' @ ? '$ ? ((@ == "1") is unknown)';
+    jsonb '1' @? '$ ? ((@ == "1") is unknown)';
 
 SELECT
-    jsonb '1' @ ? '$ ? ((@ == 1) is unknown)';
+    jsonb '1' @? '$ ? ((@ == 1) is unknown)';
 
 SELECT
-    jsonb '[{"a": 1}, {"a": 2}]' @ ? '$[0 to 1] ? (@.a > 1)';
+    jsonb '[{"a": 1}, {"a": 2}]' @? '$[0 to 1] ? (@.a > 1)';
 
 SELECT
     jsonb_path_exists('[{"a": 1}, {"a": 2}, 3]', 'lax $[*].a', silent => FALSE);
@@ -429,43 +429,43 @@ SELECT
     jsonb_path_query('{"a": {"c": {"b": 1}}}', 'lax $.**{2 to 3}.b ? (@ > 0)');
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? '$.**.b ? ( @ > 0)';
+    jsonb '{"a": {"b": 1}}' @? '$.**.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? '$.**{0}.b ? ( @ > 0)';
+    jsonb '{"a": {"b": 1}}' @? '$.**{0}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? '$.**{1}.b ? ( @ > 0)';
+    jsonb '{"a": {"b": 1}}' @? '$.**{1}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? '$.**{0 to last}.b ? ( @ > 0)';
+    jsonb '{"a": {"b": 1}}' @? '$.**{0 to last}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? '$.**{1 to last}.b ? ( @ > 0)';
+    jsonb '{"a": {"b": 1}}' @? '$.**{1 to last}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"b": 1}}' @ ? '$.**{1 to 2}.b ? ( @ > 0)';
+    jsonb '{"a": {"b": 1}}' @? '$.**{1 to 2}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"c": {"b": 1}}}' @ ? '$.**.b ? ( @ > 0)';
+    jsonb '{"a": {"c": {"b": 1}}}' @? '$.**.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"c": {"b": 1}}}' @ ? '$.**{0}.b ? ( @ > 0)';
+    jsonb '{"a": {"c": {"b": 1}}}' @? '$.**{0}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"c": {"b": 1}}}' @ ? '$.**{1}.b ? ( @ > 0)';
+    jsonb '{"a": {"c": {"b": 1}}}' @? '$.**{1}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"c": {"b": 1}}}' @ ? '$.**{0 to last}.b ? ( @ > 0)';
+    jsonb '{"a": {"c": {"b": 1}}}' @? '$.**{0 to last}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"c": {"b": 1}}}' @ ? '$.**{1 to last}.b ? ( @ > 0)';
+    jsonb '{"a": {"c": {"b": 1}}}' @? '$.**{1 to last}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"c": {"b": 1}}}' @ ? '$.**{1 to 2}.b ? ( @ > 0)';
+    jsonb '{"a": {"c": {"b": 1}}}' @? '$.**{1 to 2}.b ? ( @ > 0)';
 
 SELECT
-    jsonb '{"a": {"c": {"b": 1}}}' @ ? '$.**{2 to 3}.b ? ( @ > 0)';
+    jsonb '{"a": {"c": {"b": 1}}}' @? '$.**{2 to 3}.b ? ( @ > 0)';
 
 SELECT
     jsonb_path_query('{"g": {"x": 2}}', '$.g ? (exists (@.x))');
@@ -525,25 +525,25 @@ FROM (
         VALUES (jsonb 'true'), ('false'), ('"null"')) y (y);
 
 SELECT
-    jsonb '{"a": 1, "b":1}' @ ? '$ ? (@.a == @.b)';
+    jsonb '{"a": 1, "b":1}' @? '$ ? (@.a == @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 1, "b":1}}' @ ? '$ ? (@.a == @.b)';
+    jsonb '{"c": {"a": 1, "b":1}}' @? '$ ? (@.a == @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 1, "b":1}}' @ ? '$.c ? (@.a == @.b)';
+    jsonb '{"c": {"a": 1, "b":1}}' @? '$.c ? (@.a == @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 1, "b":1}}' @ ? '$.c ? ($.c.a == @.b)';
+    jsonb '{"c": {"a": 1, "b":1}}' @? '$.c ? ($.c.a == @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 1, "b":1}}' @ ? '$.* ? (@.a == @.b)';
+    jsonb '{"c": {"a": 1, "b":1}}' @? '$.* ? (@.a == @.b)';
 
 SELECT
-    jsonb '{"a": 1, "b":1}' @ ? '$.** ? (@.a == @.b)';
+    jsonb '{"a": 1, "b":1}' @? '$.** ? (@.a == @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 1, "b":1}}' @ ? '$.** ? (@.a == @.b)';
+    jsonb '{"c": {"a": 1, "b":1}}' @? '$.** ? (@.a == @.b)';
 
 SELECT
     jsonb_path_query('{"c": {"a": 2, "b":1}}', '$.** ? (@.a == 1 + 1)');
@@ -558,40 +558,40 @@ SELECT
     jsonb_path_query('{"c": {"a": 2, "b":1}}', '$.** ? (@.a == (@.b + 1))');
 
 SELECT
-    jsonb '{"c": {"a": -1, "b":1}}' @ ? '$.** ? (@.a == - 1)';
+    jsonb '{"c": {"a": -1, "b":1}}' @? '$.** ? (@.a == - 1)';
 
 SELECT
-    jsonb '{"c": {"a": -1, "b":1}}' @ ? '$.** ? (@.a == -1)';
+    jsonb '{"c": {"a": -1, "b":1}}' @? '$.** ? (@.a == -1)';
 
 SELECT
-    jsonb '{"c": {"a": -1, "b":1}}' @ ? '$.** ? (@.a == -@.b)';
+    jsonb '{"c": {"a": -1, "b":1}}' @? '$.** ? (@.a == -@.b)';
 
 SELECT
-    jsonb '{"c": {"a": -1, "b":1}}' @ ? '$.** ? (@.a == - @.b)';
+    jsonb '{"c": {"a": -1, "b":1}}' @? '$.** ? (@.a == - @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 0, "b":1}}' @ ? '$.** ? (@.a == 1 - @.b)';
+    jsonb '{"c": {"a": 0, "b":1}}' @? '$.** ? (@.a == 1 - @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 2, "b":1}}' @ ? '$.** ? (@.a == 1 - - @.b)';
+    jsonb '{"c": {"a": 2, "b":1}}' @? '$.** ? (@.a == 1 - - @.b)';
 
 SELECT
-    jsonb '{"c": {"a": 0, "b":1}}' @ ? '$.** ? (@.a == 1 - +@.b)';
+    jsonb '{"c": {"a": 0, "b":1}}' @? '$.** ? (@.a == 1 - +@.b)';
 
 SELECT
-    jsonb '[1,2,3]' @ ? '$ ? (+@[*] > +2)';
+    jsonb '[1,2,3]' @? '$ ? (+@[*] > +2)';
 
 SELECT
-    jsonb '[1,2,3]' @ ? '$ ? (+@[*] > +3)';
+    jsonb '[1,2,3]' @? '$ ? (+@[*] > +3)';
 
 SELECT
-    jsonb '[1,2,3]' @ ? '$ ? (-@[*] < -2)';
+    jsonb '[1,2,3]' @? '$ ? (-@[*] < -2)';
 
 SELECT
-    jsonb '[1,2,3]' @ ? '$ ? (-@[*] < -3)';
+    jsonb '[1,2,3]' @? '$ ? (-@[*] < -3)';
 
 SELECT
-    jsonb '1' @ ? '$ ? ($ > 0)';
+    jsonb '1' @? '$ ? ($ > 0)';
 
 -- arithmetic errors
 SELECT
@@ -634,16 +634,16 @@ SELECT
     jsonb_path_query('[1,"2",3]', '+$', silent => TRUE);
 
 SELECT
-    jsonb '["1",2,0,3]' @ ? '-$[*]';
+    jsonb '["1",2,0,3]' @? '-$[*]';
 
 SELECT
-    jsonb '[1,"2",0,3]' @ ? '-$[*]';
+    jsonb '[1,"2",0,3]' @? '-$[*]';
 
 SELECT
-    jsonb '["1",2,0,3]' @ ? 'strict -$[*]';
+    jsonb '["1",2,0,3]' @? 'strict -$[*]';
 
 SELECT
-    jsonb '[1,"2",0,3]' @ ? 'strict -$[*]';
+    jsonb '[1,"2",0,3]' @? 'strict -$[*]';
 
 -- unwrapping of operator arguments in lax mode
 SELECT
@@ -673,7 +673,7 @@ SELECT
     jsonb_path_query('2', '$ == "2"');
 
 SELECT
-    jsonb '2' @ ? '$ == "2"';
+    jsonb '2' @? '$ == "2"';
 
 SELECT
     jsonb '2' @@ '$ > 1';
@@ -805,10 +805,10 @@ SELECT
     jsonb_path_query('[{"a": 1, "b": [1, 2]}, {"c": {"a": "bbb"}}]', 'strict $.keyvalue().a');
 
 SELECT
-    jsonb '{"a": 1, "b": [1, 2]}' @ ? 'lax $.keyvalue()';
+    jsonb '{"a": 1, "b": [1, 2]}' @? 'lax $.keyvalue()';
 
 SELECT
-    jsonb '{"a": 1, "b": [1, 2]}' @ ? 'lax $.keyvalue().key';
+    jsonb '{"a": 1, "b": [1, 2]}' @? 'lax $.keyvalue().key';
 
 SELECT
     jsonb_path_query('null', '$.double()');
@@ -965,10 +965,10 @@ SELECT
     jsonb_path_query_first('[{"a": 1}, {"a": 2}, {"a": 3}, {"a": 5}]', '$[*].a ? (@ > $min && @ < $max)', vars => '{"min": 3, "max": 4}');
 
 SELECT
-    jsonb '[{"a": 1}, {"a": 2}]' @ ? '$[*].a ? (@ > 1)';
+    jsonb '[{"a": 1}, {"a": 2}]' @? '$[*].a ? (@ > 1)';
 
 SELECT
-    jsonb '[{"a": 1}, {"a": 2}]' @ ? '$[*] ? (@.a > 2)';
+    jsonb '[{"a": 1}, {"a": 2}]' @? '$[*] ? (@.a > 2)';
 
 SELECT
     jsonb_path_exists('[{"a": 1}, {"a": 2}]', '$[*].a ? (@ > 1)');
