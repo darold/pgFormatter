@@ -1943,7 +1943,7 @@ FROM
     atacc1;
 
 SELECT
-    atacc1. "........pg.dropped.1........"
+    atacc1."........pg.dropped.1........"
 FROM
     atacc1;
 
@@ -2075,7 +2075,7 @@ VACUUM ANALYZE atacc1 ("........pg.dropped.1........");
 
 COMMENT ON COLUMN atacc1.a IS 'testing';
 
-COMMENT ON COLUMN atacc1. "........pg.dropped.1........" IS 'testing';
+COMMENT ON COLUMN atacc1."........pg.dropped.1........" IS 'testing';
 
 ALTER TABLE atacc1
     ALTER a SET storage plain;

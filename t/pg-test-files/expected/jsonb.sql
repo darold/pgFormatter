@@ -2126,56 +2126,56 @@ SELECT
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? (@ == null)';
+    j @? '$.wait ? (@ == null)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? ("CC" == @)';
+    j @? '$.wait ? ("CC" == @)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.wait == "CC" && true == @.public)';
+    j @? '$ ? (@.wait == "CC" && true == @.public)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.age ? (@ == 25)';
+    j @? '$.age ? (@ == 25)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.age == 25.0)';
+    j @? '$ ? (@.age == 25.0)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$';
+    j @? '$';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.public';
+    j @? '$.public';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.bar';
+    j @? '$.bar';
 
 CREATE INDEX jidx ON testjsonb USING gin (j);
 
@@ -2403,84 +2403,84 @@ SELECT
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? (@ == null)';
+    j @? '$.wait ? (@ == null)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? (@ == null)';
+    j @? '$.wait ? (@ == null)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? ("CC" == @)';
+    j @? '$.wait ? ("CC" == @)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.wait == "CC" && true == @.public)';
+    j @? '$ ? (@.wait == "CC" && true == @.public)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.age ? (@ == 25)';
+    j @? '$.age ? (@ == 25)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.age == 25.0)';
+    j @? '$ ? (@.age == 25.0)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.array[*] == "bar")';
+    j @? '$ ? (@.array[*] == "bar")';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.array ? (@[*] == "bar")';
+    j @? '$.array ? (@[*] == "bar")';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.array[*] ? (@ == "bar")';
+    j @? '$.array[*] ? (@ == "bar")';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$';
+    j @? '$';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.public';
+    j @? '$.public';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.bar';
+    j @? '$.bar';
 
 -- array exists - array elements should behave as keys (for GIN index scans too)
 CREATE INDEX jidx_array ON testjsonb USING gin ((j -> 'array'));
@@ -2765,84 +2765,84 @@ SELECT
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? (@ == null)';
+    j @? '$.wait ? (@ == null)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? (@ == null)';
+    j @? '$.wait ? (@ == null)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.wait ? ("CC" == @)';
+    j @? '$.wait ? ("CC" == @)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.wait == "CC" && true == @.public)';
+    j @? '$ ? (@.wait == "CC" && true == @.public)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.age ? (@ == 25)';
+    j @? '$.age ? (@ == 25)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.age == 25.0)';
+    j @? '$ ? (@.age == 25.0)';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$ ? (@.array[*] == "bar")';
+    j @? '$ ? (@.array[*] == "bar")';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.array ? (@[*] == "bar")';
+    j @? '$.array ? (@[*] == "bar")';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.array[*] ? (@ == "bar")';
+    j @? '$.array[*] ? (@ == "bar")';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$';
+    j @? '$';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.public';
+    j @? '$.public';
 
 SELECT
     count(*)
 FROM
     testjsonb
 WHERE
-    j @ ? '$.bar';
+    j @? '$.bar';
 
 RESET enable_seqscan;
 
