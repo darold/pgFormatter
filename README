@@ -195,7 +195,7 @@ SPECIAL FORMATTING
 
     Expect this list grow following alternative thoughts.
 
-  Option -g, --no-grouping
+  Option -g, --nogrouping
     By default pgFormatter groups all statements when they are in a
     transaction:
 
