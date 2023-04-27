@@ -401,9 +401,9 @@ sub get_command_line_args
     {
 	if (-e ".pg_format") {
 		$cfg{ 'config' } //= ".pg_format";
-	} elsif (-e "$ENV{HOME}/.pg_format") {
+	} elsif (defined $ENV{HOME} && -e "$ENV{HOME}/.pg_format") {
 		$cfg{ 'config' } //= "$ENV{HOME}/.pg_format";
-	} elsif (-e "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf") {
+	} elsif (defined $ENV{XDG_CONFIG_HOME} && -e "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf") {
 		$cfg{ 'config' } //= "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf";
 	}
     }
