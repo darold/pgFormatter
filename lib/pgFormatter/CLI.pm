@@ -257,7 +257,7 @@ Options:
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
-    -f | --function-case N: Change the case of the reserved keyword. Default is
+    -f | --function-case N: Change the case of the PostgreSQL functions. Default
                             unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
     -F | --format STR     : output format: text or html. Default: text.

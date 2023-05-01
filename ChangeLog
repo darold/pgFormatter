@@ -500,7 +500,7 @@ new features.
 
   * Allow output to override source file.
 
-  * Add option -g, --no-grouping and CGI corresponding checkbox. By
+  * Add option -g, --nogrouping and CGI corresponding checkbox. By
     default pgFormatter groups all statements when they are in a
     transaction:
     

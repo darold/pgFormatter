@@ -39,8 +39,8 @@ Options:
     -C | --wrap-comment   : with --wrap-limit, apply reformatting to comments.
     -d | --debug          : enable debug mode. Disabled by default.
     -e | --comma-end      : in a parameters list, end with the comma (default)
-    -f | --function-case N: Change the case of the reserved keyword. Default is
-                            unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+    -f | --function-case N: Change the case of the PostgreSQL functions. Default
+                            is unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
                             2=>uppercase, 3=>capitalize.
     -F | --format STR     : output format: text or html. Default: text.
     -g | --nogrouping     : add a newline between statements in transaction
@@ -201,7 +201,7 @@ This option activate an alternative formatting that adds:
 
 Expect this list grow following alternative thoughts.
 
-=head2 Option -g, --no-grouping
+=head2 Option -g, --nogrouping
 
 By default pgFormatter groups all statements when they are in a
 transaction:
