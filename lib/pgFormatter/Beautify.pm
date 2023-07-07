@@ -4539,6 +4539,8 @@ sub _restore_comments
 			$self->{'comments'}{$k} =~ s/^\s*--//s;
 			$self->{'comments'}{$k} = $indent . "--$self->{'comments'}{$k}";
 	        }
+		# remove extra spaces after comment characters
+		$self->{'comments'}{$k} =~ s/--[ ]+/-- /gs;
 	    }
 	}
     }
