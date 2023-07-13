@@ -3128,7 +3128,7 @@ sub _add_token
 
     # Type are always lowercase
     if (!$self->{ '_not_a_type' } and ($self->{ '_is_in_create' } or $self->{ '_is_in_declare' }
-			    or $self->{ '_is_in_cast' } or $self->{ '_is_in_type' }))
+			    or $self->{ '_is_in_cast' } or $self->{ '_is_in_type' } or $self->{ '_is_in_alter' } ))
     {
 	    if ($tk_is_type and defined $last_token
 			or ($token =~ /^(WITH|WITHOUT)$/i and $next_token =~ /^(time|timestamp)$/i)
