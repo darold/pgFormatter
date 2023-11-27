@@ -26,7 +26,7 @@ keyword-case=2
 # Values: 0=>unchanged, 1=>lowercase, 2=>uppercase, 3=>capitalize.
 type-case=1
 
-# Change the case of the reserved keyword. Default is unchanged: 0.
+# Change the case of the PostgreSQL functions. Default is unchanged: 0.
 # Values: 0=>unchanged, 1=>lowercase, 2=>uppercase, 3=>capitalize.
 function-case=0
 

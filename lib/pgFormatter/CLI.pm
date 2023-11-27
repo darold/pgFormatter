@@ -275,7 +275,7 @@ Options:
     -o | --output file    : define the filename for the output. Default: stdout.
     -p | --placeholder RE : set regex to find code that must not be changed.
     -r | --redshift       : add RedShift keyworks to the list of SQL keyworks.
-                            Obsolete now, use --extra-keyword 'reshift' instead.
+                            Obsolete now, use --extra-keyword 'redshift' instead.
     -s | --spaces size    : change space indent, default 4 spaces.
     -S | --separator STR  : dynamic code separator, default to single quote.
     -t | --format-type    : try another formatting type for some statements.
@@ -403,6 +403,8 @@ sub get_command_line_args
 		$cfg{ 'config' } //= ".pg_format";
 	} elsif (defined $ENV{HOME} && -e "$ENV{HOME}/.pg_format") {
 		$cfg{ 'config' } //= "$ENV{HOME}/.pg_format";
+    } elsif (defined $ENV{USERPROFILE} && -e "$ENV{USERPROFILE}/.pg_format") {
+		$cfg{ 'config' } //= "$ENV{USERPROFILE}/.pg_format";
 	} elsif (defined $ENV{XDG_CONFIG_HOME} && -e "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf") {
 		$cfg{ 'config' } //= "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf";
 	}
