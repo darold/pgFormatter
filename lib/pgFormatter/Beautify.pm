@@ -790,6 +790,7 @@ sub beautify
     $self->{ '_language_sql' } = 0;
     $self->{ '_first_when_in_case' } = 0;
     $self->{ '_is_in_if' } = 0;
+    $self->{ '_is_in_set' } = 0;
     $self->{ '_is_in_conversion' } = 0;
     $self->{ '_is_in_case' } = 0;
     $self->{ '_is_in_where' } = 0;
@@ -1364,6 +1365,7 @@ sub beautify
 	    {
                 $self->_new_line($token,$last);
                 $self->_add_token( $token );
+		$self->{ '_is_in_set' } = 0;
 		$self->_reset_level($token, $last) if ($self->_next_token !~ /CODEPARTB/);
 	    } else {
                 $self->_add_token( $token );
@@ -1983,6 +1985,7 @@ sub beautify
 	    $self->{ '_is_in_statistics' } = 0;
 	    $self->{ '_is_in_cast' } = 0;
             $self->{ '_is_in_if' } = 0;
+	    $self->{ '_is_in_set' } = 0;
             $self->{ '_is_in_with' } = 0;
             $self->{ '_is_in_overlaps' } = 0;
             $self->{ '_has_order_by' } = 0;
@@ -2103,6 +2106,8 @@ sub beautify
 
 	    $self->{ 'no_break' } = 0;
             $self->{ '_col_count' } = 0;
+	    $self->{ '_is_in_set' } = 1 if (uc($token) eq 'SET' && $self->{ '_current_sql_stmt' } !~ /^(UPDATE|INSERT)$/i);
+
 	    # special cases for create partition statement
             if ($token =~ /^VALUES$/i && defined $last and $last =~ /^(FOR|IN)$/i)
 	    {
@@ -2121,10 +2126,11 @@ sub beautify
 	    # Case of DISTINCT FROM clause
             if ($token =~ /^FROM$/i)
 	    {
-		if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_fetch' } || $self->{ '_is_in_alter' } || $self->{ '_is_in_conversion' })
+		if (uc($last) eq 'DISTINCT' || $self->{ '_is_in_fetch' } || $self->{ '_is_in_alter' } || $self->{ '_is_in_conversion' } || $self->{ '_is_in_set' })
 		{
 			$self->_add_token( $token );
 			$last = $self->_set_last($token, $last);
+			$self->{ '_is_in_set' } = 0;
 			next;
 		}
                 $self->{ '_is_in_from' }++ if (!$self->{ '_is_in_function' } && !$self->{ '_is_in_partition' });

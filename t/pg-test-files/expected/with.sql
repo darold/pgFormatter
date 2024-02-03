@@ -2163,9 +2163,7 @@ INSERT INTO withz
             *
 )
     SELECT
-        *
-    FROM
-        t
+        * FROM t
         JOIN y ON t.k = y.a
     ORDER BY
         a,
@@ -2285,9 +2283,7 @@ ON CONFLICT (k)
     DO UPDATE SET
         v = (
             SELECT
-                b || ' update'
-            FROM
-                aa
+                b || ' update' FROM aa
             WHERE
                 a = 1
             LIMIT 1);
