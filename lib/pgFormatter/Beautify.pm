@@ -1300,7 +1300,6 @@ sub beautify
 
 	if ($token =~ /^(BEGIN|DECLARE)$/i)
 	{
-		#	print STDERR "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ $token\n" if (uc($token) eq 'DECLARE');
             $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
 	    if (uc($token) eq 'BEGIN')
 	    {
@@ -1432,7 +1431,7 @@ sub beautify
 		    $self->_new_line($token,$last);
 	    }
 	    if (defined $self->_next_token
-			    and $self->_next_token !~ /^(DECLARE|BEGIN)$/i) {
+			    and $self->_next_token_skip_comment !~ /^(DECLARE|BEGIN)$/i) {
 		$self->_over($token,$last);
 		$self->{ '_language_sql' } = 1;
 	    }
@@ -3293,6 +3292,28 @@ sub _next_token
     my ( $self ) = @_;
 
     return @{ $self->{ '_tokens' } } ? $self->{ '_tokens' }->[ 0 ] : undef;
+}
+
+=head2 _next_token_skip_comment
+
+Have a look at the token that's coming up next omitting comments.
+
+Code lifted from SQL::Beautify
+
+=cut
+
+
+sub _next_token_skip_comment
+{
+    my ( $self ) = @_;
+
+    for (my $i = 0; $i <= $#{ $self->{ '_tokens' } }; $i++)
+    {
+	    next if ($self->{ '_tokens' }->[ $i ] =~ /^\s*(--|\/\*)/);
+	    return $self->{ '_tokens' }->[ $i ];
+    }
+
+    return undef;
 }
 
 =head2 _token
