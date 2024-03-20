@@ -12,7 +12,7 @@ DECLARE
     a_val partitioned_table.a%TYPE;
     result partitioned_table%ROWTYPE;
 BEGIN
-    a_val := $1;
+    a_val:= $1;
 
     SELECT * INTO result FROM partitioned_table WHERE a = a_val;
 

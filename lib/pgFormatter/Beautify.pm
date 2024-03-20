@@ -648,6 +648,13 @@ sub tokenize_sql
     if ($self->{ 'keep_newline' }) {
 	    @query = grep { /(?:\S|^[\r\n]+$)/ } $query =~ m{$re}simxg;
     }
+    # fix := operator that can not be found when attached to the variable name
+    for (my $i = 0; $i < $#query; $i++) {
+	if ($query[$i] =~ /:$/ && $query[$i+1] =~ /^=/) {
+		$query[$i] =~ s/:$//;
+		$query[$i+1] =~ s/^/:/;
+    	}
+    }
 
     # Revert position when a comment is before a comma
     if ($self->{ 'comma' } eq 'end')
