@@ -71,7 +71,7 @@ SELECT
     1;
 
 DO $$
-    -- use DO to protect -- from psql
+-- use DO to protect -- from psql
 DECLARE
     r boolean;
 BEGIN
