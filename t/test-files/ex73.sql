@@ -34,3 +34,45 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+SELECT
+ligne.numligne,
+ligne.numero,
+ligne.date_mouvement,
+ligne.libelle,
+ligne.debit,
+ligne.credit,
+releve.releve_uuid,
+releve.date_fin,
+compte.compte_uuid,
+compte.numcompte,
+devise.devise_uuid,
+devise.code,
+CASE WHEN ligne.typemvt IS NULL THEN
+(
+SELECT
+typemvt_uuid
+FROM
+typemvt
+WHERE
+upper(typemvt.code) = 'PRELEVEMENT')
+ELSE
+(
+SELECT
+typemvt_uuid
+FROM
+typemvt
+WHERE
+upper(typemvt.code) = upper(ligne.typemvt))
+END,
+ligne.ligne_uuid,
+analytique.analytique_uuid
+FROM
+ligne
+INNER JOIN releve ON (releve.releve_uuid = ligne.releve_uuid)
+INNER JOIN compte ON (compte.compte_uuid = releve.compte_uuid),
+devise,
+analytique
+WHERE
+ligne_uuid = :ligne_uuid
+AND devise.defaut = 'O'
+AND upper(analytique.groupe) = 'DIVERS';

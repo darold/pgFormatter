@@ -799,7 +799,7 @@ sub beautify
     $self->{ '_is_in_if' } = 0;
     $self->{ '_is_in_set' } = 0;
     $self->{ '_is_in_conversion' } = 0;
-    $self->{ '_is_in_case' } = 0;
+    $self->{ '_is_in_case' } = ();
     $self->{ '_is_in_where' } = 0;
     $self->{ '_is_in_from' } = 0;
     $self->{ '_is_in_join' } = 0;
@@ -1959,7 +1959,7 @@ sub beautify
 
             $self->_add_token($token);
 
-	    next if ($token eq ';' and $self->{ '_is_in_case' } and uc($last) ne 'CASE');
+	    next if ($token eq ';' and $#{ $self->{ '_is_in_case' } } >= 0 and uc($last) ne 'CASE');
 
             if ($self->{ '_is_in_rule' }) {
 		$self->_back($token, $last);
@@ -2414,7 +2414,7 @@ sub beautify
             # Mark next WHEN statement as first element of a case
             # to force indentation only after this element
             $self->{ '_first_when_in_case' } = 1;
-            $self->{ '_is_in_case' }++;
+	    push(@{ $self->{ '_is_in_case' } }, $self->{ '_level' });
         }
 
         elsif ( $token =~ /^(?:WHEN)$/i)
@@ -2431,7 +2431,7 @@ sub beautify
 	    }
             $self->_new_line($token,$last) if (not defined $last or $last !~ /^(CASE|,|\()$/i );
             $self->_add_token( $token );
-            if (!$self->{ '_is_in_case' } && !$self->{ '_is_in_trigger' }) {
+            if ($#{ $self->{ '_is_in_case' } } < 0 && !$self->{ '_is_in_trigger' }) {
                 $self->_over($token,$last);
 	    }
             $self->{ '_first_when_in_case' } = 0;
@@ -2466,11 +2466,11 @@ sub beautify
             $self->_add_token( $token );
             $self->_new_line($token,$last);
 	    $self->_set_level($self->{ '_level_stack' }[-1], $token, $last) if ($self->{ '_is_in_if' } and $#{ $self->{ '_level_stack' } } >= 0);
-	    if ($self->{ '_is_in_case' } && defined $self->_next_token() and $self->_next_token() !~ /^(\(|RAISE)$/i) {
+	    if ($#{ $self->{ '_is_in_case' } } >= 0 && defined $self->_next_token() and $self->_next_token() !~ /^(\(|RAISE)$/i) {
 		$self->_set_level($self->{ '_level_stack' }[-1], $token, $last) if ($#{ $self->{ '_level_stack' } } >= 0);
 	        $self->_over($token,$last);
 	    }
-	    if ($self->{ '_is_in_case' } && defined $self->_next_token() and
+	    if ($#{ $self->{ '_is_in_case' } } >= 0 && defined $self->_next_token() and
 		    $self->_next_token() eq '(' and $self->{ '_tokens' }[1] !~ /^(SELECT|CASE)$/i
 	    )
 	    {
@@ -2482,7 +2482,12 @@ sub beautify
 
         elsif ( $token =~ /^(?:ELSE|ELSIF)$/i )
 	{
-	    $self->_back($token, $last);
+		#	ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+	    if ($#{ $self->{ '_is_in_case' } } < 0) {
+	        $self->_back($token, $last);
+	    } else {
+		$self->_set_level($self->{ '_is_in_case' }[-1], $token, $last);
+	    }
             $self->_new_line($token,$last);
             $self->_add_token( $token );
             $self->_new_line($token,$last) if ($token !~ /^ELSIF$/i);
@@ -2492,9 +2497,9 @@ sub beautify
         elsif ( $token =~ /^(?:END)$/i )
 	{
             $self->{ '_first_when_in_case' } = 0;
-            if ($self->{ '_is_in_case' })
+            if ($#{ $self->{ '_is_in_case' } } >= 0)
 	    {
-                $self->{ '_is_in_case' }--;
+		pop(@{ $self->{ '_is_in_case' } });
 		$self->_back($token, $last);
 	        $self->_set_level($self->_pop_level($token, $last), $token, $last);
 		if (!$self->{ '_is_in_create_function' } or $self->_next_token eq ';')
@@ -2552,15 +2557,12 @@ sub beautify
             $self->_add_token( $token );
         }
 
-        elsif ( $token =~ /^(?:END::[^\s]+)$/i and $self->{ '_is_in_case' } )
+        elsif ( $token =~ /^(?:END::[^\s]+)$/i and $#{ $self->{ '_is_in_case' } } >= 0 )
 	{
             $self->{ '_first_when_in_case' } = 0;
-            if ($self->{ '_is_in_case' })
-	    {
-                $self->{ '_is_in_case' }--;
+		pop(@{ $self->{ '_is_in_case' } });
                 $self->_back($token, $last);
 		$self->_set_level($self->_pop_level($token, $last), $token, $last);
-            }
             $self->_new_line($token,$last);
             $self->_add_token( $token );
         }
