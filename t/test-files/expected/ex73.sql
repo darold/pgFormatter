@@ -85,3 +85,18 @@ WHERE
     AND devise.defaut = 'O'
     AND upper(analytique.groupe) = 'DIVERS';
 
+CREATE OR REPLACE FUNCTION loader_os (OUT o_rc integer, OUT o_err character varying, IN i_acctoken character varying, IN i_os text)
+    RETURNS record
+    AS $$
+DECLARE
+    v_os bigint;
+    v_id bigint;
+BEGIN ATOMIC
+    SELECT
+        * INTO o_rc,
+        o_err
+    FROM
+        loader_add i_acctoken;
+END
+$$
+LANGUAGE plpgsql;

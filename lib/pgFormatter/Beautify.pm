@@ -1312,11 +1312,6 @@ sub beautify
 	    {
 	        push( @{ $self->{ '_begin_level' } }, ($#{ $self->{ '_begin_level' } } < 0) ? 0 : $self->{ '_level' } );
 	    }
-#	    $self->_add_token( $token );
-#	    $self->_new_line($token,$last);
-#	    $self->_over($token,$last);
-#	    $last = $self->_set_last($token, $last);
-#	    next;
 	}
     
         ####
@@ -1499,7 +1494,18 @@ sub beautify
 	    $self->{ '_is_in_create_function' } = 0;
             next;
         }
-        elsif ( uc($token) eq 'BEGIN' )
+	elsif (uc($token) eq 'ATOMIC')
+	{
+                $self->_add_token( $token );
+                $last = $self->_set_last($token, $last);
+		$self->_new_line($token,$last);
+		$self->_over($token,$last);
+                $self->{ '_is_in_block' }++;
+                # Store current indent position to print END at the right level
+		$self->_push_level($self->{ '_level' }, $token, $last);
+		next;
+        }
+	elsif ( uc($token) eq 'BEGIN' )
 	{
             $self->{ '_is_in_declare' } = 0;
             if ($self->{ '_is_in_block' } == -1) {
@@ -1507,14 +1513,14 @@ sub beautify
             }
             $self->_new_line($token,$last);
             $self->_add_token( $token );
-	    if (defined $self->_next_token && $self->_next_token !~ /^(WORK|TRANSACTION|ISOLATION|;)$/i) {
+	    if (defined $self->_next_token && $self->_next_token !~ /^(WORK|TRANSACTION|ISOLATION|ATOMIC|;)$/i) {
 		$self->_new_line($token,$last);
 		$self->_over($token,$last);
                 $self->{ '_is_in_block' }++;
                 # Store current indent position to print END at the right level
 		$self->_push_level($self->{ '_level' }, $token, $last);
-            }
-	    $self->{ '_is_in_work' }++ if (!$self->{ 'no_grouping' } and defined $self->_next_token && $self->_next_token =~ /^(WORK|TRANSACTION|ISOLATION|;)$/i);
+	    }
+	    $self->{ '_is_in_work' }++ if (!$self->{ 'no_grouping' } and defined $self->_next_token && $self->_next_token =~ /^(WORK|TRANSACTION|ISOLATION|ATOMIC|;)$/i);
             $last = $self->_set_last($token, $last);
             next;
         }
@@ -3894,7 +3900,7 @@ sub set_dicts
     # Afterwards, when everything is ready, put it in $self->{'dict'}->{...}
 
     my @pg_keywords = map { uc } qw( 
-        ADD AFTER AGGREGATE ALL ALSO ALTER ALWAYS ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC AUTHORIZATION ATTACH AUTO_INCREMENT
+        ADD AFTER AGGREGATE ALL ALSO ALTER ALWAYS ANALYSE ANALYZE AND ANY ARRAY AS ASC ASYMMETRIC ATOMIC AUTHORIZATION ATTACH AUTO_INCREMENT
         BACKWARD BEFORE BEGIN BERNOULLI BETWEEN BINARY BOTH BY CACHE CASCADE CASE CAST CHECK CHECKPOINT CLOSE CLUSTER
 	COLLATE COLLATION COLUMN COMMENT COMMIT COMMITTED CONCURRENTLY CONFLICT CONSTRAINT CONSTRAINT CONTINUE COPY
 	COST COSTS CREATE CROSS CUBE CURRENT CURRENT_DATE CURRENT_ROLE CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER CURSOR
