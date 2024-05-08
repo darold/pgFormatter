@@ -645,8 +645,8 @@ SELECT
                     ELSE
                         'Approved'
                     END)
-            ELSE
-                'PO'
+                ELSE
+                    'PO'
                 END)
         END) AS "Status_OK"
 FROM

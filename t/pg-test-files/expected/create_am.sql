@@ -247,8 +247,8 @@ SELECT
             pg_class pcm
         WHERE
             pcm.reltoastrelid = pc.oid)
-ELSE
-    relname::regclass::text
+    ELSE
+        relname::regclass::text
     END COLLATE "C" AS relname
 FROM
     pg_class AS pc,
@@ -331,8 +331,8 @@ SELECT
             pg_class pcm
         WHERE
             pcm.reltoastrelid = pc.oid)
-ELSE
-    relname::regclass::text
+    ELSE
+        relname::regclass::text
     END COLLATE "C" AS relname
 FROM
     pg_class AS pc
