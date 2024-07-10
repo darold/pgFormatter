@@ -59,7 +59,7 @@ sub run {
     $self->get_cgi();
     if ($self->{ 'cgi' }->Accept( "text/html" )) {
       $self->run_webpage();
-    } elsif ($self->{ 'cgi' }->Accept( "application/json" )) {
+    } elsif ($self->{ 'cgi' }->Accept( "application/json" ) && $self->{ 'enable_api' }) {
       $self->run_api();
     } else {
       $self->print_error();
@@ -139,6 +139,7 @@ sub set_config {
     $self->{ 'outdir' }       = '';
     $self->{ 'help' }         = '';
     $self->{ 'version' }      = '';
+    $self->{ 'enable_api' }   = 1;
     $self->{ 'debug' }        = 0;
     $self->{ 'content' }      = '';
     $self->{ 'original_content' }      = '';
