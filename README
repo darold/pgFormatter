@@ -8,7 +8,8 @@ DESCRIPTION
 
     pgFormatter can work as a console program or as a CGI. It will
     automatically detect its environment and format output as text or as
-    HTML following the context.
+    HTML following the context. It can also return a JSON-formatted response
+    if used as CGI with 'Accept: application/json'.
 
     Keywords highlighting will only be available in CGI context.
 

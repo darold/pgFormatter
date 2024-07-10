@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use warnings qw( FATAL );
 use Encode qw( decode );
+use JSON;
 
 =head1 NAME
 
@@ -49,6 +50,25 @@ sub new {
 
 =head2 run
 
+Route to the right handler based on what sort of data we receive
+
+=cut
+
+sub run {
+    my $self = shift;
+    $self->get_cgi();
+    if ($self->{ 'cgi' }->Accept( "text/html" )) {
+      $self->run_webpage();
+    } elsif ($self->{ 'cgi' }->Accept( "application/json" )) {
+      $self->run_api();
+    } else {
+      $self->print_error();
+    }
+    return;
+}
+
+=head2 run_webpage
+
 Wraps all work related to generating html page.
 
 It calls set of functions to get CGI object, receive parameters from
@@ -56,15 +76,31 @@ request, sanitize them, beautify query (if provided) and print ghtml.
 
 =cut
 
-sub run {
+sub run_webpage {
     my $self = shift;
-    $self->get_cgi();
     $self->get_params();
     $self->sanitize_params();
     $self->print_headers();
     $self->beautify_query();
     $self->print_body();
     $self->print_footer();
+    return;
+}
+
+
+=head2 run_api
+
+Wraps all work related to generating JSON response when used as API.
+
+=cut
+
+sub run_api {
+    my $self = shift;
+    $self->get_api_params();
+    $self->sanitize_params();
+    $self->{'format'} = 'text'; # we are never going to output HTML when doing JSON
+    $self->beautify_query();
+    $self->print_json();
     return;
 }
 
@@ -253,6 +289,28 @@ sub get_params {
     return;
 }
 
+=head2
+
+Get params for the API version of this service
+
+=cut
+
+sub get_api_params {
+    my $self = shift;
+
+    return unless $self->{ 'cgi' }->param;
+
+    # shortcut
+    my $cgi = $self->{ 'cgi' };
+
+    my $postdata = $cgi->param('POSTDATA');
+    my $json_params = decode_json($postdata);
+    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function) ) {
+        $self->{ $param_name } = $json_params->{$param_name} if defined $json_params->{$param_name};
+    }
+    return;
+}
+
 =head2 sanitize_params
 
 Overrides parameter values if given values were not within acceptable ranges.
@@ -380,6 +438,19 @@ sub remove_extra_parenthesis {
     while ($str =~ s/\(\s*\(\s*\(([^\(\)]+\)[^\(\)]+\([^\(\)]+)\)\s*\)\s*\)/(($1))/gs) {};
 
     return $str;
+}
+
+=head2 print_json
+
+Outputs beautified SQL as JSON
+
+=cut
+
+sub print_json {
+  my $self = shift;
+  print $self->{ 'cgi' }->header(-type => 'application/json', -charset => 'utf-8');
+  my $h = { formatted => ${self}->{ 'content' } };
+  print encode_json $h
 }
 
 =head2
@@ -588,6 +659,18 @@ sub _load_optional_file {
     my $content = <$in>;
     close $in;
     return $content;
+}
+
+=head2 print_error
+
+Outputs an error message when no acceptable response is found.
+
+=cut
+
+sub print_error {
+    my $self = shift;
+    print $self->{ 'cgi' }->header(-charset => 'utf-8', -type => 'text/plain', status=>'400');
+    print "Bad request";
 }
 
 =head2 print_headers
