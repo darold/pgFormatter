@@ -8,7 +8,8 @@ DESCRIPTION
 
     pgFormatter can work as a console program or as a CGI. It will
     automatically detect its environment and format output as text or as
-    HTML following the context.
+    HTML following the context. It can also return a JSON-formatted response
+    if used as CGI with 'Accept: application/json'.
 
     Keywords highlighting will only be available in CGI context.
 
@@ -399,6 +400,12 @@ HINTS
     script directory. The default CSS will be fully overridden by this
     custom file content. You have to look at the generated HTML output to
     get the default CSS code used.
+
+  Using pgFormatter as an API
+    You may use pgFormatter as an API by setting the 'Accept' HTTP header to
+    value 'application/json' when calling it as a CGI app. In case you do not
+    want to enable this feature, set `$self->{ 'enable_api' } = 0` in the
+    `set_config` sub of CGI.pm.
 
 AUTHORS
     pgFormatter is an original work from Gilles Darold with major code
