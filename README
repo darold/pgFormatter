@@ -119,9 +119,9 @@ DESCRIPTION
 
 INSTALLATION
     Following your Linux distribution you might need to install the autodie
-    Perl module:
+    and ExtUtils::MakeMaker Perl modules:
 
-            sudo yum -y install perl-autodie
+            sudo yum -y install perl-autodie perl-ExtUtils-MakeMaker
 
     Download the tarball from github and unpack the archive as follow:
 
