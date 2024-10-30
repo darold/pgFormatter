@@ -118,10 +118,10 @@ DESCRIPTION
     following your distribution.
 
 INSTALLATION
-    Following your Linux distribution you might need to install the autodie
-    and ExtUtils::MakeMaker Perl modules:
+    Following your Linux distribution you might need to install the autodie,
+    ExtUtils::MakeMaker, FindBin, and open Perl modules:
 
-            sudo yum -y install perl-autodie perl-ExtUtils-MakeMaker
+            sudo yum -y install perl-autodie perl-ExtUtils-MakeMaker perl-FindBin perl-open
 
     Download the tarball from github and unpack the archive as follow:
 
