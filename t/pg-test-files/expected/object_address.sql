@@ -28,7 +28,7 @@ CREATE TEXT SEARCH CONFIGURATION addr_ts_conf (
 );
 
 CREATE TEXT SEARCH TEMPLATE addr_ts_temp (
-    lexize = dsimple_lexize
+    LEXIZE = dsimple_lexize
 );
 
 CREATE TEXT SEARCH PARSER addr_ts_prs (

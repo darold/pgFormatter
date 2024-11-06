@@ -249,7 +249,9 @@ INSERT INTO insertconflicttest
     (2, 'Orange')
 ON CONFLICT (key)
     DO UPDATE SET
-        (fruit, key) = (excluded.fruit, excluded.key);
+        (fruit,
+            key) = (excluded.fruit,
+            excluded.key);
 
 -- Give good diagnostic message when EXCLUDED.* spuriously referenced from
 -- RETURNING:
@@ -831,7 +833,8 @@ INSERT INTO cities
     VALUES ('Las Vegas', 5.83E + 5, 2001)
 ON CONFLICT (name)
     DO UPDATE SET
-        population = excluded.population, altitude = excluded.altitude;
+        population = excluded.population,
+        altitude = excluded.altitude;
 
 SELECT
     tableoid::regclass,
@@ -864,7 +867,8 @@ INSERT INTO cities
     VALUES ('Las Vegas', 5.86E + 5, 2223)
 ON CONFLICT (name)
     DO UPDATE SET
-        population = excluded.population, altitude = excluded.altitude;
+        population = excluded.population,
+        altitude = excluded.altitude;
 
 SELECT
     tableoid::regclass,
@@ -942,7 +946,10 @@ INSERT INTO dropcol (key, drop1, keep1, drop2, keep2)
     VALUES (1, 2, '2', '2', 2)
 ON CONFLICT (key)
     DO UPDATE SET
-        drop1 = excluded.drop1, keep1 = excluded.keep1, drop2 = excluded.drop2, keep2 = excluded.keep2
+        drop1 = excluded.drop1,
+        keep1 = excluded.keep1,
+        drop2 = excluded.drop2,
+        keep2 = excluded.keep2
     WHERE
         excluded.drop1 IS NOT NULL
         AND excluded.keep1 IS NOT NULL
@@ -962,7 +969,10 @@ INSERT INTO dropcol (key, drop1, keep1, drop2, keep2)
     VALUES (1, 3, '3', '3', 3)
 ON CONFLICT (key)
     DO UPDATE SET
-        drop1 = dropcol.drop1, keep1 = dropcol.keep1, drop2 = dropcol.drop2, keep2 = dropcol.keep2
+        drop1 = dropcol.drop1,
+        keep1 = dropcol.keep1,
+        drop2 = dropcol.drop2,
+        keep2 = dropcol.keep2
     RETURNING
         *;
 
@@ -977,7 +987,8 @@ INSERT INTO dropcol (key, keep1, keep2)
     VALUES (1, '4', 4)
 ON CONFLICT (key)
     DO UPDATE SET
-        keep1 = excluded.keep1, keep2 = excluded.keep2
+        keep1 = excluded.keep1,
+        keep2 = excluded.keep2
     WHERE
         excluded.keep1 IS NOT NULL
         AND excluded.keep2 IS NOT NULL
@@ -993,7 +1004,8 @@ INSERT INTO dropcol (key, keep1, keep2)
     VALUES (1, '5', 5)
 ON CONFLICT (key)
     DO UPDATE SET
-        keep1 = dropcol.keep1, keep2 = dropcol.keep2
+        keep1 = dropcol.keep1,
+        keep2 = dropcol.keep2
     RETURNING
         *;
 
@@ -1383,10 +1395,14 @@ INSERT INTO parted_conflict
     VALUES (50, 'cincuenta', 2)
 ON CONFLICT (a, b)
     DO UPDATE SET
-        (a, b, c) = ROW (excluded.*)
+        (a,
+            b,
+            c) = ROW (excluded.*)
     WHERE
         parted_conflict = (50, text 'cincuenta', 1)
-        AND excluded = (50, text 'cincuenta', 2);
+        AND excluded = (50,
+            text 'cincuenta',
+            2);
 
 -- should see (50, 'cincuenta', 2)
 SELECT

@@ -2163,7 +2163,9 @@ INSERT INTO withz
             *
 )
     SELECT
-        * FROM t
+        *
+    FROM
+        t
         JOIN y ON t.k = y.a
     ORDER BY
         a,
@@ -2179,11 +2181,12 @@ INSERT INTO withz
         WHERE
             withz.k != EXCLUDED.k
         RETURNING
-            *)
-        SELECT
             *
-        FROM
-            aa;
+)
+    SELECT
+        *
+    FROM
+        aa;
 
 -- New query/snapshot demonstrates side-effects of previous query.
 SELECT
@@ -2283,7 +2286,9 @@ ON CONFLICT (k)
     DO UPDATE SET
         v = (
             SELECT
-                b || ' update' FROM aa
+                b || ' update'
+            FROM
+                aa
             WHERE
                 a = 1
             LIMIT 1);
@@ -2301,7 +2306,8 @@ INSERT INTO withz
         VALUES (2, 'Blue')
     ON CONFLICT (k)
         DO UPDATE SET
-            (k, v) = (
+            (k,
+                v) = (
                 SELECT
                     k,
                     v
@@ -2316,7 +2322,8 @@ INSERT INTO withz
         VALUES (2, 'Red')
     ON CONFLICT (k)
         DO UPDATE SET
-            (k, v) = (
+            (k,
+                v) = (
                 SELECT
                     k,
                     v

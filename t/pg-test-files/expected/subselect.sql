@@ -687,8 +687,7 @@ CREATE RULE shipped_view_insert AS ON INSERT TO shipped_view
     DO INSTEAD
     INSERT INTO shipped VALUES ('wt', NEW.ordnum, NEW.partnum, NEW.value);
 
-INSERT INTO parts (partnum,
-    COST)
+INSERT INTO parts (partnum, cost)
     VALUES (1, 1234.56);
 
 INSERT INTO shipped_view (ordnum, partnum, value)

@@ -20,3 +20,18 @@ SELECT
 FROM
     a1;
 
+INSERT INTO videos (sha, idx, title, language, codec, mime_codec, width, height, is_default, bitrate)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+ON CONFLICT (sha, idx)
+    DO UPDATE SET
+        sha = excluded.sha,
+        idx = excluded.idx,
+        title = excluded.title,
+        language = excluded.language,
+        codec = excluded.codec,
+        mime_codec = excluded.mime_codec,
+        width = excluded.width,
+        height = excluded.height,
+        is_default = excluded.is_default,
+        bitrate = excluded.bitrate;
+

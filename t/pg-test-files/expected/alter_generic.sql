@@ -691,11 +691,11 @@ ORDER BY
 -- Text Search Template
 --
 CREATE TEXT SEARCH TEMPLATE alt_ts_temp1 (
-    lexize = dsimple_lexize
+    LEXIZE = dsimple_lexize
 );
 
 CREATE TEXT SEARCH TEMPLATE alt_ts_temp2 (
-    lexize = dsimple_lexize
+    LEXIZE = dsimple_lexize
 );
 
 ALTER TEXT SEARCH TEMPLATE alt_ts_temp1 RENAME TO alt_ts_temp2;
@@ -708,7 +708,7 @@ ALTER TEXT SEARCH TEMPLATE alt_ts_temp2 SET SCHEMA alt_nsp2;
 
 -- OK
 CREATE TEXT SEARCH TEMPLATE alt_ts_temp2 (
-    lexize = dsimple_lexize
+    LEXIZE = dsimple_lexize
 );
 
 ALTER TEXT SEARCH TEMPLATE alt_ts_temp2 SET SCHEMA alt_nsp2;

@@ -1154,17 +1154,22 @@ INSERT INTO arr_pk_tbl
     VALUES (1, '{3,4,5}')
 ON CONFLICT (pk)
     DO UPDATE SET
-        f1[1] = excluded.f1[1], f1[3] = excluded.f1[3]
+        f1[1] = excluded.f1[1],
+        f1[3] = excluded.f1[3]
     RETURNING
-        pk, f1;
+        pk,
+        f1;
 
 INSERT INTO arr_pk_tbl (pk, f1[1:2])
     VALUES (1, '{6,7,8}')
 ON CONFLICT (pk)
     DO UPDATE SET
-        f1[1] = excluded.f1[1], f1[2] = excluded.f1[2], f1[3] = excluded.f1[3]
+        f1[1] = excluded.f1[1],
+        f1[2] = excluded.f1[2],
+        f1[3] = excluded.f1[3]
     RETURNING
-        pk, f1;
+        pk,
+        f1;
 
 -- note: if above selects don't produce the expected tuple order,
 -- then you didn't get an indexscan plan, and something is busted.

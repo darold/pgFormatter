@@ -685,7 +685,7 @@ sub tokenize_sql
         {
 	    if ($query[$i] =~ /^[\d\.]+$/ && $query[$i-1] =~ /^[\+\-]$/
 			    and ($query[$i-2] =~ /$math_operators/ or $query[$i-2] =~ /^(?:,|\(|\[)$/
-					or $self->_is_keyword( $query[$i-2]))
+					or $self->_is_keyword($query[$i-2]))
 	    )
 	    {
 		    $query[$i] = $query[$i-1] . $query[$i];
@@ -760,8 +760,6 @@ sub _push_level
 
     push(@{ $self->{ '_level_stack' } }, (($position >= 0) ? $position : 0));
 }
-
-
 
 sub _set_last
 {
@@ -1607,7 +1605,7 @@ sub beautify
             $self->_process_rule( $rule, $token );
         }
 
-        elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_drop' } )
+        elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i && !$self->{ '_is_in_alter' } && !$self->{ '_is_in_drop' } && $last ne ',')
 	{
 	    @{ $self->{ '_begin_level' } } = ();
             $self->_new_line($token,$last) if (uc($token) ne 'SECURITY' or (defined $last and uc($last) ne 'LEVEL'));
@@ -2304,6 +2302,9 @@ sub beautify
             if ($token =~ /^UPDATE$/i and $last =~ /^(FOR|KEY|DO)$/i)
 	    {
                 $self->_add_token( $token );
+		if (uc($last) eq 'DO' && uc($self->_next_token) eq 'SET') {
+		    $self->{ '_current_sql_stmt' } = 'UPDATE';
+		}
             }
 	    elsif (!$self->{ '_is_in_policy' } && $token !~ /^(DELETE|UPDATE)$/i && (!defined $self->_next_token || $self->_next_token !~ /^DISTINCT$/i))
 	    {
@@ -2432,7 +2433,7 @@ sub beautify
 	    push(@{ $self->{ '_is_in_case' } }, $self->{ '_level' });
         }
 
-        elsif ( $token =~ /^(?:WHEN)$/i)
+        elsif ( $token =~ /^(?:WHEN)$/i && $self->_is_keyword($token, $self->_next_token(), $last))
 	{
             if (!$self->{ '_first_when_in_case' } and !$self->{'_is_in_trigger'}
 			    and defined $last and uc($last) ne 'CASE'
@@ -2497,7 +2498,6 @@ sub beautify
 
         elsif ( $token =~ /^(?:ELSE|ELSIF)$/i )
 	{
-		#	ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
 	    if ($#{ $self->{ '_is_in_case' } } < 0) {
 	        $self->_back($token, $last);
 	    } else {
@@ -2882,6 +2882,7 @@ sub beautify
 
 		# Finally add the token without further condition
                 $self->_add_token( $token, $last );
+
 		if ($last eq "'" and $token =~ /^(BEGIN|DECLARE)$/i)
 		{
 		    $last = $self->_set_last($token, $last);
@@ -2895,7 +2896,7 @@ sub beautify
 		{
 		    $self->{ '_is_in_create' } = 0;
 		}
-                if (defined $last && uc($last) eq 'LANGUAGE' && (!defined $self->_next_token || $self->_next_token ne ';'))
+                if (defined $last && uc($last) eq 'LANGUAGE' && $self->_is_keyword( $last, $token ) && (!defined $self->_next_token || $self->_next_token ne ';'))
                 {
                     $self->_new_line($token,$last);
                 }
@@ -3367,16 +3368,25 @@ sub _is_keyword
 {
     my ( $self, $token, $next_token, $last_token ) = @_;
 
+    if ($DEBUG)
+    {
+        my ($package, $filename, $line) = caller;
+        print STDERR "DEBUG_KEYWORD: line: $line => last=", ($last_token||''), ", token=$token\n";
+    }
+
     return 0 if (!$token);
 
     # Remove cast if any
     $token =~ s/::[^:]+$//;
+
+    $next_token //= '';
 
     # Fix some false positive
     if (defined $next_token)
     {
         return 0 if (uc($token) eq 'LEVEL' and uc($next_token) ne 'SECURITY');
         return 0 if (uc($token) eq 'EVENT' and uc($next_token) ne 'TRIGGER');
+        return 0 if ($self->{ '_current_sql_stmt' } =~ /(INSERT|UPDATE)/ and $next_token =~ /^[,\)=]$/ and (not defined $last_token or $last_token =~ /^[,\(]$/) and $token !~ /^(TRUE|FALSE|DEFAULT|NULL|CURRENT_.*|LEXIZE|END)$/i);
     }
     return 0 if ($token =~ /^(LOGIN|RULE)$/i and !$self->{ '_is_in_create' } and !$self->{ '_is_in_alter' } and !$self->{ '_is_in_drop' } and !$self->{ '_is_in_rule' });
     return 0 if (uc($token) eq 'COMMENT' and (not defined $next_token or $next_token) !~ /^ON|IS$/i);
@@ -3918,7 +3928,7 @@ sub set_dicts
 	FIRST FOLLOWING FOR FOREIGN FORWARD FREEZE FROM FULL FUNCTION GENERATED GRANT GROUP GROUPING HAVING HASHES HASH
 	IDENTITY IF ILIKE IMMUTABLE IN INCLUDING INCREMENT INDEX INHERITS INITIALLY INNER INOUT INSERT INSTEAD
 	INTERSECT INTO INVOKER IS ISNULL ISOLATION JOIN KEY LANGUAGE LAST LATERAL LC_COLLATE LC_CTYPE LEADING
-	LEAKPROOF LEFT LEFTARG LEVEL LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCK LOCKED LOGGED LOGIN
+	LEAKPROOF LEFT LEFTARG LEVEL LEXIZE LIKE LIMIT LIST LISTEN LOAD LOCALTIME LOCALTIMESTAMP LOCK LOCKED LOGGED LOGIN
 	LOOP MAPPING MATCH MAXVALUE MERGES MINVALUE MODULUS MOVE NATURAL NEXT NOTHING NOTICE ORDINALITY
         NO NOCREATEDB NOCREATEROLE NOSUPERUSER NOT NOTIFY NOTNULL NOWAIT NULL OFF OF OIDS ON ONLY OPEN OPERATOR OR ORDER
         OUTER OVER OVERLAPS OWNER PARTITION PASSWORD PERFORM PLACING POLICY PRECEDING PREPARE PRIMARY PROCEDURE RANGE

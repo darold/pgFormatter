@@ -3813,7 +3813,7 @@ CREATE text search configuration alter1.cfg (
 
 CREATE text search TEMPLATE alter1.tmpl (
     init = dsimple_init,
-    lexize = dsimple_lexize
+    LEXIZE = dsimple_lexize
 );
 
 CREATE text search dictionary alter1.dict (

@@ -17,13 +17,14 @@ CREATE FUNCTION state_update (id int4, new int4)
     RETURNS int4
     AS $$
 BEGIN
-    INSERT INTO state (id, state, WHEN)
+    INSERT INTO state (id, state, when)
         VALUES (id, new, CURRENT_TIMESTAMP);
-    INSERT INTO state (id, state, WHEN)
+    INSERT INTO state (id, state, when)
         VALUES (id, new, CURRENT_TIMESTAMP)
     ON CONFLICT (id) -- ### this line should not be dedented
         DO UPDATE SET
-            state = excluded.state, WHEN = excluded.when;
+            state = excluded.state,
+            when = excluded.when;
     RETURN 1;
 END;
 $$
