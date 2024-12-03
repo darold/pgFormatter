@@ -1006,7 +1006,7 @@ ORDER BY
     a;
 
 DELETE FROM gtest26
-WHERE a = - 6;
+WHERE a = -6;
 
 SELECT
     *

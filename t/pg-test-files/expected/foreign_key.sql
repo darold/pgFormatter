@@ -940,8 +940,8 @@ UPDATE
     PKTABLE
 SET
     ptest1 = 0,
-    ptest2 = - 1,
-    ptest3 = - 2
+    ptest2 = -1,
+    ptest3 = -2
 WHERE
     ptest2 = 2;
 
@@ -991,7 +991,7 @@ FROM
 
 -- Try to delete something that should not set null
 DELETE FROM PKTABLE
-WHERE ptest2 = - 1
+WHERE ptest2 = -1
     AND ptest3 = 5;
 
 -- Show PKTABLE and FKTABLE

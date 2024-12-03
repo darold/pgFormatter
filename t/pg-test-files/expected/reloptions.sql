@@ -34,7 +34,7 @@ CREATE TABLE reloptions_test2 (
     i int
 )
 WITH (
-    autovacuum_analyze_scale_factor = - 10.0
+    autovacuum_analyze_scale_factor = -10.0
 );
 
 CREATE TABLE reloptions_test2 (
@@ -64,7 +64,7 @@ CREATE TABLE reloptions_test2 (
     i int
 )
 WITH (
-    fillfactor = - 30.1
+    fillfactor = -30.1
 );
 
 CREATE TABLE reloptions_test2 (

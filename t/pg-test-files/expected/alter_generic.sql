@@ -132,7 +132,7 @@ CREATE AGGREGATE alt_agg2 (
     SFUNC1 = int4mi,
     BASETYPE = int4,
     STYPE1 = int4,
-    INITCOND = - 100
+    INITCOND = -100
 );
 
 ALTER FUNCTION alt_func3 (int) RENAME TO alt_func4;

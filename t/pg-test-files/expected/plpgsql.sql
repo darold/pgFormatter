@@ -6533,7 +6533,7 @@ WHERE level1_no = 25;
 UPDATE
     transition_table_level1
 SET
-    level1_no = - 1
+    level1_no = -1
 WHERE
     level1_no = 30;
 INSERT INTO transition_table_level2 (level2_no, parent_no)

@@ -52,7 +52,7 @@ END IF;
             WHERE
                 oid = $1
                 AND typelem != 0
-                AND typlen = - 1) THEN
+                AND typlen = -1) THEN
         RETURN TRUE;
     END IF;
 END IF;
@@ -107,7 +107,7 @@ END IF;
             WHERE
                 oid = $1
                 AND typelem != 0
-                AND typlen = - 1) THEN
+                AND typlen = -1) THEN
         RETURN TRUE;
     END IF;
 END IF;

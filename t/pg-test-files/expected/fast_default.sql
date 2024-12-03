@@ -425,7 +425,7 @@ SELECT
 FROM
     T
 WHERE
-    c_bigint = - 1
+    c_bigint = -1
 LIMIT 1;
 
 EXPLAIN (
@@ -438,7 +438,7 @@ SELECT
 FROM
     T
 WHERE
-    c_bigint = - 1
+    c_bigint = -1
 LIMIT 1;
 
 SELECT
@@ -620,7 +620,7 @@ SELECT
 FROM
     T
 WHERE
-    c_int = - 1;
+    c_int = -1;
 
 SELECT
     comp ();

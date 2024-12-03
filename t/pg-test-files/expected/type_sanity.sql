@@ -291,7 +291,7 @@ WHERE
         AND (p2.proargtypes[0] = p1.oid
             OR (p2.oid = 'array_out'::regproc
                 AND p1.typelem != 0
-                AND p1.typlen = - 1)))
+                AND p1.typlen = -1)))
 ORDER BY
     1;
 
@@ -463,7 +463,7 @@ WHERE
         AND (p2.proargtypes[0] = p1.oid
             OR (p2.oid = 'array_send'::regproc
                 AND p1.typelem != 0
-                AND p1.typlen = - 1)))
+                AND p1.typlen = -1)))
 ORDER BY
     1;
 
@@ -849,7 +849,7 @@ WHERE
                 WHERE
                     oid = p1.rngsubtype
                     AND typelem != 0
-                    AND typlen = - 1)));
+                    AND typlen = -1)));
 
 -- canonical function, if any, had better match the range type
 SELECT

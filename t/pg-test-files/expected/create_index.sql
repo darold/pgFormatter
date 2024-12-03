@@ -1706,7 +1706,7 @@ SELECT
 FROM
     onek_with_null
 WHERE
-    unique2 >= - 1
+    unique2 >= -1
 ORDER BY
     unique2
 LIMIT 2;
@@ -1737,7 +1737,7 @@ SELECT
 FROM
     onek_with_null
 WHERE
-    unique2 >= - 1
+    unique2 >= -1
 ORDER BY
     unique2 DESC
 LIMIT 2;

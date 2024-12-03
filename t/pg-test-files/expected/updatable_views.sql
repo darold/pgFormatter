@@ -425,7 +425,7 @@ UPDATE
     rw_view16
 SET
     a = 3,
-    aa = - 3
+    aa = -3
 WHERE
     a = 3;
 
@@ -433,7 +433,7 @@ WHERE
 UPDATE
     rw_view16
 SET
-    aa = - 3
+    aa = -3
 WHERE
     a = 3;
 
@@ -444,7 +444,7 @@ FROM
     base_tbl;
 
 DELETE FROM rw_view16
-WHERE a = - 3;
+WHERE a = -3;
 
 -- should be OK
 -- Read-only views
@@ -2290,7 +2290,7 @@ WHERE
 UPDATE
     rw_view1
 SET
-    b = - 5
+    b = -5
 WHERE
     a = 3;
 
@@ -2796,7 +2796,7 @@ INSERT INTO rw_view2
 UPDATE
     rw_view2
 SET
-    a = - 5
+    a = -5
 WHERE
     a = 5;
 
@@ -3546,7 +3546,7 @@ WHERE
 UPDATE
     v2
 SET
-    a = - 1
+    a = -1
 WHERE
     a = 1;
 

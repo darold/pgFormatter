@@ -331,7 +331,7 @@ SELECT
 UPDATE
     tttest
 SET
-    price_on = - 1
+    price_on = -1
 WHERE
     price_id = 1;
 
@@ -343,7 +343,7 @@ SELECT
 UPDATE
     tttest
 SET
-    price_on = - 1
+    price_on = -1
 WHERE
     price_id = 1;
 

@@ -261,7 +261,7 @@ WHERE
     oid = 'btree_idx1'::regclass;
 
 -- Fail while setting improper values
-CREATE INDEX btree_idx_err ON btree_test (a) WITH (vacuum_cleanup_index_scale_factor = - 10.0);
+CREATE INDEX btree_idx_err ON btree_test (a) WITH (vacuum_cleanup_index_scale_factor = -10.0);
 
 CREATE INDEX btree_idx_err ON btree_test (a) WITH (vacuum_cleanup_index_scale_factor = 100.0);
 

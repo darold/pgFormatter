@@ -353,8 +353,8 @@ RETURNING
 UPDATE
     point_tbl
 SET
-    f1[0] = - 10,
-    f1[1] = - 10
+    f1[0] = -10,
+    f1[1] = -10
 WHERE
     f1::text = '(10,10)'::point::text
 RETURNING
@@ -433,7 +433,7 @@ FROM
 UPDATE
     arrtest1
 SET
-    i[-3] = - 3,
+    i[-3] = -3,
     t[-3] = 'minus-three';
 
 SELECT
