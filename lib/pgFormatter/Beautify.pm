@@ -1735,7 +1735,7 @@ sub beautify
 		    $last = $self->_set_last($token, $last) if (!$self->{ '_is_in_explain' } || $self->{ 'wrap_after' });
                     next;
                 }
-		if (!$self->{ '_is_in_if' } and !$self->{ '_is_in_alter' } and (!$self->{ '_is_in_function' } or $last ne '('))
+		if (!$self->{ '_is_in_if' } and !$self->{ '_is_in_alter' } and (!$self->{ '_is_in_function' } or $last ne '(') and uc($last) ne 'CHECK')
 		{
 		    $self->_over($token,$last) if ($self->{ '_is_in_operator' } <= 2 && $self->{ '_is_in_create' } <= 2);
 		    if (!$self->{ '_is_in_function' } and !$self->_is_type($self->_next_token))
@@ -2925,6 +2925,8 @@ sub beautify
         $self->_new_line();
     }
 
+    # Attempt to remove usless spaces
+    $self->{ 'content' } =~ s/\s+CHECK\s+\(\s+/ CHECK (/igs;
     # Attempt to eliminate redundant parenthesis in DML queries
     while ($self->{ 'content' } =~ s/(\s+(?:WHERE|SELECT|FROM)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1($2)$3/igs) {};
 
