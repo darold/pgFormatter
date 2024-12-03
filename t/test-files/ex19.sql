@@ -103,3 +103,25 @@ $f$;
   RETURN;
   END;
 $ff$;
+
+create or replace procedure public.copy_into_table_partition(
+ --some parameters
+)
+language plpgsql
+as $body$
+declare
+--some declaration
+begin
+	--code 
+	--code 
+	execute format(
+        $i$ --dollar quote start
+            insert into public."%2$s_%5$s"(%4$s)
+            select %4$s from %3$s 
+            where date_time >= %1$L and date_time < (timestamp %1$L + interval '1 month')
+            order by date_time
+        $i$/*dollar quote end*/, partition_day, _table_name, old_table_name, column_list_as_text, _table_suffix);
+	GET DIAGNOSTICS num_copied = ROW_COUNT;
+	raise notice 'Copied % rows to %', num_copied, format('public."%2$s_%1$s"', _table_suffix, _table_name);
+end;
+$body$;

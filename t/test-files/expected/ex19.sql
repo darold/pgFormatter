@@ -68,7 +68,7 @@ $f$;
         JOIN pg_class ON (oid = attrelid)
     WHERE
         pg_class.oid = $1::regclass
-        AND attlen = - 1 LOOP
+        AND attlen = -1 LOOP
             func := func || indent || E'BEGIN\n';
             IF attrecord.atttypid = 'numeric'::regtype THEN
                 detoast_funcname = 'numeric_sign';
@@ -108,4 +108,27 @@ $f$;
     RETURN;
 END;
 $ff$;
+
+CREATE OR REPLACE PROCEDURE public.copy_into_table_partition (
+--some parameters
+)
+LANGUAGE plpgsql
+AS $body$
+DECLARE
+    --some declaration
+BEGIN
+    --code
+    --code
+    EXECUTE format($i$ --dollar quote start
+        INSERT INTO public."%2$s_%5$s" (%4$s)
+        SELECT
+            %4$s FROM %3$s
+            WHERE
+                date_time >= %1$L
+                AND date_time < (timestamp %1$L + interval '1 month')
+            ORDER BY date_time $i$, /*dollar quote end*/ partition_day, _table_name, old_table_name, column_list_as_text, _table_suffix);
+    GET DIAGNOSTICS num_copied = ROW_COUNT;
+    RAISE NOTICE 'Copied % rows to %', num_copied, format('public."%2$s_%1$s"', _table_suffix, _table_name);
+END;
+$body$;
 

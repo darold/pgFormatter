@@ -19,7 +19,7 @@ our $DEBUG_SP = 0;
 our @have_from_clause = qw( extract overlay substring trim );
 our @extract_keywords = qw(century day decade dow doy epoch hour isodow isoyear microseconds millennium minute month quarter second timezone timezone_minute week year);
 
-our $math_operators = qr{^(?:\+|\-|\*|\/|\%|\^|\|\/|\|\|\/|\!|\!\!|\@|\&|\||\#|\~|<<|>>)$};
+our $math_operators = qr{^(?:\+|\-|\*|\/|\%|\^|\|\/|\|\|\/|\!|\!\!|\@|\&|\||\#|\~|<<|>>|=|>=|<=)$};
 
 =head1 NAME
 
@@ -686,6 +686,14 @@ sub tokenize_sql
 	    if ($query[$i] =~ /^[\d\.]+$/ && $query[$i-1] =~ /^[\+\-]$/
 			    and ($query[$i-2] =~ /$math_operators/ or $query[$i-2] =~ /^(?:,|\(|\[)$/
 					or $self->_is_keyword($query[$i-2]))
+	    )
+	    {
+		    $query[$i] = $query[$i-1] . $query[$i];
+		    $query[$i-1] = '';
+	    }
+	    elsif ($query[$i] =~ /^[\d\.]+[^\d\.]+$/ and $query[$i-1] =~ /^\%$/
+			    and ($query[$i-2] =~ /$math_operators/ or $query[$i-2] =~ /^(?:,|\(|\[)$/
+					or $self->_is_keyword($query[$i-2]) or $self->_is_type($query[$i-2]))
 	    )
 	    {
 		    $query[$i] = $query[$i-1] . $query[$i];
