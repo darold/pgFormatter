@@ -1833,6 +1833,7 @@ sub beautify
 			    and ($self->{ '_is_in_create' } or $last ne ')' and $last ne ']')
 			    and (uc($self->_next_token) ne 'WITH' or uc($self->{ '_tokens' }->[ 1 ]) !~ /TIME|INOUT/i)
 	        );
+
 		$self->_new_line($token,$last) if ($add_nl);
 
                 if (!$self->{ '_is_in_grouping' } and !$self->{ '_is_in_trigger' }
@@ -1845,11 +1846,6 @@ sub beautify
 		    $self->_back($token, $last);
 		}
                 $self->{ '_is_in_create' }-- if ($self->{ '_is_in_create' });
-		if ($self->{ '_is_in_type' })
-		{
-		    $self->_reset_level($token, $last) if ($self->{ '_is_in_block' } == -1 && !$self->{ '_parenthesis_level' });
-                    $self->{ '_is_in_type' }--;
-		}
 	    }
 	    if (!$self->{ '_parenthesis_level' })
 	    {
@@ -1982,6 +1978,11 @@ sub beautify
 
 	    next if ($token eq ';' and $#{ $self->{ '_is_in_case' } } >= 0 and uc($last) ne 'CASE');
 
+	    if ($self->{ '_is_in_type' } and $last eq ')')
+	    {
+		    $self->_reset_level($token, $last) if ($self->{ '_is_in_block' } == -1 && !$self->{ '_parenthesis_level' });
+                    $self->{ '_is_in_type' }--;
+	    }
             if ($self->{ '_is_in_rule' }) {
 		$self->_back($token, $last);
 	    }
@@ -2989,7 +2990,7 @@ sub _add_token
     }
 
     my $last_is_dot = defined( $last_token ) && $last_token eq '.';
-
+    #$DEBUG_SP = 1;
     my $sp = $self->_indent;
     if ( !$self->_is_punctuation( $token ) and !$last_is_dot)
     {
@@ -2999,6 +3000,7 @@ sub _add_token
                                             && defined($last_token)
                                             && $last_token !~ '::$'
                                             && $last_token ne '[' 
+					    && (!$self->_is_type($last_token) || $token ne '(')
 					    && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
                 )
             {
@@ -3016,7 +3018,7 @@ sub _add_token
 						or (!$self->{ '_is_in_drop_function' }
 							and !$self->{ '_is_in_create_function' }
 							and !$self->{ '_is_in_trigger' }));
-				if ($self->{ 'no_space_function' } and $token eq '(' and !$self->_is_keyword( $last_token, $token, undef ))
+				if ($self->{ 'no_space_function' } and $token eq '(' and (!$self->_is_keyword( $last_token, $token, undef ) or $self->_is_type($last_token)))
 				{
 					$self->{ 'content' } =~ s/$sp$//s;
 				}
@@ -3064,7 +3066,7 @@ sub _add_token
 					    and !$self->_is_type($token, $last_token, $self->_next_token))))
 	    {
                 print STDERR "DEBUG_SPC: 5a) last=", ($last_token||''), ", token=$token\n" if ($DEBUG_SP);
-                $self->{ 'content' } .= $sp;
+                $self->{ 'content' } .= $sp if (!$self->{ '_is_in_type' } || $token !~ /^\d+$/);
 	    }
 	    elsif ($self->{ 'comma_break' } and $self->{ '_current_sql_stmt' } eq 'INSERT')
 	    {
