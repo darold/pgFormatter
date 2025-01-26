@@ -745,11 +745,12 @@ sub _set_level
 {
     my ($self, $position, $token, $last_token) = @_;
 
+    my ($package, $filename, $line) = caller;
+
     return 0 if (not defined $position);
 
     if ($DEBUG)
     {
-        my ($package, $filename, $line) = caller;
         print STDERR "DEBUG_SET: line: $line => position=$position, last=", ($last_token||''), ", token=$token\n";
     }
 
@@ -2081,12 +2082,11 @@ sub beautify
 		$self->{ 'content' } .= "-- Statement # $self->{ 'stmt_number' }\n" if ($self->{ 'numbering' } and $#{ $self->{ '_tokens' } } > 0);
             }
             # End of statement; remove all indentation when we are not in a BEGIN/END block
-            if (!$self->{ '_is_in_declare' } and $self->{ '_is_in_block' } == -1 and !$self->{ '_fct_code_delimiter' })
+            if (!$self->{ '_is_in_declare' } and $self->{ '_is_in_block' } == -1 and !$self->{ '_fct_code_delimiter' } and !$self->{ '_is_in_exception' })
 	    {
 		    $self->_reset_level($token, $last);
             }
-	    #elsif ((not defined $self->_next_token or $self->_next_token !~ /^INSERT$/) and !$self->{ '_fct_code_delimiter' })
-	    elsif (!$self->{ '_language_sql' } and (not defined $self->_next_token or $self->_next_token !~ /^INSERT$/))
+	    elsif (!$self->{ '_language_sql' } and (not defined $self->_next_token or $self->_next_token !~ /^INSERT$/) and !$self->{ '_is_in_exception' })
 	    {
                 if ($#{ $self->{ '_level_stack' } } == -1) {
                         $self->_set_level(($self->{ '_is_in_declare' }) ? 1 : ($self->{ '_is_in_block' }+1), $token, $last);
@@ -2355,6 +2355,10 @@ sub beautify
 
         elsif ( $token =~ /^(?:GROUP|ORDER|LIMIT|EXCEPTION)$/i or (uc($token) eq 'ON' and uc($self->_next_token()) eq 'CONFLICT'))
 	{
+		#if (uc($last) ne 'RAISE' and $token =~ /^EXCEPTION$/i)
+	    #{
+		    #$self->{ '_is_in_exception' } = 1;
+		#}
 	    if ($self->{ 'format_type' } and uc($token) eq 'GROUP' and uc($self->_next_token()) eq 'BY') {
                 $self->{ 'no_break' } = 1;
             }
@@ -2451,6 +2455,7 @@ sub beautify
 		if (!$self->{ '_is_in_exception' }) {
 		    $self->_set_level($self->{ '_level_stack' }[-1], $token, $last) if ($#{ $self->{ '_level_stack' } } >= 0);
 	        } elsif ($#{ $self->{ '_begin_level' }} >= 0) {
+		    #$self->_set_level($self->{ '_begin_level' }[-1]+1, $token, $last);
 		    $self->_set_level($self->{ '_begin_level' }[-1]+1, $token, $last);
 	        }
 	    }
@@ -3000,7 +3005,7 @@ sub _add_token
                                             && defined($last_token)
                                             && $last_token !~ '::$'
                                             && $last_token ne '[' 
-					    && (!$self->_is_type($last_token) || $token ne '(')
+					    && ($token ne '(' || !$self->_is_type($last_token))
 					    && ($token ne '(' || !$self->_is_function( $last_token ) || $self->{ '_is_in_type' })
                 )
             {
@@ -4258,8 +4263,9 @@ sub set_dicts
         rank record_eq record_ge record_gt record_in record_le record_lt regexp_match
         record_ne record_out record_recv record_send regclass regclassin regclassout
         regclassrecv regclasssend regconfigin regconfigout regconfigrecv regconfigsend regdictionaryin
-        regdictionaryout regdictionaryrecv regdictionarysend regexeqjoinsel regexeqsel regexnejoinsel regexnesel
-        regexp_matches regexp_replace regexp_split_to_array regexp_split_to_table regoperatorin regoperatorout regoperatorrecv
+	regnamespace regoper regoperator regproc regprocedure regrole regtype regdictionaryout
+	regdictionaryrecv regdictionarysend regexeqjoinsel regexeqsel regexnejoinsel regexnesel regexp_matches
+	regexp_replace regexp_split_to_array regexp_split_to_table regoperatorin regoperatorout regoperatorrecv
         regoperatorsend regoperin regoperout regoperrecv regopersend regprocedurein regprocedureout
         regprocedurerecv regproceduresend regprocin regprocout regprocrecv regprocsend regr_avgx
         regr_avgy regr_count regr_intercept regr_r2 regr_slope regr_sxx regr_sxy
@@ -4302,7 +4308,8 @@ sub set_dicts
         tintervalct tintervalend tintervaleq tintervalge tintervalgt tintervalin tintervalle
         tintervalleneq tintervallenge tintervallengt tintervallenle tintervallenlt tintervallenne tintervallt
         tintervalne tintervalout tintervalov tintervalrecv tintervalrel tintervalsame tintervalsend
-        tintervalstart to_json to_tsquery to_tsvector transaction_timestamp trigger_out trunc ts_debug
+        tintervalstart to_json to_tsquery to_tsvector to_regclass to_regnamespace to_regoper to_regoperator
+	to_regproc to_regprocedure to_regrole to_regtype transaction_timestamp trigger_out trunc ts_debug
         ts_headline ts_lexize ts_match_qv ts_match_tq ts_match_tt ts_match_vq ts_parse ts_delete ts_filter
         ts_rank ts_rank_cd ts_rewrite ts_stat ts_token_type ts_typanalyze tsmatchjoinsel tsquery_phrase
         tsmatchsel tsq_mcontained tsq_mcontains tsquery_and tsquery_cmp tsquery_eq tsquery_ge
