@@ -1335,14 +1335,15 @@ CREATE TYPE jsbrec AS (
     ia2d jsb_int_array_2d,
     t text,
     ta text[],
-    c char ( 10),
+    c char(10),
     ca char(10)[],
     ts timestamp,
     js json,
     jsb jsonb,
     jsa json[],
     rec jbpop,
-    reca jbpop[]);
+    reca jbpop[]
+);
 
 CREATE TYPE jsbrec_i_not_null AS (
     i jsb_int_not_null
@@ -3599,26 +3600,26 @@ SELECT
 
 -- ts_headline for jsonb
 SELECT
-    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery ('bbb & ddd & hhh'));
+    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'));
 
 SELECT
-    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery ('bbb & ddd & hhh'));
+    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'));
 
 SELECT
-    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery ('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
+    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
 
 SELECT
-    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery ('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
+    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
 
 -- corner cases for ts_headline with jsonb
 SELECT
-    ts_headline('null'::jsonb, tsquery ('aaa & bbb'));
+    ts_headline('null'::jsonb, tsquery('aaa & bbb'));
 
 SELECT
-    ts_headline('{}'::jsonb, tsquery ('aaa & bbb'));
+    ts_headline('{}'::jsonb, tsquery('aaa & bbb'));
 
 SELECT
-    ts_headline('[]'::jsonb, tsquery ('aaa & bbb'));
+    ts_headline('[]'::jsonb, tsquery('aaa & bbb'));
 
 -- casts
 SELECT

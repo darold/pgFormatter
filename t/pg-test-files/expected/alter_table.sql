@@ -4053,7 +4053,8 @@ DROP TYPE test_type_empty;
 CREATE TYPE tt_t0 AS (
     z inet,
     x int,
-    y numeric ( 8, 2));
+    y numeric(8, 2)
+);
 
 ALTER TYPE tt_t0
     DROP ATTRIBUTE z;
@@ -4128,7 +4129,8 @@ ALTER TABLE tt7 OF tt_t0;
 
 CREATE TYPE tt_t1 AS (
     x int,
-    y numeric ( 8, 2));
+    y numeric(8, 2)
+);
 
 ALTER TABLE tt7 OF tt_t1;
 

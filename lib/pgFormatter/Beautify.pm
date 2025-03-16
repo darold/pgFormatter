@@ -2869,7 +2869,9 @@ sub beautify
 		      if ($#{ $self->{ '_level_stack' } } >= 0) {
 		          $self->_set_level($self->{ '_level_stack' }[-1], $token, $last);
 		      } else {
-			  $self->_back($token,$last);
+			  if (!$self->{_is_in_procedure} || $self->{ '_level' } > 1) {
+				  $self->_back($token,$last);
+			  }
 		      }
 		}
 

@@ -882,14 +882,15 @@ CREATE TYPE jsrec AS (
     ia2d js_int_array_2d,
     t text,
     ta text[],
-    c char ( 10),
+    c char(10),
     ca char(10)[],
     ts timestamp,
     js json,
     jsb jsonb,
     jsa json[],
     rec jpop,
-    reca jpop[]);
+    reca jpop[]
+);
 
 CREATE TYPE jsrec_i_not_null AS (
     i js_int_not_null
@@ -1911,24 +1912,24 @@ SELECT
 
 -- ts_headline for json
 SELECT
-    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery ('bbb & ddd & hhh'));
+    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery('bbb & ddd & hhh'));
 
 SELECT
-    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery ('bbb & ddd & hhh'));
+    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery('bbb & ddd & hhh'));
 
 SELECT
-    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery ('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
+    ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
 
 SELECT
-    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery ('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
+    ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::json, tsquery('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
 
 -- corner cases for ts_headline with json
 SELECT
-    ts_headline('null'::json, tsquery ('aaa & bbb'));
+    ts_headline('null'::json, tsquery('aaa & bbb'));
 
 SELECT
-    ts_headline('{}'::json, tsquery ('aaa & bbb'));
+    ts_headline('{}'::json, tsquery('aaa & bbb'));
 
 SELECT
-    ts_headline('[]'::json, tsquery ('aaa & bbb'));
+    ts_headline('[]'::json, tsquery('aaa & bbb'));
 

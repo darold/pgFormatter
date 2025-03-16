@@ -1792,7 +1792,7 @@ BEGIN
     IF NEW.id = 1 THEN
         EXECUTE 'insert into depth_c values (' || NEW.id::text || ')';
         END IF;
-    RETURN new;
+        RETURN new;
 END;
 
 $$;

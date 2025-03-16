@@ -3311,18 +3311,18 @@ BEGIN
     EXCEPTION
         WHEN OTHERS THEN
             RAISE NOTICE 'caught exception % %', sqlstate, sqlerrm;
-    BEGIN
-        RAISE NOTICE '% %', sqlstate, sqlerrm;
-        PERFORM
-            10 / 0;
-    EXCEPTION
-        WHEN substring_error THEN
-            -- this exception handler shouldn't be invoked
-            RAISE NOTICE 'unexpected exception: % %', sqlstate, sqlerrm;
-        WHEN division_by_zero THEN
-            RAISE NOTICE 'caught exception % %', sqlstate, sqlerrm;
-    END;
-        RAISE NOTICE '% %', sqlstate, sqlerrm;
+            BEGIN
+                RAISE NOTICE '% %', sqlstate, sqlerrm;
+                PERFORM
+                    10 / 0;
+            EXCEPTION
+                WHEN substring_error THEN
+                    -- this exception handler shouldn't be invoked
+                    RAISE NOTICE 'unexpected exception: % %', sqlstate, sqlerrm;
+                WHEN division_by_zero THEN
+                    RAISE NOTICE 'caught exception % %', sqlstate, sqlerrm;
+            END;
+            RAISE NOTICE '% %', sqlstate, sqlerrm;
     END;
 END;
 
@@ -4852,7 +4852,7 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RAISE NOTICE 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-    RAISE;
+        RAISE;
 END;
 
 $$
@@ -4870,7 +4870,7 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RAISE NOTICE 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-    RAISE;
+        RAISE;
 END;
 
 $$
@@ -4889,7 +4889,7 @@ BEGIN
 EXCEPTION
     WHEN sqlstate '1234F' THEN
         RAISE NOTICE 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-    RAISE;
+        RAISE;
 END;
 
 $$
@@ -4907,7 +4907,7 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RAISE NOTICE 'SQLSTATE: % SQLERRM: %', sqlstate, sqlerrm;
-    RAISE;
+        RAISE;
 END;
 
 $$
@@ -5044,7 +5044,7 @@ EXCEPTION
         get stacked diagnostics _sqlstate = returned_sqlstate,
         _message = message_text,
         _context = pg_exception_context;
-    RAISE NOTICE 'sqlstate: %, message: %, context: [%]', _sqlstate, _message, replace(_context, E'\n', ' <- ');
+        RAISE NOTICE 'sqlstate: %, message: %, context: [%]', _sqlstate, _message, replace(_context, E'\n', ' <- ');
 END;
 
 $$
@@ -5068,7 +5068,7 @@ EXCEPTION
         get stacked diagnostics _message = message_text,
         _detail = pg_exception_detail,
         _hint = pg_exception_hint;
-    RAISE NOTICE 'message: %, detail: %, hint: %', _message, _detail, _hint;
+        RAISE NOTICE 'message: %, detail: %, hint: %', _message, _detail, _hint;
 END;
 
 $$
@@ -5112,7 +5112,7 @@ BEGIN
 EXCEPTION
     WHEN sqlstate '22012' THEN
         RAISE NOTICE USING message = sqlstate;
-    RAISE sqlstate '22012' USING message = 'substitute message';
+        RAISE sqlstate '22012' USING message = 'substitute message';
 END;
 
 $$
@@ -5144,7 +5144,7 @@ EXCEPTION
         _datatype_name = pg_datatype_name,
         _table_name = table_name,
         _schema_name = schema_name;
-    RAISE NOTICE 'column %, constraint %, type %, table %, schema %', _column_name, _constraint_name, _datatype_name, _table_name, _schema_name;
+        RAISE NOTICE 'column %, constraint %, type %, table %, schema %', _column_name, _constraint_name, _datatype_name, _table_name, _schema_name;
 END;
 
 $$
@@ -6158,7 +6158,7 @@ BEGIN
     EXCEPTION
         WHEN division_by_zero THEN
             get diagnostics _context = pg_context;
-    RAISE NOTICE '***%***', _context;
+            RAISE NOTICE '***%***', _context;
     END;
     -- lets do it again, just for fun..
     get diagnostics _context = pg_context;
@@ -6249,7 +6249,7 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         NULL;
-    -- do nothing
+        -- do nothing
 END;
 $$;
 -- Test use of plpgsql in a domain check constraint (cf. bug #14414)
