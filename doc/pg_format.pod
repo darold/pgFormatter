@@ -85,6 +85,7 @@ Options:
 			    keywords defined internaly in pgFormatter.
     --no-space-function : remove space between function call and the open
                             parenthesis.
+    --redundant-parenthesis: do not remove redundant parenthesis on DML.
 
 Examples:
 
@@ -270,6 +271,12 @@ character, for example:
 When this option is used the resulting query is formatted as follow:
 
     DROP FUNCTION IF EXISTS app_public.hello(a text);
+
+=head2 Option --redundant-parenthesis
+
+By default, pgFormatter tries to remove redundant parenthesis in DML but in
+some cases they must be preseved. Using this option will keep redundant
+parenthesis untouched.
 
 =head1 HINTS
 

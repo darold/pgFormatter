@@ -15,12 +15,12 @@ pgFormatter::CLI - Implementation of command line program to format SQL queries.
 
 =head1 VERSION
 
-Version 5.5
+Version 5.6
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '5.5';
+our $VERSION = '5.6';
 
 use autodie;
 use pgFormatter::Beautify;
@@ -125,6 +125,7 @@ sub beautify {
     $args{ 'extra_function' } = $self->{ 'cfg' }->{ 'extra-function' };
     $args{ 'extra_keyword' }  = $self->{ 'cfg' }->{ 'extra-keyword' };
     $args{ 'no_space_function' }  = $self->{ 'cfg' }->{ 'no-space-function' };
+    $args{ 'redundant_parenthesis' }  = $self->{ 'cfg' }->{ 'redundant-parenthesis' };
     # Backward compatibility
     $args{ 'extra_keyword' }  = 'redshift' if (!$self->{ 'cfg' }->{ 'extra-keyword' } && $self->{ 'cfg' }->{ 'redshift' });
 
@@ -302,6 +303,7 @@ Options:
 			    keywords defined internaly in pgFormatter.
     --no-space-function : remove space between function call and the open
                             parenthesis.
+    --redundant_parenthesis: do not remove redundant parenthesis on DML.
 
 Examples:
 
@@ -386,6 +388,7 @@ sub get_command_line_args
 	'extra-function=s',
 	'extra-keyword=s',
 	'no-space-function!',
+	'redundant-parenthesis!',
     );
 
     $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );

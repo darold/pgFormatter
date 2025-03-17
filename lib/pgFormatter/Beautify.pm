@@ -27,12 +27,12 @@ pgFormatter::Beautify - Library for pretty-printing SQL queries
 
 =head1 VERSION
 
-Version 5.5
+Version 5.6
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '5.5';
+our $VERSION = '5.6';
 
 # Inclusion of code from Perl package SQL::Beautify
 # Copyright (C) 2009 by Jonas Kramer
@@ -162,6 +162,8 @@ Takes options as hash. Following options are recognized:
 
 =item * no_space_function - remove space before function call and open parenthesis
 
+=item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -176,7 +178,7 @@ sub new
     my $self = bless {}, $class;
     $self->set_defaults();
 
-    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function)) {
+    for my $key ( qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis)) {
         $self->{ $key } = $options{ $key } if defined $options{ $key };
     }
 
@@ -2936,7 +2938,9 @@ sub beautify
     # Attempt to remove usless spaces
     $self->{ 'content' } =~ s/\s+CHECK\s+\(\s+/ CHECK (/igs;
     # Attempt to eliminate redundant parenthesis in DML queries
-    while ($self->{ 'content' } =~ s/(\s+(?:WHERE|SELECT|FROM)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1($2)$3/igs) {};
+    if (!$self->{ 'redundant_parenthesis' }) {
+	    while ($self->{ 'content' } =~ s/(\s+(?:WHERE|SELECT|FROM)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1($2)$3/igs) {};
+    }
 
     return;
 }
@@ -3858,6 +3862,8 @@ Currently defined defaults:
 
 =item no_space_function => 0
 
+=item redundant_parenthesis => 0
+
 =back
 
 =cut
@@ -3897,6 +3903,7 @@ sub set_defaults
     $self->{ 'no_extra_line' } = 0;
     $self->{ 'keep_newline' }  = 0;
     $self->{ 'no_space_function' } = 0;
+    $self->{ 'redundant_parenthesis' } = 0;
 
     return;
 }
