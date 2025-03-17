@@ -1,3 +1,70 @@
+March 17 2025 - v5.6
+
+This maintenance release fixes some issues reported by users since the last
+release and adds some improvements.
+
+Improvements:
+   
+  * Add support to pg_vector operator <#>. Thanks to Taylor Brown for the report
+  * Add support for the @? jsonb-jsonpath operator. Thank to Simon Whitaker for
+    the patch.
+  * Follow the XDG Base Directory Specification by searching configuration file
+    into XDG_CONFIG_HOME/pg_format/config.conf. Thanks to afk-mario for the
+    feature request.
+  * Check USERPROFILE env var for Windows. Thanks to Aaron Sherber for the patch
+  * Add to_reg* and reg* to function list.
+  * Add missing Perl modules in installation instructions. Thanks to dullbananas
+    for the patch.
+  * Add information about the Perl module to install for the JSON feature.
+  * Expand web capabilities of the app with adding API-like JSON capability to
+    the CGI module. The API can be disabled using the enable_api parameter to
+    the CGI (default: 1). Thanks to m.desoutter for the patch.
+  * Add option --redundant-parenthesis to prevent pgFormatter to remove
+    reduntant parenthesis in DML.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix indentation issue of INSERT in procedures. Thanks to Olamshin for the
+    report.
+  - Fix indentation in triggers in an exception block. Thanks to bmk9727 for
+    the report.
+  - Fix create type output. Thanks to Alec Larson for the report.
+  - Fix formatting of CHECK clause to be single line. Thanks to Alec Larson for
+    the report
+  - Apply last fix changes for b = - 5 rewritten into b = -5
+  - Fix use of % formatter in format() function. Thanks to Ender Dobra for the
+    report.
+  - Fix formatting of column name corresponding to keywords in INSERT and UPDATE
+    statement. Thanks to Zoe Roux for the report.
+  - Fix single quotes inside /**/ comments break formatting. Thanks to Jakob
+    Egger for the report.
+  - Fix formatting with BEGIN+ATOMIC. Thanks to dullbananas for the report.
+  - Update regression tests.
+  - Fix indentation of ELSE in a CASE clause. Thanks to VinceT for the report.
+  - Fix handling of the assignment operator := when there is no space
+    between the variable name and the operator. Thanks to Alexey Samoilov
+    for the report.
+  - Fix broken indent when a comment is found before DECLARE. Thanks to Alexey
+    Samoilov for the report.
+  - Fix format of SET statement in CREATE FUNCTION block. Thanks to Robert
+    Nilsson for the report.
+  - Fix data type case in ALTER command. Thanks to Brandon Stilson for the
+    report.
+  - Remove extra space after comment characters added by pgFormatter. Thanks
+    to Brandon Stilson for the report.
+  - Fix documentation about function-case. Thanks to John Clow for the
+    report.
+  - Fix other occurence of --no-grouping remaining in the documentation
+    instead of --nogrouping
+  - Fix Use of uninitialized value $ENV{"XDG_CONFIG_HOME"}. Thanks to looi
+    for the report.
+  - Fix typo on nogrouping option. Thanks to Edmundo Santos for the patch.
+  - Allow more characters in double quoted fqdn objects. Thanks to lsyuan
+    for the report.
+  - Fix an uninitialized variable error. Thanks to Profpatsch for the report.
+  - Add prerequisite information about the Perl autodie module with RH like
+    distribution. Thanks to Saunders Brandon for the report.
+
 Febuary 04 2023 - v5.5
 
 This maintenance release fixes some issues reported by users since the last
