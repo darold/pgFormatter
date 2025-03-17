@@ -400,7 +400,7 @@ FROM (
     SELECT
         bits::integer::xfloat4::float4 AS flt
     FROM
-        testdata offset 0) s;
+        testdata OFFSET 0) s;
 
 WITH testdata (
     bits
@@ -700,7 +700,7 @@ FROM (
     SELECT
         bits::integer::xfloat4::float4 AS flt
     FROM
-        testdata offset 0) s;
+        testdata OFFSET 0) s;
 
 -- clean up, lest opr_sanity complain
 DROP TYPE xfloat4 CASCADE;

@@ -1628,7 +1628,7 @@ FROM
         SELECT
             *
         FROM
-            int8_tbl offset 0) t2 ON (t1.q2 = t2.q1)
+            int8_tbl OFFSET 0) t2 ON (t1.q2 = t2.q1)
 GROUP BY
     t1.q2
 ORDER BY
@@ -4044,7 +4044,7 @@ FROM
                     int8_tbl d) ss2) ON c.q2 = ss2.q1,
     LATERAL (
         SELECT
-            ss2.y offset 0) ss3;
+            ss2.y OFFSET 0) ss3;
 
 -- case that breaks the old ph_may_need optimization
 EXPLAIN (
@@ -4092,16 +4092,16 @@ SELECT
     *
 FROM (
     SELECT
-        1 AS x offset 0) x
+        1 AS x OFFSET 0) x
     CROSS JOIN (
         SELECT
-            2 AS y offset 0) y
+            2 AS y OFFSET 0) y
     LEFT JOIN LATERAL (
         SELECT
             *
         FROM (
             SELECT
-                3 AS z offset 0) z
+                3 AS z OFFSET 0) z
         WHERE
             z.z = x.x) zz ON zz.z = y.y;
 
@@ -4185,7 +4185,7 @@ FROM (
                 FROM
                     tenk1
                 WHERE
-                    unique2 = v.x offset 0)) ss;
+                    unique2 = v.x OFFSET 0)) ss;
 
 SELECT
     *
@@ -4204,7 +4204,7 @@ FROM (
                 FROM
                     tenk1
                 WHERE
-                    unique2 = v.x offset 0)) ss;
+                    unique2 = v.x OFFSET 0)) ss;
 
 -- check proper extParam/allParam handling (this isn't exactly a LATERAL issue,
 -- but we can make the test case much more compact with LATERAL)
@@ -4241,7 +4241,8 @@ FROM (
                                         greatest (t1.q1, t2.q2))
                                     AND (
                                         SELECT
-                                            v.id = 0)) offset 0) ss2) ss
+                                            v.id = 0))
+                                    OFFSET 0) ss2) ss
                         WHERE
                             t1.q1 = ss.q2) ss0;
 
@@ -4274,7 +4275,8 @@ FROM (
                                         greatest (t1.q1, t2.q2))
                                     AND (
                                         SELECT
-                                            v.id = 0)) offset 0) ss2) ss
+                                            v.id = 0))
+                                    OFFSET 0) ss2) ss
                         WHERE
                             t1.q1 = ss.q2) ss0;
 

@@ -1310,7 +1310,8 @@ FROM (
             r1, *
         FROM (
             VALUES (10), (20), (30)) v2 (r2)
-            LEFT JOIN generate_series(21, 23) f (i) ON ((r2 + i) < 100) OFFSET 0) s1;
+            LEFT JOIN generate_series(21, 23) f (i) ON ((r2 + i) < 100)
+            OFFSET 0) s1;
 
 SELECT
     *
@@ -1323,7 +1324,8 @@ FROM (
             r1, *
         FROM (
             VALUES (10), (20), (30)) v2 (r2)
-            LEFT JOIN generate_series(20 + r1, 23) f (i) ON ((r2 + i) < 100) OFFSET 0) s1;
+            LEFT JOIN generate_series(20 + r1, 23) f (i) ON ((r2 + i) < 100)
+            OFFSET 0) s1;
 
 SELECT
     *
@@ -1336,7 +1338,8 @@ FROM (
             r1, *
         FROM (
             VALUES (10), (20), (30)) v2 (r2)
-            LEFT JOIN generate_series(r2, r2 + 3) f (i) ON ((r2 + i) < 100) OFFSET 0) s1;
+            LEFT JOIN generate_series(r2, r2 + 3) f (i) ON ((r2 + i) < 100)
+            OFFSET 0) s1;
 
 SELECT
     *
@@ -1349,7 +1352,8 @@ FROM (
             r1, *
         FROM (
             VALUES (10), (20), (30)) v2 (r2)
-            LEFT JOIN generate_series(r1, 2 + r2 / 5) f (i) ON ((r2 + i) < 100) OFFSET 0) s1;
+            LEFT JOIN generate_series(r1, 2 + r2 / 5) f (i) ON ((r2 + i) < 100)
+            OFFSET 0) s1;
 
 -- check handling of FULL JOIN with multiple lateral references (bug #15741)
 SELECT
@@ -2114,7 +2118,8 @@ CREATE FUNCTION extractq2_2 (t int8_tbl)
     )
     AS $$
     SELECT
-        extractq2 (t) offset 0
+        extractq2 (t)
+        OFFSET 0
 $$
 LANGUAGE sql
 IMMUTABLE;

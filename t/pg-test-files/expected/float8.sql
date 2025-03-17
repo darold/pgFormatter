@@ -673,7 +673,7 @@ FROM (
     SELECT
         bits::bigint::xfloat8::float8 AS flt
     FROM
-        testdata offset 0) s;
+        testdata OFFSET 0) s;
 
 -- round-trip tests
 WITH testdata (
@@ -914,7 +914,7 @@ FROM (
     SELECT
         bits::bigint::xfloat8::float8 AS flt
     FROM
-        testdata offset 0) s;
+        testdata OFFSET 0) s;
 
 -- clean up, lest opr_sanity complain
 DROP TYPE xfloat8 CASCADE;

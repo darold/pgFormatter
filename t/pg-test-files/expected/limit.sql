@@ -127,7 +127,7 @@ LIMIT (
 SELECT
     *
 FROM
-    int8_tbl offset (
+    int8_tbl OFFSET (
         CASE WHEN random() < 0.5 THEN
             NULL::bigint
         END);
@@ -162,7 +162,7 @@ DECLARE c3 CURSOR FOR
     SELECT
         *
     FROM
-        int8_tbl offset 3;
+        int8_tbl OFFSET 3;
 FETCH ALL IN c3;
 FETCH 1 IN c3;
 FETCH BACKWARD 1 IN c3;
@@ -173,7 +173,7 @@ DECLARE c4 CURSOR FOR
     SELECT
         *
     FROM
-        int8_tbl offset 10;
+        int8_tbl OFFSET 10;
 FETCH ALL IN c4;
 FETCH 1 IN c4;
 FETCH BACKWARD 1 IN c4;

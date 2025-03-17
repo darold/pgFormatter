@@ -601,12 +601,12 @@ FROM ((
         SELECT
             a.q1 AS x
         FROM
-            int8_tbl a offset 0)
+            int8_tbl a OFFSET 0)
     UNION ALL (
         SELECT
             b.q2 AS x
         FROM
-            int8_tbl b offset 0)) ss
+            int8_tbl b OFFSET 0)) ss
 WHERE
     FALSE;
 

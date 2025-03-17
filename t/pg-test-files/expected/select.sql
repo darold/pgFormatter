@@ -198,13 +198,13 @@ SELECT
     foo
 FROM (
     SELECT
-        1 offset 0) AS foo;
+        1 OFFSET 0) AS foo;
 
 SELECT
     foo
 FROM (
     SELECT
-        NULL offset 0) AS foo;
+        NULL OFFSET 0) AS foo;
 
 SELECT
     foo
@@ -212,7 +212,7 @@ FROM (
     SELECT
         'xyzzy',
         1,
-        NULL offset 0) AS foo;
+        NULL OFFSET 0) AS foo;
 
 --
 -- Test VALUES lists

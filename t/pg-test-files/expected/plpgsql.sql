@@ -6044,14 +6044,14 @@ SELECT
     a
 FROM (
     SELECT
-        returns_rw_array (1) AS a offset 0) ss,
+        returns_rw_array (1) AS a OFFSET 0) ss,
     LATERAL consumes_rw_array (a) i;
 SELECT
     i,
     a
 FROM (
     SELECT
-        returns_rw_array (1) AS a offset 0) ss,
+        returns_rw_array (1) AS a OFFSET 0) ss,
     LATERAL consumes_rw_array (a) i;
 EXPLAIN (
     VERBOSE,

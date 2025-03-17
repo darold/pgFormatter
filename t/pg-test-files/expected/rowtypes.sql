@@ -1068,7 +1068,7 @@ FROM (
         q1,
         q2
     FROM
-        int8_tbl offset 0) AS ss;
+        int8_tbl OFFSET 0) AS ss;
 
 SELECT
     row_to_json(ss)
@@ -1086,7 +1086,7 @@ FROM (
         q1 AS a,
         q2 AS b
     FROM
-        int8_tbl offset 0) AS ss;
+        int8_tbl OFFSET 0) AS ss;
 
 SELECT
     row_to_json(ss)
@@ -1105,7 +1105,7 @@ FROM (
         q1 AS a,
         q2 AS b
     FROM
-        int8_tbl offset 0) AS ss (x,
+        int8_tbl OFFSET 0) AS ss (x,
         y);
 
 EXPLAIN (
@@ -1121,7 +1121,7 @@ FROM (
         tenk1
     WHERE
         thousand = 42
-        AND tenthous < 2000 offset 0) q;
+        AND tenthous < 2000 OFFSET 0) q;
 
 SELECT
     row_to_json(q)
@@ -1133,7 +1133,7 @@ FROM (
         tenk1
     WHERE
         thousand = 42
-        AND tenthous < 2000 offset 0) q;
+        AND tenthous < 2000 OFFSET 0) q;
 
 SELECT
     row_to_json(q)
@@ -1145,7 +1145,7 @@ FROM (
         tenk1
     WHERE
         thousand = 42
-        AND tenthous < 2000 offset 0) q;
+        AND tenthous < 2000 OFFSET 0) q;
 
 SELECT
     row_to_json(q)
@@ -1157,7 +1157,7 @@ FROM (
         tenk1
     WHERE
         thousand = 42
-        AND tenthous < 2000 offset 0) q (a,
+        AND tenthous < 2000 OFFSET 0) q (a,
         b);
 
 CREATE temp TABLE tt1 AS
@@ -1182,7 +1182,7 @@ FROM (
         q2,
         q1
     FROM
-        tt1 offset 0) r;
+        tt1 OFFSET 0) r;
 
 -- check no-op rowtype conversions
 CREATE temp TABLE tt3 ()
