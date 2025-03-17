@@ -303,7 +303,7 @@ Options:
 			    keywords defined internaly in pgFormatter.
     --no-space-function : remove space between function call and the open
                             parenthesis.
-    --redundant_parenthesis: do not remove redundant parenthesis on DML.
+    --redundant-parenthesis: do not remove redundant parenthesis in DML.
 
 Examples:
 

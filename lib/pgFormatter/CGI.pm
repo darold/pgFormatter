@@ -389,7 +389,7 @@ sub beautify_query {
     $args{ 'no_space_function' } = 1 if $self->{ 'no_space_function' };
     $args{ 'redundant_parenthesis' } = 1 if $self->{ 'redundant_parenthesis' };
 
-    $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if ($self->{ 'content' } );
+    $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if (!$self->{ 'redundant_parenthesis' } && $self->{ 'content' } );
 
     my $beautifier = pgFormatter::Beautify->new( %args );
     if ($self->{ 'extra_function' } && -e $self->{ 'extra_function' })
@@ -529,8 +529,8 @@ sub print_body {
       <input type="checkbox" id="id_redshift" name="redshift" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_redshift/>
       <label for="id_redshift">Redshift keywords</label>
       <br />
-      <input type="checkbox" id="id_redundantparenthesis" name="redundantparenthesis" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_redundantparenthesis/>
-      <label for="id_redundantparenthesis">Keep redundant parenthesis</label>
+      <input type="checkbox" id="id_redundant_parenthesis" name="redundant_parenthesis" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_redundantparenthesis/>
+      <label for="id_redundant_parenthesis">Keep redundant parenthesis</label>
       </div>
     </fieldset>
       <br />
