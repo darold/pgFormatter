@@ -973,13 +973,13 @@ WITH t AS (
         a
     FROM
         y)
-    INSERT INTO y
-    SELECT
-        a + 20
-    FROM
-        t
-    RETURNING
-        *;
+INSERT INTO y
+SELECT
+    a + 20
+FROM
+    t
+RETURNING
+    *;
 
 SELECT
     *
@@ -2022,11 +2022,11 @@ WITH t1 AS (
     DELETE FROM bug6051
 RETURNING
     *)
-    INSERT INTO bug6051
-    SELECT
-        *
-    FROM
-        t1;
+INSERT INTO bug6051
+SELECT
+    *
+FROM
+    t1;
 
 SELECT
     *
@@ -2047,11 +2047,11 @@ WITH t1 AS (
     DELETE FROM bug6051
 RETURNING
     *)
-    INSERT INTO bug6051
-    SELECT
-        *
-    FROM
-        t1;
+INSERT INTO bug6051
+SELECT
+    *
+FROM
+    t1;
 
 SELECT
     *

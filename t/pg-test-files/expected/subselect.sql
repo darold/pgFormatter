@@ -1081,18 +1081,18 @@ WITH aa AS (
     FROM
         int4_tbl
     LIMIT 1)
-    INSERT INTO upsert
-        VALUES (1, 'x'),
-        (999, 'y')
-    ON CONFLICT (key)
-        DO UPDATE SET
-            val = (
-                SELECT
-                    u
-                FROM
-                    aa)
-        RETURNING
-            *;
+INSERT INTO upsert
+    VALUES (1, 'x'),
+    (999, 'y')
+ON CONFLICT (key)
+    DO UPDATE SET
+        val = (
+            SELECT
+                u
+            FROM
+                aa)
+    RETURNING
+        *;
 
 --
 -- Test case for cross-type partial matching in hashed subplan (bug #7597)
