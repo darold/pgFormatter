@@ -1071,9 +1071,12 @@ sub beautify
 	    $self->{ '_is_in_using' } = 0 if ($self->{ '_is_in_using' } and !$self->{ '_parenthesis_level' } and !$self->{ '_is_in_policy' });
 	    if (defined $self->_next_token and $self->_next_token !~ /^(AS|WITH|,)$/i
 			    and (!$self->_is_comment($self->_next_token) or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }[1] ne ','))
-			    and !$self->{ '_parenthesis_with_level' })
+			    and !$self->{ '_parenthesis_with_level' }
+                and $self->{ '_is_in_with' }
+                )
 	    {
-		$self->{ '_is_in_with' } = 0;
+            $self->{ '_is_in_with' } = 0;
+            $self->{ '_is_in_from' } = 0;
 	    }
 
 	    if ($self->{ '_is_in_create' } > 1 and defined $self->_next_token
