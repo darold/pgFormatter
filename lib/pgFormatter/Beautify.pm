@@ -882,6 +882,7 @@ sub beautify
     $self->{ '_is_in_generated' } = 0;
     $self->{ '_is_in_between' } = 0;
     $self->{ '_is_in_materialized' } = 0;
+    $self->{ '_is_closing_function' } = 0;
 
     @{ $self->{ '_begin_level' } } = ();
 
@@ -892,6 +893,7 @@ sub beautify
     while ( defined( my $token = $self->_token ) )
     {
         my $rule = $self->_get_rule( $token );
+        $self->{ '_is_closing_function' } = 0;
 
 	if ($self->{ 'keep_newline' } and $self->{ '_is_in_block' } >= 0 and $token =~ /^[\r\n]+$/s
 		and defined $last and $last eq ';'
@@ -982,11 +984,14 @@ sub beautify
             if (!$self->{ '_is_in_function' }) {
                 $self->{ '_parenthesis_level' }-- if ($self->{ '_parenthesis_level' } > 0);
             } else {
-                $self->{ '_parenthesis_function_level' }-- if ($self->{ '_parenthesis_function_level' } > 0);
+                if ($self->{ '_parenthesis_function_level' } > 0) {
+                    $self->{ '_is_closing_function' } = 1;
+                    $self->{ '_parenthesis_function_level' }--;
+                }
                 if (!$self->{ '_parenthesis_function_level' }) {
 	            $self->_set_level(pop(@{ $self->{ '_level_parenthesis_function' } }) || 0, $token, $last);
 		    $self->_over($token,$last) if (!$self->{ '_is_in_create' } && !$self->{ '_is_in_operator' } && !$self->{ '_is_in_alter' } and uc($self->_next_token($token,$last)||'') ne 'LOOP');
-	        }
+            }
             }
 	    $self->{ '_is_in_function' } = 0 if (!$self->{ '_parenthesis_function_level' });
 	    $self->{ '_is_in_cast' } = 0 if ((not defined $self->_next_token or $self->_next_token !~ /^(WITH|WITHOUT)$/i) and (!$self->{ '_parenthesis_level' } or !$self->{ '_parenthesis_function_level' }));
@@ -1875,6 +1880,7 @@ sub beautify
 			    or ($self->{ '_is_in_with' } and $self->{ '_is_subquery' }
 				    and $self->{ '_is_subquery' } % 2 == 0) )  {
                 $self->_back($token, $last) if ($self->{ '_current_sql_stmt' } ne 'INSERT'
+                and !$self->{ '_is_closing_function' }
 				and (!$self->{ '_parenthesis_level' } or !defined $self->_next_token
 					or uc($self->_next_token) eq 'AS'
 					or ($#{$self->{ '_tokens' }} >= 1 and $self->{ '_tokens' }->[ 1 ] eq ',')));
@@ -3262,7 +3268,6 @@ sub _over
         my ($package, $filename, $line) = caller;
         print STDERR "DEBUG_OVER: line: $line => last=$last, token=$token\n";
     }
-
     ++$self->{ '_level' };
 }
 
