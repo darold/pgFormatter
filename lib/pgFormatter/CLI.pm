@@ -6,7 +6,7 @@ use warnings;
 # UTF8 boilerplace, per http://stackoverflow.com/questions/6162484/why-does-modern-perl-avoid-utf-8-by-default/
 use warnings qw( FATAL );
 use utf8;
-use open qw( :std :encoding(UTF-8) );
+use open   qw( :std :encoding(UTF-8) );
 use Encode qw( decode );
 
 =head1 NAME
@@ -45,8 +45,8 @@ Object constructor, nothing fancy in here.
 =cut
 
 sub new {
-    my $class = shift;
-    return bless {}, $class;
+	my $class = shift;
+	return bless {}, $class;
 }
 
 =head2 run
@@ -58,33 +58,37 @@ it, and output.
 =cut
 
 sub run {
-    my $self = shift;
-    $self->get_command_line_args();
+	my $self = shift;
+	$self->get_command_line_args();
 
-    $self->show_help_and_die( 2, 'can not use -i | --inplace option together with the -o | --output option.' ) if ($self->{ 'cfg' }->{ 'inplace' } and $self->{ 'cfg' }->{ 'output' });
+	$self->show_help_and_die( 2,
+'can not use -i | --inplace option together with the -o | --output option.'
+	) if ( $self->{'cfg'}->{'inplace'} and $self->{'cfg'}->{'output'} );
 
-    my @inputs = @ARGV == 0 ? ('-') : @ARGV;
+	my @inputs = @ARGV == 0 ? ('-') : @ARGV;
 
-    foreach my $input (@inputs)
-    {
-        $self->{ 'cfg' }->{ 'input' } = $input;
-        $self->{ 'cfg' }->{ 'output' } ||= '-'; # Set output to default value.
+	foreach my $input (@inputs) {
+		$self->{'cfg'}->{'input'} = $input;
+		$self->{'cfg'}->{'output'} ||= '-';    # Set output to default value.
 
+		$self->validate_args();
+		$self->logmsg(
+			'DEBUG',
+			'Starting to parse SQL file: %s',
+			$self->{'cfg'}->{'input'}
+		);
+		$self->load_sql();
+		$self->logmsg( 'DEBUG', 'Beautifying' );
+		$self->beautify();
+		if ( $self->{'wrap_limit'} ) {
+			$self->logmsg( 'DEBUG', 'Wrap query' );
+			$self->wrap_lines( $self->{'wrap_comment'} );
+		}
+		$self->logmsg( 'DEBUG', 'Writing output' );
+		$self->save_output();
+	}
 
-        $self->validate_args();
-        $self->logmsg( 'DEBUG', 'Starting to parse SQL file: %s', $self->{ 'cfg' }->{ 'input' } );
-        $self->load_sql();
-        $self->logmsg( 'DEBUG', 'Beautifying' );
-        $self->beautify();
-        if ($self->{'wrap_limit'}) {
-                $self->logmsg( 'DEBUG', 'Wrap query' );
-                $self->wrap_lines($self->{'wrap_comment'});
-        }
-        $self->logmsg( 'DEBUG', 'Writing output' );
-        $self->save_output();
-    }
-
-    return;
+	return;
 }
 
 =head2 beautify
@@ -95,88 +99,98 @@ necessary runs anonymization.
 =cut
 
 sub beautify {
-    my $self = shift;
-    my %args;
-    $args{ 'no_comments' }  = 1 if $self->{ 'cfg' }->{ 'nocomment' };
-    $args{ 'spaces' }       = $self->{ 'cfg' }->{ 'spaces' };
-    $args{ 'uc_keywords' }  = $self->{ 'cfg' }->{ 'keyword-case' };
-    $args{ 'uc_functions' } = $self->{ 'cfg' }->{ 'function-case' };
-    $args{ 'uc_types' }     = $self->{ 'cfg' }->{ 'type-case' };
-    $args{ 'placeholder' }  = $self->{ 'cfg' }->{ 'placeholder' };
-    $args{ 'multiline' }    = $self->{ 'cfg' }->{ 'multiline' };
-    $args{ 'separator' }    = $self->{ 'cfg' }->{ 'separator' };
-    $args{ 'comma' }        = $self->{ 'cfg' }->{ 'comma' };
-    $args{ 'comma_break' }  = $self->{ 'cfg' }->{ 'comma-break' };
-    $args{ 'format' }       = $self->{ 'cfg' }->{ 'format' };
-    $args{ 'maxlength' }    = $self->{ 'cfg' }->{ 'maxlength' };
-    $args{ 'format_type' }  = $self->{ 'cfg' }->{ 'format-type' };
-    $args{ 'wrap_limit' }   = $self->{ 'cfg' }->{ 'wrap-limit' };
-    $args{ 'wrap_after' }   = $self->{ 'cfg' }->{ 'wrap-after' };
-    $args{ 'space' }        = $self->{ 'cfg' }->{ 'space' };
-    $args{ 'no_grouping' }  = $self->{ 'cfg' }->{ 'nogrouping' };
-    $args{ 'numbering' }    = $self->{ 'cfg' }->{ 'numbering' };
-    $args{ 'redshift' }     = $self->{ 'cfg' }->{ 'redshift' };
-    $args{ 'wrap_comment' } = $self->{ 'cfg' }->{ 'wrap-comment' };
-    $args{ 'no_extra_line' }= $self->{ 'cfg' }->{ 'no-extra-line' };
-    $args{ 'config' }       = $self->{ 'cfg' }->{ 'config' };
-    $args{ 'no_rcfile' }    = $self->{ 'cfg' }->{ 'no-rcfile' };
-    $args{ 'inplace' }      = $self->{ 'cfg' }->{ 'inplace' };
-    $args{ 'keep_newline' } = $self->{ 'cfg' }->{ 'keep-newline' };
-    $args{ 'extra_function' } = $self->{ 'cfg' }->{ 'extra-function' };
-    $args{ 'extra_keyword' }  = $self->{ 'cfg' }->{ 'extra-keyword' };
-    $args{ 'no_space_function' }  = $self->{ 'cfg' }->{ 'no-space-function' };
-    $args{ 'redundant_parenthesis' }  = $self->{ 'cfg' }->{ 'redundant-parenthesis' };
-    # Backward compatibility
-    $args{ 'extra_keyword' }  = 'redshift' if (!$self->{ 'cfg' }->{ 'extra-keyword' } && $self->{ 'cfg' }->{ 'redshift' });
+	my $self = shift;
+	my %args;
+	$args{'no_comments'}           = 1 if $self->{'cfg'}->{'nocomment'};
+	$args{'spaces'}                = $self->{'cfg'}->{'spaces'};
+	$args{'uc_keywords'}           = $self->{'cfg'}->{'keyword-case'};
+	$args{'uc_functions'}          = $self->{'cfg'}->{'function-case'};
+	$args{'uc_types'}              = $self->{'cfg'}->{'type-case'};
+	$args{'placeholder'}           = $self->{'cfg'}->{'placeholder'};
+	$args{'multiline'}             = $self->{'cfg'}->{'multiline'};
+	$args{'separator'}             = $self->{'cfg'}->{'separator'};
+	$args{'comma'}                 = $self->{'cfg'}->{'comma'};
+	$args{'comma_break'}           = $self->{'cfg'}->{'comma-break'};
+	$args{'format'}                = $self->{'cfg'}->{'format'};
+	$args{'maxlength'}             = $self->{'cfg'}->{'maxlength'};
+	$args{'format_type'}           = $self->{'cfg'}->{'format-type'};
+	$args{'wrap_limit'}            = $self->{'cfg'}->{'wrap-limit'};
+	$args{'wrap_after'}            = $self->{'cfg'}->{'wrap-after'};
+	$args{'space'}                 = $self->{'cfg'}->{'space'};
+	$args{'no_grouping'}           = $self->{'cfg'}->{'nogrouping'};
+	$args{'numbering'}             = $self->{'cfg'}->{'numbering'};
+	$args{'redshift'}              = $self->{'cfg'}->{'redshift'};
+	$args{'wrap_comment'}          = $self->{'cfg'}->{'wrap-comment'};
+	$args{'no_extra_line'}         = $self->{'cfg'}->{'no-extra-line'};
+	$args{'config'}                = $self->{'cfg'}->{'config'};
+	$args{'no_rcfile'}             = $self->{'cfg'}->{'no-rcfile'};
+	$args{'inplace'}               = $self->{'cfg'}->{'inplace'};
+	$args{'keep_newline'}          = $self->{'cfg'}->{'keep-newline'};
+	$args{'extra_function'}        = $self->{'cfg'}->{'extra-function'};
+	$args{'extra_keyword'}         = $self->{'cfg'}->{'extra-keyword'};
+	$args{'no_space_function'}     = $self->{'cfg'}->{'no-space-function'};
+	$args{'redundant_parenthesis'} = $self->{'cfg'}->{'redundant-parenthesis'};
 
-    if ($self->{ 'query' } && ($args{ 'maxlength' } && length($self->{ 'query' }) > $args{ 'maxlength' })) {
-        $self->{ 'query' } = substr($self->{ 'query' }, 0, $args{ 'maxlength' })
-    }
+	# Backward compatibility
+	$args{'extra_keyword'} = 'redshift'
+	  if ( !$self->{'cfg'}->{'extra-keyword'} && $self->{'cfg'}->{'redshift'} );
 
-    my $beautifier = pgFormatter::Beautify->new( %args );
-    if ($args{ 'extra_function' } && -e $args{ 'extra_function' })
-    {
-	    if (open(my $fh, '<', $args{ 'extra_function' }))
-	    {
-		    my @fcts = ();
-		    while (my $l = <$fh>) {
-			    chomp($l);
-			    push(@fcts, split(/^[\s,;]+$/, $l));
-		    }
-		    $beautifier->add_functions(@fcts);
-		    close($fh);
-	    } else {
-		    warn("WARNING: can not read file $args{ 'extra_function' }\n");
-	    }
-    }
-    if ($args{ 'extra_keyword' } && $args{ 'extra_keyword' } ne 'redshift' && -e $args{ 'extra_keyword' })
-    {
-	    if (open(my $fh, '<', $args{ 'extra_keyword' }))
-	    {
-		    my @fcts = ();
-		    while (my $l = <$fh>) {
-			    chomp($l);
-			    push(@fcts, split(/^[\s,;]+$/, $l));
-		    }
-		    $beautifier->add_keywords(@fcts);
-		    close($fh);
-	    } else {
-		    warn("WARNING: can not read file $args{ 'extra_keyword' }\n");
-	    }
-    } elsif ($args{ 'extra_keyword' } eq 'redshift' or $args{ 'redshift' }) {
-	    $beautifier->add_keywords(@{ $beautifier->{ 'dict' }->{ 'redshift_keywords' } });
-    }
-    $beautifier->query( $self->{ 'query' } );
-    $beautifier->anonymize() if $self->{ 'cfg' }->{ 'anonymize' };
-    $beautifier->beautify();
-    if ($self->{ 'cfg' }->{ 'wrap-limit' }) {
-            $self->logmsg( 'DEBUG', 'Wrap query' );
-            $beautifier->wrap_lines($self->{ 'cfg' }->{ 'wrap-comment' });
-    }
+	if (
+		$self->{'query'}
+		&& ( $args{'maxlength'}
+			&& length( $self->{'query'} ) > $args{'maxlength'} )
+	  )
+	{
+		$self->{'query'} = substr( $self->{'query'}, 0, $args{'maxlength'} );
+	}
 
-    $self->{ 'ready' } = $beautifier->content();
+	my $beautifier = pgFormatter::Beautify->new(%args);
+	if ( $args{'extra_function'} && -e $args{'extra_function'} ) {
+		if ( open( my $fh, '<', $args{'extra_function'} ) ) {
+			my @fcts = ();
+			while ( my $l = <$fh> ) {
+				chomp($l);
+				push( @fcts, split( /^[\s,;]+$/, $l ) );
+			}
+			$beautifier->add_functions(@fcts);
+			close($fh);
+		}
+		else {
+			warn("WARNING: can not read file $args{ 'extra_function' }\n");
+		}
+	}
+	if (   $args{'extra_keyword'}
+		&& $args{'extra_keyword'} ne 'redshift'
+		&& -e $args{'extra_keyword'} )
+	{
+		if ( open( my $fh, '<', $args{'extra_keyword'} ) ) {
+			my @fcts = ();
+			while ( my $l = <$fh> ) {
+				chomp($l);
+				push( @fcts, split( /^[\s,;]+$/, $l ) );
+			}
+			$beautifier->add_keywords(@fcts);
+			close($fh);
+		}
+		else {
+			warn("WARNING: can not read file $args{ 'extra_keyword' }\n");
+		}
+	}
+	elsif ( $args{'extra_keyword'} eq 'redshift' or $args{'redshift'} ) {
+		$beautifier->add_keywords(
+			@{ $beautifier->{'dict'}->{'redshift_keywords'} } );
+	}
+	$beautifier->query( $self->{'query'} );
+	$beautifier->anonymize() if $self->{'cfg'}->{'anonymize'};
+	$beautifier->beautify();
+	if ( $self->{'cfg'}->{'wrap-limit'} ) {
+		$self->logmsg( 'DEBUG', 'Wrap query' );
+		$beautifier->wrap_lines( $self->{'cfg'}->{'wrap-comment'} );
+	}
 
-    return;
+	$self->{'ready'} = $beautifier->content();
+
+	return;
 }
 
 =head2 save_output
@@ -186,18 +200,21 @@ Saves beautified query to whatever is output filehandle
 =cut
 
 sub save_output {
-    my $self = shift;
-    my $fh;
-    # Thanks to "autodie" I don't have to check if open() worked.
-    if ( $self->{ 'cfg' }->{ 'output' } ne '-' ) {
-        $self->logmsg( 'DEBUG', 'Formatted SQL queries will be written to stdout' );
-        open $fh, '>', $self->{ 'cfg' }->{ 'output' };
-    } else {
-        $fh = \*STDOUT;
-    }
-    print $fh $self->{ 'ready' };
-    close $fh if ( $self->{ 'cfg' }->{ 'output' } ne '-' );
-    return;
+	my $self = shift;
+	my $fh;
+
+	# Thanks to "autodie" I don't have to check if open() worked.
+	if ( $self->{'cfg'}->{'output'} ne '-' ) {
+		$self->logmsg( 'DEBUG',
+			'Formatted SQL queries will be written to stdout' );
+		open $fh, '>', $self->{'cfg'}->{'output'};
+	}
+	else {
+		$fh = \*STDOUT;
+	}
+	print $fh $self->{'ready'};
+	close $fh if ( $self->{'cfg'}->{'output'} ne '-' );
+	return;
 }
 
 =head2 logmsg
@@ -207,13 +224,13 @@ Display message following the log level
 =cut
 
 sub logmsg {
-    my $self = shift;
-    my ( $level, $str, @args ) = @_;
+	my $self = shift;
+	my ( $level, $str, @args ) = @_;
 
-    return if ( !$self->{ 'cfg' }->{ 'debug' } && ( $level eq 'DEBUG' ) );
+	return if ( !$self->{'cfg'}->{'debug'} && ( $level eq 'DEBUG' ) );
 
-    printf STDERR "%s: $str\n", $level, @args;
-    return;
+	printf STDERR "%s: $str\n", $level, @args;
+	return;
 }
 
 =head2 show_help_and_die
@@ -224,16 +241,16 @@ program.
 =cut
 
 sub show_help_and_die {
-    my $self = shift;
-    my ( $status, $format, @args ) = @_;
+	my $self = shift;
+	my ( $status, $format, @args ) = @_;
 
-    if ( $format ) {
-        $format =~ s/\s*$//;
-        printf STDERR "Error: $format\n\n", @args;
-    }
+	if ($format) {
+		$format =~ s/\s*$//;
+		printf STDERR "Error: $format\n\n", @args;
+	}
 
-    my $program_name = basename( $0 );
-    my $help         = qq{
+	my $program_name = basename($0);
+	my $help         = qq{
 Usage: $program_name [options] file.sql
 
     PostgreSQL SQL queries and PL/PGSQL code beautifier.
@@ -312,14 +329,14 @@ Examples:
     $0 -f 2 -n -o result.sql samples/ex1.sql
 };
 
-    if ( $status ) {
-        print STDERR $help;
-    }
-    else {
-        print $help;
-    }
+	if ($status) {
+		print STDERR $help;
+	}
+	else {
+		print $help;
+	}
 
-    exit $status;
+	exit $status;
 }
 
 =head2 load_sql
@@ -329,18 +346,19 @@ Loads SQL from input file or stdin.
 =cut
 
 sub load_sql {
-    my $self = shift;
-    local $/ = undef;
-    my $fh;
-    if ( $self->{ 'cfg' }->{ 'input' } ne '-' ) {
-        open $fh, '<', $self->{ 'cfg' }->{ 'input' };
-    } else {
-        $fh = \*STDIN;
-    }
-    binmode($fh, ":encoding(utf8)");
-    $self->{ 'query' } = <$fh>;
-    close $fh if ( $self->{ 'cfg' }->{ 'input' } ne '-' );
-    return;
+	my $self = shift;
+	local $/ = undef;
+	my $fh;
+	if ( $self->{'cfg'}->{'input'} ne '-' ) {
+		open $fh, '<', $self->{'cfg'}->{'input'};
+	}
+	else {
+		$fh = \*STDIN;
+	}
+	binmode( $fh, ":encoding(utf8)" );
+	$self->{'query'} = <$fh>;
+	close $fh if ( $self->{'cfg'}->{'input'} ne '-' );
+	return;
 }
 
 =head2 get_command_line_args
@@ -349,144 +367,133 @@ Parses command line options into $self->{'cfg'}.
 
 =cut
 
-sub get_command_line_args
-{
-    my $self = shift;
-    my %cfg;
-    my @options = (
-        'anonymize|a!',
-        'comma-start|b!',
-        'comma-break|B!',
-        'config|c=s',
-        'no-rcfile|X!',
-        'wrap-comment|C!',
-        'debug|d!',
-        'comma-end|e!',
-        'format|F=s',
-        'nogrouping|g!',
-        'help|h!',
-        'function-case|f=i',
-        'keep-newline|k!',
-        'no-extra-line|L!',
-        'maxlength|m=i',
-        'multiline|M!',
-        'nocomment|n!',
-        'numbering|N!',
-        'output|o=s',
-        'placeholder|p=s',
-        'redshift|r!',
-        'separator|S=s',
-        'spaces|s=i',
-        'format-type|t!',
-        'tabs|T!',
-        'keyword-case|u=i',
-        'type-case|U=i',
-        'version|v!',
-        'wrap-limit|w=i',
-        'wrap-after|W=i',
-        'inplace|i!',
-	'extra-function=s',
-	'extra-keyword=s',
-	'no-space-function!',
-	'redundant-parenthesis!',
-    );
+sub get_command_line_args {
+	my $self = shift;
+	my %cfg;
+	my @options = (
+		'anonymize|a!',    'comma-start|b!',
+		'comma-break|B!',  'config|c=s',
+		'no-rcfile|X!',    'wrap-comment|C!',
+		'debug|d!',        'comma-end|e!',
+		'format|F=s',      'nogrouping|g!',
+		'help|h!',         'function-case|f=i',
+		'keep-newline|k!', 'no-extra-line|L!',
+		'maxlength|m=i',   'multiline|M!',
+		'nocomment|n!',    'numbering|N!',
+		'output|o=s',      'placeholder|p=s',
+		'redshift|r!',     'separator|S=s',
+		'spaces|s=i',      'format-type|t!',
+		'tabs|T!',         'keyword-case|u=i',
+		'type-case|U=i',   'version|v!',
+		'wrap-limit|w=i',  'wrap-after|W=i',
+		'inplace|i!',      'extra-function=s',
+		'extra-keyword=s', 'no-space-function!',
+		'redundant-parenthesis!',
+	);
 
-    $self->show_help_and_die( 1 ) unless GetOptions( \%cfg, @options );
+	$self->show_help_and_die(1) unless GetOptions( \%cfg, @options );
 
-    $self->show_help_and_die( 0 ) if $cfg{ 'help' };
+	$self->show_help_and_die(0) if $cfg{'help'};
 
-    if ( $cfg{ 'version' } ) {
-        printf '%s version %s%s', basename( $0 ), $VERSION, "\n";
-        exit 0;
-    }
-
-    if ( !$cfg{ 'no-rcfile' } )
-    {
-	if (-e ".pg_format") {
-		$cfg{ 'config' } //= ".pg_format";
-	} elsif (defined $ENV{HOME} && -e "$ENV{HOME}/.pg_format") {
-		$cfg{ 'config' } //= "$ENV{HOME}/.pg_format";
-        } elsif (defined $ENV{USERPROFILE} && -e "$ENV{USERPROFILE}/.pg_format") {
-		$cfg{ 'config' } //= "$ENV{USERPROFILE}/.pg_format";
-	} elsif (defined $ENV{XDG_CONFIG_HOME} && -e "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf") {
-		$cfg{ 'config' } //= "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf";
+	if ( $cfg{'version'} ) {
+		printf '%s version %s%s', basename($0), $VERSION, "\n";
+		exit 0;
 	}
-    }
 
-    if ( defined $cfg{ 'config' } && -f $cfg{ 'config' } )
-    {
-        open(my $cfh, '<', $cfg{ 'config' }) or die "ERROR: can not read file $cfg{ 'config' }\n";
-        while (my $line = <$cfh>)
-        {
-            chomp($line);
-            next if ($line !~ /^[a-z]/);
-            if ($line =~ /^([^\s=]+)\s*=\s*([^\s]+)/)
-            {
-                # do not override command line arguments
-                next if (defined $cfg{ lc($1) });
+	if ( !$cfg{'no-rcfile'} ) {
+		if ( -e ".pg_format" ) {
+			$cfg{'config'} //= ".pg_format";
+		}
+		elsif ( defined $ENV{HOME} && -e "$ENV{HOME}/.pg_format" ) {
+			$cfg{'config'} //= "$ENV{HOME}/.pg_format";
+		}
+		elsif ( defined $ENV{USERPROFILE} && -e "$ENV{USERPROFILE}/.pg_format" )
+		{
+			$cfg{'config'} //= "$ENV{USERPROFILE}/.pg_format";
+		}
+		elsif ( defined $ENV{XDG_CONFIG_HOME}
+			&& -e "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf" )
+		{
+			$cfg{'config'} //= "$ENV{XDG_CONFIG_HOME}/pg_format/pg_format.conf";
+		}
+	}
 
-                if ($1 eq 'comma' || $1 eq 'format') {
-                    $cfg{ lc($1) } = lc($2);
-                } else {
-                    $cfg{ lc($1) } = $2;
-                }
-            }
-        }
-    }
+	if ( defined $cfg{'config'} && -f $cfg{'config'} ) {
+		open( my $cfh, '<', $cfg{'config'} )
+		  or die "ERROR: can not read file $cfg{ 'config' }\n";
+		while ( my $line = <$cfh> ) {
+			chomp($line);
+			next if ( $line !~ /^[a-z]/ );
+			if ( $line =~ /^([^\s=]+)\s*=\s*([^\s]+)/ ) {
 
-    # Set default configuration
-    $cfg{ 'spaces' }        //= 4;
-    $cfg{ 'output' }        //= '';
-    $cfg{ 'function-case' } //= 0;
-    $cfg{ 'keyword-case' }  //= 2;
-    $cfg{ 'type-case' }     //= 1;
-    $cfg{ 'comma' }         //= 'end';
-    $cfg{ 'format' }        //= 'text';
-    $cfg{ 'comma-break' }   //= 0;
-    $cfg{ 'maxlength' }     //= 0;
-    $cfg{ 'format-type' }   //= 0;
-    $cfg{ 'wrap-limit' }    //= 0;
-    $cfg{ 'wrap-after' }    //= 0;
-    $cfg{ 'wrap-comment' }  //= 0;
-    $cfg{ 'space' }         //= ' ';
-    $cfg{ 'numbering' }     //= 0;
-    $cfg{ 'redshift' }      //= 0;
-    $cfg{ 'no-extra-line' } //= 0;
-    $cfg{ 'inplace' }       //= 0;
-    $cfg{ 'extra-keyword' } //= '';
-    $cfg{ 'extra-keyword' }   = 'redshift' if ($cfg{ 'redshift' });
+				# do not override command line arguments
+				next if ( defined $cfg{ lc($1) } );
 
-    if ($cfg{ 'tabs' })
-    {
-        $cfg{ 'spaces' } = 1;
-        $cfg{ 'space' }  = "\t";
-    }
+				if ( $1 eq 'comma' || $1 eq 'format' ) {
+					$cfg{ lc($1) } = lc($2);
+				}
+				else {
+					$cfg{ lc($1) } = $2;
+				}
+			}
+		}
+	}
 
-    if (!grep(/^$cfg{ 'comma' }$/i, 'end', 'start'))
-    {
-        printf 'FATAL: unknown value for comma: %s', $cfg{ 'comma' } , "\n";
-        exit 0;
-    }
+	# Set default configuration
+	$cfg{'spaces'}        //= 4;
+	$cfg{'output'}        //= '';
+	$cfg{'function-case'} //= 0;
+	$cfg{'keyword-case'}  //= 2;
+	$cfg{'type-case'}     //= 1;
+	$cfg{'comma'}         //= 'end';
+	$cfg{'format'}        //= 'text';
+	$cfg{'comma-break'}   //= 0;
+	$cfg{'maxlength'}     //= 0;
+	$cfg{'format-type'}   //= 0;
+	$cfg{'wrap-limit'}    //= 0;
+	$cfg{'wrap-after'}    //= 0;
+	$cfg{'wrap-comment'}  //= 0;
+	$cfg{'space'}         //= ' ';
+	$cfg{'numbering'}     //= 0;
+	$cfg{'redshift'}      //= 0;
+	$cfg{'no-extra-line'} //= 0;
+	$cfg{'inplace'}       //= 0;
+	$cfg{'extra-keyword'} //= '';
+	$cfg{'extra-keyword'} = 'redshift' if ( $cfg{'redshift'} );
 
-    if (!grep(/^$cfg{ 'format' }$/i, 'text', 'html'))
-    {
-        printf 'FATAL: unknown output format: %s%s', $cfg{ 'format' } , "\n";
-        exit 0;
-    }
+	if ( $cfg{'tabs'} ) {
+		$cfg{'spaces'} = 1;
+		$cfg{'space'}  = "\t";
+	}
 
-    if ( $cfg{ 'extra-function' } && !-e $cfg{ 'extra-function' }) {
-        printf 'FATAL: file for extra function list does not exists: %s%s', $cfg{ 'extra-function' } , "\n";
-        exit 0;
-    }
+	if ( !grep( /^$cfg{ 'comma' }$/i, 'end', 'start' ) ) {
+		printf 'FATAL: unknown value for comma: %s', $cfg{'comma'}, "\n";
+		exit 0;
+	}
 
-    if ($cfg{ 'extra-keyword' } && $cfg{ 'extra-keyword' } ne 'redshift' && !-e $cfg{ 'extra-keyword' }) {
-        printf 'FATAL: file for extra keyword list does not exists: %s%s', $cfg{ 'extra-keyword' } , "\n";
-        exit 0;
-    }
+	if ( !grep( /^$cfg{ 'format' }$/i, 'text', 'html' ) ) {
+		printf 'FATAL: unknown output format: %s%s', $cfg{'format'}, "\n";
+		exit 0;
+	}
 
-    $self->{ 'cfg' } = \%cfg;
+	if ( $cfg{'extra-function'} && !-e $cfg{'extra-function'} ) {
+		printf 'FATAL: file for extra function list does not exists: %s%s',
+		  $cfg{'extra-function'}, "\n";
+		exit 0;
+	}
 
-    return;
+	if (   $cfg{'extra-keyword'}
+		&& $cfg{'extra-keyword'} ne 'redshift'
+		&& !-e $cfg{'extra-keyword'} )
+	{
+		printf 'FATAL: file for extra keyword list does not exists: %s%s',
+		  $cfg{'extra-keyword'}, "\n";
+		exit 0;
+	}
+
+	$self->{'cfg'} = \%cfg;
+
+	return;
 }
 
 =head2 validate_args
@@ -497,26 +504,31 @@ input and output files.
 =cut
 
 sub validate_args {
-    my $self = shift;
+	my $self = shift;
 
-    $self->show_help_and_die( 2, 'function-case can be only one of: 0, 1, 2, or 3.' ) unless $self->{ 'cfg' }->{ 'function-case' } =~ m{\A[0123]\z};
-    $self->show_help_and_die( 2, 'keyword-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'keyword-case' } =~ m{\A[0123]\z};
-    $self->show_help_and_die( 2, 'type-case can be only one of: 0, 1, 2, or 3.' )  unless $self->{ 'cfg' }->{ 'type-case' } =~ m{\A[0123]\z};
+	$self->show_help_and_die( 2,
+		'function-case can be only one of: 0, 1, 2, or 3.' )
+	  unless $self->{'cfg'}->{'function-case'} =~ m{\A[0123]\z};
+	$self->show_help_and_die( 2,
+		'keyword-case can be only one of: 0, 1, 2, or 3.' )
+	  unless $self->{'cfg'}->{'keyword-case'} =~ m{\A[0123]\z};
+	$self->show_help_and_die( 2,
+		'type-case can be only one of: 0, 1, 2, or 3.' )
+	  unless $self->{'cfg'}->{'type-case'} =~ m{\A[0123]\z};
 
-    # Force output file to be the same as inout file when the inplace option is used
-    if ($self->{ 'cfg' }->{ 'inplace' })
-    {
-        $self->{ 'cfg' }->{ 'output' } = $self->{ 'cfg' }->{ 'input' };
-    }
+# Force output file to be the same as inout file when the inplace option is used
+	if ( $self->{'cfg'}->{'inplace'} ) {
+		$self->{'cfg'}->{'output'} = $self->{'cfg'}->{'input'};
+	}
 
-    if ($self->{ 'cfg' }->{ 'comma-end' }) {
-        $self->{ 'cfg' }->{ 'comma' } = 'end';
-    }
-    elsif ($self->{ 'cfg' }->{ 'comma-start' }) {
-        $self->{ 'cfg' }->{ 'comma' } = 'start';
-    }
+	if ( $self->{'cfg'}->{'comma-end'} ) {
+		$self->{'cfg'}->{'comma'} = 'end';
+	}
+	elsif ( $self->{'cfg'}->{'comma-start'} ) {
+		$self->{'cfg'}->{'comma'} = 'start';
+	}
 
-    return;
+	return;
 }
 
 =head1 AUTHOR

@@ -3,7 +3,7 @@ package pgFormatter::CGI;
 use strict;
 use warnings;
 use warnings qw( FATAL );
-use Encode qw( decode );
+use Encode   qw( decode );
 use JSON;
 
 =head1 NAME
@@ -42,10 +42,10 @@ various parameters.
 =cut
 
 sub new {
-    my $class = shift;
-    my $self = bless {}, $class;
-    $self->set_config();
-    return $self;
+	my $class = shift;
+	my $self  = bless {}, $class;
+	$self->set_config();
+	return $self;
 }
 
 =head2 run
@@ -55,16 +55,20 @@ Route to the right handler based on what sort of data we receive
 =cut
 
 sub run {
-    my $self = shift;
-    $self->get_cgi();
-    if ($self->{ 'cgi' }->Accept( "text/html" )) {
-      $self->run_webpage();
-    } elsif ($self->{ 'cgi' }->Accept( "application/json" ) && $self->{ 'enable_api' }) {
-      $self->run_api();
-    } else {
-      $self->print_error();
-    }
-    return;
+	my $self = shift;
+	$self->get_cgi();
+	if ( $self->{'cgi'}->Accept("text/html") ) {
+		$self->run_webpage();
+	}
+	elsif ($self->{'cgi'}->Accept("application/json")
+		&& $self->{'enable_api'} )
+	{
+		$self->run_api();
+	}
+	else {
+		$self->print_error();
+	}
+	return;
 }
 
 =head2 run_webpage
@@ -77,16 +81,15 @@ request, sanitize them, beautify query (if provided) and print ghtml.
 =cut
 
 sub run_webpage {
-    my $self = shift;
-    $self->get_params();
-    $self->sanitize_params();
-    $self->print_headers();
-    $self->beautify_query();
-    $self->print_body();
-    $self->print_footer();
-    return;
+	my $self = shift;
+	$self->get_params();
+	$self->sanitize_params();
+	$self->print_headers();
+	$self->beautify_query();
+	$self->print_body();
+	$self->print_footer();
+	return;
 }
-
 
 =head2 run_api
 
@@ -95,13 +98,14 @@ Wraps all work related to generating JSON response when used as API.
 =cut
 
 sub run_api {
-    my $self = shift;
-    $self->get_api_params();
-    $self->sanitize_params();
-    $self->{'format'} = 'text'; # we are never going to output HTML when doing JSON
-    $self->beautify_query();
-    $self->print_json();
-    return;
+	my $self = shift;
+	$self->get_api_params();
+	$self->sanitize_params();
+	$self->{'format'} =
+	  'text';    # we are never going to output HTML when doing JSON
+	$self->beautify_query();
+	$self->print_json();
+	return;
 }
 
 =head2 get_cgi
@@ -111,10 +115,10 @@ Creates CGI object, and sets POST size limit
 =cut
 
 sub get_cgi {
-    my $self = shift;
-    $self->{ 'cgi' } = CGI->new();
-    $CGI::POST_MAX = $self->{ 'maxlength' };
-    return;
+	my $self = shift;
+	$self->{'cgi'} = CGI->new();
+	$CGI::POST_MAX = $self->{'maxlength'};
+	return;
 }
 
 =head2
@@ -125,108 +129,108 @@ configuration for pgFormatter::Beautify module.
 =cut
 
 sub set_config {
-    my $self = shift;
+	my $self = shift;
 
-    $self->{ 'program_name' } = 'pgFormatter';
-    $self->{ 'program_name' } =~ s/\.[^\.]+$//;
-    $self->{ 'config' }       = 'pg_format.conf';
+	$self->{'program_name'} = 'pgFormatter';
+	$self->{'program_name'} =~ s/\.[^\.]+$//;
+	$self->{'config'} = 'pg_format.conf';
 
-    # Maximum code size that can be formatted
-    $self->{ 'maxlength' }    = 100000;
+	# Maximum code size that can be formatted
+	$self->{'maxlength'} = 100000;
 
-    # Set default settings
-    $self->{ 'outfile' }      = '';
-    $self->{ 'outdir' }       = '';
-    $self->{ 'help' }         = '';
-    $self->{ 'version' }      = '';
-    $self->{ 'enable_api' }   = 1;
-    $self->{ 'debug' }        = 0;
-    $self->{ 'content' }      = '';
-    $self->{ 'original_content' }      = '';
-    $self->{ 'show_example' } = 0;
-    $self->{ 'project_url' }  = 'https://github.com/darold/pgFormatter';
-    $self->{ 'service_url' }  = '';
-    $self->{ 'download_url' } = 'https://github.com/darold/pgFormatter/releases';
+	# Set default settings
+	$self->{'outfile'}          = '';
+	$self->{'outdir'}           = '';
+	$self->{'help'}             = '';
+	$self->{'version'}          = '';
+	$self->{'enable_api'}       = 1;
+	$self->{'debug'}            = 0;
+	$self->{'content'}          = '';
+	$self->{'original_content'} = '';
+	$self->{'show_example'}     = 0;
+	$self->{'project_url'}      = 'https://github.com/darold/pgFormatter';
+	$self->{'service_url'}      = '';
+	$self->{'download_url'} = 'https://github.com/darold/pgFormatter/releases';
 
-    if (-f $self->{ 'config' })
-    {
-	open(my $cfh, '<', $self->{ 'config' }) or die "ERROR: can not read file $self->{ 'config' }\n";
-	while (my $line = <$cfh>)
-	{
-	    chomp($line);
-	    next if ($line !~ /^[a-z]/);
-	    if ($line =~ /^([^\s=]+)\s*=\s*([^\s]+)/)
-	    {
-		my $key = lc($1);
-		my $val = $2;
-		$key =~ s/-/_/g;
-		$key = 'uc_keyword'  if ($key eq 'keyword_case');
-		$key = 'uc_function' if ($key eq 'function_case');
-		$key = 'uc_type'     if ($key eq 'type_case');
-		if ($key eq 'comma' || $key eq 'format') {
-		    $self->{$key} = lc($val);
-		} else {
-		    $self->{$key} = $val;
-	        }
-	    }
+	if ( -f $self->{'config'} ) {
+		open( my $cfh, '<', $self->{'config'} )
+		  or die "ERROR: can not read file $self->{ 'config' }\n";
+		while ( my $line = <$cfh> ) {
+			chomp($line);
+			next if ( $line !~ /^[a-z]/ );
+			if ( $line =~ /^([^\s=]+)\s*=\s*([^\s]+)/ ) {
+				my $key = lc($1);
+				my $val = $2;
+				$key =~ s/-/_/g;
+				$key = 'uc_keyword'  if ( $key eq 'keyword_case' );
+				$key = 'uc_function' if ( $key eq 'function_case' );
+				$key = 'uc_type'     if ( $key eq 'type_case' );
+				if ( $key eq 'comma' || $key eq 'format' ) {
+					$self->{$key} = lc($val);
+				}
+				else {
+					$self->{$key} = $val;
+				}
+			}
+		}
 	}
-    }
 
-    $self->{ 'spaces' }       //= 4;
-    $self->{ 'nocomment' }    //= 0;
-    $self->{ 'nogrouping' }   //= 0;
-    $self->{ 'uc_keyword' }   //= 2;
-    $self->{ 'uc_function' }  //= 0;
-    $self->{ 'uc_type' }      //= 1;
-    $self->{ 'anonymize' }    //= 0;
-    $self->{ 'separator' }    //= '';
-    $self->{ 'comma' }        //= 'end';
-    $self->{ 'format' }       //= 'html';
-    $self->{ 'comma_break' }  //= 0;
-    $self->{ 'format_type' }  //= 0;
-    $self->{ 'wrap_after' }   //= 0;
-    $self->{ 'numbering' }    //= 0;
-    $self->{ 'redshift' }     //= 0;
-    $self->{ 'colorize' }     //= 1;
-    $self->{ 'keep_newline' } //= 0;
-    $self->{ 'extra_function' }//= '';
-    $self->{ 'extra_keyword' } //= '';
-    $self->{ 'no_space_function' } //= 0;
-    $self->{ 'redundant_parenthesis' } //= 0;
-    # Backward compatibility
-    $self->{ 'extra_keyword' } = 'redshift' if (!$self->{ 'extra_keyword' } && $self->{ 'redshift' });
+	$self->{'spaces'}                //= 4;
+	$self->{'nocomment'}             //= 0;
+	$self->{'nogrouping'}            //= 0;
+	$self->{'uc_keyword'}            //= 2;
+	$self->{'uc_function'}           //= 0;
+	$self->{'uc_type'}               //= 1;
+	$self->{'anonymize'}             //= 0;
+	$self->{'separator'}             //= '';
+	$self->{'comma'}                 //= 'end';
+	$self->{'format'}                //= 'html';
+	$self->{'comma_break'}           //= 0;
+	$self->{'format_type'}           //= 0;
+	$self->{'wrap_after'}            //= 0;
+	$self->{'numbering'}             //= 0;
+	$self->{'redshift'}              //= 0;
+	$self->{'colorize'}              //= 1;
+	$self->{'keep_newline'}          //= 0;
+	$self->{'extra_function'}        //= '';
+	$self->{'extra_keyword'}         //= '';
+	$self->{'no_space_function'}     //= 0;
+	$self->{'redundant_parenthesis'} //= 0;
 
-    if ($self->{ 'tabs' })
-    {
-        $self->{ 'spaces' } = 1;
-        $self->{ 'space' }  = "\t";
-    }
+	# Backward compatibility
+	$self->{'extra_keyword'} = 'redshift'
+	  if ( !$self->{'extra_keyword'} && $self->{'redshift'} );
 
-    if (!grep(/^$self->{ 'comma' }$/i, 'end', 'start'))
-    {
-        print STDERR "FATAL: unknow value for comma: $self->{ 'comma' }\n";
-        exit 0;
-    }
+	if ( $self->{'tabs'} ) {
+		$self->{'spaces'} = 1;
+		$self->{'space'}  = "\t";
+	}
 
-    if (!grep(/^$self->{ 'format' }$/i, 'text', 'html'))
-    {
-        print STDERR "FATAL: unknow output format: $self->{ 'format' }\n";
-        exit 0;
-    }
+	if ( !grep( /^$self->{ 'comma' }$/i, 'end', 'start' ) ) {
+		print STDERR "FATAL: unknow value for comma: $self->{ 'comma' }\n";
+		exit 0;
+	}
 
-    if ( $self->{ 'extra_function' } && !-e $self->{ 'extra_function' }) {
-        print STDERR "FATAL: file for extra function list does not exists: $self->{ 'extra_function' }\n";
-        exit 0;
-    }
+	if ( !grep( /^$self->{ 'format' }$/i, 'text', 'html' ) ) {
+		print STDERR "FATAL: unknow output format: $self->{ 'format' }\n";
+		exit 0;
+	}
 
-    # Filename to load tracker and ad to be included respectively in the
-    # HTML head and the bottom of the HTML page.
-    $self->{ 'bottom_ad_file' }  = 'bottom_ad_file.txt';
-    $self->{ 'head_track_file' } = 'head_track_file.txt';
-    # CSS file to load if exists to override default style
-    $self->{ 'css_file' }        = 'custom_css_file.css';
+	if ( $self->{'extra_function'} && !-e $self->{'extra_function'} ) {
+		print STDERR
+"FATAL: file for extra function list does not exists: $self->{ 'extra_function' }\n";
+		exit 0;
+	}
 
-    return;
+	# Filename to load tracker and ad to be included respectively in the
+	# HTML head and the bottom of the HTML page.
+	$self->{'bottom_ad_file'}  = 'bottom_ad_file.txt';
+	$self->{'head_track_file'} = 'head_track_file.txt';
+
+	# CSS file to load if exists to override default style
+	$self->{'css_file'} = 'custom_css_file.css';
+
+	return;
 }
 
 =head2
@@ -236,10 +240,10 @@ Loads, and returns, default CSS from __DATA__.
 =cut
 
 sub default_styles {
-    my $shift;
-    local $/;
-    my $style = <DATA>;
-    return $style;
+	my $shift;
+	local $/;
+	my $style = <DATA>;
+	return $style;
 }
 
 =head2
@@ -250,45 +254,56 @@ structures in $self.
 =cut
 
 sub get_params {
-    my $self = shift;
+	my $self = shift;
 
-    return unless $self->{ 'cgi' }->param;
+	return unless $self->{'cgi'}->param;
 
-    # shortcut
-    my $cgi = $self->{ 'cgi' };
+	# shortcut
+	my $cgi = $self->{'cgi'};
 
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis) ) {
-        $self->{ $param_name } = $cgi->param( $param_name ) if defined $cgi->param( $param_name );
-    }
-
-    my $filename = $cgi->param( 'filetoload' );
-    return unless $filename;
-
-    my $type = $cgi->uploadInfo( $filename )->{ 'Content-Type' };
-    if ( $type eq 'text/plain' || $type eq 'text/x-sql' || $type eq 'application/sql' || $type eq 'application/octet-stream') {
-        local $/ = undef;
-        my $fh = $cgi->upload( 'filetoload' );
-	my $tmpfilename = $cgi->tmpFileName( $fh );
-	if (!-T $tmpfilename) {
-		$self->{ 'colorize' }   = 0;
-		$self->{ 'uc_keyword' } = 0;
-		$self->{ 'uc_function' }= 0;
-		$self->{ 'uc_type' }    = 0;
-		$self->{ 'content' }    = "FATAL: Only text files are supported! Found content-type: $type";
-	} else {
-		binmode $fh;
-		$self->{ 'content' } = <$fh>; 
+	for my $param_name (
+		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis)
+	  )
+	{
+		$self->{$param_name} = $cgi->param($param_name)
+		  if defined $cgi->param($param_name);
 	}
-    }
-    else {
-        $self->{ 'colorize' }   = 0;
-        $self->{ 'uc_keyword' } = 0;
-	$self->{ 'uc_function' }= 0;
-	$self->{ 'uc_type' }    = 0;
-        $self->{ 'content' }    = "FATAL: Only text files are supported! Found content-type: $type";
-    }
 
-    return;
+	my $filename = $cgi->param('filetoload');
+	return unless $filename;
+
+	my $type = $cgi->uploadInfo($filename)->{'Content-Type'};
+	if (   $type eq 'text/plain'
+		|| $type eq 'text/x-sql'
+		|| $type eq 'application/sql'
+		|| $type eq 'application/octet-stream' )
+	{
+		local $/ = undef;
+		my $fh          = $cgi->upload('filetoload');
+		my $tmpfilename = $cgi->tmpFileName($fh);
+		if ( !-T $tmpfilename ) {
+			$self->{'colorize'}    = 0;
+			$self->{'uc_keyword'}  = 0;
+			$self->{'uc_function'} = 0;
+			$self->{'uc_type'}     = 0;
+			$self->{'content'} =
+			  "FATAL: Only text files are supported! Found content-type: $type";
+		}
+		else {
+			binmode $fh;
+			$self->{'content'} = <$fh>;
+		}
+	}
+	else {
+		$self->{'colorize'}    = 0;
+		$self->{'uc_keyword'}  = 0;
+		$self->{'uc_function'} = 0;
+		$self->{'uc_type'}     = 0;
+		$self->{'content'} =
+		  "FATAL: Only text files are supported! Found content-type: $type";
+	}
+
+	return;
 }
 
 =head2
@@ -298,19 +313,23 @@ Get params for the API version of this service
 =cut
 
 sub get_api_params {
-    my $self = shift;
+	my $self = shift;
 
-    return unless $self->{ 'cgi' }->param;
+	return unless $self->{'cgi'}->param;
 
-    # shortcut
-    my $cgi = $self->{ 'cgi' };
+	# shortcut
+	my $cgi = $self->{'cgi'};
 
-    my $postdata = $cgi->param('POSTDATA');
-    my $json_params = decode_json($postdata);
-    for my $param_name ( qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis) ) {
-        $self->{ $param_name } = $json_params->{$param_name} if defined $json_params->{$param_name};
-    }
-    return;
+	my $postdata    = $cgi->param('POSTDATA');
+	my $json_params = decode_json($postdata);
+	for my $param_name (
+		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis)
+	  )
+	{
+		$self->{$param_name} = $json_params->{$param_name}
+		  if defined $json_params->{$param_name};
+	}
+	return;
 }
 
 =head2 sanitize_params
@@ -320,43 +339,48 @@ Overrides parameter values if given values were not within acceptable ranges.
 =cut
 
 sub sanitize_params {
-    my $self = shift;
-    $self->{ 'colorize' }     = 1 if $self->{ 'colorize' } !~ /^(0|1)$/;
-    $self->{ 'spaces' }       = 4 if $self->{ 'spaces' } !~ /^\d{1,2}$/;
-    $self->{ 'uc_keyword' }   = 2 if $self->{ 'uc_keyword' } && ( $self->{ 'uc_keyword' } !~ /^(0|1|2|3)$/ );
-    $self->{ 'uc_function' }  = 0 if $self->{ 'uc_function' } && ( $self->{ 'uc_function' } !~ /^(0|1|2|3)$/ );
-    $self->{ 'uc_type' }      = 1 if $self->{ 'uc_type' } && ( $self->{ 'uc_type' } !~ /^(0|1|2|3)$/ );
-    $self->{ 'nocomment' }    = 0 if $self->{ 'nocomment' } !~ /^(0|1)$/;
-    $self->{ 'nogrouping' }   = 0 if $self->{ 'nogrouping' } !~ /^(0|1)$/;
-    $self->{ 'show_example' } = 0 if $self->{ 'show_example' } !~ /^(0|1)$/;
-    $self->{ 'separator' }    = '' if ($self->{ 'separator' } eq "'" or length($self->{ 'separator' }) > 6);
-    $self->{ 'comma' }        = 'end' if ($self->{ 'comma' } ne 'start');
-    $self->{ 'comma_break' }  = 0 if ($self->{ 'comma_break' } !~ /^(0|1)$/);
-    $self->{ 'format_type' }  = 0 if ($self->{ 'format_type' } !~ /^(0|1)$/);
-    $self->{ 'wrap_after' }   = 0 if ($self->{ 'wrap_after' } !~ /^\d{1,2}$/);
-    $self->{ 'numbering' }    = 0 if ($self->{ 'numbering' } !~ /^\d{1,2}$/);
-    $self->{ 'redshift' }     = 0 if ($self->{ 'redshift' } !~ /^(0|1)$/);
-    $self->{ 'keep_newline' }   = 0 if ($self->{ 'keep_newline' } !~ /^(0|1)$/);
-    $self->{ 'no_space_function' } = 0 if ($self->{ 'no_space_function' } !~ /^(0|1)$/);
-    $self->{ 'redundant_parenthesis' } = 0 if ($self->{ 'redundant_parenthesis' } !~ /^(0|1)$/);
+	my $self = shift;
+	$self->{'colorize'}   = 1 if $self->{'colorize'} !~ /^(0|1)$/;
+	$self->{'spaces'}     = 4 if $self->{'spaces'}   !~ /^\d{1,2}$/;
+	$self->{'uc_keyword'} = 2
+	  if $self->{'uc_keyword'} && ( $self->{'uc_keyword'} !~ /^(0|1|2|3)$/ );
+	$self->{'uc_function'} = 0
+	  if $self->{'uc_function'} && ( $self->{'uc_function'} !~ /^(0|1|2|3)$/ );
+	$self->{'uc_type'} = 1
+	  if $self->{'uc_type'} && ( $self->{'uc_type'} !~ /^(0|1|2|3)$/ );
+	$self->{'nocomment'}    = 0 if $self->{'nocomment'}    !~ /^(0|1)$/;
+	$self->{'nogrouping'}   = 0 if $self->{'nogrouping'}   !~ /^(0|1)$/;
+	$self->{'show_example'} = 0 if $self->{'show_example'} !~ /^(0|1)$/;
+	$self->{'separator'}    = ''
+	  if ( $self->{'separator'} eq "'" or length( $self->{'separator'} ) > 6 );
+	$self->{'comma'}        = 'end' if ( $self->{'comma'} ne 'start' );
+	$self->{'comma_break'}  = 0 if ( $self->{'comma_break'}  !~ /^(0|1)$/ );
+	$self->{'format_type'}  = 0 if ( $self->{'format_type'}  !~ /^(0|1)$/ );
+	$self->{'wrap_after'}   = 0 if ( $self->{'wrap_after'}   !~ /^\d{1,2}$/ );
+	$self->{'numbering'}    = 0 if ( $self->{'numbering'}    !~ /^\d{1,2}$/ );
+	$self->{'redshift'}     = 0 if ( $self->{'redshift'}     !~ /^(0|1)$/ );
+	$self->{'keep_newline'} = 0 if ( $self->{'keep_newline'} !~ /^(0|1)$/ );
+	$self->{'no_space_function'} = 0
+	  if ( $self->{'no_space_function'} !~ /^(0|1)$/ );
+	$self->{'redundant_parenthesis'} = 0
+	  if ( $self->{'redundant_parenthesis'} !~ /^(0|1)$/ );
 
-    if ( $self->{ 'show_example' } ) {
-        $self->{ 'content' } = q{
+	if ( $self->{'show_example'} ) {
+		$self->{'content'} = q{
 SELECT DISTINCT (current_database())::information_schema.sql_identifier AS view_catalog, (nv.nspname)::information_schema.sql_identifier AS view_schema, (v.relname)::information_schema.sql_identifier AS view_name, (current_database())::information_schema.sql_identifier AS table_catalog, (nt.nspname)::information_schema.sql_identifier AS table_schema, (t.relname)::information_schema.sql_identifier AS table_name FROM pg_namespace nv, pg_class v, pg_depend dv, pg_depend dt, pg_class t, pg_namespace nt WHERE ((((((((((((((nv.oid = v.relnamespace) AND (v.relkind = 'v'::"char")) AND (v.oid = dv.refobjid)) AND (dv.refclassid = ('pg_class'::regclass)::oid)) AND (dv.classid = ('pg_rewrite'::regclass)::oid)) AND (dv.deptype = 'i'::"char")) AND (dv.objid = dt.objid)) AND (dv.refobjid <> dt.refobjid)) AND (dt.classid = ('pg_rewrite'::regclass)::oid)) AND (dt.refclassid = ('pg_class'::regclass)::oid)) AND (dt.refobjid = t.oid)) AND (t.relnamespace = nt.oid)) AND (t.relkind = ANY (ARRAY['r'::"char", 'v'::"char"]))) AND pg_has_role(t.relowner, 'USAGE'::text)) ORDER BY (current_database())::information_schema.sql_identifier, (nv.nspname)::information_schema.sql_identifier, (v.relname)::information_schema.sql_identifier, (current_database())::information_schema.sql_identifier, (nt.nspname)::information_schema.sql_identifier, (t.relname)::information_schema.sql_identifier;
         };
-	$self->{ 'original_content' } = $self->{ 'content' };
-    }
+		$self->{'original_content'} = $self->{'content'};
+	}
 
-    if (!$self->{ 'original_content' })
-    {
-	    $self->{ 'original_content' } = $self->{ 'content' };
-    }
-    else {
-	    $self->{ 'content' } = $self->{ 'original_content' };
-    }
+	if ( !$self->{'original_content'} ) {
+		$self->{'original_content'} = $self->{'content'};
+	}
+	else {
+		$self->{'content'} = $self->{'original_content'};
+	}
 
-    $self->{ 'content' } = substr( $self->{ 'content' }, 0, $self->{ 'maxlength' } );
-    return;
+	$self->{'content'} = substr( $self->{'content'}, 0, $self->{'maxlength'} );
+	return;
 }
 
 =head2 beautify_query
@@ -366,82 +390,92 @@ Runs beautification on provided query, and stores new version in $self->{'conten
 =cut
 
 sub beautify_query {
-    my $self = shift;
-    return if $self->{ 'show_example' };
-    return unless $self->{ 'content' };
-    my %args;
-    $args{ 'no_comments' }  = 1 if $self->{ 'nocomment' };
-    $args{ 'spaces' }       = $self->{ 'spaces' };
-    $args{ 'uc_keywords' }  = $self->{ 'uc_keyword' };
-    $args{ 'uc_functions' } = $self->{ 'uc_function' };
-    $args{ 'uc_types' }     = $self->{ 'uc_type' };
-    $args{ 'separator' }    = $self->{ 'separator' };
-    $args{ 'comma' }        = $self->{ 'comma' };
-    $args{ 'format' }       = $self->{ 'format' };
-    $args{ 'colorize' }     = $self->{ 'colorize' };
-    $args{ 'comma_break' }  = $self->{ 'comma_break' };
-    $args{ 'format_type' }  = 1 if ($self->{ 'format_type' });
-    $args{ 'wrap_after' }   = $self->{ 'wrap_after' };
-    $args{ 'no_grouping' }  = 1 if $self->{ 'nogrouping' };
-    $args{ 'numbering' }    = 1 if $self->{ 'numbering' };
-    $args{ 'redshift' }     = 1 if $self->{ 'redshift' };
-    $args{ 'keep_newline' } = 1 if $self->{ 'keep_newline' };
-    $args{ 'no_space_function' } = 1 if $self->{ 'no_space_function' };
-    $args{ 'redundant_parenthesis' } = 1 if $self->{ 'redundant_parenthesis' };
+	my $self = shift;
+	return if $self->{'show_example'};
+	return unless $self->{'content'};
+	my %args;
+	$args{'no_comments'}           = 1 if $self->{'nocomment'};
+	$args{'spaces'}                = $self->{'spaces'};
+	$args{'uc_keywords'}           = $self->{'uc_keyword'};
+	$args{'uc_functions'}          = $self->{'uc_function'};
+	$args{'uc_types'}              = $self->{'uc_type'};
+	$args{'separator'}             = $self->{'separator'};
+	$args{'comma'}                 = $self->{'comma'};
+	$args{'format'}                = $self->{'format'};
+	$args{'colorize'}              = $self->{'colorize'};
+	$args{'comma_break'}           = $self->{'comma_break'};
+	$args{'format_type'}           = 1 if ( $self->{'format_type'} );
+	$args{'wrap_after'}            = $self->{'wrap_after'};
+	$args{'no_grouping'}           = 1 if $self->{'nogrouping'};
+	$args{'numbering'}             = 1 if $self->{'numbering'};
+	$args{'redshift'}              = 1 if $self->{'redshift'};
+	$args{'keep_newline'}          = 1 if $self->{'keep_newline'};
+	$args{'no_space_function'}     = 1 if $self->{'no_space_function'};
+	$args{'redundant_parenthesis'} = 1 if $self->{'redundant_parenthesis'};
 
-    $self->{ 'content' } = &remove_extra_parenthesis($self->{ 'content' } ) if (!$self->{ 'redundant_parenthesis' } && $self->{ 'content' } );
+	$self->{'content'} = &remove_extra_parenthesis( $self->{'content'} )
+	  if ( !$self->{'redundant_parenthesis'} && $self->{'content'} );
 
-    my $beautifier = pgFormatter::Beautify->new( %args );
-    if ($self->{ 'extra_function' } && -e $self->{ 'extra_function' })
-    {
-	    if (open(my $fh, '<', $self->{ 'extra_function' }))
-	    {
-		    my @fcts = ();
-		    while (my $l = <$fh>) {
-			    chomp($l);
-			    push(@fcts, split(/^[\s,;]+$/, $l));
-		    }
-		    $beautifier->add_functions(@fcts);
-		    close($fh);
-	    } else {
-		    warn("WARNING: can not read file $self->{ 'extra_function' }\n");
-	    }
-    }
-    if ($self->{ 'extra_keyword' } && $self->{ 'extra_keyword' } ne 'redshift' && -e $self->{ 'extra_keyword' })
-    {
-	    if (open(my $fh, '<', $self->{ 'extra_keyword' }))
-	    {
-		    my @fcts = ();
-		    while (my $l = <$fh>) {
-			    chomp($l);
-			    push(@fcts, split(/^[\s,;]+$/, $l));
-		    }
-		    $beautifier->add_keywords(@fcts);
-		    close($fh);
-	    } else {
-		    warn("WARNING: can not read file $self->{ 'extra_keyword' }\n");
-	    }
-    } elsif ($self->{ 'extra_keyword' } eq 'redshift' or $self->{ 'redshift' }) {
-	    $beautifier->add_keywords(@{ $beautifier->{ 'dict' }->{ 'redshift_keywords' } });
-    }
+	my $beautifier = pgFormatter::Beautify->new(%args);
+	if ( $self->{'extra_function'} && -e $self->{'extra_function'} ) {
+		if ( open( my $fh, '<', $self->{'extra_function'} ) ) {
+			my @fcts = ();
+			while ( my $l = <$fh> ) {
+				chomp($l);
+				push( @fcts, split( /^[\s,;]+$/, $l ) );
+			}
+			$beautifier->add_functions(@fcts);
+			close($fh);
+		}
+		else {
+			warn("WARNING: can not read file $self->{ 'extra_function' }\n");
+		}
+	}
+	if (   $self->{'extra_keyword'}
+		&& $self->{'extra_keyword'} ne 'redshift'
+		&& -e $self->{'extra_keyword'} )
+	{
+		if ( open( my $fh, '<', $self->{'extra_keyword'} ) ) {
+			my @fcts = ();
+			while ( my $l = <$fh> ) {
+				chomp($l);
+				push( @fcts, split( /^[\s,;]+$/, $l ) );
+			}
+			$beautifier->add_keywords(@fcts);
+			close($fh);
+		}
+		else {
+			warn("WARNING: can not read file $self->{ 'extra_keyword' }\n");
+		}
+	}
+	elsif ( $self->{'extra_keyword'} eq 'redshift' or $self->{'redshift'} ) {
+		$beautifier->add_keywords(
+			@{ $beautifier->{'dict'}->{'redshift_keywords'} } );
+	}
 
-    $beautifier->query( $self->{ 'content' } );
-    $beautifier->anonymize() if $self->{ 'anonymize' };
-    $beautifier->beautify();
+	$beautifier->query( $self->{'content'} );
+	$beautifier->anonymize() if $self->{'anonymize'};
+	$beautifier->beautify();
 
-    $self->{ 'content' } = $beautifier->content();
+	$self->{'content'} = $beautifier->content();
 
-    return;
+	return;
 }
 
 sub remove_extra_parenthesis {
-    my $str = shift;
+	my $str = shift;
 
-    while ($str =~ s/\(\s*\(([^\(\)]+)\)\s*\)/($1)/gs) {};
-    while ($str =~ s/\(\s*\(([^\(\)]+)\)\s*AND\s*\(([^\(\)]+)\)\s*\)/($1 AND $2)/igs) {};
-    while ($str =~ s/\(\s*\(\s*\(([^\(\)]+\)[^\(\)]+\([^\(\)]+)\)\s*\)\s*\)/(($1))/gs) {};
+	while ( $str =~ s/\(\s*\(([^\(\)]+)\)\s*\)/($1)/gs ) { }
+	while ( $str =~
+		s/\(\s*\(([^\(\)]+)\)\s*AND\s*\(([^\(\)]+)\)\s*\)/($1 AND $2)/igs )
+	{
+	}
+	while ( $str =~
+		s/\(\s*\(\s*\(([^\(\)]+\)[^\(\)]+\([^\(\)]+)\)\s*\)\s*\)/(($1))/gs )
+	{
+	}
 
-    return $str;
+	return $str;
 }
 
 =head2 print_json
@@ -451,10 +485,11 @@ Outputs beautified SQL as JSON
 =cut
 
 sub print_json {
-  my $self = shift;
-  print $self->{ 'cgi' }->header(-type => 'application/json', -charset => 'utf-8');
-  my $h = { formatted => ${self}->{ 'content' } };
-  print encode_json $h
+	my $self = shift;
+	print $self->{'cgi'}
+	  ->header( -type => 'application/json', -charset => 'utf-8' );
+	my $h = { formatted => ${self}->{'content'} };
+	print encode_json $h;
 }
 
 =head2
@@ -464,33 +499,35 @@ Outputs body of the page.
 =cut
 
 sub print_body {
-    my $self = shift;
+	my $self = shift;
 
-    my $chk_nocomment   = $self->{ 'nocomment' } ? 'checked="checked" ' : '';
-    my $chk_colorize    = $self->{ 'colorize' }  ? 'checked="checked" ' : '';
-    my $chk_anonymize   = $self->{ 'anonymize' } ? 'checked="checked" ' : '';
-    my $chk_comma       = $self->{ 'comma' } eq 'start' ? 'checked="checked" ' : '';
-    my $chk_comma_break = $self->{ 'comma_break' } ? 'checked="checked" ' : '';
-    my $chk_format_type = $self->{ 'format_type' } ? 'checked="checked" ' : '';
-    my $chk_nogrouping  = $self->{ 'nogrouping' } ? 'checked="checked" ' : '';
-    my $chk_numbering   = $self->{ 'numbering' } ? 'checked="checked" ' : '';
-    my $chk_redshift    = $self->{ 'redshift' } ? 'checked="checked" ' : '';
-    my $chk_keepnewline = $self->{ 'keep_newline' } ? 'checked="checked" ' : '';
-    my $chk_spacefunctioncall = $self->{ 'no_space_function' } ? 'checked="checked" ' : '';
-    my $chk_redundantparenthesis = $self->{ 'redundant_parenthesis' } ? 'checked="checked" ' : '';
+	my $chk_nocomment = $self->{'nocomment'}        ? 'checked="checked" ' : '';
+	my $chk_colorize  = $self->{'colorize'}         ? 'checked="checked" ' : '';
+	my $chk_anonymize = $self->{'anonymize'}        ? 'checked="checked" ' : '';
+	my $chk_comma     = $self->{'comma'} eq 'start' ? 'checked="checked" ' : '';
+	my $chk_comma_break = $self->{'comma_break'}    ? 'checked="checked" ' : '';
+	my $chk_format_type = $self->{'format_type'}    ? 'checked="checked" ' : '';
+	my $chk_nogrouping  = $self->{'nogrouping'}     ? 'checked="checked" ' : '';
+	my $chk_numbering   = $self->{'numbering'}      ? 'checked="checked" ' : '';
+	my $chk_redshift    = $self->{'redshift'}       ? 'checked="checked" ' : '';
+	my $chk_keepnewline = $self->{'keep_newline'}   ? 'checked="checked" ' : '';
+	my $chk_spacefunctioncall =
+	  $self->{'no_space_function'} ? 'checked="checked" ' : '';
+	my $chk_redundantparenthesis =
+	  $self->{'redundant_parenthesis'} ? 'checked="checked" ' : '';
 
-    my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
-    $kw_toggle{ $self->{ 'uc_keyword' } } = ' selected="selected"';
+	my %kw_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
+	$kw_toggle{ $self->{'uc_keyword'} } = ' selected="selected"';
 
-    my %fct_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
-    $fct_toggle{ $self->{ 'uc_function' } } = ' selected="selected"';
+	my %fct_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
+	$fct_toggle{ $self->{'uc_function'} } = ' selected="selected"';
 
-    my %typ_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
-    $typ_toggle{ $self->{ 'uc_type' } } = ' selected="selected"';
+	my %typ_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
+	$typ_toggle{ $self->{'uc_type'} } = ' selected="selected"';
 
-    my $service_url = $self->{ 'service_url' } || $self->{ 'cgi' }->url;
+	my $service_url = $self->{'service_url'} || $self->{'cgi'}->url;
 
-    print <<_END_OF_HTML_;
+	print <<_END_OF_HTML_;
 <form method="post" action="" enctype="multipart/form-data">
  <table width="100%"><tr><td align="center" valign="top">
  <div id="options">
@@ -593,45 +630,45 @@ sub print_body {
   <table><tr><td>
 _END_OF_HTML_
 
-    if ( ( $self->{ 'show_example' } ) || ( !$self->{ 'content' } ) )
-    {
-        $self->{ 'content' } = 'Enter your SQL code here...' unless $self->{ 'content' };
-        print
+	if ( ( $self->{'show_example'} ) || ( !$self->{'content'} ) ) {
+		$self->{'content'} = 'Enter your SQL code here...'
+		  unless $self->{'content'};
+		print
 qq{<textarea name="content" id="sqlcontent" onfocus="if (done == 0) this.value=''; done = 1; set_bg_color('sqlcontent', '#f5f3de');" onblur="set_bg_color('sqlcontent', 'white');" onchange="maxlength_textarea(this, $self->{ 'maxlength' })">};
-        print "$self->{ 'content' }</textarea>";
-    }
-    else
-    {
-        print qq{<div class="sql" id="sql"><pre>$self->{ 'content' }</pre></div>};
-	print qq{
+		print "$self->{ 'content' }</textarea>";
+	}
+	else {
+		print
+		  qq{<div class="sql" id="sql"><pre>$self->{ 'content' }</pre></div>};
+		print qq{
 	</td></tr>
 	<tr><td align="center"><div class="sql">
     <input id="copycode" type="button" style="background-color: #ff7400" value="&nbsp;Copy to clipboard&nbsp;" onclick="if (!navigator.clipboard) {return false;} var copied=document.getElementById('sql').innerText;navigator.clipboard.writeText(copied); return false;"/>
         <p></p>
 };
-    }
-    print
+	}
+	print
 qq{<textarea name="original_content" id="originalcontent" style="display: none;">$self->{ 'original_content' }</textarea>};
 
-    print qq{
+	print qq{
     </td></tr>
     <tr><td>
     <div class="footer"> Service provided by <a href="$self->{ 'download_url' }" target="_new">$self->{ 'program_name' } $VERSION</a>. Development code available on <a href="$self->{ 'project_url' }" target="_new">GitHub.com</a> </div>
     </td></tr>
 };
 
-    # Add external file with html code at bottom of the page
-    # used to display ads or anything else below the text area
-    my $ad_content = $self->_load_optional_file( $self->{ 'bottom_ad_file' } );
-    $ad_content ||= '<br/>';
+	# Add external file with html code at bottom of the page
+	# used to display ads or anything else below the text area
+	my $ad_content = $self->_load_optional_file( $self->{'bottom_ad_file'} );
+	$ad_content ||= '<br/>';
 
-    print qq{
+	print qq{
     <tr><td>$ad_content</td></tr>
     </table>
     </td></tr></table> </form>
 };
 
-    return;
+	return;
 }
 
 =head2 print_footer
@@ -641,11 +678,11 @@ Outputs footer of the page
 =cut
 
 sub print_footer {
-    my $self = shift;
+	my $self = shift;
 
-    print qq{<p>&nbsp;</p>};
-    print " </div> </body> </html>\n";
-    return;
+	print qq{<p>&nbsp;</p>};
+	print " </div> </body> </html>\n";
+	return;
 }
 
 =head2 _load_optional_file
@@ -656,17 +693,17 @@ content, it not, it returns empty string (instead of dying).
 =cut
 
 sub _load_optional_file {
-    my $self     = shift;
-    my $filename = shift;
+	my $self     = shift;
+	my $filename = shift;
 
-    return '' unless -f $filename;
-    return '' if -z $filename;
+	return '' unless -f $filename;
+	return '' if -z $filename;
 
-    open my $in, '<', $filename or return '';
-    local $/ = undef;
-    my $content = <$in>;
-    close $in;
-    return $content;
+	open my $in, '<', $filename or return '';
+	local $/ = undef;
+	my $content = <$in>;
+	close $in;
+	return $content;
 }
 
 =head2 print_error
@@ -676,9 +713,10 @@ Outputs an error message when no acceptable response is found.
 =cut
 
 sub print_error {
-    my $self = shift;
-    print $self->{ 'cgi' }->header(-charset => 'utf-8', -type => 'text/plain', status=>'400');
-    print "Bad request";
+	my $self = shift;
+	print $self->{'cgi'}
+	  ->header( -charset => 'utf-8', -type => 'text/plain', status => '400' );
+	print "Bad request";
 }
 
 =head2 print_headers
@@ -688,18 +726,19 @@ Outputs page headers - both HTTP level headers, and HTML.
 =cut
 
 sub print_headers {
-    my $self = shift;
-    print $self->{ 'cgi' }->header(-charset => 'utf-8');
+	my $self = shift;
+	print $self->{'cgi'}->header( -charset => 'utf-8' );
 
-    my $date = localtime( time );
+	my $date = localtime(time);
 
-    # Add external file content into the HTML header, used to add tracker
-    # information or anything else between the <head></head> tags.
-    my $track_content = $self->_load_optional_file( $self->{ 'head_track_file' } );
-    my $style_content = $self->_load_optional_file( $self->{ 'css_file' } );
-    $style_content = $self->default_styles if '' eq $style_content;
+	# Add external file content into the HTML header, used to add tracker
+	# information or anything else between the <head></head> tags.
+	my $track_content =
+	  $self->_load_optional_file( $self->{'head_track_file'} );
+	my $style_content = $self->_load_optional_file( $self->{'css_file'} );
+	$style_content = $self->default_styles if '' eq $style_content;
 
-    print <<_END_OF_HTML_HEADER_;
+	print <<_END_OF_HTML_HEADER_;
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -759,7 +798,7 @@ Free Online version of $self->{ 'program_name' } a PostgreSQL SQL syntax beautif
 </tr>
 </table>
 _END_OF_HTML_HEADER_
-    return;
+	return;
 }
 
 =head1 DATA
