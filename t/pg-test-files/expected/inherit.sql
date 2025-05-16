@@ -858,11 +858,11 @@ DROP TABLE some_tab CASCADE;
 
 /* Test multiple inheritance of column defaults */
 CREATE TABLE firstparent (
-    tomorrow date DEFAULT now() ::date + 1
+    tomorrow date DEFAULT now()::date + 1
 );
 
 CREATE TABLE secondparent (
-    tomorrow date DEFAULT now() ::date + 1
+    tomorrow date DEFAULT now()::date + 1
 );
 
 CREATE TABLE jointchild ()
@@ -873,7 +873,7 @@ INHERITS (
 
 -- ok
 CREATE TABLE thirdparent (
-    tomorrow date DEFAULT now() ::date - 1
+    tomorrow date DEFAULT now()::date - 1
 );
 
 CREATE TABLE otherchild ()

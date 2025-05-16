@@ -371,7 +371,7 @@ DROP SEQUENCE ttdummy_seq;
 -- tests for per-statement triggers
 --
 CREATE TABLE log_table (
-    tstamp timestamp DEFAULT timeofday() ::timestamp
+    tstamp timestamp DEFAULT timeofday()::timestamp
 );
 
 CREATE TABLE main_table (

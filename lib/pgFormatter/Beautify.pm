@@ -3848,7 +3848,10 @@ sub _add_token {
 				  ", token=$token\n"
 				  if ($DEBUG_SP);
 				$self->{'content'} .= $sp
-				  if ( $last_token ne '(' or !$self->{'_is_in_function'} );
+				  if ( $last_token ne '(' or !$self->{'_is_in_function'});
+				if ($token =~ /^::/) {
+					$self->{'content'} =~ s/$sp$//s;
+				}
 			}
 		}
 		elsif ( defined $last_token
@@ -3890,7 +3893,7 @@ sub _add_token {
 			  if ($DEBUG_SP);
 			$self->{'content'} .= $sp;
 		}
-		else {
+		else { 
 			print STDERR "DEBUG_SPC: 7) last=", ( $last_token || '' ),
 			  ", token=$token\n"
 			  if ($DEBUG_SP);

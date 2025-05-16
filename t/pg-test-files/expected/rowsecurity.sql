@@ -3693,7 +3693,7 @@ CREATE TABLE coll_t (
     c
 ) AS
 VALUES (
-    'bar' ::text
+    'bar'::text
 );
 CREATE POLICY coll_p ON coll_t
     USING (c < ('foo'::text COLLATE "C"));
@@ -3724,7 +3724,7 @@ CREATE TABLE tbl1 (
     c
 ) AS
 VALUES (
-    'bar' ::text
+    'bar'::text
 );
 GRANT SELECT ON TABLE tbl1 TO regress_rls_eve;
 CREATE POLICY P ON tbl1 TO regress_rls_eve, regress_rls_frank
@@ -3845,7 +3845,7 @@ CREATE TABLE t (
     c
 ) AS
 VALUES (
-    'bar' ::text
+    'bar'::text
 );
 CREATE POLICY p ON t
     USING (max(c));

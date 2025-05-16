@@ -1374,7 +1374,7 @@ $$
 LANGUAGE sql;
 
 -- polymorphic parameter test
-CREATE FUNCTION dfunc (anyelement = 'World' ::text)
+CREATE FUNCTION dfunc (anyelement = 'World'::text)
     RETURNS text
     AS $$
     SELECT
@@ -1415,7 +1415,7 @@ SELECT
 SELECT
     dfunc (10, 20);
 
-CREATE OR REPLACE FUNCTION dfunc (a VARIADIC int[] DEFAULT ARRAY[] ::int[])
+CREATE OR REPLACE FUNCTION dfunc (a VARIADIC int[] DEFAULT ARRAY[]::int[])
     RETURNS int
     AS $$
     SELECT
