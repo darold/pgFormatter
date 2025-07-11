@@ -546,7 +546,7 @@ sub highlight_code {
 			&& $next_token eq '('
 		)
 		|| (   !$self->_is_keyword( $token, $next_token, $last_token )
-			&& !$next_token eq '('
+			&& $next_token ne '('
 			&& $token ne '('
 			&& !$self->_is_comment($token) )
 	  )
@@ -3969,7 +3969,7 @@ sub _add_token {
 				and uc($last_token) ne 'CREATE'
 			)
 			or (    !$self->_is_keyword( $token, $next_token, $last_token )
-				and !$next_token eq '('
+				and $next_token ne '('
 				and $token ne '('
 				and !$self->_is_comment($token) )
 		  )
