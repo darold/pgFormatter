@@ -4949,7 +4949,7 @@ sub set_dicts {
 	  gist_circle_compress gist_circle_consistent gist_point_compress gist_point_consistent gist_point_distance
 	  gist_poly_compress gist_poly_consistent gistbeginscan gistbuild gistbuildempty gistbulkdelete
 	  gistcostestimate gistendscan gistgetbitmap gistgettuple gistinsert gistmarkpos gistoptions gistrescan
-	  gistrestrpos gistvacuumcleanup gtsquery_compress gtsquery_consistent gtsquery_decompress gtsquery_penalty
+	  gistrestrpos gistvacuumcleanup group_concat gtsquery_compress gtsquery_consistent gtsquery_decompress gtsquery_penalty
 	  gtsquery_picksplit gtsquery_same gtsquery_union gtsvector_compress gtsvector_consistent gtsvector_decompress
 	  gtsvector_penalty gtsvector_picksplit gtsvector_same gtsvector_union gtsvectorin gtsvectorout
 	  has_any_column_privilege has_column_privilege has_database_privilege has_foreign_data_wrapper_privilege
