@@ -1299,6 +1299,11 @@ sub beautify {
 			$self->{'_is_in_overlaps'} = 1;
 		}
 
+		if ($self->{'_current_sql_stmt'} eq 'DO UPDATE' && $token =~ /^(WHERE|SELECT)$/i) {
+			$self->{'_current_sql_stmt'} = 'INSERT';
+			$self->{'_is_in_set'} = 0;
+		}
+
 		####
 		# Set the current kind of statement parsed
 		####
@@ -2440,14 +2445,18 @@ sub beautify {
 				and $self->_next_token =~ /KEYWCONST/
 				and $self->{'_tokens'}[1] =~ /^(LANGUAGE|STRICT)$/i );
 			$add_newline = 1 if ( $self->{'_is_in_truncate'} );
-			$self->_new_line( $token, $last )
 			  if (
 					$add_newline
 				and $self->{'comma'} eq 'end'
 				and (  $self->{'comma_break'}
-					|| $self->{'_current_sql_stmt'} ne 'INSERT' )
-			  );
-		}
+					|| ($self->{'_current_sql_stmt'} ne 'INSERT' 
+				     		&& ($self->{'_current_sql_stmt'} ne 'DO UPDATE'
+							|| !$self->{'_parenthesis_level'})) )
+			  )
+			  {
+				$self->_new_line( $token, $last );
+			  }
+			}
 
 		elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) {
 
@@ -2638,7 +2647,8 @@ sub beautify {
 			$last = $self->_set_last( $token, $last );
 		}
 
-		elsif ( $token =~ /^(?:FROM|WHERE|SET|RETURNING|HAVING|VALUES)$/i ) {
+		elsif ( $token =~ /^(?:FROM|WHERE|SET|RETURNING|HAVING|VALUES)$/i )
+		{
 			if (    uc($token) eq 'FROM'
 				and $self->{'_has_order_by'}
 				and !$self->{'_parenthesis_level'} )
@@ -2649,7 +2659,7 @@ sub beautify {
 			$self->{'no_break'}   = 0;
 			$self->{'_col_count'} = 0;
 			$self->{'_is_in_set'} = 1
-			  if ( uc($token) eq 'SET'
+			if ( uc($token) eq 'SET'
 				&& $self->{'_current_sql_stmt'} !~ /^(UPDATE|INSERT)$/i );
 
 			# special cases for create partition statement
@@ -2877,7 +2887,7 @@ sub beautify {
 			if ( $token =~ /^UPDATE$/i and $last =~ /^(FOR|KEY|DO)$/i ) {
 				$self->_add_token($token);
 				if ( uc($last) eq 'DO' && uc( $self->_next_token ) eq 'SET' ) {
-					$self->{'_current_sql_stmt'} = 'UPDATE';
+					$self->{'_current_sql_stmt'} = 'DO UPDATE';
 				}
 			}
 			elsif (

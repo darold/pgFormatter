@@ -249,9 +249,7 @@ INSERT INTO insertconflicttest
     (2, 'Orange')
 ON CONFLICT (key)
     DO UPDATE SET
-        (fruit,
-            key) = (excluded.fruit,
-            excluded.key);
+        (fruit, key) = (excluded.fruit, excluded.key);
 
 -- Give good diagnostic message when EXCLUDED.* spuriously referenced from
 -- RETURNING:
@@ -1395,14 +1393,10 @@ INSERT INTO parted_conflict
     VALUES (50, 'cincuenta', 2)
 ON CONFLICT (a, b)
     DO UPDATE SET
-        (a,
-            b,
-            c) = ROW (excluded.*)
+        (a, b, c) = ROW (excluded.*)
     WHERE
         parted_conflict = (50, text 'cincuenta', 1)
-        AND excluded = (50,
-            text 'cincuenta',
-            2);
+        AND excluded = (50, text 'cincuenta', 2);
 
 -- should see (50, 'cincuenta', 2)
 SELECT

@@ -321,8 +321,7 @@ INSERT INTO upsert_test
     VALUES (1, 'Bar')
 ON CONFLICT (a)
     DO UPDATE SET
-        (b,
-            a) = (
+        (b, a) = (
             SELECT
                 b,
                 a
@@ -336,8 +335,7 @@ INSERT INTO upsert_test
     VALUES (1, 'Baz')
 ON CONFLICT (a)
     DO UPDATE SET
-        (b,
-            a) = (
+        (b, a) = (
             SELECT
                 b || ', Correlated',
                 a
@@ -353,8 +351,7 @@ INSERT INTO upsert_test
     VALUES (1, 'Bat')
 ON CONFLICT (a)
     DO UPDATE SET
-        (b,
-            a) = (
+        (b, a) = (
             SELECT
                 b || ', Excluded',
                 a

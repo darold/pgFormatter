@@ -2181,12 +2181,11 @@ INSERT INTO withz
         WHERE
             withz.k != EXCLUDED.k
         RETURNING
+            *)
+        SELECT
             *
-)
-    SELECT
-        *
-    FROM
-        aa;
+        FROM
+            aa;
 
 -- New query/snapshot demonstrates side-effects of previous query.
 SELECT
@@ -2306,8 +2305,7 @@ INSERT INTO withz
         VALUES (2, 'Blue')
     ON CONFLICT (k)
         DO UPDATE SET
-            (k,
-                v) = (
+            (k, v) = (
                 SELECT
                     k,
                     v
@@ -2322,8 +2320,7 @@ INSERT INTO withz
         VALUES (2, 'Red')
     ON CONFLICT (k)
         DO UPDATE SET
-            (k,
-                v) = (
+            (k, v) = (
                 SELECT
                     k,
                     v
