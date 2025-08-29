@@ -1,3 +1,36 @@
+August 29 2025 - v5.7
+
+This maintenance release fixes some issues reported by users since the last
+release and adds some improvements.
+
+Improvements:
+
+   - Better formatting of UPSERT queries.
+   - Better formatting of some form of CTE queries.
+   - Fix warning with new Perl versions.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix formatting of UPSERT queries.
+  - Fix space added after group_concat function. Thanks to Ahmad bin Marakkar
+    for the report.
+  - Fix Possible-precedence-problem warnings with a switch to ne operator
+    instead of !=. Thanks to actualben for the patch.
+  - Fix extra space before cast in create table statement. Thanks to Zoe Roux
+    for the report.
+  - Fix indentation by running: perltidy -et=4 file. Thanks to Tello-Wharton
+    Aaron for the report
+  - Fix indentation for SELECT statements in CTEs that use Postgres functions.
+    Thanks to Tello Wharton for the patch.
+  - Adding functionality to understand if a function is just being closed.
+    Thanks to Tello Wharton for the patch.
+  - Add a test to verify that the indentation in select statements in CTEs
+    is honoured.  Thanks to Tello Wharton for the patch.
+  - Signaling that a FROM statement has been exited when a WITH is being
+    exited.  Thanks to Tello Wharton for the patch.
+  - Add OFFSET to the list of keywords. Thanks to Muhammad Imaduddin for the
+    report.
+
 March 17 2025 - v5.6
 
 This maintenance release fixes some issues reported by users since the last
