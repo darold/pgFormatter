@@ -14,7 +14,8 @@ FROM
     generate_series(1, 1000);
 
 INSERT INTO quad_point_tbl
-    VALUES (NULL),
+VALUES
+    (NULL),
     (NULL),
     (NULL);
 

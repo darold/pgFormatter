@@ -76,7 +76,8 @@ FROM
     generate_series(10001, 11000) AS i;
 
 INSERT INTO quad_poly_tbl
-    VALUES (11001, NULL),
+VALUES
+    (11001, NULL),
     (11002, NULL),
     (11003, NULL);
 

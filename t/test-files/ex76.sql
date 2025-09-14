@@ -64,3 +64,26 @@ SELECT format('|%1$*2$s|', 'foo', 10, 'bar');
 
 SELECT format('Testing %3$s, %2$s, %s', 'one', 'two', 'three');
 
+DO $$
+DECLARE
+    _variable int := 42;
+BEGIN
+
+    -- This is a comment
+    CREATE TEMP TABLE IF NOT EXISTS tempy_mc_tempface (
+        test text
+    );
+    TRUNCATE TABLE tempy_mc_tempface;
+
+    INSERT INTO tempy_mc_tempface
+    VALUES
+        ('tempy'),
+        ('mc'),
+        ('tempface');
+        
+    -- Another Comment
+    INSERT INTO tempy_mc_tempface
+        VALUES ('another', 'world');
+
+END
+$$;

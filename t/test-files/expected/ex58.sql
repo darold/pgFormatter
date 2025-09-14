@@ -187,6 +187,7 @@ FROM test2;
 
 -- Example 1: BEFORE formatting
 SELECT '
+--- 	VAL_1	VAL_2
 long text multi line
 end of text
 --- 

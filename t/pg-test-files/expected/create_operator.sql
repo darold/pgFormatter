@@ -132,7 +132,6 @@ CREATE OPERATOR schema_op1. # * # (
     PROCEDURE = numeric_fac
 );
 ROLLBACK;
-
 -- Should fail. SETOF type functions not allowed as argument (testing leftarg)
 BEGIN TRANSACTION;
 CREATE OPERATOR "#*#" (
@@ -140,7 +139,6 @@ CREATE OPERATOR "#*#" (
     PROCEDURE = numeric_fac
 );
 ROLLBACK;
-
 -- Should fail. SETOF type functions not allowed as argument (testing rightarg)
 BEGIN TRANSACTION;
 CREATE OPERATOR "#*#" (
@@ -148,7 +146,6 @@ CREATE OPERATOR "#*#" (
     PROCEDURE = numeric_fac
 );
 ROLLBACK;
-
 -- Should work. Sample text-book case
 BEGIN TRANSACTION;
 CREATE OR REPLACE FUNCTION fn_op2 (boolean, boolean)
@@ -175,24 +172,20 @@ CREATE OPERATOR === (
     MERGES
 );
 ROLLBACK;
-
 -- Should fail. Invalid attribute
 CREATE OPERATOR #@%# (
     LEFTARG = int8, -- right unary
     PROCEDURE = numeric_fac,
     invalid_att = int8
 );
-
 -- Should fail. At least leftarg or rightarg should be mandatorily specified
 CREATE OPERATOR #@%# (
     PROCEDURE = numeric_fac
 );
-
 -- Should fail. Procedure should be mandatorily specified
 CREATE OPERATOR #@%# (
     LEFTARG = int8
 );
-
 -- Should fail. CREATE OPERATOR requires USAGE on TYPE
 BEGIN TRANSACTION;
 CREATE ROLE regress_rol_op3;

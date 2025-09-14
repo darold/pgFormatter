@@ -75,7 +75,8 @@ CREATE TABLE uaccount (
 GRANT SELECT ON uaccount TO public;
 
 INSERT INTO uaccount
-    VALUES ('regress_rls_alice', 99),
+VALUES
+    ('regress_rls_alice', 99),
     ('regress_rls_bob', 1),
     ('regress_rls_carol', 2),
     ('regress_rls_dave', 3);
@@ -88,7 +89,8 @@ CREATE TABLE category (
 GRANT ALL ON category TO public;
 
 INSERT INTO category
-    VALUES (11, 'novel'),
+VALUES
+    (11, 'novel'),
     (22, 'science fiction'),
     (33, 'technology'),
     (44, 'manga');
@@ -104,7 +106,8 @@ CREATE TABLE document (
 GRANT ALL ON document TO public;
 
 INSERT INTO document
-    VALUES (1, 11, 1, 'regress_rls_bob', 'my first novel'),
+VALUES
+    (1, 11, 1, 'regress_rls_bob', 'my first novel'),
     (2, 11, 2, 'regress_rls_bob', 'my second novel'),
     (3, 22, 2, 'regress_rls_bob', 'my science fiction'),
     (4, 44, 1, 'regress_rls_bob', 'my first manga'),
@@ -792,7 +795,8 @@ GRANT ALL ON part_document_satire TO public;
 GRANT ALL ON part_document_nonfiction TO public;
 
 INSERT INTO part_document
-    VALUES (1, 11, 1, 'regress_rls_bob', 'my first novel'),
+VALUES
+    (1, 11, 1, 'regress_rls_bob', 'my first novel'),
     (2, 11, 2, 'regress_rls_bob', 'my second novel'),
     (3, 99, 2, 'regress_rls_bob', 'my science textbook'),
     (4, 55, 1, 'regress_rls_bob', 'my first satire'),
@@ -2273,7 +2277,8 @@ CREATE TABLE z2 (
 GRANT SELECT ON z1, z2 TO regress_rls_group1, regress_rls_group2, regress_rls_bob, regress_rls_carol;
 
 INSERT INTO z1
-    VALUES (1, 'aba'),
+VALUES
+    (1, 'aba'),
     (2, 'bbb'),
     (3, 'ccc'),
     (4, 'dad');
@@ -2600,7 +2605,8 @@ CREATE TABLE x1 (
 GRANT ALL ON x1 TO PUBLIC;
 
 INSERT INTO x1
-    VALUES (1, 'abc', 'regress_rls_bob'),
+VALUES
+    (1, 'abc', 'regress_rls_bob'),
     (2, 'bcd', 'regress_rls_bob'),
     (3, 'cde', 'regress_rls_carol'),
     (4, 'def', 'regress_rls_carol'),
@@ -2828,7 +2834,8 @@ CREATE TABLE test_qual_pushdown (
 );
 
 INSERT INTO test_qual_pushdown
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('def');
 
 SELECT
@@ -3139,14 +3146,16 @@ CREATE POLICY blog_1 ON blog
 ALTER TABLE blog ENABLE ROW LEVEL SECURITY;
 
 INSERT INTO blog
-    VALUES (1, 'alice', 'blog #1'),
+VALUES
+    (1, 'alice', 'blog #1'),
     (2, 'bob', 'blog #1'),
     (3, 'alice', 'blog #2'),
     (4, 'alice', 'blog #3'),
     (5, 'john', 'blog #1');
 
 INSERT INTO comment
-    VALUES (1, 'cool blog'),
+VALUES
+    (1, 'cool blog'),
     (1, 'fun blog'),
     (3, 'crazy blog'),
     (5, 'what?'),
@@ -3543,7 +3552,8 @@ CREATE TABLE current_check (
 GRANT ALL ON current_check TO PUBLIC;
 
 INSERT INTO current_check
-    VALUES (1, 'abc', 'regress_rls_bob'),
+VALUES
+    (1, 'abc', 'regress_rls_bob'),
     (2, 'bcd', 'regress_rls_bob'),
     (3, 'cde', 'regress_rls_bob'),
     (4, 'def', 'regress_rls_bob');
@@ -3866,11 +3876,13 @@ CREATE TABLE r2 (
 );
 
 INSERT INTO r1
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 INSERT INTO r2
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 GRANT ALL ON r1, r2 TO regress_rls_bob;
@@ -3984,7 +3996,8 @@ CREATE TABLE r1 (
 );
 
 INSERT INTO r1
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 CREATE POLICY p1 ON r1
@@ -4044,11 +4057,13 @@ CREATE TABLE r2 (
 );
 
 INSERT INTO r1
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 INSERT INTO r2
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 -- Create policies on r2 which prevent the
@@ -4103,11 +4118,13 @@ CREATE TABLE r2 (
 );
 
 INSERT INTO r1
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 INSERT INTO r2
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 -- Create policies on r2 which prevent the
@@ -4144,11 +4161,13 @@ CREATE TABLE r2 (
 );
 
 INSERT INTO r1
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 INSERT INTO r2
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 -- Create policies on r2 which prevent the
@@ -4204,7 +4223,8 @@ ALTER TABLE r1 FORCE ROW LEVEL SECURITY;
 
 -- Works fine
 INSERT INTO r1
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 -- No error, but no rows
@@ -4219,7 +4239,8 @@ SET row_security = ON;
 
 -- Error
 INSERT INTO r1
-    VALUES (10),
+VALUES
+    (10),
     (20)
 RETURNING
     *;

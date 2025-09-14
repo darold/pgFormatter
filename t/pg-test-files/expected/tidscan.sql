@@ -5,7 +5,8 @@ CREATE TABLE tidscan (
 
 -- only insert a few rows, we don't want to spill onto a second table page
 INSERT INTO tidscan
-    VALUES (1),
+VALUES
+    (1),
     (2),
     (3);
 

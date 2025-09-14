@@ -1785,7 +1785,8 @@ CREATE TABLE base_tbl (
 );
 
 INSERT INTO base_tbl
-    VALUES (1, 2),
+VALUES
+    (1, 2),
     (4, 5),
     (3, -3);
 
@@ -1841,7 +1842,8 @@ CREATE TABLE base_tbl (
 );
 
 INSERT INTO base_tbl
-    VALUES (1, ARRAY[2]),
+VALUES
+    (1, ARRAY[2]),
     (3, ARRAY[4]);
 
 CREATE VIEW rw_view1 AS
@@ -2116,11 +2118,13 @@ ORDER BY
     a;
 
 INSERT INTO rw_view1
-    VALUES (-100),
+VALUES
+    (-100),
     (100);
 
 INSERT INTO rw_view2
-    VALUES (-200),
+VALUES
+    (-200),
     (200);
 
 UPDATE
@@ -2195,11 +2199,13 @@ INHERITS (
 );
 
 INSERT INTO other_tbl_parent
-    VALUES (7),
+VALUES
+    (7),
     (200);
 
 INSERT INTO other_tbl_child
-    VALUES (8),
+VALUES
+    (8),
     (100);
 
 EXPLAIN (
@@ -2247,7 +2253,8 @@ CREATE TABLE base_tbl (
 );
 
 INSERT INTO base_tbl
-    VALUES (1, 2),
+VALUES
+    (1, 2),
     (2, 3),
     (1, -1);
 
@@ -2846,7 +2853,8 @@ CREATE TABLE base_tbl (
 );
 
 INSERT INTO base_tbl
-    VALUES ('Tom', 'public'),
+VALUES
+    ('Tom', 'public'),
     ('Dick', 'private'),
     ('Harry', 'public');
 
@@ -3057,7 +3065,8 @@ CREATE TABLE base_tbl (
 );
 
 INSERT INTO base_tbl
-    VALUES (1, 'Row 1', FALSE),
+VALUES
+    (1, 'Row 1', FALSE),
     (2, 'Row 2', TRUE);
 
 CREATE RULE base_tbl_ins_rule AS ON INSERT TO base_tbl WHERE
@@ -3494,7 +3503,8 @@ CREATE TABLE t2 (
 );
 
 INSERT INTO t2
-    VALUES (10),
+VALUES
+    (10),
     (20);
 
 CREATE VIEW v1 WITH ( security_barrier = TRUE
@@ -3751,7 +3761,8 @@ CREATE TABLE sometable (
 );
 
 INSERT INTO sometable
-    VALUES (1, 'a'),
+VALUES
+    (1, 'a'),
     (2, 'b');
 
 CREATE VIEW wcowrtest_v2 AS
@@ -4160,32 +4171,37 @@ INSERT INTO base_tab_def
     VALUES (1);
 
 INSERT INTO base_tab_def
-    VALUES (2),
+VALUES
+    (2),
     (3);
 
 INSERT INTO base_tab_def
     VALUES (4, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def
-    VALUES (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (6, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
     VALUES (11);
 
 INSERT INTO base_tab_def_view
-    VALUES (12),
+VALUES
+    (12),
     (13);
 
 INSERT INTO base_tab_def_view
     VALUES (14, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (16, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (17),
+VALUES
+    (17),
     (DEFAULT);
 
 SELECT
@@ -4218,32 +4234,37 @@ INSERT INTO base_tab_def
     VALUES (1);
 
 INSERT INTO base_tab_def
-    VALUES (2),
+VALUES
+    (2),
     (3);
 
 INSERT INTO base_tab_def
     VALUES (4, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def
-    VALUES (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (6, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
     VALUES (11);
 
 INSERT INTO base_tab_def_view
-    VALUES (12),
+VALUES
+    (12),
     (13);
 
 INSERT INTO base_tab_def_view
     VALUES (14, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (16, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (17),
+VALUES
+    (17),
     (DEFAULT);
 
 SELECT
@@ -4269,32 +4290,37 @@ INSERT INTO base_tab_def
     VALUES (1);
 
 INSERT INTO base_tab_def
-    VALUES (2),
+VALUES
+    (2),
     (3);
 
 INSERT INTO base_tab_def
     VALUES (4, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def
-    VALUES (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (6, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
     VALUES (11);
 
 INSERT INTO base_tab_def_view
-    VALUES (12),
+VALUES
+    (12),
     (13);
 
 INSERT INTO base_tab_def_view
     VALUES (14, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (16, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (17),
+VALUES
+    (17),
     (DEFAULT);
 
 SELECT
@@ -4321,32 +4347,37 @@ INSERT INTO base_tab_def
     VALUES (1);
 
 INSERT INTO base_tab_def
-    VALUES (2),
+VALUES
+    (2),
     (3);
 
 INSERT INTO base_tab_def
     VALUES (4, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def
-    VALUES (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (5, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (6, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
     VALUES (11);
 
 INSERT INTO base_tab_def_view
-    VALUES (12),
+VALUES
+    (12),
     (13);
 
 INSERT INTO base_tab_def_view
     VALUES (14, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+VALUES
+    (15, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
     (16, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO base_tab_def_view
-    VALUES (17),
+VALUES
+    (17),
     (DEFAULT);
 
 SELECT
@@ -4381,7 +4412,8 @@ ALTER VIEW base_tab_view
     ALTER COLUMN c SET DEFAULT 'View default';
 
 INSERT INTO base_tab_view (b[1], b[2], c, b[5], b[4], a, b[3])
-    VALUES (1, 2, DEFAULT, 5, 4, DEFAULT, 3),
+VALUES
+    (1, 2, DEFAULT, 5, 4, DEFAULT, 3),
     (10, 11, 'C value', 14, 13, 100, 12);
 
 SELECT

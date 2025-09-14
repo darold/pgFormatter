@@ -211,7 +211,8 @@ WHERE
 
 -- might as well exercise the widget type while we're here
 INSERT INTO mytab
-    VALUES ('(1,2,3)'),
+VALUES
+    ('(1,2,3)'),
     ('(-44,5.5,12)');
 
 TABLE mytab;

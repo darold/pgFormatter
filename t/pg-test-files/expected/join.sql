@@ -1304,7 +1304,8 @@ CREATE temp TABLE tt4 (
 );
 
 INSERT INTO tt4
-    VALUES (0),
+VALUES
+    (0),
     (1),
     (9999);
 
@@ -2914,16 +2915,20 @@ CREATE TEMP TABLE d (
     b int
 );
 INSERT INTO a
-    VALUES (0, 0),
+VALUES
+    (0, 0),
     (1, NULL);
 INSERT INTO b
-    VALUES (0, 0),
+VALUES
+    (0, 0),
     (1, NULL);
 INSERT INTO c
-    VALUES (0),
+VALUES
+    (0),
     (1);
 INSERT INTO d
-    VALUES (1, 3),
+VALUES
+    (1, 3),
     (2, 2),
     (3, 1);
 -- all three cases should be optimizable into a simple seqscan
@@ -3091,12 +3096,14 @@ CREATE temp TABLE child (
 );
 
 INSERT INTO parent
-    VALUES (1, 10),
+VALUES
+    (1, 10),
     (2, 20),
     (3, 30);
 
 INSERT INTO child
-    VALUES (1, 100),
+VALUES
+    (1, 100),
     (4, 400);
 
 -- this case is optimizable
@@ -3196,10 +3203,12 @@ CREATE TEMP TABLE b (
     a_id int
 );
 INSERT INTO a
-    VALUES (0),
+VALUES
+    (0),
     (1);
 INSERT INTO b
-    VALUES (0, 0),
+VALUES
+    (0, 0),
     (1, NULL);
 SELECT
     *
@@ -4462,7 +4471,8 @@ CREATE TABLE join_pt1p1p1 PARTITION OF join_pt1p1
 FOR VALUES FROM (0) TO (100);
 
 INSERT INTO join_pt1
-    VALUES (1, 1, 'x'),
+VALUES
+    (1, 1, 'x'),
     (101, 101, 'y');
 
 CREATE TABLE join_ut1 (
@@ -4472,7 +4482,8 @@ CREATE TABLE join_ut1 (
 );
 
 INSERT INTO join_ut1
-    VALUES (101, 101, 'y'),
+VALUES
+    (101, 101, 'y'),
     (2, 2, 'z');
 
 EXPLAIN (
@@ -4580,17 +4591,20 @@ CREATE TABLE j3 (
 );
 
 INSERT INTO j1
-    VALUES (1),
+VALUES
+    (1),
     (2),
     (3);
 
 INSERT INTO j2
-    VALUES (1),
+VALUES
+    (1),
     (2),
     (3);
 
 INSERT INTO j3
-    VALUES (1),
+VALUES
+    (1),
     (1);
 
 ANALYZE j1;
@@ -4744,7 +4758,8 @@ CREATE TABLE j3 (
 );
 
 INSERT INTO j1
-    VALUES (1, 1),
+VALUES
+    (1, 1),
     (1, 2);
 
 INSERT INTO j2

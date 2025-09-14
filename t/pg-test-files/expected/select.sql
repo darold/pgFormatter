@@ -289,7 +289,8 @@ CREATE TEMP TABLE foo (
 );
 
 INSERT INTO foo
-    VALUES (42),
+VALUES
+    (42),
     (3),
     (10),
     (7),

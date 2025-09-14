@@ -490,7 +490,8 @@ CREATE temp TABLE clstr_temp (
 );
 
 INSERT INTO clstr_temp
-    VALUES (2, 'two'),
+VALUES
+    (2, 'two'),
     (1, 'one');
 
 CLUSTER clstr_temp

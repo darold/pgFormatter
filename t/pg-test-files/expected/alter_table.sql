@@ -642,7 +642,8 @@ INHERITS (
 );
 
 INSERT INTO attmp6
-    VALUES (6, 30),
+VALUES
+    (6, 30),
     (7, 16);
 
 ALTER TABLE attmp3
@@ -4453,7 +4454,8 @@ ALTER TABLE new_system_table RENAME TO old_system_table;
 CREATE INDEX old_system_table__othercol ON old_system_table (othercol);
 
 INSERT INTO old_system_table (othercol)
-    VALUES ('somedata'),
+VALUES
+    ('somedata'),
     ('otherdata');
 
 UPDATE
@@ -5223,7 +5225,8 @@ ALTER TABLE part_7
 
 -- thusly, scan won't be skipped
 INSERT INTO part_7 (a, b)
-    VALUES (8, NULL),
+VALUES
+    (8, NULL),
     (9, 'a');
 
 SELECT
@@ -5701,7 +5704,8 @@ CREATE TABLE defpart_attach_test_d (
 );
 
 INSERT INTO defpart_attach_test_d
-    VALUES (1),
+VALUES
+    (1),
     (2);
 
 -- error because its constraint as the default partition would be violated

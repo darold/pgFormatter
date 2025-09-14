@@ -9,7 +9,8 @@ CREATE TEMP TABLE foo (
 );
 
 INSERT INTO foo (f2, f3)
-    VALUES ('test', DEFAULT),
+VALUES
+    ('test', DEFAULT),
     ('More', 11),
     (upper('more'), 7 + 9)
 RETURNING

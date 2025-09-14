@@ -61,17 +61,20 @@ CREATE TABLE credit_usage (
 );
 
 INSERT INTO customer
-    VALUES (101, 'regress_alice', '+81-12-3456-7890', 'passwd123'),
+VALUES
+    (101, 'regress_alice', '+81-12-3456-7890', 'passwd123'),
     (102, 'regress_bob', '+01-234-567-8901', 'beafsteak'),
     (103, 'regress_eve', '+49-8765-43210', 'hamburger');
 
 INSERT INTO credit_card
-    VALUES (101, '1111-2222-3333-4444', 4000),
+VALUES
+    (101, '1111-2222-3333-4444', 4000),
     (102, '5555-6666-7777-8888', 3000),
     (103, '9801-2345-6789-0123', 2000);
 
 INSERT INTO credit_usage
-    VALUES (101, '2011-09-15', 120),
+VALUES
+    (101, '2011-09-15', 120),
     (101, '2011-10-05', 90),
     (101, '2011-10-18', 110),
     (101, '2011-10-21', 200),

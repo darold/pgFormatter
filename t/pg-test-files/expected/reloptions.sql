@@ -198,7 +198,8 @@ WHERE
     oid = 'reloptions_test'::regclass;
 
 INSERT INTO reloptions_test
-    VALUES (1, NULL),
+VALUES
+    (1, NULL),
     (NULL, NULL);
 
 VACUUM reloptions_test;
@@ -229,7 +230,8 @@ WHERE
     oid = 'reloptions_test'::regclass;
 
 INSERT INTO reloptions_test
-    VALUES (1, NULL),
+VALUES
+    (1, NULL),
     (NULL, NULL);
 
 VACUUM reloptions_test;

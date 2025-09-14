@@ -744,7 +744,6 @@ FROM
 WHERE
     unique1 = 1;
 ROLLBACK TO SAVEPOINT settings;
-
 -- exercise record typmod remapping between backends
 CREATE FUNCTION make_record (n int)
     RETURNS RECORD
@@ -776,11 +775,8 @@ BEGIN
     END;
 END;
 $$;
-
 SAVEPOINT settings;
-
 SET LOCAL force_parallel_mode = 1;
-
 SELECT
     make_record (x)
 FROM (
@@ -788,33 +784,21 @@ FROM (
         generate_series(1, 5) x) ss
 ORDER BY
     x;
-
 ROLLBACK TO SAVEPOINT settings;
-
 DROP FUNCTION make_record (n int);
-
 -- test the sanity of parallel query after the active role is dropped.
 DROP ROLE IF EXISTS regress_parallel_worker;
-
 CREATE ROLE regress_parallel_worker;
-
 SET ROLE regress_parallel_worker;
-
 RESET session AUTHORIZATION;
-
 DROP ROLE regress_parallel_worker;
-
 SET force_parallel_mode = 1;
-
 SELECT
     count(*)
 FROM
     tenk1;
-
 RESET force_parallel_mode;
-
 RESET ROLE;
-
 -- Window function calculation can't be pushed to workers.
 EXPLAIN (
     COSTS OFF,
@@ -829,7 +813,6 @@ WHERE (unique1, two) IN (
         unique1,
         row_number() OVER ()
     FROM tenk1 b);
-
 -- LIMIT/OFFSET within sub-selects can't be pushed to workers.
 EXPLAIN (
     COSTS OFF
@@ -847,12 +830,9 @@ WHERE
         WHERE
             stringu1 LIKE '%AAAA'
         LIMIT 3);
-
 -- to increase the parallel query test coverage
 SAVEPOINT settings;
-
 SET LOCAL force_parallel_mode = 1;
-
 EXPLAIN (
     ANALYZE,
     timing OFF,
@@ -863,30 +843,22 @@ SELECT
     *
 FROM
     tenk1;
-
 ROLLBACK TO SAVEPOINT settings;
-
 -- provoke error in worker
 SAVEPOINT settings;
-
 SET LOCAL force_parallel_mode = 1;
-
 SELECT
     stringu1::int2
 FROM
     tenk1
 WHERE
     unique1 = 1;
-
 ROLLBACK TO SAVEPOINT settings;
-
 -- test interaction with set-returning functions
 SAVEPOINT settings;
-
 -- multiple subqueries under a single Gather node
 -- must set parallel_setup_cost > 0 to discourage multiple Gather nodes
 SET LOCAL parallel_setup_cost = 10;
-
 EXPLAIN (
     COSTS OFF
 )
@@ -903,9 +875,7 @@ FROM
     tenk1
 WHERE
     fivethous = tenthous + 1;
-
 ROLLBACK TO SAVEPOINT settings;
-
 -- can't use multiple subqueries under a single Gather node due to initPlans
 EXPLAIN (
     COSTS OFF
@@ -939,7 +909,6 @@ WHERE
         LIMIT 1)
 ORDER BY
     1;
-
 -- test interaction with SRFs
 SELECT
     *
@@ -949,7 +918,6 @@ ORDER BY
     1,
     2,
     3;
-
 -- test passing expanded-value representations to workers
 CREATE FUNCTION make_some_array (int, int)
     RETURNS int[]
@@ -964,16 +932,13 @@ END
 $$
 LANGUAGE plpgsql
 parallel safe;
-
 CREATE TABLE fooarr (
     f1 text,
     f2 int[],
     f3 text
 );
-
 INSERT INTO fooarr
     VALUES ('1', ARRAY[1, 2], 'one');
-
 PREPARE pstmt (text, int[]) AS
 SELECT
     *
@@ -982,15 +947,11 @@ FROM
 WHERE
     f1 = $1
     AND f2 = $2;
-
 EXPLAIN (
     COSTS OFF
 ) EXECUTE pstmt ('1', make_some_array (1, 2));
-
 EXECUTE pstmt ('1', make_some_array (1, 2));
-
 DEALLOCATE pstmt;
-
 -- test interaction between subquery and partial_paths
 CREATE VIEW tenk1_vw_sec WITH ( security_barrier
 ) AS
@@ -998,7 +959,6 @@ SELECT
     *
 FROM
     tenk1;
-
 EXPLAIN (
     COSTS OFF
 )
@@ -1013,6 +973,5 @@ WHERE (
         int4_tbl
     WHERE
         f1 < unique1) < 100;
-
 ROLLBACK;
 

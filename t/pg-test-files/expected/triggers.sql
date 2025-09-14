@@ -507,7 +507,8 @@ ORDER BY
     2;
 
 INSERT INTO main_table (a)
-    VALUES (123),
+VALUES
+    (123),
     (456);
 
 DELETE FROM main_table
@@ -1060,7 +1061,8 @@ CREATE TABLE min_updates_test (
 );
 
 INSERT INTO min_updates_test
-    VALUES ('a', 1, 2),
+VALUES
+    ('a', 1, 2),
     ('b', '2', NULL);
 
 CREATE TRIGGER z_min_update
@@ -1368,7 +1370,8 @@ CREATE TABLE country_table (
 );
 
 INSERT INTO country_table (country_name, continent)
-    VALUES ('Japan', 'Asia'),
+VALUES
+    ('Japan', 'Asia'),
     ('UK', 'Europe'),
     ('USA', 'North America')
 RETURNING
@@ -2594,7 +2597,8 @@ WITH ins (
     a
 ) AS (
 INSERT INTO parted2_stmt_trig
-        VALUES (1),
+    VALUES
+        (1),
         (2)
     RETURNING
         a)
@@ -2669,7 +2673,8 @@ CREATE TRIGGER qqq
     EXECUTE PROCEDURE trigger_notice ();
 
 INSERT INTO parted_trig
-    VALUES (50),
+VALUES
+    (50),
     (1500);
 
 DROP TABLE parted_trig;
@@ -2753,7 +2758,8 @@ CREATE TRIGGER parted_trig_odd
 -- we should hear barking for every insert, but parted_trig_odd only emits
 -- noise for odd values of a. parted_trig does it for all inserts.
 INSERT INTO parted_irreg
-    VALUES (1, 'aardvark'),
+VALUES
+    (1, 'aardvark'),
     (2, 'aanimals');
 
 INSERT INTO parted1_irreg
@@ -2817,7 +2823,8 @@ SET constraints parted_trig DEFERRED;
 INSERT INTO parted_constr
     VALUES (1, 'aardvark');
 INSERT INTO parted1_constr
-    VALUES (2, 'aardwolf'),
+VALUES
+    (2, 'aardwolf'),
     (3, 'aasvogel');
 COMMIT;
 
@@ -2868,7 +2875,8 @@ ALTER TABLE parted_trigger ATTACH PARTITION parted_trigger_3
 FOR VALUES FROM (2000) TO (3000);
 
 INSERT INTO parted_trigger
-    VALUES (0, 'a'),
+VALUES
+    (0, 'a'),
     (1, 'bbb'),
     (2, 'bcd'),
     (3, 'c'),
@@ -3007,7 +3015,8 @@ ALTER TABLE parted_trigger ATTACH PARTITION parted_trigger_3
 FOR VALUES FROM (2000) TO (3000);
 
 INSERT INTO parted_trigger
-    VALUES (0, 'a'),
+VALUES
+    (0, 'a'),
     (1000, 'c'),
     (2000, 'e'),
     (2001, 'eeee');
@@ -3299,7 +3308,8 @@ CREATE TRIGGER intercept_insert_child3
 
 -- insert, parent trigger sees post-modification parent-format tuple
 INSERT INTO parent
-    VALUES ('AAA', 42),
+VALUES
+    ('AAA', 42),
     ('BBB', 42),
     ('CCC', 66);
 
@@ -3593,7 +3603,8 @@ CREATE TRIGGER my_table_update_trig
 
 -- inserts only
 INSERT INTO my_table
-    VALUES (1, 'AAA'),
+VALUES
+    (1, 'AAA'),
     (2, 'BBB')
 ON CONFLICT (a)
     DO UPDATE SET
@@ -3601,7 +3612,8 @@ ON CONFLICT (a)
 
 -- mixture of inserts and updates
 INSERT INTO my_table
-    VALUES (1, 'AAA'),
+VALUES
+    (1, 'AAA'),
     (2, 'BBB'),
     (3, 'CCC'),
     (4, 'DDD')
@@ -3611,7 +3623,8 @@ ON CONFLICT (a)
 
 -- updates only
 INSERT INTO my_table
-    VALUES (3, 'CCC'),
+VALUES
+    (3, 'CCC'),
     (4, 'DDD')
 ON CONFLICT (a)
     DO UPDATE SET
@@ -3648,7 +3661,8 @@ CREATE TRIGGER iocdu_tt_parted_update_trig
 
 -- inserts only
 INSERT INTO iocdu_tt_parted
-    VALUES (1, 'AAA'),
+VALUES
+    (1, 'AAA'),
     (2, 'BBB')
 ON CONFLICT (a)
     DO UPDATE SET
@@ -3656,7 +3670,8 @@ ON CONFLICT (a)
 
 -- mixture of inserts and updates
 INSERT INTO iocdu_tt_parted
-    VALUES (1, 'AAA'),
+VALUES
+    (1, 'AAA'),
     (2, 'BBB'),
     (3, 'CCC'),
     (4, 'DDD')
@@ -3666,7 +3681,8 @@ ON CONFLICT (a)
 
 -- updates only
 INSERT INTO iocdu_tt_parted
-    VALUES (3, 'CCC'),
+VALUES
+    (3, 'CCC'),
     (4, 'DDD')
 ON CONFLICT (a)
     DO UPDATE SET
@@ -3723,12 +3739,14 @@ CREATE TRIGGER trig_table_delete_trig
     EXECUTE PROCEDURE dump_delete ();
 
 INSERT INTO refd_table
-    VALUES (1, 'one'),
+VALUES
+    (1, 'one'),
     (2, 'two'),
     (3, 'three');
 
 INSERT INTO trig_table
-    VALUES (1, 'one a'),
+VALUES
+    (1, 'one a'),
     (1, 'one b'),
     (2, 'two a'),
     (2, 'two b'),
@@ -3778,7 +3796,8 @@ CREATE TRIGGER self_ref_s_trig
     EXECUTE PROCEDURE dump_delete ();
 
 INSERT INTO self_ref
-    VALUES (1, NULL),
+VALUES
+    (1, NULL),
     (2, 1),
     (3, 2);
 
@@ -3789,7 +3808,8 @@ WHERE a = 1;
 DROP TRIGGER self_ref_r_trig ON self_ref;
 
 INSERT INTO self_ref
-    VALUES (1, NULL),
+VALUES
+    (1, NULL),
     (2, 1),
     (3, 2),
     (4, 3);

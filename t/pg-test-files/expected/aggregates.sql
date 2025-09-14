@@ -271,7 +271,8 @@ CREATE TABLE regr_test (
 );
 
 INSERT INTO regr_test
-    VALUES (10, 150),
+VALUES
+    (10, 150),
     (20, 250),
     (30, 350),
     (80, 540),
@@ -924,19 +925,23 @@ WHERE
     f1 IS NOT NULL;
 
 INSERT INTO minmaxtest
-    VALUES (11),
+VALUES
+    (11),
     (12);
 
 INSERT INTO minmaxtest1
-    VALUES (13),
+VALUES
+    (13),
     (14);
 
 INSERT INTO minmaxtest2
-    VALUES (15),
+VALUES
+    (15),
     (16);
 
 INSERT INTO minmaxtest3
-    VALUES (17),
+VALUES
+    (17),
     (18);
 
 EXPLAIN (

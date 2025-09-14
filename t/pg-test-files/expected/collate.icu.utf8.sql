@@ -44,7 +44,8 @@ CREATE TABLE collate_test3 (
 );
 
 INSERT INTO collate_test1
-    VALUES (1, 'abc'),
+VALUES
+    (1, 'abc'),
     (2, 'äbc'),
     (3, 'bbc'),
     (4, 'ABC');
@@ -229,7 +230,8 @@ CREATE TABLE collate_test10 (
 );
 
 INSERT INTO collate_test10
-    VALUES (1, 'hij', 'hij'),
+VALUES
+    (1, 'hij', 'hij'),
     (2, 'HIJ', 'HIJ');
 
 SELECT
@@ -372,7 +374,8 @@ CREATE TABLE collate_test6 (
 );
 
 INSERT INTO collate_test6
-    VALUES (1, 'abc'),
+VALUES
+    (1, 'abc'),
     (2, 'ABC'),
     (3, '123'),
     (4, 'ab1'),
@@ -1404,16 +1407,19 @@ CREATE TABLE test3cs (
 );
 
 INSERT INTO test1cs
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('def'),
     ('ghi');
 
 INSERT INTO test2cs
-    VALUES ('ABC'),
+VALUES
+    ('ABC'),
     ('ghi');
 
 INSERT INTO test3cs
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('ABC'),
     ('def'),
     ('ghi');
@@ -1587,16 +1593,19 @@ CREATE INDEX ON test3ci (x text_pattern_ops);
 
 -- error
 INSERT INTO test1ci
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('def'),
     ('ghi');
 
 INSERT INTO test2ci
-    VALUES ('ABC'),
+VALUES
+    ('ABC'),
     ('ghi');
 
 INSERT INTO test3ci
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('ABC'),
     ('def'),
     ('ghi');
@@ -1775,16 +1784,19 @@ CREATE INDEX ON test3bpci (x bpchar_pattern_ops);
 
 -- error
 INSERT INTO test1bpci
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('def'),
     ('ghi');
 
 INSERT INTO test2bpci
-    VALUES ('ABC'),
+VALUES
+    ('ABC'),
     ('ghi');
 
 INSERT INTO test3bpci
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('ABC'),
     ('def'),
     ('ghi');
@@ -2089,7 +2101,8 @@ CREATE TABLE test4 (
 );
 
 INSERT INTO test4
-    VALUES (1, 'cote'),
+VALUES
+    (1, 'cote'),
     (2, 'côte'),
     (3, 'coté'),
     (4, 'côté');
@@ -2130,7 +2143,8 @@ CREATE TABLE test10pk (
 );
 
 INSERT INTO test10pk
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('def'),
     ('ghi');
 
@@ -2193,7 +2207,8 @@ CREATE TABLE test11pk (
 );
 
 INSERT INTO test11pk
-    VALUES ('abc'),
+VALUES
+    ('abc'),
     ('def'),
     ('ghi');
 

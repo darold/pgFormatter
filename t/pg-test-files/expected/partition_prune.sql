@@ -1163,7 +1163,8 @@ CREATE TABLE part_p2 PARTITION OF part DEFAULT PARTITION BY RANGE (a);
 CREATE TABLE part_p2_p1 PARTITION OF part_p2 DEFAULT;
 
 INSERT INTO part
-    VALUES (-1, -1),
+VALUES
+    (-1, -1),
     (1, 1),
     (2, NULL),
     (NULL, -2),
@@ -2079,7 +2080,8 @@ FROM
 
 -- and insert some values that we should find.
 INSERT INTO lprt_a
-    VALUES (1),
+VALUES
+    (1),
     (1);
 
 ANALYZE lprt_a;
@@ -2115,7 +2117,8 @@ SELECT
     explain_parallel_append ('select avg(ab.a) from ab inner join lprt_a a on ab.a = a.a + 0 where a.a in(0, 0, 1)');
 
 INSERT INTO lprt_a
-    VALUES (3),
+VALUES
+    (3),
     (3);
 
 SELECT
@@ -2318,7 +2321,8 @@ TABLE ab;
 TRUNCATE ab;
 
 INSERT INTO ab
-    VALUES (1, 1),
+VALUES
+    (1, 1),
     (1, 2),
     (1, 3),
     (2, 1);
@@ -2353,7 +2357,8 @@ CREATE TABLE tbl1 (
 );
 
 INSERT INTO tbl1
-    VALUES (501),
+VALUES
+    (501),
     (505);
 
 -- Basic table
@@ -2393,7 +2398,8 @@ CREATE INDEX tprt5_idx ON tprt_5 (col1);
 CREATE INDEX tprt6_idx ON tprt_6 (col1);
 
 INSERT INTO tprt
-    VALUES (10),
+VALUES
+    (10),
     (20),
     (501),
     (502),
@@ -2451,7 +2457,8 @@ ORDER BY
 
 -- Multiple partitions
 INSERT INTO tbl1
-    VALUES (1001),
+VALUES
+    (1001),
     (1010),
     (1011);
 
@@ -2798,7 +2805,8 @@ CREATE TABLE boolvalues (
 );
 
 INSERT INTO boolvalues
-    VALUES ('t'),
+VALUES
+    ('t'),
     ('f');
 
 CREATE TABLE boolp (
@@ -3041,7 +3049,8 @@ CREATE TABLE pph_arrpart2 PARTITION OF pph_arrpart
 FOR VALUES WITH (MODULUS 2, REMAINDER 1);
 
 INSERT INTO pph_arrpart
-    VALUES ('{1}'),
+VALUES
+    ('{1}'),
     ('{1, 2}'),
     ('{4, 5}');
 

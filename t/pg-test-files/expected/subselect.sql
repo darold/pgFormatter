@@ -799,7 +799,8 @@ CREATE temp TABLE numeric_table (
 );
 
 INSERT INTO numeric_table
-    VALUES (1),
+VALUES
+    (1),
     (1.000000000000000000001),
     (2),
     (3);
@@ -809,7 +810,8 @@ CREATE temp TABLE float_table (
 );
 
 INSERT INTO float_table
-    VALUES (1),
+VALUES
+    (1),
     (2),
     (3);
 
@@ -1082,7 +1084,8 @@ WITH aa AS (
         int4_tbl
     LIMIT 1)
 INSERT INTO upsert
-    VALUES (1, 'x'),
+VALUES
+    (1, 'x'),
     (999, 'y')
 ON CONFLICT (key)
     DO UPDATE SET
@@ -1293,7 +1296,8 @@ CREATE temp TABLE notininner (
 );
 
 INSERT INTO notinouter
-    VALUES (NULL),
+VALUES
+    (NULL),
     (1);
 
 SELECT
@@ -1558,7 +1562,8 @@ CREATE TABLE sq_limit (
 );
 
 INSERT INTO sq_limit
-    VALUES (1, 1, 1),
+VALUES
+    (1, 1, 1),
     (2, 2, 2),
     (3, 3, 3),
     (4, 4, 4),

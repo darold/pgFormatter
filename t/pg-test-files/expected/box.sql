@@ -224,7 +224,8 @@ FROM
 CREATE INDEX box_spgist ON box_temp USING spgist (f1);
 
 INSERT INTO box_temp
-    VALUES (NULL),
+VALUES
+    (NULL),
     ('(0,0)(0,100)'),
     ('(-3,4.3333333333)(40,1)'),
     ('(0,100)(0,infinity)'),
@@ -463,7 +464,8 @@ FROM
     generate_series(1, 1000);
 
 INSERT INTO quad_box_tbl
-    VALUES (NULL),
+VALUES
+    (NULL),
     (NULL),
     ('((-infinity,-infinity),(infinity,infinity))'),
     ('((-infinity,100),(-infinity,500))'),

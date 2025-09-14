@@ -94,7 +94,8 @@ CREATE TABLE brinopers (
 );
 
 INSERT INTO brinopers
-    VALUES ('byteacol', 'bytea', '{>, >=, =, <=, <}', '{AAAAAA, AAAAAA, BNAAAABNAAAABNAAAABNAAAABNAAAABNAAAABNAAAABNAAAA, ZZZZZZ, ZZZZZZ}', '{100, 100, 1, 100, 100}'),
+VALUES
+    ('byteacol', 'bytea', '{>, >=, =, <=, <}', '{AAAAAA, AAAAAA, BNAAAABNAAAABNAAAABNAAAABNAAAABNAAAABNAAAABNAAAA, ZZZZZZ, ZZZZZZ}', '{100, 100, 1, 100, 100}'),
     ('charcol', '"char"', '{>, >=, =, <=, <}', '{A, A, M, Z, Z}', '{97, 100, 6, 100, 98}'),
     ('namecol', 'name', '{>, >=, =, <=, <}', '{AAAAAA, AAAAAA, MAAAAA, ZZAAAA, ZZAAAA}', '{100, 100, 2, 100, 100}'),
     ('int2col', 'int2', '{>, >=, =, <=, <}', '{0, 0, 800, 999, 999}', '{100, 100, 1, 100, 100}'),

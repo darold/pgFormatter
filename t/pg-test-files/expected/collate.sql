@@ -35,7 +35,8 @@ CREATE TABLE collate_test2 (
 );
 
 INSERT INTO collate_test1
-    VALUES (1, 'abc'),
+VALUES
+    (1, 'abc'),
     (2, 'Abc'),
     (3, 'bbc'),
     (4, 'ABD');
@@ -172,7 +173,8 @@ CREATE TABLE collate_test10 (
 );
 
 INSERT INTO collate_test10
-    VALUES (1, 'hij', 'hij'),
+VALUES
+    (1, 'hij', 'hij'),
     (2, 'HIJ', 'HIJ');
 
 SELECT
@@ -777,7 +779,8 @@ CREATE TABLE collate_test20 (
 );
 
 INSERT INTO collate_test20
-    VALUES ('foo'),
+VALUES
+    ('foo'),
     ('bar');
 
 CREATE TABLE collate_test21 (
@@ -785,7 +788,8 @@ CREATE TABLE collate_test21 (
 );
 
 INSERT INTO collate_test21
-    VALUES ('foo'),
+VALUES
+    ('foo'),
     ('bar');
 
 INSERT INTO collate_test21
@@ -797,7 +801,8 @@ CREATE TABLE collate_test22 (
 );
 
 INSERT INTO collate_test22
-    VALUES ('foo'),
+VALUES
+    ('foo'),
     ('bar'),
     ('baz');
 

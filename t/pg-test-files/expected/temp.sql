@@ -298,7 +298,8 @@ FOR VALUES IN (1) ON COMMIT DELETE ROWS;
 CREATE temp TABLE temp_parted_oncommit_test2 PARTITION OF temp_parted_oncommit_test
 FOR VALUES IN (2) ON COMMIT DROP;
 INSERT INTO temp_parted_oncommit_test
-    VALUES (1),
+VALUES
+    (1),
     (2);
 COMMIT;
 
@@ -322,7 +323,8 @@ FOR VALUES IN (1) ON COMMIT preserve ROWS;
 CREATE temp TABLE temp_parted_oncommit_test2 PARTITION OF temp_parted_oncommit_test
 FOR VALUES IN (2) ON COMMIT DROP;
 INSERT INTO temp_parted_oncommit_test
-    VALUES (1),
+VALUES
+    (1),
     (2);
 COMMIT;
 

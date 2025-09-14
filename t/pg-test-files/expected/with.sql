@@ -573,7 +573,8 @@ CREATE TEMPORARY TABLE tree (
 );
 
 INSERT INTO tree
-    VALUES (1, NULL),
+VALUES
+    (1, NULL),
     (2, 1),
     (3, 1),
     (4, 2),
@@ -674,7 +675,8 @@ CREATE temp TABLE graph (
 );
 
 INSERT INTO graph
-    VALUES (1, 2, 'arc 1 -> 2'),
+VALUES
+    (1, 2, 'arc 1 -> 2'),
     (1, 3, 'arc 1 -> 3'),
     (2, 3, 'arc 2 -> 3'),
     (1, 4, 'arc 1 -> 4'),
@@ -1889,7 +1891,8 @@ FROM
 -- INSERT ... RETURNING
 WITH t AS (
 INSERT INTO y
-        VALUES (11),
+    VALUES
+        (11),
         (12),
         (13),
         (14),
@@ -2431,7 +2434,8 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-        VALUES (21),
+    VALUES
+        (21),
         (22),
         (23)
     RETURNING
@@ -2455,7 +2459,8 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-        VALUES (31),
+    VALUES
+        (31),
         (32),
         (33)
     RETURNING
@@ -2490,7 +2495,8 @@ CREATE TRIGGER y_trig
 
 WITH t AS (
 INSERT INTO y
-        VALUES (41),
+    VALUES
+        (41),
         (42),
         (43)
     RETURNING
@@ -2529,11 +2535,13 @@ INSERT INTO parent
     VALUES (1, 'p1');
 
 INSERT INTO child1
-    VALUES (11, 'c11'),
+VALUES
+    (11, 'c11'),
     (12, 'c12');
 
 INSERT INTO child2
-    VALUES (23, 'c21'),
+VALUES
+    (23, 'c21'),
     (24, 'c22');
 
 WITH rcte AS (

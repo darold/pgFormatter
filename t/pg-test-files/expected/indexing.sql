@@ -1730,7 +1730,8 @@ ALTER TABLE idxpart ATTACH PARTITION idxpart2
 FOR VALUES FROM (100000) TO (1000000);
 
 INSERT INTO idxpart
-    VALUES (0, 'zero'),
+VALUES
+    (0, 'zero'),
     (42, 'life'),
     (2 ^ 16, 'sixteen');
 
@@ -1745,7 +1746,8 @@ INSERT INTO idxpart
     VALUES (16, 'sixteen');
 
 INSERT INTO idxpart (b, a)
-    VALUES ('one', 142857),
+VALUES
+    ('one', 142857),
     ('two', 285714);
 
 INSERT INTO idxpart

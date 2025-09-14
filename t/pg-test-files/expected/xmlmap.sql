@@ -6,7 +6,8 @@ CREATE TABLE testxmlschema.test1 (
 );
 
 INSERT INTO testxmlschema.test1
-    VALUES (1, 'one'),
+VALUES
+    (1, 'one'),
     (2, 'two'),
     (-1, NULL);
 

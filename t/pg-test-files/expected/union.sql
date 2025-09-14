@@ -978,11 +978,13 @@ CREATE TEMP TABLE t2 (
 );
 
 INSERT INTO t1
-    VALUES ('a', 'b'),
+VALUES
+    ('a', 'b'),
     ('x', 'y');
 
 INSERT INTO t2
-    VALUES ('ab'),
+VALUES
+    ('ab'),
     ('xy');
 
 SET enable_seqscan = OFF;
@@ -1046,13 +1048,15 @@ INHERITS (
 );
 
 INSERT INTO t1c
-    VALUES ('v', 'w'),
+VALUES
+    ('v', 'w'),
     ('c', 'd'),
     ('m', 'n'),
     ('e', 'f');
 
 INSERT INTO t2c
-    VALUES ('vw'),
+VALUES
+    ('vw'),
     ('cd'),
     ('mn'),
     ('ef');

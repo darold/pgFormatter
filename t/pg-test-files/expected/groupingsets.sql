@@ -63,7 +63,8 @@ CREATE temp TABLE gstest4 (
 );
 
 INSERT INTO gstest4
-    VALUES (1, 1, b'0000', '1'),
+VALUES
+    (1, 1, b'0000', '1'),
     (2, 2, b'0001', '1'),
     (3, 4, b'0010', '2'),
     (4, 8, b'0011', '2'),

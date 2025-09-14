@@ -3424,7 +3424,8 @@ CREATE temp TABLE foo (
 );
 
 INSERT INTO foo
-    VALUES (1, 2),
+VALUES
+    (1, 2),
     (3, 4);
 
 CREATE OR REPLACE FUNCTION stricttest ()
@@ -3454,7 +3455,8 @@ DECLARE
 BEGIN
     -- should fail due to implicit strict
     INSERT INTO foo
-        VALUES (7, 8),
+    VALUES
+        (7, 8),
         (9, 10)
     RETURNING
         * INTO x;
@@ -4564,7 +4566,8 @@ CREATE TABLE tabwithcols (
 );
 
 INSERT INTO tabwithcols
-    VALUES (10, 20, 30, 40),
+VALUES
+    (10, 20, 30, 40),
     (50, 60, 70, 80);
 
 CREATE OR REPLACE FUNCTION returnqueryf ()
@@ -6340,10 +6343,12 @@ CREATE TRIGGER transition_table_base_ins_trig
     FOR EACH STATEMENT
     EXECUTE PROCEDURE transition_table_base_ins_func ();
 INSERT INTO transition_table_base
-    VALUES (1, 'One'),
+VALUES
+    (1, 'One'),
     (2, 'Two');
 INSERT INTO transition_table_base
-    VALUES (3, 'Three'),
+VALUES
+    (3, 'Three'),
     (4, 'Four');
 CREATE OR REPLACE FUNCTION transition_table_base_upd_func ()
     RETURNS TRIGGER
@@ -6598,7 +6603,8 @@ CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
     FOR EACH STATEMENT
     EXECUTE PROCEDURE alter_table_under_transition_tables_upd_func ();
 INSERT INTO alter_table_under_transition_tables
-    VALUES (1, '1'),
+VALUES
+    (1, '1'),
     (2, '2'),
     (3, '3');
 UPDATE

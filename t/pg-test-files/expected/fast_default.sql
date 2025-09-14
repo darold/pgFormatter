@@ -108,7 +108,8 @@ SELECT
     SET ('t');
 
 INSERT INTO T
-    VALUES (1),
+VALUES
+    (1),
     (2);
 
 ALTER TABLE T
@@ -116,7 +117,8 @@ ALTER TABLE T
     ALTER COLUMN c_int SET DEFAULT 2;
 
 INSERT INTO T
-    VALUES (3),
+VALUES
+    (3),
     (4);
 
 ALTER TABLE T
@@ -124,7 +126,8 @@ ALTER TABLE T
     ALTER COLUMN c_bpchar SET DEFAULT 'dog';
 
 INSERT INTO T
-    VALUES (5),
+VALUES
+    (5),
     (6);
 
 ALTER TABLE T
@@ -132,7 +135,8 @@ ALTER TABLE T
     ALTER COLUMN c_text SET DEFAULT 'cat';
 
 INSERT INTO T
-    VALUES (7),
+VALUES
+    (7),
     (8);
 
 ALTER TABLE T
@@ -141,7 +145,8 @@ ALTER TABLE T
     ALTER COLUMN c_date SET DEFAULT '2010-01-01';
 
 INSERT INTO T
-    VALUES (9),
+VALUES
+    (9),
     (10);
 
 ALTER TABLE T
@@ -150,7 +155,8 @@ ALTER TABLE T
     ALTER COLUMN c_timestamp_null SET DEFAULT '2016-09-29 12:00:00';
 
 INSERT INTO T
-    VALUES (11),
+VALUES
+    (11),
     (12);
 
 ALTER TABLE T
@@ -159,7 +165,8 @@ ALTER TABLE T
     ALTER COLUMN c_array SET DEFAULT '{"This", "is", "no", "fantasy"}';
 
 INSERT INTO T
-    VALUES (13),
+VALUES
+    (13),
     (14);
 
 ALTER TABLE T
@@ -168,7 +175,8 @@ ALTER TABLE T
     ALTER COLUMN c_small_null SET DEFAULT 13;
 
 INSERT INTO T
-    VALUES (15),
+VALUES
+    (15),
     (16);
 
 ALTER TABLE T
@@ -176,7 +184,8 @@ ALTER TABLE T
     ALTER COLUMN c_big SET DEFAULT -9999999999999999;
 
 INSERT INTO T
-    VALUES (17),
+VALUES
+    (17),
     (18);
 
 ALTER TABLE T
@@ -184,7 +193,8 @@ ALTER TABLE T
     ALTER COLUMN c_num SET DEFAULT 2.000000000000002;
 
 INSERT INTO T
-    VALUES (19),
+VALUES
+    (19),
     (20);
 
 ALTER TABLE T
@@ -192,7 +202,8 @@ ALTER TABLE T
     ALTER COLUMN c_time SET DEFAULT '23:59:59';
 
 INSERT INTO T
-    VALUES (21),
+VALUES
+    (21),
     (22);
 
 ALTER TABLE T
@@ -200,7 +211,8 @@ ALTER TABLE T
     ALTER COLUMN c_interval SET DEFAULT '3 hours';
 
 INSERT INTO T
-    VALUES (23),
+VALUES
+    (23),
     (24);
 
 ALTER TABLE T
@@ -208,7 +220,8 @@ ALTER TABLE T
     ALTER COLUMN c_hugetext SET DEFAULT repeat('poiuyt', 1000);
 
 INSERT INTO T
-    VALUES (25),
+VALUES
+    (25),
     (26);
 
 ALTER TABLE T
@@ -224,7 +237,8 @@ ALTER TABLE T
     ALTER COLUMN c_hugetext DROP DEFAULT;
 
 INSERT INTO T
-    VALUES (27),
+VALUES
+    (27),
     (28);
 
 SELECT
@@ -283,7 +297,8 @@ SELECT
     SET ('t');
 
 INSERT INTO T
-    VALUES (1),
+VALUES
+    (1),
     (2);
 
 ALTER TABLE T
@@ -291,7 +306,8 @@ ALTER TABLE T
     ALTER COLUMN c_int SET DEFAULT LENGTH(foo (8));
 
 INSERT INTO T
-    VALUES (3),
+VALUES
+    (3),
     (4);
 
 ALTER TABLE T
@@ -299,7 +315,8 @@ ALTER TABLE T
     ALTER COLUMN c_bpchar SET DEFAULT foo (3);
 
 INSERT INTO T
-    VALUES (5),
+VALUES
+    (5),
     (6);
 
 ALTER TABLE T
@@ -307,7 +324,8 @@ ALTER TABLE T
     ALTER COLUMN c_text SET DEFAULT foo (12);
 
 INSERT INTO T
-    VALUES (7),
+VALUES
+    (7),
     (8);
 
 ALTER TABLE T
@@ -315,7 +333,8 @@ ALTER TABLE T
     ALTER COLUMN c_date SET DEFAULT '2010-01-01'::date - LENGTH(foo (4));
 
 INSERT INTO T
-    VALUES (9),
+VALUES
+    (9),
     (10);
 
 ALTER TABLE T
@@ -323,7 +342,8 @@ ALTER TABLE T
     ALTER COLUMN c_timestamp SET DEFAULT '1970-12-31'::date + LENGTH(foo (30));
 
 INSERT INTO T
-    VALUES (11),
+VALUES
+    (11),
     (12);
 
 ALTER TABLE T
@@ -331,7 +351,8 @@ ALTER TABLE T
     ALTER COLUMN c_array SET DEFAULT ('{"This", "is", "' || foo (1) || '", "fantasy"}')::text[];
 
 INSERT INTO T
-    VALUES (13),
+VALUES
+    (13),
     (14);
 
 ALTER TABLE T
@@ -342,7 +363,8 @@ ALTER TABLE T
     ALTER COLUMN c_array DROP DEFAULT;
 
 INSERT INTO T
-    VALUES (15),
+VALUES
+    (15),
     (16);
 
 SELECT
@@ -580,21 +602,24 @@ SELECT
     SET ('t');
 
 INSERT INTO T
-    VALUES (1),
+VALUES
+    (1),
     (2);
 
 ALTER TABLE T
     ADD COLUMN c_int int NOT NULL DEFAULT -1;
 
 INSERT INTO T
-    VALUES (3),
+VALUES
+    (3),
     (4);
 
 ALTER TABLE T
     ADD COLUMN c_text text DEFAULT 'Hello';
 
 INSERT INTO T
-    VALUES (5),
+VALUES
+    (5),
     (6);
 
 ALTER TABLE T
@@ -602,7 +627,8 @@ ALTER TABLE T
     ALTER COLUMN c_int SET DEFAULT 1;
 
 INSERT INTO T
-    VALUES (7),
+VALUES
+    (7),
     (8);
 
 SELECT
@@ -989,7 +1015,8 @@ CREATE TABLE follower (
 );
 
 INSERT INTO leader
-    VALUES (1, 1),
+VALUES
+    (1, 1),
     (2, 2);
 
 ALTER TABLE leader

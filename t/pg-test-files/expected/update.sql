@@ -1400,7 +1400,8 @@ CREATE TABLE non_parted (
 );
 
 INSERT INTO non_parted
-    VALUES (1),
+VALUES
+    (1),
     (1),
     (1),
     (2),

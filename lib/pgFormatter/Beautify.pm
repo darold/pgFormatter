@@ -857,6 +857,7 @@ sub beautify {
 	$self->{'_level_parenthesis'}          = [];
 	$self->{'_new_line'}                   = 1;
 	$self->{'_current_sql_stmt'}           = '';
+	$self->{'_current_full_sql_stmt'}      = '';
 	$self->{'_is_meta_command'}            = 0;
 	$self->{'_fct_code_delimiter'}         = '';
 	$self->{'_language_sql'}               = 0;
@@ -1316,6 +1317,7 @@ sub beautify {
 			my $k_stmt = uc($1);
 			$self->{'_is_in_explain'} = 0;
 			$self->{'_is_in_where'}   = 0;
+			$self->{'_current_full_sql_stmt'} = '';
 
 	# Set current statement with taking care to exclude of SELECT ... FOR UPDATE
 	# statement and ON CONFLICT DO UPDATE.
@@ -1342,6 +1344,14 @@ sub beautify {
 							  if ( not defined $last or uc($last) ne 'WITH' );
 						}
 					}
+				}
+				if ( $self->{'_current_sql_stmt'} =~ /^(INSERT|DELETE|UPDATE|SELECT)$/i ) {
+					$self->{'_current_full_sql_stmt'} = "$self->{'_current_sql_stmt'} ";
+					for (my $i = 0; $i <= $#{ $self->{'_tokens'} }; $i++) {
+						last if ($self->{'_tokens'}[$i] eq ';');
+						$self->{'_current_full_sql_stmt'} .= " " . $self->{'_tokens'}[$i];
+					}
+					$self->{'_current_full_sql_stmt'} .= ";";
 				}
 			}
 		}
@@ -2062,6 +2072,11 @@ sub beautify {
 			}
 			$self->{'_is_in_create'}++     if ( $self->{'_is_in_create'} );
 			$self->{'_is_in_constraint'}++ if ( $self->{'_is_in_constraint'} );
+			# case of insert with multiple values, don't stay single line
+			if (uc($last) eq 'VALUES' && $self->{'_current_sql_stmt'} eq 'INSERT' && $self->{'_current_full_sql_stmt'} =~ /\) , \(/) {
+				$self->_new_line( $token, $last );
+				$self->_over( $token, $last );
+			}
 			$self->_add_token( $token, $last );
 			if ( defined $self->_next_token
 				and uc( $self->_next_token ) eq 'SELECT' )
@@ -2567,6 +2582,7 @@ sub beautify {
 				$self->{'_insert_values'} = 0;
 			}
 			$self->{'_current_sql_stmt'} = '';
+			$self->{'_current_full_sql_stmt'} = '';
 			$self->{'break'} = "\n" unless ( $self->{'spaces'} != 0 );
 
 #$self->_new_line($token,$last) if ($last !~ /^(VALUES|IMPLICIT|ASSIGNMENT)$/i);
@@ -2809,7 +2825,9 @@ sub beautify {
 				and ( $self->{'_current_sql_stmt'} eq 'INSERT' or $last eq '(' )
 			  )
 			{
-				$self->_over( $token, $last );
+				$self->_over( $token, $last )
+				if (uc($token) ne 'VALUES' || $self->{'_current_sql_stmt'} ne 'INSERT' || $self->{'_current_full_sql_stmt'} !~ /\) , \(/);
+
 				if ( $self->{'_current_sql_stmt'} eq 'INSERT' or $last eq '(' )
 				{
 					$self->{'_insert_values'} = 1;

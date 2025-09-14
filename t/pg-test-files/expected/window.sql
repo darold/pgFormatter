@@ -9,7 +9,8 @@ CREATE TEMPORARY TABLE empsalary (
 );
 
 INSERT INTO empsalary
-    VALUES ('develop', 10, 5200, '2007-08-01'),
+VALUES
+    ('develop', 10, 5200, '2007-08-01'),
     ('sales', 1, 5000, '2006-10-01'),
     ('personnel', 5, 3500, '2007-12-10'),
     ('sales', 4, 4800, '2007-08-08'),
@@ -1136,7 +1137,8 @@ CREATE temp TABLE numerics (
 );
 
 INSERT INTO numerics
-    VALUES (0, '-infinity', '-infinity', '-1000'), -- numeric type lacks infinities
+VALUES
+    (0, '-infinity', '-infinity', '-1000'), -- numeric type lacks infinities
     (1, -3, -3, -3),
     (2, -1, -1, -1),
     (3, 0, 0, 0),
@@ -1258,7 +1260,8 @@ CREATE temp TABLE datetimes (
 );
 
 INSERT INTO datetimes
-    VALUES (1, '11:00', '11:00 BST', '1 year', '2000-10-19 10:23:54+01', '2000-10-19 10:23:54'),
+VALUES
+    (1, '11:00', '11:00 BST', '1 year', '2000-10-19 10:23:54+01', '2000-10-19 10:23:54'),
     (2, '12:00', '12:00 BST', '2 years', '2001-10-19 10:23:54+01', '2001-10-19 10:23:54'),
     (3, '13:00', '13:00 BST', '3 years', '2001-10-19 10:23:54+01', '2001-10-19 10:23:54'),
     (4, '14:00', '14:00 BST', '4 years', '2002-10-19 10:23:54+01', '2002-10-19 10:23:54'),
@@ -1723,7 +1726,8 @@ CREATE temp TABLE t1 (
 );
 
 INSERT INTO t1
-    VALUES (1, 1),
+VALUES
+    (1, 1),
     (1, 2),
     (2, 2);
 

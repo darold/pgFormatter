@@ -243,7 +243,8 @@ CREATE TABLE enumtest (
 );
 
 INSERT INTO enumtest
-    VALUES ('red'),
+VALUES
+    ('red'),
     ('orange'),
     ('yellow'),
     ('green');

@@ -29,18 +29,19 @@ INSERT INTO (
     field_one,
     field_two,
     field_3)
-VALUES (
-    1,
-    2,
-    3),
-(
-    4,
-    5,
-    6),
-(
-    7,
-    8,
-    9);
+VALUES
+    (
+        1,
+        2,
+        3),
+    (
+        4,
+        5,
+        6),
+    (
+        7,
+        8,
+        9);
 
 CREATE CAST (INT8 AS int8alias1) WITHOUT FUNCTION;
 
