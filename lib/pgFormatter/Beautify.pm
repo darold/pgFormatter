@@ -3973,17 +3973,16 @@ sub _add_token {
   # lowercase/uppercase known functions or words followed by an open parenthesis
   # if the token is not a keyword, an open parenthesis or a comment
 		my $fct = $self->_is_function( $token, $last_token, $next_token ) || '';
-		if (
-			(
-					$fct
-				and $next_token eq '('
+		if ( $fct and
+			((
+				$next_token eq '('
 				and defined $last_token
 				and uc($last_token) ne 'CREATE'
 			)
 			or (    !$self->_is_keyword( $token, $next_token, $last_token )
 				and $next_token ne '('
 				and $token ne '('
-				and !$self->_is_comment($token) )
+				and !$self->_is_comment($token) ))
 		  )
 		{
 			$token =~ s/$fct/\L$fct\E/i if ( $self->{'uc_functions'} == 1 );
