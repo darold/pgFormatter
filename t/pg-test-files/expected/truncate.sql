@@ -592,10 +592,10 @@ BEGIN
         fk.a
     FROM
         truncprim pk
-    FULL JOIN truncpart fk USING (a)
-ORDER BY
-    2,
-    4;
+        FULL JOIN truncpart fk USING (a)
+    ORDER BY
+        2,
+        4;
 END
 $$;
 

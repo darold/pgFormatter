@@ -3286,7 +3286,7 @@ sub beautify {
 		{
 			$self->{'no_break'} = 0;
 			if ( !$self->{'_is_in_join'} and ( $last and $last ne ')' ) ) {
-				$self->_back( $token, $last );
+				$self->_back( $token, $last ) if ($#{ $self->{'_level_stack'} } < 0 or $self->{'_level'} > $self->{'_level_stack'}[-1]+1);
 			}
 			if ( $self->{'_has_over_in_join'} ) {
 				$self->{'_has_over_in_join'} = 0;
