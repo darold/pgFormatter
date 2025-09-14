@@ -2559,6 +2559,7 @@ sub beautify {
 			$self->{'_is_in_order_by'}             = 0;
 			$self->{'_is_in_materialized'}         = 0;
 			$self->{'_is_in_drop_function'}        = 0;
+			$self->{'_current_full_sql_stmt'}      = '';
 
 			if ( $self->{'_insert_values'} ) {
 				if (    $self->{'_is_in_block'} == -1
@@ -2582,7 +2583,6 @@ sub beautify {
 				$self->{'_insert_values'} = 0;
 			}
 			$self->{'_current_sql_stmt'} = '';
-			$self->{'_current_full_sql_stmt'} = '';
 			$self->{'break'} = "\n" unless ( $self->{'spaces'} != 0 );
 
 #$self->_new_line($token,$last) if ($last !~ /^(VALUES|IMPLICIT|ASSIGNMENT)$/i);
