@@ -1743,6 +1743,7 @@ sub beautify {
 			  if ( $self->{'content'} !~ /\n$/s );
 			$self->_add_token($token);
 			$last = $self->_set_last( $token, $last );
+			$self->{_is_in_procedure} = 1;
 			next;
 		}
 
