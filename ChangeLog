@@ -1,3 +1,33 @@
+September 14 2025 - v5.8
+
+This release adds several formatting improvements ans fixes some issues
+reported by users since the last release.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix bad indentation for WHERE after JOIN. Thanks to Neko Hz for the
+    report.
+  - pgFormatter is now able to distinguish between single values and
+    multiple values INSERT statement and to format them differently.
+    Here an example of the output format:
+    
+        -- multiple values form
+        INSERT INTO tempy_mc_tempface
+        VALUES
+            ('tempy'),
+            ('mc'),
+            ('tempface');
+    
+        -- single values form
+        INSERT INTO tempy_mc_tempface
+            VALUES ('another', 'world');
+    
+    Thanks to Paul Gelardi for the feature request.
+  - Fix indentation issue of INSERT statements in DO block. Thanks to Paul Gelardi for the report.
+  - Fix version in main script
+  - Fix case where pgFormatter was removing a table named rule from joins. Thanks to Andy Freeland for the report.
+  - Fix wrong format of format() function placeholders. Thanks to Andrew Jackson for the report.
+
 August 29 2025 - v5.7
 
 This maintenance release fixes some issues reported by users since the last
