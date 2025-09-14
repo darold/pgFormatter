@@ -640,6 +640,8 @@ sub tokenize_sql {
 		|
 		(?:\-\|\-) # range operator "is adjacent to"
 		|
+		(?:\%[\d\-\*\$]*[sIL]) # format() placeholder
+		|
 		(?:<\%|\%>|<<\->|<\->>|<\->)  # pg_trgm and some geometry operators
 		|
 		(?:\->>|\->|<\#>|\#>>|\#>|\?\&|\?\||\?|\@\?)  # Vector and Json Operators

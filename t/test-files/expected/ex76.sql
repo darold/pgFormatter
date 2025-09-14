@@ -45,3 +45,61 @@ ON CONFLICT (key)
                 f1 != 0
             LIMIT 1)::text;
 
+CREATE OR REPLACE FUNCTION whatever ()
+    RETURNS text
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    AS $body$
+DECLARE
+    v_sql text;
+BEGIN
+    v_sql := format($sql$ GRANT usage ON SCHEMA dba_tools TO %s;
+    $sql$,
+    v_sql_role);
+    EXECUTE v_sql;
+    RETURN v_sql;
+END;
+$body$;
+
+SELECT
+    format('Hello %s', 'World');
+
+SELECT
+    format('Testing %s, %s, %s, %%', 'one', 'two', 'three');
+
+SELECT
+    format('INSERT INTO %I VALUES(%L)', 'Foo bar', E'O\'Reilly');
+
+SELECT
+    format('INSERT INTO %I VALUES(%L)', 'locations', 'C:\Program Files');
+
+SELECT
+    format('|%10s|', 'foo');
+
+SELECT
+    format('|%-10s|', 'foo');
+
+SELECT
+    format('|%*s|', 10, 'foo');
+
+SELECT
+    format('|%*s|', -10, 'foo');
+
+SELECT
+    format('|%-*s|', 10, 'foo');
+
+SELECT
+    format('|%-*s|', -10, 'foo');
+
+SELECT
+    format('Testing %3$s, %2$s, %1$s', 'one', 'two', 'three');
+
+SELECT
+    format('|%*2$s|', 'foo', 10, 'bar');
+
+SELECT
+    format('|%1$*2$s|', 'foo', 10, 'bar');
+
+SELECT
+    format('Testing %3$s, %2$s, %s', 'one', 'two', 'three');
+
