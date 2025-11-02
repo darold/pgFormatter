@@ -785,19 +785,19 @@ CREATE UNIQUE INDEX capitals_names_unique ON capitals (name);
 
 -- prepopulate the tables.
 INSERT INTO cities
-    VALUES ('San Francisco', 7.24E + 5, 63);
+    VALUES ('San Francisco', 7.24E+5, 63);
 
 INSERT INTO cities
-    VALUES ('Las Vegas', 2.583E + 5, 2174);
+    VALUES ('Las Vegas', 2.583E+5, 2174);
 
 INSERT INTO cities
     VALUES ('Mariposa', 1200, 1953);
 
 INSERT INTO capitals
-    VALUES ('Sacramento', 3.694E + 5, 30, 'CA');
+    VALUES ('Sacramento', 3.694E+5, 30, 'CA');
 
 INSERT INTO capitals
-    VALUES ('Madison', 1.913E + 5, 845, 'WI');
+    VALUES ('Madison', 1.913E+5, 845, 'WI');
 
 -- Tests proper for inheritance:
 SELECT
@@ -807,7 +807,7 @@ FROM
 
 -- Succeeds:
 INSERT INTO cities
-    VALUES ('Las Vegas', 2.583E + 5, 2174)
+    VALUES ('Las Vegas', 2.583E+5, 2174)
 ON CONFLICT
     DO NOTHING;
 
@@ -829,7 +829,7 @@ FROM
     capitals;
 
 INSERT INTO cities
-    VALUES ('Las Vegas', 5.83E + 5, 2001)
+    VALUES ('Las Vegas', 5.83E+5, 2001)
 ON CONFLICT (name)
     DO UPDATE SET
         population = excluded.population,
@@ -842,7 +842,7 @@ FROM
     cities;
 
 INSERT INTO capitals
-    VALUES ('Las Vegas', 5.83E + 5, 2222, 'NV')
+    VALUES ('Las Vegas', 5.83E+5, 2222, 'NV')
 ON CONFLICT (name)
     DO UPDATE SET
         population = excluded.population;
@@ -863,7 +863,7 @@ FROM
 
 -- This only affects "cities" version of "Las Vegas":
 INSERT INTO cities
-    VALUES ('Las Vegas', 5.86E + 5, 2223)
+    VALUES ('Las Vegas', 5.86E+5, 2223)
 ON CONFLICT (name)
     DO UPDATE SET
         population = excluded.population,

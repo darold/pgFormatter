@@ -3724,6 +3724,9 @@ s/(\s+(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1(
 		}
 	}
 
+	# Add newline after ariga/atlas related comments
+	$self->{'content'} =~ s/(\-\-\s*atlas:[^\n]+)/$1\n/gs;
+
 	return;
 }
 
