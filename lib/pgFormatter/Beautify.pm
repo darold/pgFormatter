@@ -632,6 +632,8 @@ sub tokenize_sql {
 		|
 		\/\/			# mysql delimiter ( $$ is handled later with PG code delimiters )
 		|
+		\d*\.?\d+e[-+]\d+			# scientific notation with exponents
+		|
 		(?:COPY\s+[^\s]+\s+\((?:.*?)\\\.)		# COPY and its content
 		|
 		[^\s\(,]+\%(?:ROWTYPE|TYPE)      # single line comments
