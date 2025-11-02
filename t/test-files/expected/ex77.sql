@@ -17,3 +17,16 @@ SELECT
 SELECT
     12e+7::double precision;
 
+CREATE OR REPLACE FUNCTION INCREMENT (i integer)
+    RETURNS integer
+    AS $$
+BEGIN
+    IF i IS NULL THEN
+        RAISE EXCEPTION 'i is null'
+            USING errcode = 'invalid_parameter_value';
+        END IF;
+        RETURN i + 1;
+END;
+$$
+LANGUAGE plpgsql;
+

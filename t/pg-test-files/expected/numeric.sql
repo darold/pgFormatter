@@ -2121,7 +2121,7 @@ SELECT
 
 -- Some random tests
 SELECT
-    ln(1.2345678e - 28);
+    ln(1.2345678e-28);
 
 SELECT
     ln(0.0456789);
@@ -2156,7 +2156,7 @@ SELECT
 
 -- some random tests
 SELECT
-    log(1.234567e - 89);
+    log(1.234567e-89);
 
 SELECT
     log(3.4634998359873254962349856073435545);
@@ -2197,7 +2197,7 @@ SELECT
 
 -- some random tests
 SELECT
-    log(1.23e - 89, 6.4689e45);
+    log(1.23e-89, 6.4689e45);
 
 SELECT
     log(0.99923, 4.58934e34);
@@ -2206,7 +2206,7 @@ SELECT
     log(1.000016, 8.452010e18);
 
 SELECT
-    log(3.1954752e47, 9.4792021e - 73);
+    log(3.1954752e47, 9.4792021e-73);
 
 --
 -- Tests for scale()

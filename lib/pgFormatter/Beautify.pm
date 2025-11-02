@@ -3185,6 +3185,7 @@ sub beautify {
 				{
 					$self->_new_line( $token, $last );
 					$self->_add_token($token);
+					$last = $self->_set_last( $token, $last );
 					next;
 				}
 			}
