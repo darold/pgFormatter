@@ -3715,7 +3715,7 @@ sub beautify {
 	# Attempt to eliminate redundant parenthesis in DML queries
 	if ( !$self->{'redundant_parenthesis'} ) {
 		while ( $self->{'content'} =~
-s/(\s+(?:WHERE|SELECT|FROM)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1($2)$3/igs
+s/(\s+(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1($2)$3/igs
 		  )
 		{
 		}
