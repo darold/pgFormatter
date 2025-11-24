@@ -416,6 +416,15 @@ HINTS
     not want to enable this feature, set "$self->{ 'enable_api' } = 0" in
     the "set_config" sub of lib/pgFormatter/CGI.pm.
 
+USING AS PRE-COMMIT HOOK
+
+  - repo: https://github.com/darold/pgFormatter
+    rev: "v5.8"
+    hooks:
+      - id: pg_format
+        args: ["--inplace", "--wrap-limit", "120"]
+        files: '.*\.sql$'
+
 AUTHORS
     pgFormatter is an original work from Gilles Darold with major code
     refactoring by Hubert depesz Lubaczewski.

@@ -1,0 +1,6 @@
+- id: pg_format
+  name: pg_format
+  description: Format Postgresql SQL files
+  entry: pg_format
+  args: ["--inplace"]
+  language: perl
