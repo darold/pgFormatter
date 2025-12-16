@@ -4296,7 +4296,7 @@ BEGIN
     $1 := - 1;
     $2 := - 2;
     RETURN NEXT;
-    RETURN query
+    RETURN QUERY
     SELECT
         x + 1,
         x * 10
@@ -4322,7 +4322,7 @@ CREATE OR REPLACE FUNCTION ret_query2 (lim int)
     RETURNS SETOF record_type
     AS $$
 BEGIN
-    RETURN query
+    RETURN QUERY
     SELECT
         md5(s.x::text),
         s.x,
@@ -4543,8 +4543,8 @@ CREATE OR REPLACE FUNCTION return_dquery ()
     RETURNS SETOF int
     AS $$
 BEGIN
-    RETURN query EXECUTE 'select * from (values(10),(20)) f';
-    RETURN query EXECUTE 'select * from (values($1),($2)) f'
+    RETURN QUERY EXECUTE 'select * from (values(10),(20)) f';
+    RETURN QUERY EXECUTE 'select * from (values($1),($2)) f'
     USING 40, 50;
 END;
 $$
@@ -4574,12 +4574,12 @@ CREATE OR REPLACE FUNCTION returnqueryf ()
     RETURNS SETOF tabwithcols
     AS $$
 BEGIN
-    RETURN query
+    RETURN QUERY
     SELECT
         *
     FROM
         tabwithcols;
-    RETURN query EXECUTE 'select * from tabwithcols';
+    RETURN QUERY EXECUTE 'select * from tabwithcols';
 END;
 $$
 LANGUAGE plpgsql;
@@ -5240,7 +5240,7 @@ CREATE FUNCTION tftest (int)
     )
     AS $$
 BEGIN
-    RETURN query
+    RETURN QUERY
     SELECT
         $1,
         $1 + i
@@ -5288,12 +5288,12 @@ DECLARE
     rc int;
     rca int[];
 BEGIN
-    RETURN query
+    RETURN QUERY
 VALUES (10),
 (20);
     get diagnostics rc = row_count;
     RAISE NOTICE '% %', found, rc;
-    RETURN query
+    RETURN QUERY
     SELECT
         *
     FROM (
@@ -5303,11 +5303,11 @@ WHERE
     FALSE;
     get diagnostics rc = row_count;
     RAISE NOTICE '% %', found, rc;
-    RETURN query EXECUTE 'values(10),(20)';
+    RETURN QUERY EXECUTE 'values(10),(20)';
     -- just for fun, let's use array elements as targets
     get diagnostics rca[1] = row_count;
     RAISE NOTICE '% %', found, rca[1];
-    RETURN query EXECUTE 'select * from (values(10),(20)) f(a) where false';
+    RETURN QUERY EXECUTE 'select * from (values(10),(20)) f(a) where false';
     get diagnostics rca[2] = row_count;
     RAISE NOTICE '% %', found, rca[2];
 END;

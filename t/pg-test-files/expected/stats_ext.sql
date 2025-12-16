@@ -19,7 +19,7 @@ BEGIN
         IF first_row THEN
             first_row := FALSE;
             tmp := regexp_match(ln, 'rows=(\d*) .* rows=(\d*)');
-            RETURN query
+            RETURN QUERY
             SELECT
                 tmp[1]::int,
                 tmp[2]::int;

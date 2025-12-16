@@ -43,3 +43,28 @@ VALUES
     (1),
     (1);
 
+CREATE FUNCTION foobar ()
+    RETURNS TABLE (
+        "n" integer
+    )
+    AS $$
+BEGIN
+    IF "_a" THEN
+        IF "_b" THEN
+            IF "_c" THEN
+                RETURN QUERY (
+                    SELECT
+                        1)
+                UNION ALL (
+                    SELECT
+                        1)
+                UNION ALL (
+                    SELECT
+                        1);
+            END IF;
+        END IF;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+

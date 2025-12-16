@@ -35,3 +35,27 @@ CREATE TABLE t1 (a INTEGER PRIMARY KEY);
 -- Cause migrations to fail.
 INSERT INTO t1 VALUES (1), (1);
 
+create function foobar()
+    returns table(
+        "n" integer
+    )
+    as $$
+begin
+    if "_a" then
+        if "_b" then
+            if "_c" then
+                return query
+                (select
+                    1)
+                union all
+                (select
+                    1)
+                union all
+                (select
+                    1);
+            end if;
+        end if;
+    end if;
+end;
+$$
+language plpgsql;

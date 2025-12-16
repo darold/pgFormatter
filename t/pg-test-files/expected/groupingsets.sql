@@ -83,7 +83,7 @@ CREATE FUNCTION gstest_data (v integer, out a integer, out b integer)
     RETURNS SETOF record
     AS $f$
 BEGIN
-    RETURN query
+    RETURN QUERY
     SELECT
         v,
         i

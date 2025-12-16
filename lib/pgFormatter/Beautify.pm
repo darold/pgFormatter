@@ -865,6 +865,7 @@ sub beautify {
 	$self->{'_language_sql'}               = 0;
 	$self->{'_first_when_in_case'}         = 0;
 	$self->{'_is_in_if'}                   = 0;
+	$self->{ '_is_in_return_query' }       = 0;
 	$self->{'_is_in_set'}                  = 0;
 	$self->{'_is_in_conversion'}           = 0;
 	$self->{'_is_in_case'}                 = ();
@@ -2500,6 +2501,8 @@ sub beautify {
 			}
 			elsif ( $self->{'_is_in_create'} && $self->{'_is_in_block'} > -1 ) {
 				$self->_pop_level( $token, $last );
+			} elsif ( $self->{'_is_in_return_query'} ) {
+				$self->_pop_level( $token, $last );
 			}
 
 			# Initialize most of statement related variables
@@ -2562,6 +2565,7 @@ sub beautify {
 			$self->{'_is_in_materialized'}         = 0;
 			$self->{'_is_in_drop_function'}        = 0;
 			$self->{'_current_full_sql_stmt'}      = '';
+			$self->{ '_is_in_return_query' }       = 0;
 
 			if ( $self->{'_insert_values'} ) {
 				if (    $self->{'_is_in_block'} == -1
@@ -3273,7 +3277,11 @@ sub beautify {
 				$self->_back( $token, $last );
 				$self->{'_is_in_join'} = 0;
 			}
-			$self->_back( $token, $last ) unless defined $last and $last eq '(';
+			if ($self->{'_is_in_return_query'} and $#{ $self->{'_level_stack'} } >= 0) {
+				$self->_set_level( $self->{'_level_stack'}[-1], $token, $last );
+			} else {
+				$self->_back( $token, $last ) unless defined $last and $last eq '(';
+			}
 			$self->_new_line( $token, $last );
 			$self->_add_token($token);
 			$self->_new_line( $token, $last )
@@ -3672,6 +3680,11 @@ sub beautify {
 
 				# Finally add the token without further condition
 				$self->_add_token( $token, $last );
+
+				if (uc($token) eq 'RETURN' and $self->_next_token =~ /^QUERY$/i) {
+					$self->_push_level( $self->{'_level'}, $token, $last );
+					$self->{ '_is_in_return_query' } = 1;
+				}
 
 				if ( $last eq "'" and $token =~ /^(BEGIN|DECLARE)$/i ) {
 					$last = $self->_set_last( $token, $last );
@@ -4315,7 +4328,7 @@ sub _is_keyword {
 	}
 
 	# False negative
-	return 1 if ($token =~ /^QUERY$/i and uc($last_token) eq 'RETURN');
+	return 1 if ($token =~ /^QUERY$/i and defined $last_token and uc($last_token) eq 'RETURN');
 
 	if (    $DEBUG
 		and defined $token
