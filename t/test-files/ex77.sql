@@ -59,3 +59,6 @@ begin
 end;
 $$
 language plpgsql;
+
+
+select throws_ok($$select * from custom_function('value1', 'value2');$$, 'P0001','NULL password for new user: app21_user', $e$NULL password for new user: app21_user$e$);

@@ -691,7 +691,7 @@ sub tokenize_sql {
 		|
 		(?:[\w:\@]+[\$]*[\w:\@]*(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
 		|
-		(?:\$\w+\$)
+		(?:\$\w+\$) # text delimiter
                 |
                 (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$) # dollar expressions - eg $_$ $3 $$ $BODY$
                 |
@@ -755,6 +755,11 @@ sub tokenize_sql {
 			{
 				$query[$i] = $query[ $i - 1 ] . $query[$i];
 				$query[ $i - 1 ] = '';
+			}
+			elsif ($query[$i - 1] =~ /\$\w+$/ and $query[$i] eq '$')
+			{
+				$query[$i - 1] =~ s/(\$\w+)$//;
+				$query[$i] = $1 . $query[$i];
 			}
 		}
 	}
