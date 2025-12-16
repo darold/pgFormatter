@@ -4314,6 +4314,9 @@ sub _is_keyword {
 			and !grep( { uc($_) eq uc($next_token) } @{ $self->{'types'} } ) );
 	}
 
+	# False negative
+	return 1 if ($token =~ /^QUERY$/i and uc($last_token) eq 'RETURN');
+
 	if (    $DEBUG
 		and defined $token
 		and grep { $_ eq uc($token) } @{ $self->{'keywords'} } )
