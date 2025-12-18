@@ -1,0 +1,30 @@
+name: Perl CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Test across multiple OSes and Perl versions
+    strategy:
+      fail-fast: false # Allows other jobs to run even if one fails
+      matrix:
+        perl-version: ['5.36', '5.38', 'latest'] # Specify versions
+
+    name: Perl ${{ matrix.perl-version }} ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Perl
+        # Uses a community action to install the specified Perl version
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl-version }}
+
+      - name: Check syntax
+        run: for f in `find . -name "*.pm" -o -name "pg_format" -o -name "*.pl" -o -name "*.t"`; do perl -c $f; done
+
+      - name: Run tests with prove
+        run: prove -lv t/
