@@ -31,4 +31,4 @@ jobs:
       - run: perl Makefile.PL
       - run: make
       - run: make install
-        run: prove -lv t/
+      - run: prove -lv t/
