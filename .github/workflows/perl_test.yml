@@ -2,7 +2,8 @@ name: Perl CI
 
 on: [push, pull_request]
 
-linux:
+jobs:
+  test:
     runs-on: ubuntu-latest
 
     strategy:
