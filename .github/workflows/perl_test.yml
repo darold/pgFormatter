@@ -24,7 +24,10 @@ jobs:
           perl-version: ${{ matrix.perl-version }}
 
       - name: Check syntax
-        run: for f in `find . -name "*.pm" -o -name "pg_format" -o -name "*.pl" -o -name "*.t"`; do perl -c $f; done
+        run: for f in `find . -name "*.pm" -o -name "pg_format" -o -name "*.pl" -o -name "*.t"`; do perl -I./lib/ -wc $f; done
+
+      - name: Make install
+        run: perl Makefile.PL && make && make install
 
       - name: Run tests with prove
         run: prove -lv t/
