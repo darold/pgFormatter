@@ -23,6 +23,9 @@ jobs:
         with:
           perl-version: ${{ matrix.perl-version }}
 
+      - name: Install dependencies
+        run: cpanm --installdeps .
+
       - name: Check syntax
         run: for f in `find . -name "*.pm" -o -name "pg_format" -o -name "*.pl" -o -name "*.t"`; do perl -I./lib/ -wc $f; done
 
