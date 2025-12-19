@@ -1,4 +1,4 @@
-use Test::Simple tests => 79;
+use Test::Simple tests => 80;
 use File::Temp qw/ tempfile /;
 
 my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
@@ -43,10 +43,9 @@ foreach my $f (@files)
 	} elsif ($f =~ m#/ex67.sql$#) {
 		my @ret = `grep "confirmed|hello|'Y'|'N'" /tmp/output.sql`;
 		ok( $#ret < 0, "Test anonymize");
-	} else { 
+	} else {
 		my @diff = `diff -u /tmp/output.sql $f | grep "^[+-]" | grep -v "^[+-]\t\$" | grep -v "^[+-][+-][+-]"`;
 		ok( $#diff < 0, "Test file $f");
 	}
 	unlink("/tmp/output.sql");
 }
-

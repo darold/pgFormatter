@@ -160,7 +160,7 @@ Takes options as hash. Following options are recognized:
 
 =item * no_extra_line - do not add an extra empty line at end of the output
 
-=item * keep_newline - preserve empty line in plpgsql code 
+=item * keep_newline - preserve empty line in plpgsql code
 
 =item * no_space_function - remove space before function call and open parenthesis
 
@@ -2475,7 +2475,7 @@ sub beautify {
 					$add_newline
 				and $self->{'comma'} eq 'end'
 				and (  $self->{'comma_break'}
-					|| ($self->{'_current_sql_stmt'} ne 'INSERT' 
+					|| ($self->{'_current_sql_stmt'} ne 'INSERT'
 				     		&& ($self->{'_current_sql_stmt'} ne 'DO UPDATE'
 							|| !$self->{'_parenthesis_level'})) )
 			  )
@@ -2490,10 +2490,12 @@ sub beautify {
 
 			$self->_add_token($token);
 
-			next
-			  if (  $token eq ';'
+			if (  $token eq ';'
 				and $#{ $self->{'_is_in_case'} } >= 0
-				and uc($last) ne 'CASE' );
+				and uc($last) ne 'CASE' ) {
+				$last = $self->_set_last( $token, $last );
+				next;
+			}
 
 			if ( $self->{'_is_in_type'} and $last eq ')' ) {
 				$self->_reset_level( $token, $last )
@@ -3683,6 +3685,10 @@ sub beautify {
 					$self->{'content'} =~ s/\s+$/\n/s;
 				}
 
+				if ($#{ $self->{'_is_in_case'} } >= 0 && defined $last && $last eq ';') {
+					$self->_new_line( $token, $last );
+				}
+
 				# Finally add the token without further condition
 				$self->_add_token( $token, $last );
 
@@ -3948,7 +3954,7 @@ sub _add_token {
 			  if ($DEBUG_SP);
 			$self->{'content'} .= $sp;
 		}
-		else { 
+		else {
 			print STDERR "DEBUG_SPC: 7) last=", ( $last_token || '' ),
 			  ", token=$token\n"
 			  if ($DEBUG_SP);
