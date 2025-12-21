@@ -1,3 +1,34 @@
+December 21 2025 - v5.9
+
+This release adds several formatting improvements and fixes some issues
+reported by users since the last release.
+
+Here is the complete list of changes and acknowledgments:
+
+  - Fix wierd nested indenting when using multi conditional join with integer 0
+    value. Thanks to Neszt Tibor for the report.
+  - Fix bad indentation with simple join. Thanks to anttilinno for the report.
+  - Fix indentation after RAISE EXCEPTION ... USING. Thanks to Ray Ng for the
+    report.
+  - Fix bad formatting in CASE statements with variable assignments. Thanks to
+    Serhii Khoma for the report.
+  - Limit the number of perl version tested
+  - Add CI action to test pgFormatter on commit push
+  - Fix dollar quote sign when attached to a word. Thanks to Andrew Jackson for
+    the report.
+  - Fix indentation of UNION in RETURN QUERY clause. Thanks to birgersp for the
+    report.
+  - Fix false negative in keyword detection with QUERY after RETURN
+  - Add pre-commit hook config. Thanks to Alexey Shrub for the patch.
+  - Add extra newline after ariga/atlas related comment line. Thanks to Jay Babu
+    for the feature request.
+  - Fix incorrect formatting in PL/pgSQL when using DECLARE and CASE. Thanks to
+    lkslawek for the report.
+  - Fix incorrect formatting of scientific notation with exponents. Thanks to
+    Ray Ng for the report. Add regression tests cases.
+  - Fix incorrectly removing extra parenthesis in CREATE POLICY statements.
+    Thanks to Julian Niedermeier for the report.
+
 September 14 2025 - v5.8
 
 This release adds several formatting improvements ans fixes some issues
@@ -10,18 +41,18 @@ Here is the complete list of changes and acknowledgments:
   - pgFormatter is now able to distinguish between single values and
     multiple values INSERT statement and to format them differently.
     Here an example of the output format:
-    
+
         -- multiple values form
         INSERT INTO tempy_mc_tempface
         VALUES
             ('tempy'),
             ('mc'),
             ('tempface');
-    
+
         -- single values form
         INSERT INTO tempy_mc_tempface
             VALUES ('another', 'world');
-    
+
     Thanks to Paul Gelardi for the feature request.
   - Fix indentation issue of INSERT statements in DO block. Thanks to Paul Gelardi for the report.
   - Fix version in main script
@@ -67,7 +98,7 @@ This maintenance release fixes some issues reported by users since the last
 release and adds some improvements.
 
 Improvements:
-   
+
   * Add support to pg_vector operator <#>. Thanks to Taylor Brown for the report
   * Add support for the @? jsonb-jsonpath operator. Thank to Simon Whitaker for
     the patch.
@@ -134,7 +165,7 @@ This maintenance release fixes some issues reported by users since the last
 month and some improvements.
 
 Improvements:
- 
+
   * Prevent newline in function supporting the FROM keyword like substring().
   * Add multi-line formatting on TRUNCATE with a table list. Thanks to GabenGar
     for the feature request.
@@ -154,7 +185,7 @@ This maintenance release fixes issues reported by users since the last five
 months with some improvements and new features.
 
 New options and features:
- 
+
   - Add option --no-space-function, when used pgFormatter removes the
     space character between a function call and the open parenthesis that
     follow. By default pgFormatter adds a space character, for example:
@@ -633,16 +664,16 @@ new features.
   * Add option -g, --nogrouping and CGI corresponding checkbox. By
     default pgFormatter groups all statements when they are in a
     transaction:
-    
+
         BEGIN;
         INSERT INTO foo VALUES (1, 'text 1');
         INSERT INTO foo VALUES (2, 'text 2');
         ...
         COMMIT;
-    
+
     By disabling grouping of statement pgFormatter will always add an extra
     newline characters between statements just like outside a transaction:
-    
+
         BEGIN;
 
         INSERT INTO foo VALUES (1, 'text 1');
@@ -651,7 +682,7 @@ new features.
         ...
 
         COMMIT;
-    
+
     This might add readability to not DML transactions.
 
   - Add more SQL keyword: REFRESH, MATERIALIZED, EVENT and function
@@ -886,16 +917,16 @@ Here is the complete list of changes and acknowledgments:
   - Add -W, --wrap-after option to set number of column after which
     lists must be wrapped. Default: puts every item on its own line.
     This applies to SELECT and FROM list. For example:
-    
+
         SELECT a, b, c, d FROM t_1, t_2, t3 WHERE a = 10 AND b = 10;
-    
+
     is formatted into:
-    
+
         SELECT a, b, c, d
         FROM t_1, t_2, t3
         WHERE a = 10
             AND b = 10;
-    
+
     Note this formatting doesn't fits well with sub queries in list.
     Thanks to Bruce Momjian for the feature request.
   - Add information about the (Neo)vim plugin used to format code for
@@ -1134,11 +1165,11 @@ complete list of changes:
     internally by pg_format when it is called with the -F html option
     or in CGI mode. This compatibility break justify a change of the
     major version number.
-    
+
     Note that this breaks backward compatibility if you are using your
     own custom scripts. With a complete upgrade and the use of the
     pg_format script and libraries everything should work as before.
-    
+
   - Improve the CGI interface where the footer bar overlaps.
   - The CGI library also support a new internal parameter/option
     $self->{ 'colorize' } used to disable HTML output formatting
@@ -1190,10 +1221,10 @@ months.  This release also adds some improvements in code formatting.
   - Fix indentation in CTE. Thanks to Jakob Egger for the report.
   - Add two command line option to defined where comma must appears
     in a parameter list:
-    
+
      -b | --comma-start: in a parameters list, start with a comma (see -e)
      -e | --comma-end  : in a parameters list, end with a comma (default)
-    
+
     The CGI interface adds a new checkbox to force comma at beginning.
     Default is lines end with a comma. Thanks to fnwiya for the
     feature request.
@@ -1313,9 +1344,9 @@ jsonb_set, pg_last_committed_xact, pg_xact_commit_timestamp.
 There is also a useful hint added to documentation to be able to format
 you SQL code from vi by adding a simple line to .vimrc. This hint is taken
 from David Fetter's blog : http://people.planetpostgresql.org/dfetter/index.php?/archives/78-Formatting!.html
- 
+
 Here is the complete list of other changes:
- 
+
   - Add useful hint about formating in vi. Thanks to David Fetter for the hint.
   - Prevent newline after open parenthesis and indent back after close when we have count(*) for example.
   - Add test query with a backslash before a quote in samples/ex8.sql.
