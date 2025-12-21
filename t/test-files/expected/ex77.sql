@@ -24,8 +24,8 @@ BEGIN
     IF i IS NULL THEN
         RAISE EXCEPTION 'i is null'
             USING errcode = 'invalid_parameter_value';
-        END IF;
-        RETURN i + 1;
+    END IF;
+    RETURN i + 1;
 END;
 $$
 LANGUAGE plpgsql;

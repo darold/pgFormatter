@@ -2974,10 +2974,6 @@ sub beautify {
 			( uc($token) eq 'ON' and uc( $self->_next_token() ) eq 'CONFLICT' )
 		  )
 		{
-			#if (uc($last) ne 'RAISE' and $token =~ /^EXCEPTION$/i)
-			#{
-			#$self->{ '_is_in_exception' } = 1;
-			#}
 			if (    $self->{'format_type'}
 				and uc($token) eq 'GROUP'
 				and uc( $self->_next_token() ) eq 'BY' )
@@ -3462,6 +3458,12 @@ sub beautify {
 				  if ( !$self->{'_is_in_join'} );
 			}
 			$self->_add_token($token);
+
+			if (defined $self->_next_token and uc($self->_next_token) eq 'ERRCODE') {
+				$self->_set_level( $self->_pop_level( $token, $last ),
+					$token, $last );
+			}
+
 			$self->{'_is_in_using'} = 1;
 			$self->{'_is_in_policy'}++
 			  if ( !$self->{'_is_in_from'}
