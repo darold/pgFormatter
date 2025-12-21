@@ -451,7 +451,7 @@ by Hubert depesz Lubaczewski.
 
 =head1 COPYRIGHT
 
-Copyright 2012-2025 Gilles Darold. All rights reserved.
+Copyright 2012-2026 Gilles Darold. All rights reserved.
 
 =head1 LICENSE
 
