@@ -3615,6 +3615,7 @@ sub beautify {
 				  )
 				{
 					if (  !$self->{'_parenthesis_level'}
+						&& !$self->{'_has_over_in_join'}
 						&& $self->{'_is_in_from'} )
 					{
 						$self->_set_level(
