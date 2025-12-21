@@ -3299,7 +3299,7 @@ sub beautify {
 			and ( not defined $last or uc($last) ne 'MATCH' ) )
 		{
 			$self->{'no_break'} = 0;
-			if ( !$self->{'_is_in_join'} and ( $last and $last ne ')' ) ) {
+			if ( !$self->{'_is_in_join'} and ( defined $last and $last ne ')' ) ) {
 				$self->_back( $token, $last ) if ($#{ $self->{'_level_stack'} } < 0 or $self->{'_level'} > $self->{'_level_stack'}[-1]+1);
 			}
 			if ( $self->{'_has_over_in_join'} ) {
@@ -3332,7 +3332,7 @@ sub beautify {
 				$self->_new_line( $token, $last );
 				$self->_back( $token, $last )
 				  if ( $self->{'_has_over_in_join'} );
-				$self->{'_has_over_in_join'} = 0;
+				  $self->{'_has_over_in_join'} = 0;
 			}
 			$self->_add_token($token);
 			$self->{'_is_in_join'} = 1;
@@ -3364,7 +3364,7 @@ sub beautify {
 			$self->{'_is_in_join'} = 0;
 			if (    !$self->{'_is_in_if'}
 				and !$self->{'_is_in_index'}
-				and ( !$last or $last !~ /^(?:CREATE)$/i )
+				and ( not defined $last or $last !~ /^(?:CREATE)$/i )
 				and ( $self->{'_is_in_create'} <= 2 )
 				and !$self->{'_is_in_trigger'} )
 			{

@@ -33,3 +33,12 @@ WHERE
 ORDER BY
   z.worker_id;
 
+CREATE OR REPLACE VIEW test AS
+SELECT
+        *
+FROM
+        test1 AS a
+        INNER JOIN test2 AS b ON a.field1 = b.field1 AND b.field2 = 'data2' AND b.field3 = 'data3'
+        INNER JOIN test2 AS b ON a.field1 = b.field1 AND b.field2 = 'data2' AND b.field3 = 0
+        INNER JOIN test2 AS b ON a.field1 = b.field1 AND b.field2 = 'data2' AND b.field3 = 'data3'
+        INNER JOIN test2 AS b ON a.field1 = b.field1 AND b.field2 = 'data2' AND b.field3 = 'data3';

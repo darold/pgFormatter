@@ -1863,7 +1863,7 @@ FROM
             prt1_l t2
             JOIN prt2_l t3 ON (t2.a = t3.b
                     AND t2.c = t3.c)) ss ON t1.a = ss.t2a
-    AND t1.c = ss.t2c
+        AND t1.c = ss.t2c
 WHERE
     t1.b = 0
 ORDER BY
@@ -1884,7 +1884,7 @@ FROM
             prt1_l t2
             JOIN prt2_l t3 ON (t2.a = t3.b
                     AND t2.c = t3.c)) ss ON t1.a = ss.t2a
-    AND t1.c = ss.t2c
+        AND t1.c = ss.t2c
 WHERE
     t1.b = 0
 ORDER BY
