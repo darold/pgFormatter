@@ -551,6 +551,7 @@ sub highlight_code {
 			&& !$self->_is_comment($token) )
 	  )
 	{
+		exit 3;
 		if ( $self->{'uc_functions'} == 1 ) {
 			$token = '<span class="kw2_l">' . $token . '</span>';
 		}
@@ -2468,7 +2469,7 @@ sub beautify {
 				and $self->_is_comment( $self->_next_token ) );
 			$add_newline = 0
 			  if (  defined $self->_next_token
-				and $self->_next_token =~ /KEYWCONST/
+				and $self->_next_token =~ /KEYWCONST/ and $#{$self->{'_tokens'}} >= 1
 				and $self->{'_tokens'}[1] =~ /^(LANGUAGE|STRICT)$/i );
 			$add_newline = 1 if ( $self->{'_is_in_truncate'} );
 			  if (
