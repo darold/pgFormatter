@@ -551,7 +551,6 @@ sub highlight_code {
 			&& !$self->_is_comment($token) )
 	  )
 	{
-		exit 3;
 		if ( $self->{'uc_functions'} == 1 ) {
 			$token = '<span class="kw2_l">' . $token . '</span>';
 		}
