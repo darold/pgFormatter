@@ -247,7 +247,7 @@ sub query {
 
 	# Replace any COMMENT constant between single quote
 	while ( $self->{'query'} =~
-		s/IS\s+([EU]*'(?:[^;]*)')\s*;/IS TEXTVALUE$self->{idx_code};/is )
+		s/IS\s+([EU]*'(?:[^;]*)')\s*;/IS TEXTVALUE$self->{idx_code}E;/is )
 	{
 		$self->{dynamic_code}{ $self->{idx_code} } = $1;
 		$self->{dynamic_code}{ $self->{idx_code} } =~
@@ -5354,7 +5354,7 @@ sub _remove_dynamic_code {
 	}
 
 	foreach my $sep (@dynsep) {
-		while ( $$str =~ s/(\Q$sep\E.*?\Q$sep\E)/TEXTVALUE$self->{idx_code}/s )
+		while ( $$str =~ s/(\Q$sep\E.*?\Q$sep\E)/TEXTVALUE$self->{idx_code}E/s )
 		{
 			$self->{dynamic_code}{ $self->{idx_code} } = $1;
 			$self->{idx_code}++;
@@ -5362,14 +5362,14 @@ sub _remove_dynamic_code {
 	}
 
 	# Replace any COMMENT constant between single quote
-	while ( $$str =~ s/IS\s+('(?:.*?)')\s*;/IS TEXTVALUE$self->{idx_code};/s ) {
+	while ( $$str =~ s/IS\s+('(?:.*?)')\s*;/IS TEXTVALUE$self->{idx_code}E;/s ) {
 		$self->{dynamic_code}{ $self->{idx_code} } = $1;
 		$self->{idx_code}++;
 	}
 
 	# keep untouched parts between double single quotes
 	while ( $$str =~
-		s/(PGFESCQ1(?:[^\r\n\|;]*?)PGFESCQ1)/TEXTVALUE$self->{idx_code}/s )
+		s/(PGFESCQ1(?:[^\r\n\|;]*?)PGFESCQ1)/TEXTVALUE$self->{idx_code}E/s )
 	{
 		$self->{dynamic_code}{ $self->{idx_code} } = $1;
 		$self->{idx_code}++;
@@ -5386,7 +5386,7 @@ that was removed by the _remove_dynamic_code() method.
 sub _restore_dynamic_code {
 	my ( $self, $str ) = @_;
 
-	$$str =~ s/TEXTVALUE(\d+)/$self->{dynamic_code}{$1}/gs;
+	$$str =~ s/TEXTVALUE(\d+)E/$self->{dynamic_code}{$1}/gs;
 
 }
 

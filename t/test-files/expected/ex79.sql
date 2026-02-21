@@ -14,3 +14,8 @@ MERGE INTO rw_view14 AS t
     WHEN NOT MATCHED THEN
         INSERT (a, b) VALUES (v.a, v.b);
 
+INSERT INTO notes (payload)
+    VALUES ('{
+    "message": "User''s code is ''1x''"
+  }');
+
