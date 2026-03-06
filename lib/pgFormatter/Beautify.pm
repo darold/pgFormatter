@@ -917,6 +917,7 @@ sub beautify {
 	$self->{'_is_in_partition'}            = 0;
 	$self->{'_is_in_over'}                 = 0;
 	$self->{'_is_in_policy'}               = 0;
+	$self->{'_policy_as_using'}            = 0;
 	$self->{'_is_in_truncate'}             = 0;
 	$self->{'_is_in_using'}                = 0;
 	$self->{'_and_level'}                  = 0;
@@ -1319,7 +1320,7 @@ sub beautify {
 		####
 		# Set the current kind of statement parsed
 		####
-		if ( $token =~
+		if ( !$self->{'_is_in_policy'} and $token =~
 /^(FUNCTION|PROCEDURE|SEQUENCE|INSERT|DELETE|UPDATE|SELECT|RAISE|ALTER|GRANT|REVOKE|COMMENT|DROP|RULE|COMMENT|LOCK)$/i
 		  )
 		{
@@ -1329,7 +1330,7 @@ sub beautify {
 			$self->{'_current_full_sql_stmt'} = '';
 
 	# Set current statement with taking care to exclude of SELECT ... FOR UPDATE
-	# statement and ON CONFLICT DO UPDATE.
+	# statement and ON CONFLICT DO UPDATE and FOR UPDATE TO.
 			if (
 				$k_stmt ne 'UPDATE'
 				or (    defined $self->_next_token
@@ -2311,6 +2312,7 @@ sub beautify {
 				$self->{'_has_order_by'}    = 0;
 				$self->{'_is_in_policy'}    = 0;
 				$self->{'_is_in_aggregate'} = 0;
+				$self->{'_policy_as_using'} = 0;
 			}
 			$self->_add_token($token);
 
@@ -2561,6 +2563,7 @@ sub beautify {
 			$self->{'_is_in_partition'}            = 0;
 			$self->{'_is_in_over'}                 = 0;
 			$self->{'_is_in_policy'}               = 0;
+			$self->{'_policy_as_using'}            = 0;
 			$self->{'_is_in_truncate'}             = 0;
 			$self->{'_is_in_trigger'}              = 0;
 			$self->{'_is_in_using'}                = 0;
@@ -3470,16 +3473,33 @@ sub beautify {
 					$self->{'_is_in_operator'}
 					|| (   $self->{'_is_in_policy'}
 						&& !$self->{'format_type'}
+						&& !$self->{'_is_in_policy'}
 						&& !$self->{'_is_in_using'} )
 				  );
+				if ( $self->{'_is_in_policy'} and $token =~ /^USING$/i )
+				{
+					$self->{'_policy_as_using'} = 1;
+					$self->_over( $token, $last ) if ($self->{'_level'} == 0);
+
+				}
 				$self->_push_level( $self->{'_level'}, $token, $last )
 				  if ( $token =~ /^USING$/i );
 				$self->_set_level( $self->_pop_level( $token, $last ),
 					$token, $last )
+				  if ( uc($token) eq 'WITH' and uc($self->_next_token) eq 'CHECK'
+					and $self->{'_is_in_policy'} and $self->{'_policy_as_using'});
+
+				$self->_set_level( $self->_pop_level( $token, $last ),
+					$token, $last )
 				  if ( uc($token) eq 'WITH'
-					and $self->{'_is_in_policy'} > 1
+					and ($self->{'_is_in_policy'} > 1 or uc($self->_next_token) eq 'CHECK')
 					&& !$self->{'format_type'}
 					&& $self->{'_is_in_using'} );
+
+				$self->_over( $token, $last )
+				  if ( uc($token) eq 'WITH' and uc($self->_next_token) eq 'CHECK'
+					and $self->{'_is_in_policy'} and $self->{'_level'} == 0);
+
 				$self->_new_line( $token, $last )
 				  if (  uc($last) ne 'EXCLUDE'
 					and !$self->{'_is_in_index'}

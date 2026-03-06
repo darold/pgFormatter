@@ -577,12 +577,12 @@ GRANT ALL ON t3 TO public;
 
 CREATE POLICY p1 ON t1
     FOR ALL TO PUBLIC
-        USING (a % 2 = 0);
+    USING (a % 2 = 0);
 
 -- be even number
 CREATE POLICY p2 ON t2
     FOR ALL TO PUBLIC
-        USING (a % 2 = 1);
+    USING (a % 2 = 1);
 
 -- be odd number
 ALTER TABLE t1 ENABLE ROW LEVEL SECURITY;
@@ -1172,13 +1172,13 @@ CREATE TABLE dependent (
 
 CREATE POLICY d1 ON dependent
     FOR ALL TO PUBLIC
-        USING (x = (
-            SELECT
-                d.x
-            FROM
-                dependee d
-            WHERE
-                d.y = y));
+    USING (x = (
+        SELECT
+            d.x
+        FROM
+            dependee d
+        WHERE
+            d.y = y));
 
 DROP TABLE dependee;
 
@@ -1401,11 +1401,11 @@ CREATE POLICY p2 ON s2
 
 CREATE POLICY p3 ON s1
     FOR INSERT
-        WITH CHECK (a = (
-            SELECT
-                a
-            FROM
-                s1));
+    WITH CHECK (a = (
+        SELECT
+            a
+        FROM
+            s1));
 
 ALTER TABLE s1 ENABLE ROW LEVEL SECURITY;
 
@@ -1980,22 +1980,22 @@ DROP POLICY p1r ON document;
 
 CREATE POLICY p1 ON document
     FOR SELECT
-        USING (TRUE);
+    USING (TRUE);
 
 CREATE POLICY p2 ON document
     FOR INSERT
-        WITH CHECK (dauthor = CURRENT_USER);
+    WITH CHECK (dauthor = CURRENT_USER);
 
 CREATE POLICY p3 ON document
     FOR UPDATE
-        USING (cid = (
-            SELECT
-                cid
-            FROM
-                category
-            WHERE
-                cname = 'novel'))
-            WITH CHECK (dauthor = CURRENT_USER);
+    USING (cid = (
+        SELECT
+            cid
+        FROM
+            category
+        WHERE
+            cname = 'novel'))
+    WITH CHECK (dauthor = CURRENT_USER);
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -2148,13 +2148,13 @@ DROP POLICY p3 ON document;
 
 CREATE POLICY p3_with_default ON document
     FOR UPDATE
-        USING (cid = (
-            SELECT
-                cid
-            FROM
-                category
-            WHERE
-                cname = 'novel'));
+    USING (cid = (
+        SELECT
+            cid
+        FROM
+            category
+        WHERE
+            cname = 'novel'));
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -2210,14 +2210,14 @@ DROP POLICY p3_with_default ON document;
 --
 CREATE POLICY p3_with_all ON document
     FOR ALL
-        USING (cid = (
-            SELECT
-                cid
-            FROM
-                category
-            WHERE
-                cname = 'novel'))
-            WITH CHECK (dauthor = CURRENT_USER);
+    USING (cid = (
+        SELECT
+            cid
+        FROM
+            category
+        WHERE
+            cname = 'novel'))
+    WITH CHECK (dauthor = CURRENT_USER);
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 
@@ -2617,23 +2617,23 @@ VALUES
 
 CREATE POLICY p0 ON x1
     FOR ALL
-        USING (c = CURRENT_USER);
+    USING (c = CURRENT_USER);
 
 CREATE POLICY p1 ON x1
     FOR SELECT
-        USING (a % 2 = 0);
+    USING (a % 2 = 0);
 
 CREATE POLICY p2 ON x1
     FOR INSERT
-        WITH CHECK (a % 2 = 1);
+    WITH CHECK (a % 2 = 1);
 
 CREATE POLICY p3 ON x1
     FOR UPDATE
-        USING (a % 2 = 0);
+    USING (a % 2 = 0);
 
 CREATE POLICY p4 ON x1
     FOR DELETE
-        USING (a < 8);
+    USING (a < 8);
 
 ALTER TABLE x1 ENABLE ROW LEVEL SECURITY;
 
@@ -2701,20 +2701,20 @@ GRANT ALL ON y1, y2 TO regress_rls_bob;
 
 CREATE POLICY p1 ON y1
     FOR ALL
-        USING (a % 2 = 0);
+    USING (a % 2 = 0);
 
 CREATE POLICY p2 ON y1
     FOR SELECT
-        USING (a > 2);
+    USING (a > 2);
 
 CREATE POLICY p1 ON y1
     FOR SELECT
-        USING (a % 2 = 1);
+    USING (a % 2 = 1);
 
 --fail
 CREATE POLICY p1 ON y2
     FOR ALL
-        USING (a % 2 = 0);
+    USING (a % 2 = 0);
 
 --OK
 ALTER TABLE y1 ENABLE ROW LEVEL SECURITY;
@@ -3560,17 +3560,17 @@ VALUES
 
 CREATE POLICY p1 ON current_check
     FOR SELECT
-        USING (currentid % 2 = 0);
+    USING (currentid % 2 = 0);
 
 CREATE POLICY p2 ON current_check
     FOR DELETE
-        USING (currentid = 4
-            AND rlsuser = CURRENT_USER);
+    USING (currentid = 4
+        AND rlsuser = CURRENT_USER);
 
 CREATE POLICY p3 ON current_check
     FOR UPDATE
-        USING (currentid = 4)
-        WITH CHECK (rlsuser = CURRENT_USER);
+    USING (currentid = 4)
+    WITH CHECK (rlsuser = CURRENT_USER);
 
 ALTER TABLE current_check ENABLE ROW LEVEL SECURITY;
 
@@ -3894,19 +3894,19 @@ ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY p1 ON r2
     FOR SELECT
-        USING (TRUE);
+    USING (TRUE);
 
 CREATE POLICY p2 ON r2
     FOR INSERT
-        WITH CHECK (FALSE);
+    WITH CHECK (FALSE);
 
 CREATE POLICY p3 ON r2
     FOR UPDATE
-        USING (FALSE);
+    USING (FALSE);
 
 CREATE POLICY p4 ON r2
     FOR DELETE
-        USING (FALSE);
+    USING (FALSE);
 
 ALTER TABLE r2 ENABLE ROW LEVEL SECURITY;
 
@@ -4211,11 +4211,11 @@ CREATE TABLE r1 (
 
 CREATE POLICY p1 ON r1
     FOR SELECT
-        USING (FALSE);
+    USING (FALSE);
 
 CREATE POLICY p2 ON r1
     FOR INSERT
-        WITH CHECK (TRUE);
+    WITH CHECK (TRUE);
 
 ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 
@@ -4261,16 +4261,16 @@ CREATE TABLE r1 (
 
 CREATE POLICY p1 ON r1
     FOR SELECT
-        USING (a < 20);
+    USING (a < 20);
 
 CREATE POLICY p2 ON r1
     FOR UPDATE
-        USING (a < 20)
-        WITH CHECK (TRUE);
+    USING (a < 20)
+    WITH CHECK (TRUE);
 
 CREATE POLICY p3 ON r1
     FOR INSERT
-        WITH CHECK (TRUE);
+    WITH CHECK (TRUE);
 
 INSERT INTO r1
     VALUES (10);
@@ -4587,16 +4587,16 @@ CREATE POLICY p1 ON rls_tbl
 
 CREATE POLICY p2 ON rls_tbl
     FOR SELECT
-        USING (c1 <= 3);
+    USING (c1 <= 3);
 
 CREATE POLICY p3 ON rls_tbl
     FOR UPDATE
-        USING (c1 <= 3)
-        WITH CHECK (c1 > 5);
+    USING (c1 <= 3)
+    WITH CHECK (c1 > 5);
 
 CREATE POLICY p4 ON rls_tbl
     FOR DELETE
-        USING (c1 <= 3);
+    USING (c1 <= 3);
 
 CREATE TABLE rls_tbl_force (
     c1 int
@@ -4612,14 +4612,14 @@ CREATE POLICY p1 ON rls_tbl_force
 
 CREATE POLICY p2 ON rls_tbl_force
     FOR SELECT
-        USING (c1 = 8);
+    USING (c1 = 8);
 
 CREATE POLICY p3 ON rls_tbl_force
     FOR UPDATE
-        USING (c1 = 8)
-        WITH CHECK (c1 >= 5);
+    USING (c1 = 8)
+    WITH CHECK (c1 >= 5);
 
 CREATE POLICY p4 ON rls_tbl_force
     FOR DELETE
-        USING (c1 = 8);
+    USING (c1 = 8);
 

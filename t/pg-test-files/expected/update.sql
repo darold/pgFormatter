@@ -812,12 +812,12 @@ GRANT ALL ON range_parted, mintab TO regress_range_parted_user;
 
 CREATE POLICY seeall ON range_parted AS PERMISSIVE
     FOR SELECT
-        USING (TRUE);
+    USING (TRUE);
 
 CREATE POLICY policy_range_parted ON range_parted
     FOR UPDATE
-        USING (TRUE)
-        WITH CHECK (c % 2 = 0);
+    USING (TRUE)
+    WITH CHECK (c % 2 = 0);
 
 :init_range_parted;
 
@@ -901,12 +901,12 @@ RESET SESSION AUTHORIZATION;
 
 CREATE POLICY policy_range_parted_subplan ON range_parted AS RESTRICTIVE
     FOR UPDATE
-        USING (TRUE)
-        WITH CHECK ((
-            SELECT
-                range_parted.c <= c1
-            FROM
-                mintab));
+    USING (TRUE)
+    WITH CHECK ((
+        SELECT
+            range_parted.c <= c1
+        FROM
+            mintab));
 
 SET SESSION AUTHORIZATION regress_range_parted_user;
 
@@ -937,8 +937,8 @@ RESET SESSION AUTHORIZATION;
 
 CREATE POLICY policy_range_parted_wholerow ON range_parted AS RESTRICTIVE
     FOR UPDATE
-        USING (TRUE)
-        WITH CHECK (range_parted = ROW ('b', 10, 112, 1, NULL)::range_parted);
+    USING (TRUE)
+    WITH CHECK (range_parted = ROW ('b', 10, 112, 1, NULL)::range_parted);
 
 SET SESSION AUTHORIZATION regress_range_parted_user;
 
