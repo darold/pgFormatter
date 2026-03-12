@@ -71,13 +71,17 @@ EXPLAIN (
     COSTS OFF
 )
 SELECT
-    length(stringu1) INTO parallel_write
+    length(stringu1)
+INTO
+    parallel_write
 FROM
     tenk1
 GROUP BY
     length(stringu1);
 SELECT
-    length(stringu1) INTO parallel_write
+    length(stringu1)
+INTO
+    parallel_write
 FROM
     tenk1
 GROUP BY

@@ -8,7 +8,9 @@ DECLARE
     v_id bigint;
 BEGIN
     SELECT
-        * INTO o_rc,
+        *
+    INTO
+        o_rc,
         o_err
     FROM
         loader_add i_acctoken;
@@ -17,13 +19,17 @@ BEGIN
         o_err = '(): ' || o_err;
     END IF;
     SELECT
-        ost_id INTO STRICT v_os
+        ost_id
+    INTO
+        STRICT v_os
     FROM
         os_form
     WHERE
         UPPER(ost_form) = UPPER(i_os);
     SELECT
-        os_id INTO v_id
+        os_id
+    INTO
+        v_id
     FROM
         os_get (v_os);
     UPDATE
@@ -93,7 +99,9 @@ DECLARE
     v_id bigint;
 BEGIN ATOMIC
     SELECT
-        * INTO o_rc,
+        *
+    INTO
+        o_rc,
         o_err
     FROM
         loader_add i_acctoken;

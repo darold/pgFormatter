@@ -728,7 +728,9 @@ DECLARE
 
 BEGIN
     SELECT
-        rngfuncid INTO rngfuncint
+        rngfuncid
+    INTO
+        rngfuncint
     FROM
         rngfunc
     WHERE
@@ -787,7 +789,9 @@ DECLARE
 
 BEGIN
     SELECT
-        * INTO rngfunctup
+        *
+    INTO
+        rngfunctup
     FROM
         rngfunc
     WHERE

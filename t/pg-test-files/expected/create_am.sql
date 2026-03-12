@@ -169,7 +169,8 @@ ORDER BY
 
 -- SELECT INTO doesn't support USING
 SELECT
-    INTO tableam_tblselectinto_heap2
+INTO
+    tableam_tblselectinto_heap2
     USING heap2
 FROM
     tableam_tbl_heap2;
@@ -289,7 +290,8 @@ SELECT
 FROM
     tableam_tbl_heapx;
 SELECT
-    INTO tableam_tblselectinto_heapx
+INTO
+    tableam_tblselectinto_heapx
 FROM
     tableam_tbl_heapx;
 CREATE MATERIALIZED VIEW tableam_tblmv_heapx USING heap2 AS

@@ -1878,7 +1878,9 @@ DECLARE
 BEGIN
     SELECT
         dfunc (a => -- comment
-            1) INTO r;
+            1)
+    INTO
+        r;
     RAISE info 'r = %', r;
 END;
 $$;

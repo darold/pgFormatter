@@ -166,7 +166,9 @@ BEGIN
         -- those counts to be registered separately from the update counts.
         -- check to see if seqscan has been sensed
         SELECT
-            (st.seq_scan >= pr.seq_scan + 1) INTO updated1
+            (st.seq_scan >= pr.seq_scan + 1)
+        INTO
+            updated1
         FROM
             pg_stat_user_tables AS st,
             pg_class AS cl,
@@ -176,7 +178,9 @@ BEGIN
             AND cl.relname = 'tenk2';
         -- check to see if indexscan has been sensed
         SELECT
-            (st.idx_scan >= pr.idx_scan + 1) INTO updated2
+            (st.idx_scan >= pr.idx_scan + 1)
+        INTO
+            updated2
         FROM
             pg_stat_user_tables AS st,
             pg_class AS cl,
@@ -186,7 +190,9 @@ BEGIN
             AND cl.relname = 'tenk2';
         -- check to see if all updates have been sensed
         SELECT
-            (n_tup_ins > 0) INTO updated3
+            (n_tup_ins > 0)
+        INTO
+            updated3
         FROM
             pg_stat_user_tables
         WHERE
@@ -195,7 +201,9 @@ BEGIN
         -- advanced, because that comes from the global stats file which might
         -- be older than the per-DB stats file we got the other values from.
         SELECT
-            (pr.snap_ts < pg_stat_get_snapshot_timestamp ()) INTO updated4
+            (pr.snap_ts < pg_stat_get_snapshot_timestamp ())
+        INTO
+            updated4
         FROM
             prevstats AS pr;
         exit

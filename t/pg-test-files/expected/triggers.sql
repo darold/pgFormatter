@@ -1405,7 +1405,9 @@ BEGIN
     IF NEW.country_name IS NOT NULL THEN
         SELECT
             country_id,
-            continent INTO ctry_id,
+            continent
+        INTO
+            ctry_id,
             NEW.continent
         FROM
             country_table
@@ -1464,7 +1466,9 @@ BEGIN
     IF NEW.country_name IS DISTINCT FROM OLD.country_name THEN
         SELECT
             country_id,
-            continent INTO ctry_id,
+            continent
+        INTO
+            ctry_id,
             NEW.continent
         FROM
             country_table

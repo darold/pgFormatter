@@ -2176,7 +2176,9 @@ FROM
 DROP TABLE attest1;
 
 SELECT
-    * INTO attest2
+    *
+INTO
+    attest2
 FROM
     atacc1;
 

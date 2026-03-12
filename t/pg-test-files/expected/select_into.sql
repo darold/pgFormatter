@@ -2,7 +2,9 @@
 -- SELECT_INTO
 --
 SELECT
-    * INTO TABLE sitmp1
+    *
+INTO
+    TABLE sitmp1
 FROM
     onek
 WHERE
@@ -11,7 +13,9 @@ WHERE
 DROP TABLE sitmp1;
 
 SELECT
-    * INTO TABLE sitmp1
+    *
+INTO
+    TABLE sitmp1
 FROM
     onek2
 WHERE
@@ -33,7 +37,9 @@ GRANT ALL ON SCHEMA selinto_schema TO public;
 SET SESSION AUTHORIZATION regress_selinto_user;
 
 SELECT
-    * INTO TABLE selinto_schema.tmp1
+    *
+INTO
+    TABLE selinto_schema.tmp1
 FROM
     pg_class
 WHERE
@@ -43,7 +49,9 @@ WHERE
 SELECT
     oid AS clsoid,
     relname,
-    relnatts + 10 AS x INTO selinto_schema.tmp2
+    relnatts + 10 AS x
+INTO
+    selinto_schema.tmp2
 FROM
     pg_class
 WHERE
@@ -72,7 +80,9 @@ ALTER DEFAULT PRIVILEGES FOR ROLE regress_selinto_user GRANT INSERT ON TABLES TO
 SET SESSION AUTHORIZATION regress_selinto_user;
 
 SELECT
-    * INTO TABLE selinto_schema.tmp1
+    *
+INTO
+    TABLE selinto_schema.tmp1
 FROM
     pg_class
 WHERE
@@ -82,7 +92,9 @@ WHERE
 SELECT
     oid AS clsoid,
     relname,
-    relnatts + 10 AS x INTO selinto_schema.tmp2
+    relnatts + 10 AS x
+INTO
+    selinto_schema.tmp2
 FROM
     pg_class
 WHERE
@@ -256,11 +268,15 @@ DROP TABLE easi, easi2;
 --
 DECLARE foo CURSOR FOR
     SELECT
-        1 INTO b;
+        1
+    INTO
+        b;
 
 COPY (
     SELECT
-        1 INTO frak
+        1
+    INTO
+        frak
     UNION
     SELECT
         2)
@@ -270,13 +286,19 @@ SELECT
     *
 FROM (
     SELECT
-        1 INTO f) bar;
+        1
+    INTO
+        f) bar;
 
 CREATE VIEW foo AS
 SELECT
-    1 INTO b;
+    1
+INTO
+    b;
 
 INSERT INTO b
 SELECT
-    1 INTO f;
+    1
+INTO
+    f;
 

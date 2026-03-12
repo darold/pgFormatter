@@ -36,7 +36,9 @@ INTERSECT (
 
 -- count roughly 1/10 of the tuples
 SELECT
-    count(*) AS random INTO RANDOM_TBL
+    count(*) AS random
+INTO
+    RANDOM_TBL
 FROM
     onek
 WHERE

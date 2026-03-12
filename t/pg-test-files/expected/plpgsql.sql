@@ -234,7 +234,8 @@ DECLARE
     ps alias FOR new;
 BEGIN
     SELECT
-        INTO pfrec *
+    INTO
+        pfrec *
     FROM
         PField
     WHERE
@@ -288,7 +289,8 @@ DECLARE
     sysrec record;
 BEGIN
     SELECT
-        INTO sysrec *
+    INTO
+        sysrec *
     FROM
         SYSTEM
     WHERE
@@ -397,7 +399,8 @@ DECLARE
     hubrec record;
 BEGIN
     SELECT
-        INTO hubrec *
+    INTO
+        hubrec *
     FROM
         Hub
     WHERE
@@ -444,7 +447,8 @@ DECLARE
     hubrec record;
 BEGIN
     SELECT
-        INTO hubrec *
+    INTO
+        hubrec *
     FROM
         Hub
     WHERE
@@ -783,7 +787,8 @@ BEGIN
     END IF;
     IF mytype = ''PS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PSlot
         WHERE
@@ -803,7 +808,8 @@ BEGIN
     END IF;
     IF mytype = ''WS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             WSlot
         WHERE
@@ -823,7 +829,8 @@ BEGIN
     END IF;
     IF mytype = ''PL'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PLine
         WHERE
@@ -862,7 +869,8 @@ BEGIN
     mytype := substr(myname, 1, 2);
     IF mytype = ''PS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PSlot
         WHERE
@@ -882,7 +890,8 @@ BEGIN
     END IF;
     IF mytype = ''WS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             WSlot
         WHERE
@@ -902,7 +911,8 @@ BEGIN
     END IF;
     IF mytype = ''PL'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PLine
         WHERE
@@ -1015,7 +1025,8 @@ BEGIN
     END IF;
     IF mytype = ''PS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PSlot
         WHERE
@@ -1035,7 +1046,8 @@ BEGIN
     END IF;
     IF mytype = ''WS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             WSlot
         WHERE
@@ -1055,7 +1067,8 @@ BEGIN
     END IF;
     IF mytype = ''IF'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             IFace
         WHERE
@@ -1075,7 +1088,8 @@ BEGIN
     END IF;
     IF mytype = ''HS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             HSlot
         WHERE
@@ -1095,7 +1109,8 @@ BEGIN
     END IF;
     IF mytype = ''PH'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PHone
         WHERE
@@ -1134,7 +1149,8 @@ BEGIN
     mytype := substr(myname, 1, 2);
     IF mytype = ''PS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PSlot
         WHERE
@@ -1154,7 +1170,8 @@ BEGIN
     END IF;
     IF mytype = ''WS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             WSlot
         WHERE
@@ -1174,7 +1191,8 @@ BEGIN
     END IF;
     IF mytype = ''IF'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             IFace
         WHERE
@@ -1194,7 +1212,8 @@ BEGIN
     END IF;
     IF mytype = ''HS'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             HSlot
         WHERE
@@ -1214,7 +1233,8 @@ BEGIN
     END IF;
     IF mytype = ''PH'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PHone
         WHERE
@@ -1250,7 +1270,8 @@ DECLARE
     retval text;
 BEGIN
     SELECT
-        INTO rec *
+    INTO
+        rec *
     FROM
         PSlot
     WHERE
@@ -1266,7 +1287,8 @@ BEGIN
             DECLARE rec record;
             BEGIN
                 SELECT
-                    INTO rec *
+                INTO
+                    rec *
                 FROM
                     PLine
                 WHERE
@@ -1282,7 +1304,8 @@ BEGIN
         END IF;
         IF bltype = ''WS'' THEN
             SELECT
-                INTO rec *
+            INTO
+                rec *
             FROM
                 WSlot
             WHERE
@@ -1309,7 +1332,8 @@ DECLARE
     retval text;
 BEGIN
     SELECT
-        INTO psrec *
+    INTO
+        psrec *
     FROM
         PSlot
     WHERE
@@ -1358,7 +1382,8 @@ DECLARE
     retval text;
 BEGIN
     SELECT
-        INTO rec *
+    INTO
+        rec *
     FROM
         WSlot
     WHERE
@@ -1372,7 +1397,8 @@ BEGIN
     sltype := substr(rec.slotlink, 1, 2);
     IF sltype = ''PH'' THEN
         SELECT
-            INTO rec *
+        INTO
+            rec *
         FROM
             PHone
         WHERE
@@ -1390,13 +1416,15 @@ BEGIN
         ifrow IFace%ROWTYPE;
         BEGIN
             SELECT
-                INTO ifrow *
+            INTO
+                ifrow *
             FROM
                 IFace
             WHERE
                 slotname = rec.slotlink;
             SELECT
-                INTO syrow *
+            INTO
+                syrow *
             FROM
                 SYSTEM
             WHERE
@@ -2375,14 +2403,16 @@ DECLARE
 BEGIN
     IF $1 > 10 THEN
         SELECT
-            INTO retval 5,
+        INTO
+            retval 5,
             10,
             15;
         RETURN NEXT retval;
         RETURN NEXT retval;
     ELSE
         SELECT
-            INTO retval 50,
+        INTO
+            retval 50,
             5::numeric,
             ''xxx''::text;
         RETURN NEXT retval;
@@ -2413,13 +2443,15 @@ DECLARE
 BEGIN
     IF $1 > 10 THEN
         SELECT
-            INTO retval 5,
+        INTO
+            retval 5,
             10,
             15;
         RETURN retval;
     ELSE
         SELECT
-            INTO retval 50,
+        INTO
+            retval 50,
             5::numeric,
             ''xxx''::text;
         RETURN retval;
@@ -2645,7 +2677,8 @@ DECLARE
     x int;
 BEGIN
     SELECT
-        INTO x id
+    INTO
+        x id
     FROM
         users
     WHERE
@@ -3398,7 +3431,8 @@ DECLARE
     y int;
 BEGIN
     SELECT
-        INTO x,
+    INTO
+        x,
         y unique1 / p1,
         unique1 / $1
     FROM
@@ -3517,7 +3551,9 @@ BEGIN
     FROM
         foo
     WHERE
-        f1 = 3 INTO STRICT x;
+        f1 = 3
+    INTO
+        STRICT x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3538,7 +3574,9 @@ BEGIN
     FROM
         foo
     WHERE
-        f1 = 0 INTO STRICT x;
+        f1 = 0
+    INTO
+        STRICT x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3559,7 +3597,9 @@ BEGIN
     FROM
         foo
     WHERE
-        f1 > 3 INTO STRICT x;
+        f1 > 3
+    INTO
+        STRICT x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3636,7 +3676,9 @@ BEGIN
         foo
     WHERE
         f1 = p1
-        AND f1::text = p3 INTO STRICT x;
+        AND f1::text = p3
+    INTO
+        STRICT x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3660,7 +3702,9 @@ BEGIN
         foo
     WHERE
         f1 > p1
-        OR f1::text = p3 INTO STRICT x;
+        OR f1::text = p3
+    INTO
+        STRICT x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3681,7 +3725,9 @@ BEGIN
     FROM
         foo
     WHERE
-        f1 > 3 INTO STRICT x;
+        f1 > 3
+    INTO
+        STRICT x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3757,7 +3803,9 @@ BEGIN
         foo
     WHERE
         f1 > p1
-        OR f1::text = p3 INTO STRICT x;
+        OR f1::text = p3
+    INTO
+        STRICT x;
         RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3785,7 +3833,9 @@ BEGIN
         foo
     WHERE
         f1 > p1
-        OR f1::text = p3 INTO STRICT x;
+        OR f1::text = p3
+    INTO
+        STRICT x;
         RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3940,7 +3990,9 @@ BEGIN
     SELECT
         v
     FROM
-        generate_series(1, 2) g (v) INTO x;
+        generate_series(1, 2) g (v)
+INTO
+    x;
 END;
 $$;
 
@@ -3953,7 +4005,9 @@ BEGIN
     SELECT
         v
     FROM
-        generate_series(1, 2) g (v) INTO x;
+        generate_series(1, 2) g (v)
+INTO
+    x;
 END;
 $$;
 
@@ -3969,16 +4023,22 @@ DECLARE
     y int;
 BEGIN
     SELECT
-        1 INTO x,
+        1
+    INTO
+        x,
         y;
     SELECT
         1,
-        2 INTO x,
+        2
+    INTO
+        x,
         y;
     SELECT
         1,
         2,
-        3 INTO x,
+        3
+    INTO
+        x,
         y;
 END
 $$;
@@ -3991,16 +4051,22 @@ DECLARE
     y int;
 BEGIN
     SELECT
-        1 INTO x,
+        1
+    INTO
+        x,
         y;
     SELECT
         1,
-        2 INTO x,
+        2
+    INTO
+        x,
         y;
     SELECT
         1,
         2,
-        3 INTO x,
+        3
+    INTO
+        x,
         y;
 END
 $$;
@@ -4026,14 +4092,18 @@ BEGIN
     SELECT
         *
     FROM
-        test_01 INTO x,
+        test_01
+    INTO
+        x,
         y;
     -- should be ok
     RAISE NOTICE 'ok';
     SELECT
         *
     FROM
-        test_01 INTO x;
+        test_01
+    INTO
+        x;
     -- should to fail
 END;
 $$;
@@ -4044,13 +4114,17 @@ DECLARE
 BEGIN
     SELECT
         1,
-        2 INTO t;
+        2
+    INTO
+        t;
     -- should be ok
     RAISE NOTICE 'ok';
     SELECT
         1,
         2,
-        3 INTO t;
+        3
+    INTO
+        t;
     -- should fail;
 END;
 $$;
@@ -4060,7 +4134,9 @@ DECLARE
     t test_01;
 BEGIN
     SELECT
-        1 INTO t;
+        1
+    INTO
+        t;
     -- should fail;
 END;
 $$;
@@ -6446,7 +6522,9 @@ SELECT
     level1_no
 FROM
     p
-    JOIN transition_table_level2 c ON c.parent_no = p.level1_no INTO x;
+    JOIN transition_table_level2 c ON c.parent_no = p.level1_no
+INTO
+    x;
     IF FOUND THEN
         RAISE EXCEPTION 'RI error';
     END IF;
@@ -6695,7 +6773,9 @@ DECLARE
 BEGIN
     a_val := $1;
     SELECT
-        * INTO result
+        *
+    INTO
+        result
     FROM
         partitioned_table
     WHERE

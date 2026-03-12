@@ -3755,6 +3755,17 @@ sub beautify {
 					$self->_over( $token, $last ) if ($self->{'_level_stack'}[-1]+1 != $self->{'_level'});
 				}
 
+				if ($self->{'_current_sql_stmt'} eq 'SELECT' and $token =~ /^INTO$/i)
+				{
+					$self->_back( $token, $last );
+					$self->_new_line( $token, $last );
+					# Finally add the token without further condition
+					$self->_add_token( $token, $last );
+					$self->_new_line( $token, $last );
+					$self->_over( $token, $last );
+					next;
+				}
+
 				# Finally add the token without further condition
 				$self->_add_token( $token, $last );
 

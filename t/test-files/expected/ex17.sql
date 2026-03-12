@@ -58,7 +58,9 @@ DECLARE
     passed boolean;
 BEGIN
     SELECT
-        (pwd = $2) INTO passed
+        (pwd = $2)
+    INTO
+        passed
     FROM
         pwds
     WHERE
@@ -119,20 +121,28 @@ BEGIN
     TRUNCATE TABLE stock;
     -- calculer le nombre d'annees
     SELECT
-        (annee_fin - annee_debut) + 1 INTO annees;
+        (annee_fin - annee_debut) + 1
+    INTO
+        annees;
     -- nombre de contenants
     SELECT
         count(*)
     FROM
-        contenant INTO contenants;
+        contenant
+    INTO
+        contenants;
     -- nombre de vins
     SELECT
         count(*)
     FROM
-        vin INTO vins;
+        vin
+    INTO
+        vins;
     -- calcul des combinaisons
     SELECT
-        annees * contenants * vins INTO tuples_a_generer;
+        annees * contenants * vins
+    INTO
+        tuples_a_generer;
     --on boucle sur tous les millesimes: disons 1930 a 2000
     -- soit 80 annees
     FOR v_annee IN annee_debut..annee_fin LOOP
@@ -142,7 +152,9 @@ BEGIN
             FOR v_vin_id IN 1..vins LOOP
                 -- on prends un nombre de bouteilles compris entre 6 et 18
                 SELECT
-                    round(random() * 12) + 6 INTO v_nombre;
+                    round(random() * 12) + 6
+                INTO
+                    v_nombre;
                 -- insertion dans la table de stock
                 INSERT INTO stock (vin_id, contenant_id, annee, nombre)
                     VALUES (v_vin_id, v_contenant_id, v_annee, v_nombre);
@@ -186,20 +198,28 @@ BEGIN
     SELECT
         count(*)
     FROM
-        recoltant INTO recoltants;
+        recoltant
+    INTO
+        recoltants;
     -- compter le nombre d'appellations
     SELECT
         count(*)
     FROM
-        appellation INTO appellations;
+        appellation
+    INTO
+        appellations;
     -- compter le nombre de types de vins
     SELECT
         count(*)
     FROM
-        type_vin INTO types_vins;
+        type_vin
+    INTO
+        types_vins;
     -- calculer le nombre de combinaisons possibles
     SELECT
-        (recoltants * appellations * types_vins) INTO tuples_a_generer;
+        (recoltants * appellations * types_vins)
+    INTO
+        tuples_a_generer;
     --on boucle sur tous les recoltants
     FOR v_recoltant_id IN 1..recoltants LOOP
         -- on boucle sur les appelations
@@ -248,31 +268,41 @@ BEGIN
     SELECT
         count(*)
     FROM
-        stock INTO stock_total;
+        stock
+    INTO
+        stock_total;
     RAISE NOTICE 'taille du stock %', stock_total;
     -- on calcule la taille de l'echantillon a
     -- supprimer de la table stock
     SELECT
-        round(stock_total / 10) INTO echantillon;
+        round(stock_total / 10)
+    INTO
+        echantillon;
     RAISE NOTICE 'taille de l''echantillon %', echantillon;
     -- on compte le nombre de vins disponibles
     SELECT
         count(*)
     FROM
-        vin INTO vins_disponibles;
+        vin
+    INTO
+        vins_disponibles;
     RAISE NOTICE '% vins disponibles', vins_disponibles;
     -- on compte le nombre de contenants disponibles
     SELECT
         count(*)
     FROM
-        contenant INTO contenants_disponibles;
+        contenant
+    INTO
+        contenants_disponibles;
     RAISE NOTICE '% contenants disponibles', contenants_disponibles;
     -- on recupere les bornes min/max de annees
     SELECT
         min(annee),
         max(annee)
     FROM
-        stock INTO annee_min,
+        stock
+    INTO
+        annee_min,
         annee_max;
     -- on fait une boucle correspondant a 1% des tuples
     -- de la table stock
@@ -317,12 +347,16 @@ BEGIN
     SELECT
         count(*)
     FROM
-        vin INTO vin_total;
+        vin
+    INTO
+        vin_total;
     RAISE NOTICE '% vins disponibles', vin_total;
     -- on calcule la taille de l'echantillon a
     -- supprimer de la table vin
     SELECT
-        round(vin_total / 10) INTO echantillon;
+        round(vin_total / 10)
+    INTO
+        echantillon;
     RAISE NOTICE 'taille de l''echantillon %', echantillon;
     -- on fait une boucle correspondant a 10% des tuples
     -- de la table vin

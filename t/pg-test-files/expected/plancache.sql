@@ -109,7 +109,9 @@ INSERT INTO t1
 INSERT INTO t1
     VALUES (13);
     SELECT
-        sum(f1) INTO total
+        sum(f1)
+    INTO
+        total
     FROM
         t1;
     DROP TABLE t1;

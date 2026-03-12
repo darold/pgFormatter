@@ -65,7 +65,8 @@ DECLARE
     this_schema text;
 BEGIN
     SELECT
-        INTO this_schema relnamespace::regnamespace::text
+    INTO
+        this_schema relnamespace::regnamespace::text
     FROM
         pg_class
     WHERE

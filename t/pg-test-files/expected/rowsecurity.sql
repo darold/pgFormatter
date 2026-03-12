@@ -3113,7 +3113,9 @@ FROM
     t3;
 
 SELECT
-    * INTO t4
+    *
+INTO
+    t4
 FROM
     t1;
 

@@ -5,7 +5,9 @@ DECLARE
     id uuid;
 BEGIN
     SELECT
-        id INTO id
+        id
+    INTO
+        id
     FROM
         job
     WHERE

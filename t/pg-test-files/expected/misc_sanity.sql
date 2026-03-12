@@ -86,7 +86,9 @@ BEGIN
         AND oid < 16384
     ORDER BY
         1 LOOP
-            EXECUTE 'select min(oid) from ' || relnm INTO lowoid;
+            EXECUTE 'select min(oid) from ' || relnm
+        INTO
+            lowoid;
             CONTINUE
             WHEN lowoid IS NULL
                 OR lowoid >= 16384;

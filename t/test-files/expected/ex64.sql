@@ -16,7 +16,9 @@ BEGIN
     a_val := $1;
 
     SELECT
-        * INTO result
+        *
+    INTO
+        result
     FROM
         partitioned_table
     WHERE

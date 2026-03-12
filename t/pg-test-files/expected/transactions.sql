@@ -3,7 +3,9 @@
 --
 BEGIN;
 SELECT
-    * INTO TABLE xacttest
+    *
+INTO
+    TABLE xacttest
 FROM
     aggtest;
 INSERT INTO xacttest (a, b)

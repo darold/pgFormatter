@@ -11,7 +11,9 @@ FROM
     tenk1;
 
 SELECT
-    * INTO TABLE onek2
+    *
+INTO
+    TABLE onek2
 FROM
     onek;
 
@@ -22,7 +24,9 @@ FROM
     slow_emp4000;
 
 SELECT
-    * INTO TABLE Bprime
+    *
+INTO
+    TABLE Bprime
 FROM
     tenk1
 WHERE
@@ -71,7 +75,9 @@ VALUES
 TABLE city;
 
 SELECT
-    * INTO TABLE ramp
+    *
+INTO
+    TABLE ramp
 FROM
     road
 WHERE

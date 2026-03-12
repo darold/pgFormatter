@@ -219,7 +219,9 @@ ORDER BY
 --   group w/o existing GROUP BY target under ambiguous condition
 --   into a table
 SELECT
-    count(*) INTO TABLE test_missing_target2
+    count(*)
+INTO
+    TABLE test_missing_target2
 FROM
     test_missing_target x,
     test_missing_target y
@@ -350,7 +352,9 @@ GROUP BY
 --   group w/o existing GROUP BY target under ambiguous condition
 --   into a table
 SELECT
-    count(x.b) INTO TABLE test_missing_target3
+    count(x.b)
+INTO
+    TABLE test_missing_target3
 FROM
     test_missing_target x,
     test_missing_target y
