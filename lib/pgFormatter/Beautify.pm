@@ -2218,7 +2218,7 @@ sub beautify {
 				  if ( !$self->{'wrap_after'} && !$self->{'_is_in_overlaps'} );
 				$self->_add_token($token);
 				$last = $self->_set_last( $token, $last )
-				  if ( $token ne ')' or uc( $self->_next_token ) ne 'AS' );
+				  if ( $token ne ')' or (defined $self->_next_token and uc( $self->_next_token ) ne 'AS') );
 				$self->{'_is_in_explain'} = 0;
 				next;
 			}
