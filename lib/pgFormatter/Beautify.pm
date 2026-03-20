@@ -404,6 +404,12 @@ s/AS ('[^\']+')\s*,\s*('[^\']+')/AS CODEPARTB${i}CODEPARTB/is
 	}
 	$self->{'query'} = join( '', @temp_content );
 
+	# replace all inline dollar-quoted constants
+	while ( $self->{'query'} =~ s/(\$\$\S[^\n\r]*?\$\$)/AAKEYWCONST${j}AA/s ) {
+		$self->{'keyword_constant'}{$j} = $1;
+		$j++;
+	}
+
  # Store values of code that must not be changed following the given placeholder
 	if ( $self->{'placeholder'} ) {
 		if ( !$self->{'multiline'} ) {
