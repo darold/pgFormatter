@@ -241,7 +241,7 @@ BEGIN
     WHERE
         name = ps.pfname;
     IF NOT found THEN
-        RAISE EXCEPTION $$ Patchfield "%" does NOT exist$$, ps.pfname;
+        RAISE EXCEPTION $$Patchfield "%" does not exist$$, ps.pfname;
     END IF;
     RETURN ps;
 END;

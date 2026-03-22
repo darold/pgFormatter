@@ -4,7 +4,7 @@ SELECT
 
 -- OK.
 SELECT
-    $$ ''$$::json;
+    $$''$$::json;
 
 -- ERROR, single quotes are not allowed
 SELECT
@@ -217,7 +217,7 @@ SELECT
     array_to_json(array_agg(q), FALSE)
 FROM (
     SELECT
-        $$ a$$ || x AS b,
+        $$a$$ || x AS b,
         y AS c,
         ARRAY[ROW (x.*, ARRAY[1, 2, 3]), ROW (y.*, ARRAY[4, 5, 6])] AS z
     FROM
@@ -240,7 +240,7 @@ SELECT
     row_to_json(q)
 FROM (
     SELECT
-        $$ a$$ || x AS b,
+        $$a$$ || x AS b,
         y AS c,
         ARRAY[ROW (x.*, ARRAY[1, 2, 3]), ROW (y.*, ARRAY[4, 5, 6])] AS z
     FROM
@@ -251,7 +251,7 @@ SELECT
     row_to_json(q, TRUE)
 FROM (
     SELECT
-        $$ a$$ || x AS b,
+        $$a$$ || x AS b,
         y AS c,
         ARRAY[ROW (x.*, ARRAY[1, 2, 3]), ROW (y.*, ARRAY[4, 5, 6])] AS z
     FROM
@@ -323,7 +323,7 @@ SELECT
     json_agg(q)
 FROM (
     SELECT
-        $$ a$$ || x AS b,
+        $$a$$ || x AS b,
         y AS c,
         ARRAY[ROW (x.*, ARRAY[1, 2, 3]), ROW (y.*, ARRAY[4, 5, 6])] AS z
     FROM

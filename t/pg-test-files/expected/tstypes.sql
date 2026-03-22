@@ -33,11 +33,13 @@ SELECT
     E'''1 \\''2'' '' 3'' 4 '::tsvector;
 
 SELECT
-    $$ '\\as' ab \c ab\\c AB\\\c ab\\\\c$$::tsvector;
-    SELECT
-        tsvectorin(tsvectorout($$ '\\as' ab \c ab\\c AB\\\c ab\\\\c$$::tsvector));
-                SELECT
-                    '''w'':4A,3B,2C,1D,5 a:8';
+    $$'\\as' ab\c ab\\c AB\\\c ab\\\\c$$::tsvector;
+
+SELECT
+    tsvectorin(tsvectorout($$'\\as' ab\c ab\\c AB\\\c ab\\\\c$$::tsvector));
+
+SELECT
+    '''w'':4A,3B,2C,1D,5 a:8';
 
 SELECT
     'a:3A b:2a'::tsvector || 'ba:1234 a:1B';
@@ -161,7 +163,7 @@ SELECT
     E'1&(''2''&('' 4''&(\\|5 | ''6 \\'' !|&'')))'::tsquery;
 
 SELECT
-    $$ '\\as' $$::tsquery;
+    $$'\\as'$$::tsquery;
 
 SELECT
     'a:* & nbb:*ac | doo:a* | goo'::tsquery;
