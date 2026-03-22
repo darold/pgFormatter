@@ -405,7 +405,7 @@ s/AS ('[^\']+')\s*,\s*('[^\']+')/AS CODEPARTB${i}CODEPARTB/is
 	$self->{'query'} = join( '', @temp_content );
 
 	# replace all inline dollar-quoted constants
-	while ( $self->{'query'} =~ s/(\$\$\S[^\n\r]*?\$\$)/AAKEYWCONST${j}AA/s ) {
+	while ( $self->{'query'} =~ s/(?<!AS )(\$\$\S[^\n\r]*?\$\$)/AAKEYWCONST${j}AA/is ) {
 		$self->{'keyword_constant'}{$j} = $1;
 		$j++;
 	}
