@@ -206,10 +206,12 @@ sub save_output {
 	# Thanks to "autodie" I don't have to check if open() worked.
 	if ( $self->{'cfg'}->{'output'} ne '-' ) {
 		$self->logmsg( 'DEBUG',
-			'Formatted SQL queries will be written to stdout' );
+			'Formatted SQL queries will be written to file ' . $self->{'cfg'}->{'output'} );
 		open $fh, '>', $self->{'cfg'}->{'output'};
 	}
 	else {
+		$self->logmsg( 'DEBUG',
+			'Formatted SQL queries will be written to stdout' );
 		$fh = \*STDOUT;
 	}
 	print $fh $self->{'ready'};
