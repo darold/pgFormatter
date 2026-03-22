@@ -69,12 +69,5 @@ $$
 LANGUAGE plpgsql;
 
 SELECT
-    throws_ok ($$
-        SELECT
-            * FROM custom_function ('value1', 'value2');
-
-$$,
-'P0001',
-'NULL password for new user: app21_user',
-$e$ NULL PASSWORD FOR new user: app21_user $e$);
+    throws_ok ($$select * from custom_function('value1', 'value2');$$, 'P0001', 'NULL password for new user: app21_user', $e$ NULL PASSWORD FOR new user: app21_user $e$);
 
