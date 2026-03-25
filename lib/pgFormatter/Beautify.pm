@@ -947,6 +947,7 @@ sub beautify {
 	$self->{'_is_in_between'}              = 0;
 	$self->{'_is_in_materialized'}         = 0;
 	$self->{'_is_closing_function'}        = 0;
+	$self->{'_is_in_returning'}            = 0;
 
 	@{ $self->{'_begin_level'} } = ();
 
@@ -2594,6 +2595,7 @@ sub beautify {
 			$self->{'_is_in_drop_function'}        = 0;
 			$self->{'_current_full_sql_stmt'}      = '';
 			$self->{ '_is_in_return_query' }       = 0;
+			$self->{'_is_in_returning'}            = 0;
 
 			if ( $self->{'_insert_values'} ) {
 				if (    $self->{'_is_in_block'} == -1
@@ -2714,6 +2716,8 @@ sub beautify {
 			$self->{'_is_in_set'} = 1
 			if ( uc($token) eq 'SET'
 				&& $self->{'_current_sql_stmt'} !~ /^(UPDATE|INSERT)$/i );
+				
+			$self->{'_is_in_returning'} = 1 if ( uc($token) eq 'RETURNING' );
 
 			# special cases for create partition statement
 			if (    $token =~ /^VALUES$/i && defined $last
@@ -3763,6 +3767,18 @@ sub beautify {
 
 				if ($self->{'_current_sql_stmt'} eq 'SELECT' and $token =~ /^INTO$/i)
 				{
+					$self->_back( $token, $last );
+					$self->_new_line( $token, $last );
+					# Finally add the token without further condition
+					$self->_add_token( $token, $last );
+					$self->_new_line( $token, $last );
+					$self->_over( $token, $last );
+					next;
+				}
+
+				if ($self->{'_is_in_returning'} and $token =~ /^INTO$/i)
+				{
+					$self->{'_is_in_returning'} = 0;
 					$self->_back( $token, $last );
 					$self->_new_line( $token, $last );
 					# Finally add the token without further condition
