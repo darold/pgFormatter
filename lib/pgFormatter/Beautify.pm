@@ -3404,7 +3404,7 @@ sub beautify {
 				and !$self->{'_is_in_index'}
 				and !$self->{'_is_in_merge'}
 				and ( not defined $last or $last !~ /^(?:CREATE)$/i )
-				and ( $self->{'_is_in_create'} <= 2 )
+				and ( $self->{'_is_in_create'} <= 2 or $self->{'_is_in_policy'})
 				and !$self->{'_is_in_trigger'} )
 			{
 				$self->_new_line( $token, $last );

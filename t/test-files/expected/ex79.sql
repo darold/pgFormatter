@@ -33,3 +33,15 @@ INSERT INTO brtrigpartcon
     FROM
         result;
 
+CREATE POLICY "transport_company_employees_delete_as_company_admin_policy" ON "transport_company_employees" AS PERMISSIVE
+    FOR DELETE TO "authenticated"
+    USING (EXISTS (
+        SELECT
+            1
+        FROM
+            "transport_company_employees" AS admin_membership
+        WHERE
+            "admin_membership"."employee_profile_id" = app.current_profile_id ()
+            AND "admin_membership"."role" = 'admin'
+            AND "admin_membership"."transport_company_id" = "transport_company_employees"."transport_company_id"));
+
