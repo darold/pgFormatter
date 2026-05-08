@@ -3472,7 +3472,9 @@ BEGIN
     INSERT INTO foo
         VALUES (5, 6)
     RETURNING
-        * INTO x;
+        *
+    INTO
+        x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$
@@ -3493,7 +3495,9 @@ BEGIN
         (7, 8),
         (9, 10)
     RETURNING
-        * INTO x;
+        *
+    INTO
+        x;
     RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 END
 $$

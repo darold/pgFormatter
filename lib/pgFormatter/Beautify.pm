@@ -662,7 +662,7 @@ sub tokenize_sql {
 		|
 		(?:\|\|\/|\|\/) # square root and cube root
 		|
-		(?:\@\-\@|\@\@|\#\#|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
+		(?:\@\-\@|\@\@|\#\#|\#\-|<<\||\|>>|\&<\||\&<|\|\&>|\&>|<\^|>\^|\?\#|\#|\?<\||\?\-\||\?\-|\?\|\||\?\||\@>|<\@|\~=)
                                  # Geometric Operators
 		|
 		(?:~<=~|~>=~|~>~|~<~) # string comparison for pattern matching operator families
@@ -2286,8 +2286,7 @@ sub beautify {
 						or $self->_next_token eq ';' )
 				  );
 				$add_nl = 1
-				  if (
-						$self->{'_current_sql_stmt'} ne 'INSERT'
+				  if ( $self->{'_current_sql_stmt'} ne 'INSERT'
 					and !$self->{'_is_in_function'}
 					and ( defined $self->_next_token
 						and $self->_next_token =~ /^(SELECT|WITH)$/i )
@@ -3610,6 +3609,10 @@ sub beautify {
 		}
 		else {
 			next if ( $self->{'keep_newline'} and $token =~ /^\s+$/ );
+
+			if ($self->{'_is_in_returning'} and $token =~ /^INSERT$/i) {
+				$self->{'_is_in_returning'} = 0;
+			}
 
 			if (    $self->{'_fct_code_delimiter'}
 				and $self->{'_fct_code_delimiter'} =~ /^'.*'$/ )

@@ -3332,17 +3332,17 @@ SELECT
     jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}', '{d,1,0}');
 
 SELECT
-    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb # - '{n}';
+    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb #- '{n}';
 
 SELECT
-    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb # - '{b,-1}';
+    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb #- '{b,-1}';
 
 SELECT
-    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb # - '{b,-1e}';
+    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb #- '{b,-1e}';
 
 -- invalid array subscript
 SELECT
-    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb # - '{d,1,0}';
+    '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb #- '{d,1,0}';
 
 -- empty structure and error conditions for delete and replace
 SELECT
@@ -3367,14 +3367,14 @@ SELECT
     '[]'::jsonb - 1;
 
 SELECT
-    '"a"'::jsonb # - '{a}';
+    '"a"'::jsonb #- '{a}';
 
 -- error
 SELECT
-    '{}'::jsonb # - '{a}';
+    '{}'::jsonb #- '{a}';
 
 SELECT
-    '[]'::jsonb # - '{a}';
+    '[]'::jsonb #- '{a}';
 
 SELECT
     jsonb_set('"a"', '{a}', '"b"');

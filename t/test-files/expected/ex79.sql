@@ -19,3 +19,17 @@ INSERT INTO notes (payload)
     "message": "User''s code is ''1x''"
   }');
 
+SELECT
+    '["a", {"b":1}]'::jsonb #- '{1,b}';
+
+WITH result AS (
+INSERT INTO brtrigpartcon
+        VALUES (1, 'hi there')
+    RETURNING
+        1)
+    INSERT INTO inserttest3 (f3)
+    SELECT
+        *
+    FROM
+        result;
+
