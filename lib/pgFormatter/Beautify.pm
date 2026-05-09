@@ -884,6 +884,7 @@ sub beautify {
 	$self->{'_is_in_from'}                 = 0;
 	$self->{'_is_in_join'}                 = 0;
 	$self->{'_is_in_create'}               = 0;
+	$self->{'_is_in_create_table'}         = 0;
 	$self->{'_is_in_create_schema'}        = 0;
 	$self->{'_is_in_rule'}                 = 0;
 	$self->{'_is_in_create_function'}      = 0;
@@ -1122,6 +1123,9 @@ sub beautify {
 			if ( $self->{'_is_in_value'} ) {
 				$self->{'_parenthesis_level_value'}--
 				  if ( $self->{'_parenthesis_level_value'} );
+			}
+			if (defined $self->_next_token && $self->_next_token eq ';') {
+				$self->{'_is_in_create_table'} = 0;
 			}
 		}
 		elsif ( $token eq '(' ) {
@@ -1412,6 +1416,8 @@ sub beautify {
 				$self->{'_is_in_create_schema'}++;
 			}
 			$self->{'_is_in_create'} = 1;
+			$self->{'_is_in_create_table'} = 1 if (defined $self->_next_token
+								&& uc($self->_next_token) eq 'TABLE');
 		}
 		elsif ( $token =~ /^CREATE$/i
 			and defined $self->_next_token && $self->_next_token =~ /^RULE$/i )
@@ -2539,6 +2545,7 @@ sub beautify {
 			$self->{'_is_in_from'}                 = 0;
 			$self->{'_is_in_join'}                 = 0;
 			$self->{'_is_in_create'}               = 0;
+			$self->{'_is_in_create_table'}         = 0;
 			$self->{'_is_in_create_schema'}        = 0;
 			$self->{'_is_in_alter'}                = 0;
 			$self->{'_is_in_merge'}                = 0;
@@ -4049,7 +4056,8 @@ sub _add_token {
 			}
 		}
 		elsif ( $token eq ')'
-			and $self->{'_is_in_block'} >= 0 && $self->{'_is_in_create'} )
+			and $self->{'_is_in_block'} >= 0 && $self->{'_is_in_create'}
+			and !$self->{'_is_in_create_table'})
 		{
 			print STDERR "DEBUG_SPC: 6) last=", ( $last_token || '' ),
 			  ", token=$token\n"
