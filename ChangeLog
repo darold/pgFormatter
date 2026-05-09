@@ -1,3 +1,41 @@
+May 8 2026 - v5.10
+
+This release adds several formatting improvements and fixes some issues
+reported by users since the last release.
+
+Here is the complete list of changes and acknowledgments:
+
+    - Add formatting of MERGE requests. Thanks to Ole Peder Brandtzaeg for
+      the report.
+    - Fix DO $$ BEGIN CREATE TABLE (...); END $$; an extra space was added to
+      variable length types before closing paren. Thanks to Paul Huffman for
+      the report.
+    - Fix formatting issue in WHERE clause with CREATE POLICY. Thanks to
+      max delorme for the report.
+    - Fix JSONB Array delete field operator format issue. Thanks to matt barnes
+      for the report.
+    - Fix a RETURNING formatting issue in CTE when it include an INSERT INTO
+      statement.
+    - Fix formatting of clause INTO vars with UPDATE. Thanks to Alexander Samsig
+      for the report.
+    - Fix indentation of RETURNING ... INTO statements. Thanks to Alexander
+      Samsig for the patch.
+    - Fix output destination debug message.
+    - Preserve inline $$…$$ dollar-quoted strings with SQL function declaration.
+      Dollar-quoted strings are string literals and their contents should be
+      left alone. Thanks to Ben Kircher for the patch.
+    - Fix a crash on uninitialized _next_token in CTE/explain path. Thanks to
+      Ben Kircher for the patch.
+    - Fix indentation of SELECT ... INTO statements. Thanks to Amanda Graven
+      for the report.
+    - Fix indentation levels in CREATE POLICY statements with USING and
+      WITH CHECK. Thanks to max delorme for the report.
+    - Fix formatting of multiple escaped-quote segments in the same multi line
+      constant. Thanks to etzelc for the report.
+    - Remove exit command in the highlight_code function that was aborting CGI
+      work.
+    - Fix uninitialized variable error. Thanks to Nhyalgotphores for the report.
+
 December 21 2025 - v5.9
 
 This release adds several formatting improvements and fixes some issues
