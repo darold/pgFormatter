@@ -11,6 +11,9 @@ BEGIN
     CREATE TABLE TEST.T2 (
         C1 varchar(10) CHECK (C1 > 1)
     );
+    CREATE TEMPORARY TABLE TEST.T2 (
+        C1 varchar(10) CHECK (C1 > 1)
+    );
 END
 $$;
 

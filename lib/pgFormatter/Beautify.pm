@@ -1124,7 +1124,7 @@ sub beautify {
 				$self->{'_parenthesis_level_value'}--
 				  if ( $self->{'_parenthesis_level_value'} );
 			}
-			if (defined $self->_next_token && $self->_next_token eq ';') {
+			if (defined $self->_next_token && $self->_next_token =~ /^(;|ON)$/i) {
 				$self->{'_is_in_create_table'} = 0;
 			}
 		}
@@ -1417,7 +1417,7 @@ sub beautify {
 			}
 			$self->{'_is_in_create'} = 1;
 			$self->{'_is_in_create_table'} = 1 if (defined $self->_next_token
-								&& uc($self->_next_token) eq 'TABLE');
+								&& $self->_next_token =~ /(TABLE|TEMP)/i);
 		}
 		elsif ( $token =~ /^CREATE$/i
 			and defined $self->_next_token && $self->_next_token =~ /^RULE$/i )
