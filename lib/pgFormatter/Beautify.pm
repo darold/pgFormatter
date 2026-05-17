@@ -2947,7 +2947,7 @@ sub beautify {
 			if (   $token =~ /^(UPDATE|DELETE|INSERT)$/i
 				&& $self->{'_is_in_merge'} )
 			{
-				$self->_over( $token, $last ) if ($self->{'_level_stack'}[-1]+1 != $self->{'_level'});
+				$self->_over( $token, $last ) if ($#{$self->{'_level_stack'}} >= 0 and $self->{'_level_stack'}[-1]+1 != $self->{'_level'});
 			}
 
 			# case of ON DELETE/UPDATE clause in create table statements
