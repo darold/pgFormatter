@@ -324,7 +324,7 @@ Options:
     --no-space-function : remove space between function call and the open
                             parenthesis.
     --redundant-parenthesis: do not remove redundant parenthesis in DML.
-
+    --vertical-align      : vertically align CREATE TABLE column definitions.
 Examples:
 
     cat samples/ex1.sql | $0 -
