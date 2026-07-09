@@ -17,6 +17,7 @@ is_deeply(
 		declaration_tokens => [qw(uuid primary key)],
 		remainder_tokens   => [ 'default', 'gen_random_uuid', '(', ')' ],
 		comma              => ',',
+		comment            => '',
 	},
 	'parses PRIMARY KEY and DEFAULT separately'
 );
@@ -31,6 +32,7 @@ is_deeply(
 		declaration_tokens => ['jsonb'],
 		remainder_tokens   => [ 'not', 'null', 'default', q{'{}'}, '::jsonb' ],
 		comma              => ',',
+		comment            => '',
 	},
 	'parses multiple column constraints'
 );
@@ -45,6 +47,7 @@ is_deeply(
 		declaration_tokens => [ 'numeric', '(', '10', ',', '2', ')' ],
 		remainder_tokens   => [],
 		comma              => ',',
+		comment            => '',
 	},
 	'keeps type modifiers inside the declaration'
 );
@@ -60,6 +63,7 @@ is_deeply(
 		  [ 'public.custom_type', '[', ']', 'unique' ],
 		remainder_tokens => [],
 		comma            => '',
+		comment          => '',
 	},
 	'parses quoted names, qualified custom types, arrays, and UNIQUE'
 );
@@ -74,7 +78,8 @@ is_deeply(
 		declaration_tokens => ['uuid'],
 		remainder_tokens   =>
 		  [ 'references', 'app_user', '(', 'id', ')', 'on', 'delete', 'set', 'null' ],
-		comma => ',',
+		comma   => ',',
+		comment => '',
 	},
 	'parses a REFERENCES constraint'
 );
@@ -100,11 +105,26 @@ ok(
 	'skips multiline definitions in the first implementation'
 );
 
+is_deeply(
+	$beautifier->_parse_create_table_column(
+		'    username varchar(150) not null unique, -- explanatory comment'
+	),
+	{
+		indent             => '    ',
+		name               => 'username',
+		declaration_tokens => [ 'varchar', '(', '150', ')' ],
+		remainder_tokens   => [ 'not', 'null', 'unique' ],
+		comma              => ',',
+		comment            => '-- explanatory comment',
+	},
+	'parses a trailing comment separately from the column SQL'
+);
+
 ok(
 	!defined $beautifier->_parse_create_table_column(
-		'    username text -- explanatory comment'
+		'    username text /* explanation */ not null'
 	),
-	'skips definitions containing comments in the first implementation'
+	'skips comments embedded in the middle of a definition'
 );
 
 is(
@@ -210,6 +230,40 @@ is_deeply(
 is_deeply(
 	$beautifier->_align_create_table_column_group(
 		[
+			'    id serial primary key, -- some comment',
+			'    name varchar(100) not null, -- another comment',
+			'    email varchar(100) not null, -- third comment',
+			'    created_at timestamp with time zone default current_timestamp -- last comment',
+		]
+	),
+	[
+		'    id         serial primary key,                                -- some comment',
+		'    name       varchar(100)             not null,                 -- another comment',
+		'    email      varchar(100)             not null,                 -- third comment',
+		'    created_at timestamp with time zone default current_timestamp -- last comment',
+	],
+	'aligns trailing comments after the complete column SQL'
+);
+
+is_deeply(
+	$beautifier->_align_create_table_column_group(
+		[
+			'    id uuid primary key default gen_random_uuid(),',
+			'    username varchar(150) not null unique, -- only comment',
+			'    email varchar not null unique',
+		]
+	),
+	[
+		'    id       uuid primary key default gen_random_uuid(),',
+		'    username varchar(150)     not null unique,           -- only comment',
+		'    email    varchar          not null unique',
+	],
+	'aligns a lone trailing comment against the longest supported column'
+);
+
+is_deeply(
+	$beautifier->_align_create_table_column_group(
+		[
 			'    id uuid primary key,',
 			'    constraint demo_pk primary key (id)',
 			'    descriptive_name text',
@@ -273,6 +327,189 @@ is_deeply(
 	$beautifier->_align_create_table_column_group([]),
 	[],
 	'handles an empty group'
+);
+
+sub format_sql {
+	my ( $query, $vertical_align ) = @_;
+
+	my $formatter = pgFormatter::Beautify->new(
+		query             => $query,
+		vertical_align    => $vertical_align,
+		uc_keywords       => 1,
+		uc_types          => 1,
+		uc_functions      => 1,
+		no_space_function => 1,
+		no_extra_line     => 1,
+	);
+
+	$formatter->beautify();
+	return $formatter->content();
+}
+
+my $create_table_sql = <<'SQL';
+create table queue_job (
+    id uuid primary key default gen_random_uuid(),
+    parent_job_id uuid references queue_job (id) on delete set null,
+    status queue_job_status not null default 'queued',
+    created_at timestamptz not null default now()
+);
+SQL
+
+is(
+	format_sql( $create_table_sql, 1 ),
+	<<'SQL',
+create table queue_job(
+    id            uuid primary key          default gen_random_uuid(),
+    parent_job_id uuid             references queue_job (id) on delete set null,
+    status        queue_job_status not null default 'queued',
+    created_at    timestamptz      not null default now()
+);
+SQL
+	'applies vertical alignment through the normal formatter output path'
+);
+
+my $commented_table_sql = <<'SQL';
+create table example (
+    id serial primary key, -- some comment
+    name varchar(100) not null, -- another comment
+    email varchar(100) not null, -- third comment
+    created_at timestamp with time zone default current_timestamp -- last comment
+);
+SQL
+
+is(
+	format_sql( $commented_table_sql, 1 ),
+	<<'SQL',
+create table example(
+    id         serial primary key,                                -- some comment
+    name       varchar(100)             not null,                 -- another comment
+    email      varchar(100)             not null,                 -- third comment
+    created_at timestamp with time zone default current_timestamp -- last comment
+);
+SQL
+	'aligns trailing comments through the normal formatter output path'
+);
+
+my $commented_aligned_once = format_sql( $commented_table_sql, 1 );
+is(
+	$beautifier->_align_create_table_columns($commented_aligned_once),
+	$commented_aligned_once,
+	'keeps aligned trailing comments stable when alignment runs again'
+);
+
+is(
+	format_sql( $create_table_sql, 0 ),
+	<<'SQL',
+create table queue_job(
+    id uuid primary key default gen_random_uuid(),
+    parent_job_id uuid references queue_job(id) on delete set null,
+    status queue_job_status not null default 'queued',
+    created_at timestamptz not null default now()
+);
+SQL
+	'leaves normal formatter output unchanged when vertical alignment is disabled'
+);
+
+my $separate_parenthesis = <<'SQL';
+create table demo
+(
+    id uuid primary key,
+    descriptive_name text
+);
+SQL
+
+is(
+	$beautifier->_align_create_table_columns($separate_parenthesis),
+	<<'SQL',
+create table demo
+(
+    id               uuid primary key,
+    descriptive_name text
+);
+SQL
+	'detects a CREATE TABLE opening parenthesis on the following line'
+);
+
+my $nested_definition = <<'SQL';
+CREATE TABLE measurements (
+    id uuid primary key,
+    score integer check (
+        score >= 0
+        and score <= 100
+    ),
+    descriptive_name text
+);
+SQL
+
+is(
+	$beautifier->_align_create_table_columns($nested_definition),
+	<<'SQL',
+CREATE TABLE measurements (
+    id               uuid primary key,
+    score integer check (
+        score >= 0
+        and score <= 100
+    ),
+    descriptive_name text
+);
+SQL
+	'preserves multiline nested definitions while aligning other top-level columns'
+);
+
+my $create_table_as = <<'SQL';
+CREATE TABLE completed_jobs AS
+SELECT id, status
+FROM queue_job;
+SQL
+
+is(
+	$beautifier->_align_create_table_columns($create_table_as),
+	$create_table_as,
+	'skips CREATE TABLE AS statements'
+);
+
+my $multiple_tables = <<'SQL';
+CREATE TABLE first_table (
+    id uuid,
+    descriptive_name text
+);
+
+CREATE TABLE second_table (
+    key text,
+    considerably_longer_value jsonb
+);
+SQL
+
+is(
+	$beautifier->_align_create_table_columns($multiple_tables),
+	<<'SQL',
+CREATE TABLE first_table (
+    id               uuid,
+    descriptive_name text
+);
+
+CREATE TABLE second_table (
+    key                       text,
+    considerably_longer_value jsonb
+);
+SQL
+	'aligns multiple CREATE TABLE statements independently'
+);
+
+my $aligned_once =
+  $beautifier->_align_create_table_columns($separate_parenthesis);
+is(
+	$beautifier->_align_create_table_columns($aligned_once),
+	$aligned_once,
+	'is idempotent when applied more than once'
+);
+
+is(
+	$beautifier->_parenthesis_delta(
+		q{    note text default 'not structural (parenthesis)' -- ignored )}
+	),
+	0,
+	'ignores parentheses contained in strings and comments'
 );
 
 done_testing();
