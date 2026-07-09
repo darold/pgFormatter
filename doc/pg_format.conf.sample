@@ -86,5 +86,5 @@ wrap-comment=0
 # Remove the space character between a function call and the open parenthesis that follow.
 no-space-function=0
 
-# Vertically align CREATE TABLE column definitions.
+# Vertically align CREATE TABLE column definitions and trailing comments.
 vertical-align=0
