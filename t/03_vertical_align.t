@@ -198,7 +198,7 @@ is_deeply(
 		]
 	),
 	[
-		'    id            uuid primary key default gen_random_uuid(),',
+		'    id            uuid primary key          default gen_random_uuid(),',
 		'    parent_job_id uuid             references queue_job (id) on delete set null,',
 		'    type          queue_job_type   not null,',
 		q{    status        queue_job_status not null default 'queued',},
@@ -221,6 +221,36 @@ is_deeply(
 		'    descriptive_name text',
 	],
 	'preserves unsupported table constraints while aligning column definitions'
+);
+
+is_deeply(
+	$beautifier->_align_create_table_column_group(
+		[
+			'    first_value text default current_user,',
+			'    second_value text not null default current_user,',
+			'    third_value text references app_user (username)',
+		]
+	),
+	[
+		'    first_value  text          default current_user,',
+		'    second_value text not null default current_user,',
+		'    third_value  text references app_user (username)',
+	],
+	'aligns DEFAULT without moving unrelated constraints'
+);
+
+is_deeply(
+	$beautifier->_align_create_table_column_group(
+		[
+			'    first_value text default current_user,',
+			'    second_value text references app_user (username)',
+		]
+	),
+	[
+		'    first_value  text default current_user,',
+		'    second_value text references app_user (username)',
+	],
+	'does not add padding when only one row contains DEFAULT'
 );
 
 my @single_column = ('    id uuid primary key');

@@ -961,6 +961,98 @@ sub _pad_right {
 	return $value . ( ' ' x $padding );
 }
 
+=head2 _align_create_table_column_keyword
+
+Align a top-level keyword within the remainder of parsed CREATE TABLE columns.
+
+For every matching row, the tokens before the keyword are treated as a prefix.
+Shorter prefixes are padded so the keyword starts in the same output column.
+Keywords nested inside parentheses or array brackets are ignored.
+
+The method updates the rendered remainder stored in each matching row. It does
+not reorder tokens or affect rows that do not contain the requested keyword.
+
+=cut
+
+sub _align_create_table_column_keyword {
+	my ( $self, $rows, $keyword ) = @_;
+
+	return if ( !$rows || !@{$rows} || !defined $keyword || $keyword eq '' );
+
+	my $keyword_upper = uc($keyword);
+	my $prefix_width  = 0;
+	my @matches;
+
+	for my $row ( @{$rows} ) {
+		next if ( exists $row->{'original'} );
+
+		my $tokens = $row->{'remainder_tokens'};
+		next if ( !$tokens || !@{$tokens} );
+
+		my $parenthesis_depth = 0;
+		my $bracket_depth     = 0;
+		my $keyword_index;
+
+		for my $index ( 0 .. $#{$tokens} ) {
+			my $token = $tokens->[$index];
+
+			if (
+				$parenthesis_depth == 0
+				&& $bracket_depth == 0
+				&& uc($token) eq $keyword_upper
+			  )
+			{
+				$keyword_index = $index;
+				last;
+			}
+
+			$parenthesis_depth++ if ( $token eq '(' );
+			$parenthesis_depth--
+			  if ( $token eq ')' && $parenthesis_depth > 0 );
+			$bracket_depth++ if ( $token eq '[' );
+			$bracket_depth-- if ( $token eq ']' && $bracket_depth > 0 );
+		}
+
+		next if ( !defined $keyword_index );
+
+		my @prefix_tokens =
+		  $keyword_index > 0 ? @{$tokens}[ 0 .. $keyword_index - 1 ] : ();
+		my @clause_tokens = @{$tokens}[ $keyword_index .. $#{$tokens} ];
+
+		my $prefix = $self->_render_sql_tokens( \@prefix_tokens );
+		my $clause = $self->_render_sql_tokens( \@clause_tokens );
+
+		my $current_width = length($prefix);
+		$prefix_width = $current_width if ( $current_width > $prefix_width );
+
+		push @matches,
+		  {
+			row    => $row,
+			prefix => $prefix,
+			clause => $clause,
+		  };
+	}
+
+	return if ( @matches < 2 );
+
+	for my $match (@matches) {
+		my $prefix = $match->{'prefix'};
+
+		if ( length($prefix) ) {
+			$match->{'row'}->{'remainder'} =
+			  $self->_pad_right( $prefix, $prefix_width )
+			  . ' '
+			  . $match->{'clause'};
+		}
+		else {
+			$match->{'row'}->{'remainder'} =
+			  ( ' ' x ( $prefix_width + 1 ) ) . $match->{'clause'};
+		}
+	}
+
+	return;
+}
+
 =head2 _align_create_table_column_group
 
 Align a group of single-line CREATE TABLE column definitions.
@@ -1009,6 +1101,8 @@ sub _align_create_table_column_group {
 	# A single definition has nothing to align with. Return a new array reference
 	# so callers can safely use the result without mutating their input array.
 	return [ @{$lines} ] if ( $alignable_count < 2 );
+
+	$self->_align_create_table_column_keyword( \@rows, 'DEFAULT' );
 
 	my @aligned_lines;
 
