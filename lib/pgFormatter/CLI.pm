@@ -130,7 +130,7 @@ sub beautify {
 	$args{'extra_keyword'}         = $self->{'cfg'}->{'extra-keyword'};
 	$args{'no_space_function'}     = $self->{'cfg'}->{'no-space-function'};
 	$args{'redundant_parenthesis'} = $self->{'cfg'}->{'redundant-parenthesis'};
-  $args{'vertical_align'}        = $self->{'cfg'}->{'vertical-align'};
+    $args{'vertical_align'}        = $self->{'cfg'}->{'vertical-align'};
 
 	# Backward compatibility
 	$args{'extra_keyword'} = 'redshift'
