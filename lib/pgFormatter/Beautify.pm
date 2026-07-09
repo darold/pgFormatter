@@ -938,6 +938,107 @@ sub _render_sql_tokens {
 	return $rendered;
 }
 
+=head2 _pad_right
+
+Pad a string with spaces until it reaches the requested width.
+
+The helper returns the original string unchanged when it is already at least as
+wide as the requested width. Alignment uses spaces deliberately: tabs would
+make the result depend on the tab width configured by the editor displaying the
+SQL.
+
+=cut
+
+sub _pad_right {
+	my ( $self, $value, $width ) = @_;
+
+	$value = '' if ( !defined $value );
+	$width = length($value) if ( !defined $width );
+
+	my $padding = $width - length($value);
+	return $value if ( $padding <= 0 );
+
+	return $value . ( ' ' x $padding );
+}
+
+=head2 _align_create_table_column_group
+
+Align a group of single-line CREATE TABLE column definitions.
+
+The method aligns the column names and the beginning of each remainder, while
+preserving indentation, token order, trailing commas, and unsupported lines.
+It only returns rendered lines; it does not modify the formatter output.
+
+=cut
+
+sub _align_create_table_column_group {
+	my ( $self, $lines ) = @_;
+
+	return [] if ( !$lines || !@{$lines} );
+
+	my @rows;
+	my $name_width        = 0;
+	my $declaration_width = 0;
+	my $alignable_count   = 0;
+
+	for my $line ( @{$lines} ) {
+		my $column = $self->_parse_create_table_column($line);
+
+		if ( !$column ) {
+			push @rows, { original => $line };
+			next;
+		}
+
+		$column->{'declaration'} =
+		  $self->_render_sql_tokens( $column->{'declaration_tokens'} );
+		$column->{'remainder'} =
+		  $self->_render_sql_tokens( $column->{'remainder_tokens'} );
+
+		my $current_name_width = length( $column->{'name'} );
+		$name_width = $current_name_width
+		  if ( $current_name_width > $name_width );
+
+		my $current_declaration_width = length( $column->{'declaration'} );
+		$declaration_width = $current_declaration_width
+		  if ( $current_declaration_width > $declaration_width );
+
+		push @rows, $column;
+		$alignable_count++;
+	}
+
+	# A single definition has nothing to align with. Return a new array reference
+	# so callers can safely use the result without mutating their input array.
+	return [ @{$lines} ] if ( $alignable_count < 2 );
+
+	my @aligned_lines;
+
+	for my $row (@rows) {
+		if ( exists $row->{'original'} ) {
+			push @aligned_lines, $row->{'original'};
+			next;
+		}
+
+		my $line =
+		    $row->{'indent'}
+		  . $self->_pad_right( $row->{'name'}, $name_width )
+		  . ' '
+		  . $row->{'declaration'};
+
+		if ( length( $row->{'remainder'} ) ) {
+			$line .=
+			    ( ' ' x
+				  ( $declaration_width - length( $row->{'declaration'} ) ) )
+			  . ' '
+			  . $row->{'remainder'};
+		}
+
+		$line .= $row->{'comma'};
+		push @aligned_lines, $line;
+	}
+
+	return \@aligned_lines;
+}
+
 sub _pop_level {
 	my ( $self, $token, $last_token ) = @_;
 

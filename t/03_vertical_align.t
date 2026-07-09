@@ -175,4 +175,74 @@ is(
 	'renders an empty token list as an empty string'
 );
 
+is(
+	$beautifier->_pad_right( 'id', 5 ),
+	'id   ',
+	'pads a value to the requested width'
+);
+
+is(
+	$beautifier->_pad_right( 'identifier', 5 ),
+	'identifier',
+	'does not truncate a value wider than the requested width'
+);
+
+is_deeply(
+	$beautifier->_align_create_table_column_group(
+		[
+			'    id uuid primary key default gen_random_uuid(),',
+			'    parent_job_id uuid references queue_job (id) on delete set null,',
+			'    type queue_job_type not null,',
+			q{    status queue_job_status not null default 'queued',},
+			'    created_at timestamptz not null default now()',
+		]
+	),
+	[
+		'    id            uuid primary key default gen_random_uuid(),',
+		'    parent_job_id uuid             references queue_job (id) on delete set null,',
+		'    type          queue_job_type   not null,',
+		q{    status        queue_job_status not null default 'queued',},
+		'    created_at    timestamptz      not null default now()',
+	],
+	'aligns column names and the beginning of column constraints'
+);
+
+is_deeply(
+	$beautifier->_align_create_table_column_group(
+		[
+			'    id uuid primary key,',
+			'    constraint demo_pk primary key (id)',
+			'    descriptive_name text',
+		]
+	),
+	[
+		'    id               uuid primary key,',
+		'    constraint demo_pk primary key (id)',
+		'    descriptive_name text',
+	],
+	'preserves unsupported table constraints while aligning column definitions'
+);
+
+my @single_column = ('    id uuid primary key');
+my $single_result =
+  $beautifier->_align_create_table_column_group(\@single_column);
+
+is_deeply(
+	$single_result,
+	\@single_column,
+	'leaves a single column unchanged'
+);
+
+isnt(
+	$single_result,
+	\@single_column,
+	'returns a new array reference for a single column'
+);
+
+is_deeply(
+	$beautifier->_align_create_table_column_group([]),
+	[],
+	'handles an empty group'
+);
+
 done_testing();
