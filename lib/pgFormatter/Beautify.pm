@@ -182,7 +182,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-    qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -947,12 +947,21 @@ sub _render_sql_tokens {
 		}
 
 		if ( $token eq '(' ) {
-			my $needs_space =
+			my $force_space =
 			     $space_before_parenthesis{ uc($previous_token) }
 			  || (    defined $before_previous
 				  && uc($before_previous) eq 'REFERENCES' );
 
-			$rendered .= ( $needs_space ? ' ' : '' ) . $token;
+			# Preserve pgFormatter's existing parenthesis policy: known functions
+			# and data types stay attached, while unknown names keep a space unless
+			# --no-space-function was requested.
+			my $attach_parenthesis =
+			     $self->{'no_space_function'}
+			  || $self->_is_function($previous_token)
+			  || $self->_is_type($previous_token);
+
+			$rendered .=
+			  ( $force_space || !$attach_parenthesis ? ' ' : '' ) . $token;
 			next;
 		}
 
@@ -1118,7 +1127,8 @@ definitions.
 sub _create_table_start {
 	my ( $self, $line ) = @_;
 
-	return ( 0, 0, 0 ) if ( !defined $line || $line !~ /\S/ );
+	return ( 0, 0, 0 )
+	  if ( !defined $line || $line !~ /^\s*CREATE\b/i );
 
 	my @tokens = $self->tokenize_sql($line);
 	return ( 0, 0, 0 ) if ( !@tokens || uc( $tokens[0] ) ne 'CREATE' );

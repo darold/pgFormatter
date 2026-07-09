@@ -153,8 +153,31 @@ is(
 	$beautifier->_render_sql_tokens(
 		[ 'default', 'gen_random_uuid', '(', ')' ]
 	),
+	'default gen_random_uuid ()',
+	'preserves the default space before an unknown function parenthesis'
+);
+
+my $compact_function_renderer =
+  pgFormatter::Beautify->new( no_space_function => 1 );
+
+is(
+	$compact_function_renderer->_render_sql_tokens(
+		[ 'default', 'gen_random_uuid', '(', ')' ]
+	),
 	'default gen_random_uuid()',
-	'renders an extension function without a space before its parenthesis'
+	'removes the space before an unknown function when configured'
+);
+
+is(
+	$beautifier->_render_sql_tokens( [ 'default', 'lower', '(', 'name', ')' ] ),
+	'default lower(name)',
+	'keeps PostgreSQL internal functions attached to their parenthesis'
+);
+
+is(
+	$beautifier->_render_sql_tokens( [ 'my_type', '(', '10', ')' ] ),
+	'my_type (10)',
+	'preserves spacing for an unknown parameterized type'
 );
 
 is(
@@ -218,7 +241,7 @@ is_deeply(
 		]
 	),
 	[
-		'    id            uuid primary key          default gen_random_uuid(),',
+		'    id            uuid primary key          default gen_random_uuid (),',
 		'    parent_job_id uuid             references queue_job (id) on delete set null,',
 		'    type          queue_job_type   not null,',
 		q{    status        queue_job_status not null default 'queued',},
@@ -254,8 +277,8 @@ is_deeply(
 		]
 	),
 	[
-		'    id       uuid primary key default gen_random_uuid(),',
-		'    username varchar(150)     not null unique,           -- only comment',
+		'    id       uuid primary key default gen_random_uuid (),',
+		'    username varchar(150)     not null unique,            -- only comment',
 		'    email    varchar          not null unique',
 	],
 	'aligns a lone trailing comment against the longest supported column'
@@ -408,6 +431,39 @@ create table queue_job(
 );
 SQL
 	'leaves normal formatter output unchanged when vertical alignment is disabled'
+);
+
+sub format_sql_with_default_function_spacing {
+	my ( $query, $vertical_align ) = @_;
+
+	my $formatter = pgFormatter::Beautify->new(
+		query          => $query,
+		vertical_align => $vertical_align,
+		uc_keywords    => 1,
+		uc_types       => 1,
+		uc_functions   => 1,
+		no_extra_line  => 1,
+	);
+
+	$formatter->beautify();
+	return $formatter->content();
+}
+
+my $default_spacing_disabled =
+  format_sql_with_default_function_spacing( $create_table_sql, 0 );
+my $default_spacing_enabled =
+  format_sql_with_default_function_spacing( $create_table_sql, 1 );
+
+like(
+	$default_spacing_disabled,
+	qr/default gen_random_uuid \(\)/,
+	'normal formatting keeps a space before an unknown function parenthesis'
+);
+
+like(
+	$default_spacing_enabled,
+	qr/default gen_random_uuid \(\)/,
+	'vertical alignment preserves unknown-function parenthesis spacing'
 );
 
 my $separate_parenthesis = <<'SQL';

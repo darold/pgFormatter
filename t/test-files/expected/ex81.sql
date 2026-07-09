@@ -6,7 +6,7 @@ CREATE TABLE example (
 );
 
 CREATE TABLE queue_job (
-    id            uuid PRIMARY KEY          DEFAULT gen_random_uuid(),
+    id            uuid PRIMARY KEY          DEFAULT gen_random_uuid (),
     parent_job_id uuid             REFERENCES queue_job (id) ON DELETE SET NULL,
     status        queue_job_status NOT NULL DEFAULT 'queued',
     payload       jsonb            NOT NULL DEFAULT '{}'::jsonb,

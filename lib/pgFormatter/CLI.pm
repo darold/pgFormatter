@@ -130,7 +130,7 @@ sub beautify {
 	$args{'extra_keyword'}         = $self->{'cfg'}->{'extra-keyword'};
 	$args{'no_space_function'}     = $self->{'cfg'}->{'no-space-function'};
 	$args{'redundant_parenthesis'} = $self->{'cfg'}->{'redundant-parenthesis'};
-    $args{'vertical_align'}        = $self->{'cfg'}->{'vertical-align'};
+	$args{'vertical_align'}        = $self->{'cfg'}->{'vertical-align'};
 
 	# Backward compatibility
 	$args{'extra_keyword'} = 'redshift'
@@ -324,7 +324,8 @@ Options:
     --no-space-function : remove space between function call and the open
                             parenthesis.
     --redundant-parenthesis: do not remove redundant parenthesis in DML.
-    --vertical-align      : vertically align CREATE TABLE column definitions and trailing comments.
+    --vertical-align      : vertically align CREATE TABLE column definitions and
+                            trailing comments.
 Examples:
 
     cat samples/ex1.sql | $0 -
@@ -391,7 +392,7 @@ sub get_command_line_args {
 		'wrap-limit|w=i',  'wrap-after|W=i',
 		'inplace|i!',      'extra-function=s',
 		'extra-keyword=s', 'no-space-function!',
-    'redundant-parenthesis!', 'vertical-align!',
+		'redundant-parenthesis!', 'vertical-align!',
 	);
 
 	$self->show_help_and_die(1) unless GetOptions( \%cfg, @options );
@@ -461,9 +462,9 @@ sub get_command_line_args {
 	$cfg{'redshift'}      //= 0;
 	$cfg{'no-extra-line'} //= 0;
 	$cfg{'inplace'}       //= 0;
-	$cfg{'extra-keyword'} //= '';
+	$cfg{'extra-keyword'}  //= '';
 	$cfg{'vertical-align'} //= 0;
-  $cfg{'extra-keyword'} = 'redshift' if ( $cfg{'redshift'} );
+	$cfg{'extra-keyword'} = 'redshift' if ( $cfg{'redshift'} );
 
 	if ( $cfg{'tabs'} ) {
 		$cfg{'spaces'} = 1;
