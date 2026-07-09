@@ -107,4 +107,72 @@ ok(
 	'skips definitions containing comments in the first implementation'
 );
 
+is(
+	$beautifier->_render_sql_tokens( [qw(uuid primary key)] ),
+	'uuid primary key',
+	'renders a simple declaration'
+);
+
+is(
+	$beautifier->_render_sql_tokens(
+		[ 'numeric', '(', '10', ',', '2', ')' ]
+	),
+	'numeric(10, 2)',
+	'renders a parameterized type'
+);
+
+is(
+	$beautifier->_render_sql_tokens(
+		[ 'public.custom_type', '[', ']' ]
+	),
+	'public.custom_type[]',
+	'renders an array type'
+);
+
+is(
+	$beautifier->_render_sql_tokens(
+		[ 'default', 'gen_random_uuid', '(', ')' ]
+	),
+	'default gen_random_uuid()',
+	'renders an extension function without a space before its parenthesis'
+);
+
+is(
+	$beautifier->_render_sql_tokens(
+		[ 'references', 'app_user', '(', 'id', ')', 'on', 'delete', 'set', 'null' ]
+	),
+	'references app_user (id) on delete set null',
+	'keeps a space before a referenced column list'
+);
+
+is(
+	$beautifier->_render_sql_tokens(
+		[ 'not', 'null', 'default', q{'{}'}, '::jsonb' ]
+	),
+	q{not null default '{}'::jsonb},
+	'renders a cast without surrounding spaces'
+);
+
+is(
+	$beautifier->_render_sql_tokens(
+		[ 'check', '(', 'score', '>=', '0', ')' ]
+	),
+	'check (score >= 0)',
+	'keeps a space after CHECK before a parenthesis'
+);
+
+is(
+	$beautifier->_render_sql_tokens(
+		[ 'generated', 'always', 'as', '(', 'lower', '(', 'name', ')', ')', 'stored' ]
+	),
+	'generated always as (lower(name)) stored',
+	'renders nested generated-column expressions'
+);
+
+is(
+	$beautifier->_render_sql_tokens([]),
+	'',
+	'renders an empty token list as an empty string'
+);
+
 done_testing();

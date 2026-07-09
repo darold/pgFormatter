@@ -876,6 +876,68 @@ sub _parse_create_table_column {
 	};
 }
 
+=head2 _render_sql_tokens
+
+Render a list of SQL tokens as one compact, single-line SQL fragment.
+
+This helper is intentionally limited to the fragments produced by
+_parse_create_table_column(). It preserves token order and only decides where
+spaces belong. It does not perform alignment or change keyword casing.
+
+=cut
+
+sub _render_sql_tokens {
+	my ( $self, $tokens ) = @_;
+
+	return '' if ( !$tokens || !@{$tokens} );
+
+	my %space_before_parenthesis = map { $_ => 1 } qw(
+	  AS CHECK DEFAULT IN REFERENCES
+	);
+
+	my $rendered = '';
+
+	for my $index ( 0 .. $#{$tokens} ) {
+		my $token           = $tokens->[$index];
+		my $previous_token  = $index > 0 ? $tokens->[ $index - 1 ] : undef;
+		my $before_previous = $index > 1 ? $tokens->[ $index - 2 ] : undef;
+
+		if ( !defined $previous_token ) {
+			$rendered = $token;
+			next;
+		}
+
+		# Closing punctuation, casts, and array suffixes attach directly to the
+		# preceding token. Tokens immediately inside parentheses and brackets do
+		# not receive a leading space either.
+		if (
+			   $token =~ /^(?:\)|\]|,|;)$/
+			|| $token =~ /^::/
+			|| $previous_token eq '('
+			|| $previous_token eq '['
+			|| $token eq '['
+		  )
+		{
+			$rendered .= $token;
+			next;
+		}
+
+		if ( $token eq '(' ) {
+			my $needs_space =
+			     $space_before_parenthesis{ uc($previous_token) }
+			  || (    defined $before_previous
+				  && uc($before_previous) eq 'REFERENCES' );
+
+			$rendered .= ( $needs_space ? ' ' : '' ) . $token;
+			next;
+		}
+
+		$rendered .= ' ' . $token;
+	}
+
+	return $rendered;
+}
+
 sub _pop_level {
 	my ( $self, $token, $last_token ) = @_;
 
