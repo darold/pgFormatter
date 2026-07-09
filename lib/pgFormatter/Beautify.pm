@@ -166,6 +166,8 @@ Takes options as hash. Following options are recognized:
 
 =item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
 
+=item * vertical_align - vertically align CREATE TABLE column definitions
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -180,7 +182,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis)
+    qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
