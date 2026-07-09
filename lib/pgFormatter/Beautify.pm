@@ -4920,6 +4920,7 @@ sub set_defaults {
 	$self->{'keep_newline'}          = 0;
 	$self->{'no_space_function'}     = 0;
 	$self->{'redundant_parenthesis'} = 0;
+   $self->{'vertical_align'}        = 0;
 
 	return;
 }
