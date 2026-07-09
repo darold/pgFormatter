@@ -780,6 +780,102 @@ sub tokenize_sql {
 	$self->{'_tokens'} = \@query;
 }
 
+=head2 _parse_create_table_column
+
+Parse one single-line CREATE TABLE column definition into the parts needed by
+vertical alignment. Returns undef for table constraints, comments, multiline
+input, and definitions that do not contain both a column name and a data type.
+
+This method only analyzes input. It does not change the formatted SQL.
+
+=cut
+
+sub _parse_create_table_column {
+	my ( $self, $line ) = @_;
+
+	return if ( !defined $line || $line !~ /\S/ || $line =~ /[\r\n]/ );
+
+	my ($indent) = $line =~ /^(\s*)/;
+	my $definition = $line;
+	$definition =~ s/^\s+|\s+$//g;
+
+	my $comma = '';
+	$comma = ',' if ( $definition =~ s/,\s*$// );
+
+	my @tokens = $self->tokenize_sql($definition);
+	return if ( @tokens < 2 );
+	return if ( grep { $self->_is_comment($_) } @tokens );
+
+	my $name = shift @tokens;
+
+	# These tokens start table-level definitions rather than column definitions.
+	my %table_constraint = map { $_ => 1 } qw(
+	  CHECK CONSTRAINT EXCLUDE FOREIGN LIKE PRIMARY UNIQUE
+	);
+	return if ( $name !~ /^"/ && $table_constraint{ uc($name) } );
+	return if ( $name =~ /^(?:[\[\](),;])$/ );
+
+	# A column's data type ends at the first top-level column constraint. Tokens
+	# inside type modifiers, such as numeric(10, 2), must remain part of the type.
+	my %column_constraint = map { $_ => 1 } qw(
+	  CHECK COLLATE COMPRESSION CONSTRAINT DEFAULT GENERATED IDENTITY NOT NULL
+	  PRIMARY REFERENCES STORAGE UNIQUE
+	);
+
+	my $parenthesis_depth = 0;
+	my $bracket_depth     = 0;
+	my $constraint_index  = scalar @tokens;
+
+	for my $index ( 0 .. $#tokens ) {
+		my $token = $tokens[$index];
+
+		if (
+			$parenthesis_depth == 0
+			&& $bracket_depth == 0
+			&& $column_constraint{ uc($token) }
+		  )
+		{
+			$constraint_index = $index;
+			last;
+		}
+
+		$parenthesis_depth++ if ( $token eq '(' );
+		$parenthesis_depth--
+		  if ( $token eq ')' && $parenthesis_depth > 0 );
+		$bracket_depth++ if ( $token eq '[' );
+		$bracket_depth-- if ( $token eq ']' && $bracket_depth > 0 );
+	}
+
+	my @declaration_tokens =
+	  $constraint_index > 0 ? @tokens[ 0 .. $constraint_index - 1 ] : ();
+	my @remainder_tokens =
+	  $constraint_index <= $#tokens ? @tokens[ $constraint_index .. $#tokens ] : ();
+
+	return if ( !@declaration_tokens );
+
+	# Keep an immediately following PRIMARY KEY or UNIQUE with the declaration.
+	# This supports the intended visual grouping without reordering SQL tokens.
+	if (
+		@remainder_tokens >= 2
+		&& uc( $remainder_tokens[0] ) eq 'PRIMARY'
+		&& uc( $remainder_tokens[1] ) eq 'KEY'
+	  )
+	{
+		push @declaration_tokens, splice( @remainder_tokens, 0, 2 );
+	}
+	elsif ( @remainder_tokens && uc( $remainder_tokens[0] ) eq 'UNIQUE' ) {
+		push @declaration_tokens, shift @remainder_tokens;
+	}
+
+	return {
+		indent             => $indent,
+		name               => $name,
+		declaration_tokens => \@declaration_tokens,
+		remainder_tokens   => \@remainder_tokens,
+		comma              => $comma,
+	};
+}
+
 sub _pop_level {
 	my ( $self, $token, $last_token ) = @_;
 
