@@ -326,6 +326,7 @@ Options:
     --redundant-parenthesis: do not remove redundant parenthesis in DML.
     --vertical-align      : vertically align CREATE TABLE column definitions and
                             trailing comments.
+
 Examples:
 
     cat samples/ex1.sql | $0 -
