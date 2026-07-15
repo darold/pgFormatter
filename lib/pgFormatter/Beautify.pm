@@ -2000,7 +2000,7 @@ sub beautify {
 			  if ( uc($token) ne 'SECURITY'
 				or ( defined $last and uc($last) ne 'LEVEL' ) );
 			$self->_add_token($token);
-			$self->{'is_in_create'} = 0 if ($self->{'is_in_create'} > 1);
+			$self->{'is_in_create'} = 0 if (defined $self->{'is_in_create'} and $self->{'is_in_create'} > 1);
 		}
 		elsif ($token =~ /^PARTITION$/i
 			&& !$self->{'_is_in_over'}
