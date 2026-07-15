@@ -3886,7 +3886,7 @@ Code lifted from SQL::Beautify
 sub _add_token {
 	my ( $self, $token, $last_token ) = @_;
 
-	if (!$DEBUG) {
+	if ($DEBUG) {
 		my ( $package, $filename, $line ) = caller;
 		print STDERR "DEBUG_ADD: line: $line => last=", ( $last_token || '' ),
 		  ", token=$token\n";
