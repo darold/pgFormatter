@@ -278,6 +278,23 @@ By default, pgFormatter tries to remove redundant parenthesis in DML but in
 some cases they must be preseved. Using this option will keep redundant
 parenthesis untouched.
 
+=head2 Option --vertical-align
+
+Use this option to vertically align direct, single-line column definitions
+inside CREATE TABLE statements. It aligns column names, data types, column
+constraints such as DEFAULT, and trailing comments. For example:
+
+    CREATE TABLE example (
+        id         serial PRIMARY KEY,                                -- some comment
+        name       varchar(100)             NOT NULL,                 -- another comment
+        email      varchar(100)             NOT NULL,                 -- third comment
+        created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP -- last comment
+    );
+
+Table-level constraints and multiline column definitions are preserved but are
+not included in the alignment calculation. The option is disabled by default
+and only applies to text output.
+
 =head1 HINTS
 
 =head2 Configuration

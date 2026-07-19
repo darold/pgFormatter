@@ -166,6 +166,8 @@ Takes options as hash. Following options are recognized:
 
 =item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
 
+=item * vertical_align - vertically align CREATE TABLE column definitions
+
 =back
 
 For defaults, please check function L<set_defaults>.
@@ -180,7 +182,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -498,6 +500,11 @@ s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
 	# Replace any PGFESCQ2 by ""
 	$self->{'content'} =~ s/PGFESCQ2/""/g;
 
+	if ( $self->{'vertical_align'} && $self->{'format'} eq 'text' ) {
+		$self->{'content'} =
+		  $self->_align_create_table_columns( $self->{'content'} );
+	}
+
 	return $self->{'content'};
 }
 
@@ -776,6 +783,646 @@ sub tokenize_sql {
 	return @query if (wantarray);
 
 	$self->{'_tokens'} = \@query;
+}
+
+=head2 _parse_create_table_column
+
+Parse one single-line CREATE TABLE column definition into the parts needed by
+vertical alignment. A trailing comment is stored separately from the SQL.
+Returns undef for table constraints, embedded comments, multiline input, and
+definitions that do not contain both a column name and a data type.
+
+This method only analyzes input. It does not change the formatted SQL.
+
+=cut
+
+sub _parse_create_table_column {
+	my ( $self, $line ) = @_;
+
+	return if ( !defined $line || $line !~ /\S/ || $line =~ /[\r\n]/ );
+
+	my ($indent) = $line =~ /^(\s*)/;
+	my $definition = $line;
+	$definition =~ s/^\s+|\s+$//g;
+
+	my @tokens = $self->tokenize_sql($definition);
+
+	# A trailing comment belongs to the complete column definition rather than
+	# to its data type or constraints. Store it separately so the SQL can be
+	# aligned first and comments can be placed in their own output column.
+	my $comment = '';
+	if ( @tokens && $self->_is_comment( $tokens[-1] ) ) {
+		$comment = pop @tokens;
+		$comment =~ s/^\s+//;
+	}
+
+	# Comments embedded in the middle of a definition remain unsupported. They
+	# can affect SQL structure, so preserving the original line is safer than
+	# attempting to rearrange it.
+	return if ( grep { $self->_is_comment($_) } @tokens );
+
+	my $comma = '';
+	if ( @tokens && $tokens[-1] eq ',' ) {
+		pop @tokens;
+		$comma = ',';
+	}
+
+	return if ( @tokens < 2 );
+
+	my $name = shift @tokens;
+
+	# These tokens start table-level definitions rather than column definitions.
+	my %table_constraint = map { $_ => 1 } qw(
+	  CHECK CONSTRAINT EXCLUDE FOREIGN LIKE PRIMARY UNIQUE
+	);
+	return if ( $name !~ /^"/ && $table_constraint{ uc($name) } );
+	return if ( $name =~ /^(?:[\[\](),;])$/ );
+
+	# A column's data type ends at the first top-level column constraint. Tokens
+	# inside type modifiers, such as numeric(10, 2), must remain part of the type.
+	my %column_constraint = map { $_ => 1 } qw(
+	  CHECK COLLATE COMPRESSION CONSTRAINT DEFAULT GENERATED IDENTITY NOT NULL
+	  PRIMARY REFERENCES STORAGE UNIQUE
+	);
+
+	my $parenthesis_depth = 0;
+	my $bracket_depth     = 0;
+	my $constraint_index  = scalar @tokens;
+
+	for my $index ( 0 .. $#tokens ) {
+		my $token = $tokens[$index];
+
+		if (
+			$parenthesis_depth == 0
+			&& $bracket_depth == 0
+			&& $column_constraint{ uc($token) }
+		  )
+		{
+			$constraint_index = $index;
+			last;
+		}
+
+		$parenthesis_depth++ if ( $token eq '(' );
+		$parenthesis_depth--
+		  if ( $token eq ')' && $parenthesis_depth > 0 );
+		$bracket_depth++ if ( $token eq '[' );
+		$bracket_depth-- if ( $token eq ']' && $bracket_depth > 0 );
+	}
+
+	my @declaration_tokens =
+	  $constraint_index > 0 ? @tokens[ 0 .. $constraint_index - 1 ] : ();
+	my @remainder_tokens =
+	  $constraint_index <= $#tokens ? @tokens[ $constraint_index .. $#tokens ] : ();
+
+	return if ( !@declaration_tokens );
+
+	# Keep an immediately following PRIMARY KEY or UNIQUE with the declaration.
+	# This supports the intended visual grouping without reordering SQL tokens.
+	if (
+		@remainder_tokens >= 2
+		&& uc( $remainder_tokens[0] ) eq 'PRIMARY'
+		&& uc( $remainder_tokens[1] ) eq 'KEY'
+	  )
+	{
+		push @declaration_tokens, splice( @remainder_tokens, 0, 2 );
+	}
+	elsif ( @remainder_tokens && uc( $remainder_tokens[0] ) eq 'UNIQUE' ) {
+		push @declaration_tokens, shift @remainder_tokens;
+	}
+
+	return {
+		indent             => $indent,
+		name               => $name,
+		declaration_tokens => \@declaration_tokens,
+		remainder_tokens   => \@remainder_tokens,
+		comma              => $comma,
+		comment            => $comment,
+	};
+}
+
+=head2 _render_sql_tokens
+
+Render a list of SQL tokens as one compact, single-line SQL fragment.
+
+This helper is intentionally limited to the fragments produced by
+_parse_create_table_column(). It preserves token order and only decides where
+spaces belong. It does not perform alignment or change keyword casing.
+
+=cut
+
+sub _render_sql_tokens {
+	my ( $self, $tokens ) = @_;
+
+	return '' if ( !$tokens || !@{$tokens} );
+
+	my %space_before_parenthesis = map { $_ => 1 } qw(
+	  AS CHECK DEFAULT IN REFERENCES
+	);
+
+	my $rendered = '';
+
+	for my $index ( 0 .. $#{$tokens} ) {
+		my $token           = $tokens->[$index];
+		my $previous_token  = $index > 0 ? $tokens->[ $index - 1 ] : undef;
+		my $before_previous = $index > 1 ? $tokens->[ $index - 2 ] : undef;
+
+		if ( !defined $previous_token ) {
+			$rendered = $token;
+			next;
+		}
+
+		# Closing punctuation, casts, and array suffixes attach directly to the
+		# preceding token. Tokens immediately inside parentheses and brackets do
+		# not receive a leading space either.
+		if (
+			   $token =~ /^(?:\)|\]|,|;)$/
+			|| $token =~ /^::/
+			|| $previous_token eq '('
+			|| $previous_token eq '['
+			|| $token eq '['
+		  )
+		{
+			$rendered .= $token;
+			next;
+		}
+
+		if ( $token eq '(' ) {
+			my $force_space =
+			     $space_before_parenthesis{ uc($previous_token) }
+			  || (    defined $before_previous
+				  && uc($before_previous) eq 'REFERENCES' );
+
+			# Preserve pgFormatter's existing parenthesis policy: known functions
+			# and data types stay attached, while unknown names keep a space unless
+			# --no-space-function was requested.
+			my $attach_parenthesis =
+			     $self->{'no_space_function'}
+			  || $self->_is_function($previous_token)
+			  || $self->_is_type($previous_token);
+
+			$rendered .=
+			  ( $force_space || !$attach_parenthesis ? ' ' : '' ) . $token;
+			next;
+		}
+
+		$rendered .= ' ' . $token;
+	}
+
+	return $rendered;
+}
+
+=head2 _pad_right
+
+Pad a string with spaces until it reaches the requested width.
+
+The helper returns the original string unchanged when it is already at least as
+wide as the requested width. Alignment uses spaces deliberately: tabs would
+make the result depend on the tab width configured by the editor displaying the
+SQL.
+
+=cut
+
+sub _pad_right {
+	my ( $self, $value, $width ) = @_;
+
+	$value = '' if ( !defined $value );
+	$width = length($value) if ( !defined $width );
+
+	my $padding = $width - length($value);
+	return $value if ( $padding <= 0 );
+
+	return $value . ( ' ' x $padding );
+}
+
+=head2 _align_create_table_column_keyword
+
+Align a top-level keyword within the remainder of parsed CREATE TABLE columns.
+
+For every matching row, the tokens before the keyword are treated as a prefix.
+Shorter prefixes are padded so the keyword starts in the same output column.
+Keywords nested inside parentheses or array brackets are ignored.
+
+The method updates the rendered remainder stored in each matching row. It does
+not reorder tokens or affect rows that do not contain the requested keyword.
+
+=cut
+
+sub _align_create_table_column_keyword {
+	my ( $self, $rows, $keyword ) = @_;
+
+	return if ( !$rows || !@{$rows} || !defined $keyword || $keyword eq '' );
+
+	my $keyword_upper = uc($keyword);
+	my $prefix_width  = 0;
+	my @matches;
+
+	for my $row ( @{$rows} ) {
+		next if ( exists $row->{'original'} );
+
+		my $tokens = $row->{'remainder_tokens'};
+		next if ( !$tokens || !@{$tokens} );
+
+		my $parenthesis_depth = 0;
+		my $bracket_depth     = 0;
+		my $keyword_index;
+
+		for my $index ( 0 .. $#{$tokens} ) {
+			my $token = $tokens->[$index];
+
+			if (
+				$parenthesis_depth == 0
+				&& $bracket_depth == 0
+				&& uc($token) eq $keyword_upper
+			  )
+			{
+				$keyword_index = $index;
+				last;
+			}
+
+			$parenthesis_depth++ if ( $token eq '(' );
+			$parenthesis_depth--
+			  if ( $token eq ')' && $parenthesis_depth > 0 );
+			$bracket_depth++ if ( $token eq '[' );
+			$bracket_depth-- if ( $token eq ']' && $bracket_depth > 0 );
+		}
+
+		next if ( !defined $keyword_index );
+
+		my @prefix_tokens =
+		  $keyword_index > 0 ? @{$tokens}[ 0 .. $keyword_index - 1 ] : ();
+		my @clause_tokens = @{$tokens}[ $keyword_index .. $#{$tokens} ];
+
+		my $prefix = $self->_render_sql_tokens( \@prefix_tokens );
+		my $clause = $self->_render_sql_tokens( \@clause_tokens );
+
+		my $current_width = length($prefix);
+		$prefix_width = $current_width if ( $current_width > $prefix_width );
+
+		push @matches,
+		  {
+			row    => $row,
+			prefix => $prefix,
+			clause => $clause,
+		  };
+	}
+
+	return if ( @matches < 2 );
+
+	for my $match (@matches) {
+		my $prefix = $match->{'prefix'};
+
+		if ( length($prefix) ) {
+			$match->{'row'}->{'remainder'} =
+			  $self->_pad_right( $prefix, $prefix_width )
+			  . ' '
+			  . $match->{'clause'};
+		}
+		else {
+			$match->{'row'}->{'remainder'} =
+			  ( ' ' x ( $prefix_width + 1 ) ) . $match->{'clause'};
+		}
+	}
+
+	return;
+}
+
+=head2 _parenthesis_delta
+
+Return the net parenthesis depth change for one SQL line.
+
+The existing SQL tokenizer is reused so parentheses inside quoted strings and
+comments are not mistaken for structural parentheses.
+
+=cut
+
+sub _parenthesis_delta {
+	my ( $self, $line ) = @_;
+
+	return 0 if ( !defined $line || $line eq '' );
+
+	my $delta = 0;
+	for my $token ( $self->tokenize_sql($line) ) {
+		$delta++ if ( $token eq '(' );
+		$delta-- if ( $token eq ')' );
+	}
+
+	return $delta;
+}
+
+=head2 _create_table_start
+
+Inspect one formatted line for the beginning of a regular CREATE TABLE body.
+
+The return value is a three-element list: whether the line begins a supported
+CREATE TABLE statement, whether its opening parenthesis is present, and the net
+parenthesis depth on that line. When the opening parenthesis is absent it may
+occur on the following line.
+
+CREATE TABLE AS, PARTITION OF, and typed-table forms are deliberately skipped
+because their parentheses do not necessarily contain ordinary column
+definitions.
+
+=cut
+
+sub _create_table_start {
+	my ( $self, $line ) = @_;
+
+	return ( 0, 0, 0 )
+	  if ( !defined $line || $line !~ /^\s*CREATE\b/i );
+
+	my @tokens = $self->tokenize_sql($line);
+	return ( 0, 0, 0 ) if ( !@tokens || uc( $tokens[0] ) ne 'CREATE' );
+
+	my $table_index;
+	for my $index ( 1 .. $#tokens ) {
+		my $token = uc( $tokens[$index] );
+
+		if ( $token eq 'TABLE' ) {
+			$table_index = $index;
+			last;
+		}
+
+		return ( 0, 0, 0 )
+		  if ( $token !~ /^(?:GLOBAL|LOCAL|TEMP|TEMPORARY|UNLOGGED)$/ );
+	}
+
+	return ( 0, 0, 0 ) if ( !defined $table_index );
+
+	my $has_opening_parenthesis = 0;
+
+	for my $index ( $table_index + 1 .. $#tokens ) {
+		my $token = uc( $tokens[$index] );
+
+		return ( 0, 0, 0 ) if ( $token =~ /^(?:AS|OF|PARTITION)$/ );
+
+		if ( $tokens[$index] eq '(' ) {
+			$has_opening_parenthesis = 1;
+			last;
+		}
+	}
+
+	return (
+		1,
+		$has_opening_parenthesis,
+		$has_opening_parenthesis ? $self->_parenthesis_delta($line) : 0,
+	);
+}
+
+=head2 _align_create_table_body
+
+Align eligible top-level lines from one already formatted CREATE TABLE body.
+
+Only lines that begin and end at the table body's direct parenthesis depth are
+sent to the column-group aligner. This excludes continuation lines belonging
+to multiline CHECK expressions or other nested constructs while still allowing
+single-line type modifiers and function calls.
+
+=cut
+
+sub _align_create_table_body {
+	my ( $self, $body ) = @_;
+
+	return [] if ( !$body || !@{$body} );
+
+	my @result = map { $_->{'line'} } @{$body};
+	my @candidate_indices;
+	my @candidate_lines;
+
+	for my $index ( 0 .. $#{$body} ) {
+		my $entry = $body->[$index];
+		next
+		  if ( $entry->{'depth_before'} != 1 || $entry->{'depth_after'} != 1 );
+
+		push @candidate_indices, $index;
+		push @candidate_lines,  $entry->{'line'};
+	}
+
+	return \@result if ( !@candidate_lines );
+
+	my $aligned =
+	  $self->_align_create_table_column_group( \@candidate_lines );
+
+	for my $index ( 0 .. $#candidate_indices ) {
+		$result[ $candidate_indices[$index] ] = $aligned->[$index];
+	}
+
+	return \@result;
+}
+
+=head2 _align_create_table_columns
+
+Apply vertical column alignment to regular CREATE TABLE statements in a fully
+formatted SQL document.
+
+The method is a final text-only rendering pass. It preserves all lines outside
+supported table bodies and delegates actual row formatting to the smaller
+parser, renderer, and group-alignment helpers.
+
+=cut
+
+sub _align_create_table_columns {
+	my ( $self, $content ) = @_;
+
+	return $content if ( !defined $content || $content eq '' );
+
+	my $newline = $content =~ /\r\n/ ? "\r\n" : "\n";
+	my @lines = split( /\Q$newline\E/, $content, -1 );
+	my @output;
+	my @body;
+	my $depth          = 0;
+	my $inside_table   = 0;
+	my $pending_table  = 0;
+
+	for my $line (@lines) {
+		if ($inside_table) {
+			my $depth_before = $depth;
+			my $depth_after  = $depth + $self->_parenthesis_delta($line);
+
+			if ( $depth_after <= 0 ) {
+				my $aligned_body = $self->_align_create_table_body( \@body );
+				push @output, @{$aligned_body}, $line;
+
+				@body        = ();
+				$depth       = 0;
+				$inside_table = 0;
+				next;
+			}
+
+			push @body,
+			  {
+				line         => $line,
+				depth_before => $depth_before,
+				depth_after  => $depth_after,
+			  };
+			$depth = $depth_after;
+			next;
+		}
+
+		if ($pending_table) {
+			my @tokens = $self->tokenize_sql($line);
+			my $first_token = @tokens ? $tokens[0] : '';
+
+			push @output, $line;
+
+			if ( $first_token eq '(' ) {
+				$depth         = $self->_parenthesis_delta($line);
+				$inside_table  = $depth > 0 ? 1 : 0;
+				$pending_table = 0;
+			}
+			elsif (
+				$line =~ /\S/
+				&& !( @tokens && $self->_is_comment( $tokens[0] ) )
+			  )
+			{
+				$pending_table = 0;
+			}
+
+			next;
+		}
+
+		my ( $is_create_table, $has_opening_parenthesis, $opening_depth ) =
+		  $self->_create_table_start($line);
+
+		push @output, $line;
+		next if ( !$is_create_table );
+
+		if ($has_opening_parenthesis) {
+			$depth        = $opening_depth;
+			$inside_table = $depth > 0 ? 1 : 0;
+		}
+		else {
+			$pending_table = 1;
+		}
+	}
+
+	# Incomplete input is still valid formatter input. Preserve any collected
+	# lines instead of dropping them when the closing parenthesis is missing.
+	if (@body) {
+		push @output, map { $_->{'line'} } @body;
+	}
+
+	return join( $newline, @output );
+}
+
+=head2 _align_create_table_column_comments
+
+Append trailing comments at a shared output column.
+
+The SQL portion of every supported column is measured after name, declaration,
+and DEFAULT alignment. Only rows containing comments receive padding, so rows
+without comments do not gain trailing whitespace. Unsupported lines are ignored
+when calculating the comment column.
+
+=cut
+
+sub _align_create_table_column_comments {
+	my ( $self, $rows ) = @_;
+
+	return if ( !$rows || !@{$rows} );
+
+	my $sql_width   = 0;
+	my $has_comment = 0;
+
+	for my $row ( @{$rows} ) {
+		next if ( exists $row->{'original'} );
+
+		my $current_width = length( $row->{'rendered'} );
+		$sql_width = $current_width if ( $current_width > $sql_width );
+		$has_comment = 1 if ( length( $row->{'comment'} ) );
+	}
+
+	return if ( !$has_comment );
+
+	for my $row ( @{$rows} ) {
+		next if ( exists $row->{'original'} || !length( $row->{'comment'} ) );
+
+		$row->{'rendered'} =
+		    $self->_pad_right( $row->{'rendered'}, $sql_width )
+		  . ' '
+		  . $row->{'comment'};
+	}
+
+	return;
+}
+
+=head2 _align_create_table_column_group
+
+Align a group of single-line CREATE TABLE column definitions.
+
+The method aligns the column names and the beginning of each remainder, while
+preserving indentation, token order, trailing commas, and unsupported lines.
+It only returns rendered lines; it does not modify the formatter output.
+
+=cut
+
+sub _align_create_table_column_group {
+	my ( $self, $lines ) = @_;
+
+	return [] if ( !$lines || !@{$lines} );
+
+	my @rows;
+	my $name_width        = 0;
+	my $declaration_width = 0;
+	my $alignable_count   = 0;
+
+	for my $line ( @{$lines} ) {
+		my $column = $self->_parse_create_table_column($line);
+
+		if ( !$column ) {
+			push @rows, { original => $line };
+			next;
+		}
+
+		$column->{'declaration'} =
+		  $self->_render_sql_tokens( $column->{'declaration_tokens'} );
+		$column->{'remainder'} =
+		  $self->_render_sql_tokens( $column->{'remainder_tokens'} );
+
+		my $current_name_width = length( $column->{'name'} );
+		$name_width = $current_name_width
+		  if ( $current_name_width > $name_width );
+
+		my $current_declaration_width = length( $column->{'declaration'} );
+		$declaration_width = $current_declaration_width
+		  if ( $current_declaration_width > $declaration_width );
+
+		push @rows, $column;
+		$alignable_count++;
+	}
+
+	# A single definition has nothing to align with. Return a new array reference
+	# so callers can safely use the result without mutating their input array.
+	return [ @{$lines} ] if ( $alignable_count < 2 );
+
+	$self->_align_create_table_column_keyword( \@rows, 'DEFAULT' );
+
+	for my $row (@rows) {
+		next if ( exists $row->{'original'} );
+
+		my $line =
+		    $row->{'indent'}
+		  . $self->_pad_right( $row->{'name'}, $name_width )
+		  . ' '
+		  . $row->{'declaration'};
+
+		if ( length( $row->{'remainder'} ) ) {
+			$line .=
+			    ( ' ' x
+				  ( $declaration_width - length( $row->{'declaration'} ) ) )
+			  . ' '
+			  . $row->{'remainder'};
+		}
+
+		$row->{'rendered'} = $line . $row->{'comma'};
+	}
+
+	$self->_align_create_table_column_comments( \@rows );
+
+	my @aligned_lines = map {
+		exists $_->{'original'} ? $_->{'original'} : $_->{'rendered'}
+	} @rows;
+
+	return \@aligned_lines;
 }
 
 sub _pop_level {
@@ -4919,6 +5566,7 @@ sub set_defaults {
 	$self->{'keep_newline'}          = 0;
 	$self->{'no_space_function'}     = 0;
 	$self->{'redundant_parenthesis'} = 0;
+	$self->{'vertical_align'}        = 0;
 
 	return;
 }
