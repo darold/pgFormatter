@@ -407,7 +407,7 @@ s/AS ('[^\']+')\s*,\s*('[^\']+')/AS CODEPARTB${i}CODEPARTB/is
 	$self->{'query'} = join( '', @temp_content );
 
 	# replace all inline dollar-quoted constants
-	while ( $self->{'query'} =~ s/(?<!AS )(\$\$\S[^\n\r]*?\$\$)/AAKEYWCONST${j}AA/is ) {
+	while ( $self->{'query'} =~ s/(?<!AS )(\$\$[ ]*\S[^\n\r]*?\$\$)/AAKEYWCONST${j}AA/is ) {
 		$self->{'keyword_constant'}{$j} = $1;
 		$j++;
 	}
@@ -2647,6 +2647,7 @@ sub beautify {
 			  if ( uc($token) ne 'SECURITY'
 				or ( defined $last and uc($last) ne 'LEVEL' ) );
 			$self->_add_token($token);
+			$self->{'is_in_create'} = 0 if ($self->{'is_in_create'} > 1);
 		}
 		elsif ($token =~ /^PARTITION$/i
 			&& !$self->{'_is_in_over'}
@@ -5007,7 +5008,7 @@ sub _next_token_skip_comment {
 		return $self->{'_tokens'}->[$i];
 	}
 
-	return undef;
+	return 0;
 }
 
 =head2 _token
