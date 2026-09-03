@@ -1331,9 +1331,9 @@ SELECT
 FROM
     generate_series(1, 10) AS s (i),
     LATERAL (
-        VALUES (
+        VALUES ((
                     SELECT
-                        s.i + 1),
+                        s.i + 1)),
                 (s.i + 101)) AS val (x)
 WHERE
     s.i < 10

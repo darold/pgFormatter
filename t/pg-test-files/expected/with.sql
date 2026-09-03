@@ -1583,11 +1583,11 @@ SELECT
             foo
 ) AS (
             VALUES (f1))
-        VALUES (
+        VALUES ((
                 SELECT
                     foo
                 FROM
-                    cte))
+                    cte)))
 FROM
     int4_tbl;
 

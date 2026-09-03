@@ -4,3 +4,6 @@ CREATE TABLE example (
     email varchar(100) NOT NULL, -- third comment
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP -- last comment
 );
+
+SELECT (("a'b") * ("c'd"))::int4 FROM t;
+

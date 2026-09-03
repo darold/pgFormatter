@@ -46,7 +46,7 @@ foreach my $f (@files)
 		ok( $#ret < 0, "Test anonymize");
 	} else {
 		my @diff = `diff -u /tmp/output.sql $f | grep "^[+-]" | grep -v "^[+-]\t\$" | grep -v "^[+-][+-][+-]"`;
-		ok( $#diff < 0, "Test file $f");
+		ok( $#diff < 0, "Test file $f : @diff");
 	}
 	unlink("/tmp/output.sql");
 }

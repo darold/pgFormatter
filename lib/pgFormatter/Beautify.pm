@@ -4511,10 +4511,19 @@ sub beautify {
 	# Attempt to remove usless spaces
 	$self->{'content'} =~ s/\s+CHECK\s+\(\s+/ CHECK (/igs;
 
-	# Attempt to eliminate redundant parenthesis in DML queries
+	# Attempt to eliminate redundant parenthesis in DML queries. Two
+	# refinements over a plain ((x)) -> (x) collapse:
+	#  1. the leading keyword may sit at the very start of the buffer
+	#     (first statement) as well as after whitespace, hence
+	#     (?:^|\s+); otherwise a redundant pair such as count((x)) in
+	#     the first statement is never reached and stays doubled.
+	#  2. the negative lookahead keeps the two parentheses of a scalar
+	#     subquery used as a VALUES row value -- e.g. VALUES ((SELECT
+	#     ...)) -- which are both required, unlike VALUES ((cte)) or
+	#     fn((SELECT ...)) where the outer pair is genuinely redundant.
 	if ( !$self->{'redundant_parenthesis'} ) {
 		while ( $self->{'content'} =~
-s/(\s+(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)[\(]{2}([^\(\)]+)[\)]{2}([^;]+)/$1($2)$3/igs
+s/((?:^|\s+)(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)(?!(?<=VALUES )\(\(\s*SELECT\b)[\(]{2}([^\(\)]+)[\)]{2}([^;:]+)/$1($2)$3/igs
 		  )
 		{
 		}
