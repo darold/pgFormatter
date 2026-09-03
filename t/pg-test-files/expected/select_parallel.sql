@@ -121,12 +121,12 @@ EXPLAIN (
 SELECT
     (
         SELECT
-            max(
+            max((
                 SELECT
                     pa1.b
                 FROM part_pa_test pa1
                 WHERE
-                    pa1.a = pa2.a))
+                    pa1.a = pa2.a)))
 FROM
     part_pa_test pa2;
 DROP TABLE part_pa_test;

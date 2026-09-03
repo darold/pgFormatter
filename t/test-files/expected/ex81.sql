@@ -9,3 +9,8 @@ SELECT
     (("a'b") * ("c'd"))::int4
 FROM
     t;
+
+SELECT
+    max((
+        SELECT
+            'abc')) AS l;

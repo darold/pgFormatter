@@ -4511,22 +4511,43 @@ sub beautify {
 	# Attempt to remove usless spaces
 	$self->{'content'} =~ s/\s+CHECK\s+\(\s+/ CHECK (/igs;
 
-	# Attempt to eliminate redundant parenthesis in DML queries. Two
-	# refinements over a plain ((x)) -> (x) collapse:
-	#  1. the leading keyword may sit at the very start of the buffer
-	#     (first statement) as well as after whitespace, hence
-	#     (?:^|\s+); otherwise a redundant pair such as count((x)) in
-	#     the first statement is never reached and stays doubled.
-	#  2. the negative lookahead keeps the two parentheses of a scalar
-	#     subquery used as a VALUES row value -- e.g. VALUES ((SELECT
-	#     ...)) -- which are both required, unlike VALUES ((cte)) or
-	#     fn((SELECT ...)) where the outer pair is genuinely redundant.
+        # Attempt to eliminate redundant parenthesis in DML queries. A pair
+        # like ((x)) is collapsed to (x), with two refinements:
+        #  1. the leading keyword may sit at the very start of the buffer
+        #     (first statement) as well as after whitespace, hence (?:^|\s+);
+        #     otherwise a redundant pair such as count((x)) in the first
+        #     statement is never reached and stays doubled.
+        #  2. the two parentheses of a scalar sub-SELECT are BOTH required
+        #     when the outer one belongs to a function call -- fn((SELECT
+        #     ...)) -- or to a VALUES row constructor -- VALUES ((SELECT
+        #     ...)); collapsing them would produce invalid SQL. Such pairs
+        #     are shielded during the pass and restored right after. Any
+        #     other ((...)), including count((unique1)) or FROM ((SELECT
+        #     ...)), is still collapsed.
 	if ( !$self->{'redundant_parenthesis'} ) {
-		while ( $self->{'content'} =~
-s/((?:^|\s+)(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)(?!(?<=VALUES )\(\(\s*SELECT\b)[\(]{2}([^\(\)]+)[\)]{2}([^;:]+)/$1($2)$3/igs
-		  )
-		{
-		}
+                while (
+                        $self->{'content'} =~ s{
+                                ((?:^|\s+)(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)  # $1
+                                [\(]{2}([^\(\)]+)[\)]{2}([^;]+)                    # $2 inner, $3 rest
+                        }{
+                                my ( $lead, $inner, $rest ) = ( $1, $2, $3 );
+                                my $word = ( $lead =~ /([A-Za-z_][\w\.]*)\s*$/ ) ? $1 : '';
+                                if (   $inner =~ /AAKEYWCONST\d+AA/
+                                        || ( $inner =~ /^\s*SELECT\b/i
+                                                && ( $word =~ /^VALUES$/i
+                                                        || ( $word ne '' && $self->_is_function($word) ) ) ) )
+                                {
+                                        "$lead\x02$inner\x03$rest";
+                                }
+                                else {
+                                        "$lead($inner)$rest";
+                                }
+                        }egisx
+                  )
+                {
+                }
+                $self->{'content'} =~ s/\x02/((/gs;
+                $self->{'content'} =~ s/\x03/))/gs;
 	}
 
 	# Add newline after ariga/atlas related comments
