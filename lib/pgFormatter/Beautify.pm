@@ -404,28 +404,28 @@ s/AS ('[^\']+')\s*,\s*('[^\']+')/AS CODEPARTB${i}CODEPARTB/is
 	}
 	$self->{'query'} = join( '', @temp_content );
 
-	# replace all inline dollar-quoted constants, but leave untouched the
-	# ones that are not real string constants: PL/pgSQL code bodies
-	# introduced by AS (function body) or DO (anonymous block) -- the
-	# keyword and the opening $$ can be separated by a newline -- and
-	# MySQL DELIMITER $$ directives. The prefix is consumed but rewritten
-	# as-is so it is skipped without looping.
-	$self->{'query'} =~ s{
-		(\bAS\s+ | \bDO\s+ | \bDELIMITER[ \t]+)?     # $1: skip prefix, kept verbatim
-		(\$\$[ ]*\S[^\n\r]*?\$\$)                     # $2: inline $$...$$
-	}{
-		if ( defined $1 ) {
-			"$1$2";
-		}
-		else {
-			$self->{'keyword_constant'}{$j} = $2;
-			my $placeholder = 'AAKEYWCONST' . $j . 'AA';
-			$j++;
-			$placeholder;
-		}
-	}isexg;
+        # replace all inline dollar-quoted constants, but leave untouched the
+        # ones that are not real string constants: PL/pgSQL code bodies
+        # introduced by AS (function body) or DO (anonymous block, with an
+        # optional LANGUAGE clause) -- the keyword and the opening $$ can be
+        # separated by a newline -- and MySQL DELIMITER $$ directives. The
+        # prefix is consumed but rewritten as-is so it is skipped without looping.
+        $self->{'query'} =~ s{
+                (\bAS\s+ | \bDO\s+(?:LANGUAGE\s+\w+\s+)? | \bDELIMITER[ \t]+)?   # $1: skip prefix, kept verbatim
+                (\$\$[ ]*\S[^\n\r]*?\$\$)                                        # $2: inline $$...$$
+        }{
+                if ( defined $1 ) {
+                        "$1$2";
+                }
+                else {
+                        $self->{'keyword_constant'}{$j} = $2;
+                        my $placeholder = 'AAKEYWCONST' . $j . 'AA';
+                        $j++;
+                        $placeholder;
+                }
+        }isexg;
 
- # Store values of code that must not be changed following the given placeholder
+        # Store values of code that must not be changed following the given placeholder
 	if ( $self->{'placeholder'} ) {
 		if ( !$self->{'multiline'} ) {
 			while ( $self->{'query'} =~
