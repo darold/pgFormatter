@@ -196,6 +196,7 @@ sub set_config {
 	$self->{'extra_keyword'}         //= '';
 	$self->{'no_space_function'}     //= 0;
 	$self->{'redundant_parenthesis'} //= 0;
+	$self->{'vertical_align'}        //= 0;
 
 	# Backward compatibility
 	$self->{'extra_keyword'} = 'redshift'
@@ -262,7 +263,7 @@ sub get_params {
 	my $cgi = $self->{'cgi'};
 
 	for my $param_name (
-		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis)
+		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$param_name} = $cgi->param($param_name)
@@ -323,7 +324,7 @@ sub get_api_params {
 	my $postdata    = $cgi->param('POSTDATA');
 	my $json_params = decode_json($postdata);
 	for my $param_name (
-		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis)
+		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$param_name} = $json_params->{$param_name}
@@ -364,6 +365,8 @@ sub sanitize_params {
 	  if ( $self->{'no_space_function'} !~ /^(0|1)$/ );
 	$self->{'redundant_parenthesis'} = 0
 	  if ( $self->{'redundant_parenthesis'} !~ /^(0|1)$/ );
+	$self->{'vertical_align'} = 0
+	  if ( $self->{'vertical_align'} !~ /^(0|1)$/ );
 
 	if ( $self->{'show_example'} ) {
 		$self->{'content'} = q{
@@ -412,6 +415,7 @@ sub beautify_query {
 	$args{'keep_newline'}          = 1 if $self->{'keep_newline'};
 	$args{'no_space_function'}     = 1 if $self->{'no_space_function'};
 	$args{'redundant_parenthesis'} = 1 if $self->{'redundant_parenthesis'};
+	$args{'vertical_align'}        = 1 if $self->{'vertical_align'};
 
 	$self->{'content'} = &remove_extra_parenthesis( $self->{'content'} )
 	  if ( !$self->{'redundant_parenthesis'} && $self->{'content'} );

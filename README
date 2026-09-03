@@ -84,6 +84,8 @@ DESCRIPTION
         --no-space-function : remove space between function call and the open
                                 parenthesis.
         --redundant-parenthesis: do not remove redundant parenthesis in DML.
+        --vertical-align      : vertically align CREATE TABLE column definitions and
+                                trailing comments. Disabled by default.
 
     Examples:
 
@@ -264,6 +266,24 @@ SPECIAL FORMATTING
     By default, pgFormatter tries to remove redundant parenthesis in DML but
     in some cases they must be preseved. Using this option will keep
     redundant parenthesis untouched.
+
+  Option --vertical-align
+    Use this option to vertically align direct, single-line column
+    definitions inside CREATE TABLE statements. It aligns column names, data
+    types, column constraints such as DEFAULT, and trailing comments. For
+    example:
+
+        CREATE TABLE example (
+            id         serial PRIMARY KEY,                                -- some comment
+            name       varchar(100)             NOT NULL,                 -- another comment
+            email      varchar(100)             NOT NULL,                 -- third comment
+            created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP -- last comment
+        );
+
+    Table-level constraints and multiline column definitions are preserved
+    but are not included in the alignment calculation. The option is disabled
+    by default and only applies to text output. It can also be enabled in a
+    configuration file with vertical-align=1.
 
 HINTS
   Configuration
