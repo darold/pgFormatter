@@ -5569,6 +5569,8 @@ Currently defined defaults:
 
 =item redundant_parenthesis => 0
 
+=item vertical_align => 0
+
 =back
 
 =cut
