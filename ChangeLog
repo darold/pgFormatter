@@ -1,3 +1,20 @@
+
+September 4 2026 - v5.11
+
+This release adds optional vertical alignment feature for CREATE TABLE
+definitions and fixes some issues reported by users since the last release.
+
+Here is the complete list of changes and acknowledgments:
+
+ -  Add missing item vertical_align comment to the set_default() method.
+ -  Fix redundant parenthesis when SELECT is called in a function. Thanks to Paul Huffmann for the report.
+ -  Fix redundant parenthesis wrong removing. Thanks to Paul Huffman for the report.
+ -  Add optional vertical alignment feature for CREATE TABLE definitions. Thanks to David Aukes for the patch.
+ -  Fix code versus string delimiter
+ -  Fix uninitialized value error. Thanks to castle101 for the report.
+ -  Fix typo in RedShift keywords documentation. Thanks to Andras Hegedus for the patch.
+ -  Fix crash with use of uninitialized value in MERGE request. Thanks to Noa Laznik for the report.
+
 May 8 2026 - v5.10
 
 This release adds several formatting improvements and fixes some issues
