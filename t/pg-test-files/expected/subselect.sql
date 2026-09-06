@@ -1082,7 +1082,8 @@ WITH aa AS (
         'int4_tbl' u
     FROM
         int4_tbl
-    LIMIT 1)
+    LIMIT 1
+)
 INSERT INTO upsert
 VALUES
     (1, 'x'),

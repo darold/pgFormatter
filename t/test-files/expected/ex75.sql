@@ -10,7 +10,8 @@ example2 AS (
         COALESCE(a, 1) AS a,
         b
     FROM
-        example)
+        example
+)
 INSERT INTO example3 (a, b)
 SELECT
     a,

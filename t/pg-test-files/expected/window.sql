@@ -1599,7 +1599,8 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(1, 35, 2))
+        generate_series(1, 35, 2)
+)
 SELECT
     x,
     (sum(x) OVER w)
@@ -1613,7 +1614,8 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(1, 35, 2))
+        generate_series(1, 35, 2)
+)
 SELECT
     x,
     (sum(x) OVER w)
@@ -1627,7 +1629,8 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(1, 35, 2))
+        generate_series(1, 35, 2)
+)
 SELECT
     x,
     (sum(x) OVER w)
@@ -1650,7 +1653,8 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(5, 49, 2))
+        generate_series(5, 49, 2)
+)
 SELECT
     x,
     (sum(x) OVER w)
@@ -1673,7 +1677,8 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(5, 49, 2))
+        generate_series(5, 49, 2)
+)
 SELECT
     x,
     (sum(x) OVER w)
@@ -1696,7 +1701,8 @@ WITH cte (
     SELECT
         *
     FROM
-        generate_series(5, 49, 2))
+        generate_series(5, 49, 2)
+)
 SELECT
     x,
     (sum(x) OVER w)

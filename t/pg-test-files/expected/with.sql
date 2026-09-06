@@ -69,10 +69,10 @@ WITH RECURSIVE t (
         WHERE
             n < 5
 )
-    SELECT
-        *
-    FROM
-        t;
+SELECT
+    *
+FROM
+    t;
 
 -- recursive view
 CREATE RECURSIVE VIEW nums (n) AS
@@ -505,7 +505,8 @@ WITH RECURSIVE q AS (
             SELECT
                 *
             FROM
-                x))
+                x)
+)
 SELECT
     *
 FROM
@@ -535,7 +536,8 @@ WITH RECURSIVE q AS (
             SELECT
                 *
             FROM
-                x))
+                x)
+)
 SELECT
     *
 FROM
@@ -799,7 +801,8 @@ WITH RECURSIVE x (
 y (
     id
 ) AS (
-    VALUES (1))
+    VALUES (1)
+)
 SELECT
     *
 FROM
@@ -974,7 +977,8 @@ WITH t AS (
     SELECT
         a
     FROM
-        y)
+        y
+)
 INSERT INTO y
 SELECT
     a + 20
@@ -992,7 +996,8 @@ WITH t AS (
     SELECT
         a
     FROM
-        y)
+        y
+)
 UPDATE
     y
 SET
@@ -1021,7 +1026,8 @@ WITH RECURSIVE t (
     FROM
         t
     WHERE
-        a < 50)
+        a < 50
+)
 DELETE FROM y USING t
 WHERE t.a = y.a
 RETURNING
@@ -1230,7 +1236,8 @@ WITH RECURSIVE x (
             SELECT
                 *
             FROM
-                x))
+                x)
+)
 SELECT
     *
 FROM
@@ -1396,7 +1403,8 @@ WITH RECURSIVE foo (
         FROM
             foo
         WHERE
-            i < 5))
+            i < 5)
+)
 SELECT
     *
 FROM
@@ -1446,7 +1454,8 @@ WITH RECURSIVE foo (
         FROM
             foo
         WHERE
-            i < 5))
+            i < 5)
+)
 SELECT
     *
 FROM
@@ -1469,7 +1478,8 @@ WITH RECURSIVE foo (
         FROM
             foo
         WHERE
-            i < 5))
+            i < 5)
+)
 SELECT
     *
 FROM
@@ -1529,11 +1539,12 @@ CREATE RULE r2 AS ON UPDATE
         DO INSTEAD
         WITH t AS (
             SELECT
-                OLD.*)
-        UPDATE
-            y SET
-            a = t.n FROM
-            t;
+                OLD.*
+)
+UPDATE
+    y SET
+    a = t.n FROM
+    t;
 
 --
 -- test for bug #4902
@@ -1644,7 +1655,8 @@ WITH outermost (
                 innermost
             UNION
             SELECT
-                3))
+                3)
+)
 SELECT
     *
 FROM
@@ -1669,7 +1681,8 @@ WITH outermost (
             SELECT
                 *
             FROM
-                innermost))
+                innermost)
+)
 SELECT
     *
 FROM
@@ -1694,7 +1707,8 @@ WITH RECURSIVE outermost (
             SELECT
                 *
             FROM
-                innermost))
+                innermost)
+)
 SELECT
     *
 FROM
@@ -1720,12 +1734,12 @@ WITH RECURSIVE outermost (
         FROM
             outermost
 )
-    SELECT
-        *
-    FROM
-        outermost
-    ORDER BY
-        1;
+SELECT
+    *
+FROM
+    outermost
+ORDER BY
+    1;
 
 --
 -- This test will fail with the old implementation of PARAM_EXEC parameter
@@ -1822,7 +1836,8 @@ iter (
             SELECT
                 *
             FROM
-                effect))
+                effect)
+)
 SELECT
     *
 FROM
@@ -1879,7 +1894,8 @@ iter (
             SELECT
                 *
             FROM
-                effect))
+                effect)
+)
 SELECT
     *
 FROM
@@ -2205,7 +2221,8 @@ ORDER BY
 WITH aa AS (
     SELECT
         1 a,
-        2 b)
+        2 b
+)
 INSERT INTO withz
     VALUES (1, 'insert')
 ON CONFLICT (k)
@@ -2222,7 +2239,8 @@ ON CONFLICT (k)
 WITH aa AS (
     SELECT
         1 a,
-        2 b)
+        2 b
+)
 INSERT INTO withz
     VALUES (1, 'insert')
 ON CONFLICT (k)
@@ -2238,7 +2256,8 @@ ON CONFLICT (k)
 WITH aa AS (
     SELECT
         1 a,
-        2 b)
+        2 b
+)
 INSERT INTO withz
     VALUES (1, 'insert')
 ON CONFLICT (k)
@@ -2259,7 +2278,8 @@ WITH aa AS (
     UNION ALL
     SELECT
         'a' a,
-        'b' b)
+        'b' b
+)
 INSERT INTO withz
     VALUES (1, 'insert')
 ON CONFLICT (k)
@@ -2276,7 +2296,8 @@ ON CONFLICT (k)
 WITH aa AS (
     SELECT
         1 a,
-        2 b)
+        2 b
+)
 INSERT INTO withz
     VALUES (1, (
             SELECT
@@ -2318,22 +2339,23 @@ INSERT INTO withz
                     simpletup.k = withz.k)
             RETURNING
                 k,
-                v)
-    INSERT INTO withz
-        VALUES (2, 'Red')
-    ON CONFLICT (k)
-        DO UPDATE SET
-            (k, v) = (
-                SELECT
-                    k,
-                    v
-                FROM
-                    upsert_cte
-                WHERE
-                    upsert_cte.k = withz.k)
-        RETURNING
-            k,
-            v;
+                v
+)
+INSERT INTO withz
+    VALUES (2, 'Red')
+ON CONFLICT (k)
+    DO UPDATE SET
+        (k, v) = (
+            SELECT
+                k,
+                v
+            FROM
+                upsert_cte
+            WHERE
+                upsert_cte.k = withz.k)
+    RETURNING
+        k,
+        v;
 
 DROP TABLE withz;
 
@@ -2687,7 +2709,8 @@ FROM
 -- check sane response to attempt to modify CTE relation
 WITH test AS (
     SELECT
-        42)
+        42
+)
 INSERT INTO test
     VALUES (1);
 
@@ -2700,7 +2723,8 @@ CREATE temp TABLE test (
 
 WITH test AS (
     SELECT
-        42)
+        42
+)
 INSERT INTO test
 SELECT
     *

@@ -991,7 +991,8 @@ z AS (
         xmltable.*
     FROM
         y,
-        LATERAL xmltable('/proc' PASSING proc COLUMNS proname name, proowner oid, procost float, pronargs int, proargnames text, proargtypes text))
+        LATERAL xmltable('/proc' PASSING proc COLUMNS proname name, proowner oid, procost float, pronargs int, proargnames text, proargtypes text)
+)
 SELECT
     *
 FROM
@@ -1027,7 +1028,8 @@ z AS (
         xmltable.*
     FROM
         y,
-        LATERAL xmltable('/data/proc' PASSING doc COLUMNS proname name, proowner oid, procost float, pronargs int, proargnames text, proargtypes text))
+        LATERAL xmltable('/data/proc' PASSING doc COLUMNS proname name, proowner oid, procost float, pronargs int, proargnames text, proargtypes text)
+)
 SELECT
     *
 FROM

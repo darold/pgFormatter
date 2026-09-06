@@ -1902,6 +1902,23 @@ sub beautify {
 				)
 				and !$self->{'_parenthesis_with_level'}
 				and $self->{'_is_in_with'}
+
+				# Do not reset the WITH context here when this ) closes the
+				# body of a CTE. When we are inside a CTE ( _is_in_with > 1 )
+				# and this ) closes its outermost parenthesis
+				# ( _parenthesis_level == 0 ) while a real sub-query has been
+				# seen ( _is_subquery is set, as opposed to a bare VALUES list
+				# which never sets it ), the dedicated CTE closing block below
+				# is in charge of emitting the newline, dedenting the
+				# parenthesis to the WITH level and, for data-modifying CTEs,
+				# clearing the FROM context and adding the newline before the
+				# INSERT/UPDATE/DELETE/MERGE keyword. Resetting _is_in_with to
+				# 0 here would short-circuit that block and glue the closing
+				# parenthesis to the previous line ( "...))" or "...name)" ).
+				and not ( $self->{'_is_in_with'} > 1
+					and !$self->{'_parenthesis_level'}
+					and $self->{'_is_subquery'}
+					and $self->_next_token =~ /^(SELECT|WITH|INSERT|UPDATE|DELETE|MERGE)$/i )
 			  )
 			{
 				$self->{'_is_in_with'} = 0;
@@ -1960,6 +1977,26 @@ sub beautify {
 					}
 					else {
 						$self->{'_is_in_with'} = 0;
+
+						# Leaving the WITH clause: the CTE body FROM
+						# context is over. Clear it so that a following
+						# data-modifying statement (INSERT/UPDATE/DELETE)
+						# is not wrongly re-indented from the CTE body
+						# level. This mirrors the reset that the premature
+						# WITH-context reset above performs for the
+						# read-only case; here it is done at the proper
+						# place, once the CTE is fully closed.
+						$self->{'_is_in_from'} = 0;
+
+						# A data-modifying CTE continues with a top-level
+						# INSERT/UPDATE/DELETE/MERGE keyword right after the
+						# closing parenthesis. Emit a newline so the
+						# statement starts on its own line instead of being
+						# glued to the CTE closing parenthesis.
+						$self->_new_line( $token, $last )
+						  if ( defined $self->_next_token
+							and $self->_next_token =~
+							/^(INSERT|UPDATE|DELETE|MERGE)$/i );
 					}
 				}
 				$last = $self->_set_last( $token, $last );
