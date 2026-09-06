@@ -164,6 +164,8 @@ Takes options as hash. Following options are recognized:
 
 =item * no_space_function - remove space before function call and open parenthesis
 
+=item * compact_clause_body - keep the first element of a clause on the keyword line
+
 =item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
 
 =item * vertical_align - vertically align CREATE TABLE column definitions
@@ -182,7 +184,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -3599,7 +3601,9 @@ sub beautify {
 			elsif ($token =~ /^SET$/i
 				&& $self->{'_current_sql_stmt'} eq 'UPDATE' )
 			{
-				$self->_new_line( $token, $last ) if ( !$self->{'wrap_after'} );
+				$self->_new_line( $token, $last )
+				  if ( !$self->{'wrap_after'}
+					and !$self->{'compact_clause_body'} );
 				$self->_over( $token, $last );
 			}
 			elsif (
@@ -3617,7 +3621,8 @@ sub beautify {
 				  )
 				{
 					$self->_new_line( $token, $last )
-					  if ( !$self->{'wrap_after'} );
+					  if ( !$self->{'wrap_after'}
+						and !$self->{'compact_clause_body'} );
 					$self->_over( $token, $last );
 				}
 			}
@@ -3888,7 +3893,9 @@ sub beautify {
 
 		elsif ( $token =~ /^THEN$/i ) {
 			$self->_add_token($token);
-			$self->_new_line( $token, $last );
+			$self->_new_line( $token, $last )
+			  if ( !$self->{'compact_clause_body'}
+				or $#{ $self->{'_is_in_case'} } < 0 );
 			$self->_set_level( $self->{'_level_stack'}[-1], $token, $last )
 			  if (  $self->{'_is_in_if'}
 				and $#{ $self->{'_level_stack'} } >= 0 );
@@ -5604,6 +5611,8 @@ Currently defined defaults:
 
 =item no_space_function => 0
 
+=item compact_clause_body => 0
+
 =item redundant_parenthesis => 0
 
 =item vertical_align => 0
@@ -5649,6 +5658,7 @@ sub set_defaults {
 	$self->{'no_extra_line'}         = 0;
 	$self->{'keep_newline'}          = 0;
 	$self->{'no_space_function'}     = 0;
+	$self->{'compact_clause_body'}   = 0;
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'vertical_align'}        = 0;
 
