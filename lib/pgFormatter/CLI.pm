@@ -131,6 +131,7 @@ sub beautify {
 	$args{'extra_keyword'}         = $self->{'cfg'}->{'extra-keyword'};
 	$args{'no_space_function'}     = $self->{'cfg'}->{'no-space-function'};
 	$args{'compact_clause_body'}   = $self->{'cfg'}->{'compact-clause-body'};
+	$args{'join_subquery_level'} = $self->{'cfg'}->{'join-subquery-level'};
 	$args{'redundant_parenthesis'} = $self->{'cfg'}->{'redundant-parenthesis'};
 	$args{'vertical_align'}        = $self->{'cfg'}->{'vertical-align'};
 
@@ -333,6 +334,9 @@ Options:
     --compact-clause-body : keep the first element of a FROM, WHERE, SET, RETURNING,
                             HAVING or VALUES clause on the same line as the keyword,
                             and the body of a CASE ... THEN on the same line as THEN.
+    --join-subquery-level : compensate the indentation step-back of the first join
+                            of a subquery whatever the nesting level, so the subquery
+                            does not lose one level.
     --redundant-parenthesis: do not remove redundant parenthesis in DML.
     --vertical-align      : vertically align CREATE TABLE column definitions and
                             trailing comments.
@@ -403,7 +407,7 @@ sub get_command_line_args {
 		'wrap-limit|w=i',  'wrap-after|W=i',
 		'inplace|i!',      'extra-function=s',
 		'extra-keyword=s', 'no-space-function!',
-		'compact-clause-body!', 'ident-case|I=i',
+		'compact-clause-body!', 'join-subquery-level!', 'ident-case|I=i',
 		'redundant-parenthesis!', 'vertical-align!',
 	);
 
