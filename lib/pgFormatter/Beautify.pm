@@ -168,6 +168,8 @@ Takes options as hash. Following options are recognized:
 
 =item * compact_clause_body - keep the first element of a clause on the keyword line
 
+=item * join_subquery_level - compensate the indentation step-back of the first join of a subquery whatever the nesting level, so the subquery does not lose one level
+
 =item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
 
 =item * vertical_align - vertically align CREATE TABLE column definitions
@@ -186,7 +188,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body join_subquery_level redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -4085,11 +4087,20 @@ sub beautify {
 
 			if ( $token =~ /(?:LEFT|RIGHT|FULL|CROSS|NATURAL)$/i ) {
 				$self->_new_line( $token, $last );
-				$self->_over( $token, $last )
-				  if (
-					$self->{'_level'} == 0
-					|| ( $self->{'_is_in_with'} > 1 and $self->{'_level'} == 1 )
-				  );
+				# When join_subquery_level is enabled, mirror the INNER/OUTER branch
+				# below: stepping back is compensated whatever the nesting level, so
+				# the first join of a subquery no longer loses one level for the
+				# whole subquery.
+				if ( $self->{'join_subquery_level'} ) {
+					$self->_over( $token, $last ) if ( !$self->{'_is_in_join'} );
+				}
+				else {
+					$self->_over( $token, $last )
+					  if (
+						$self->{'_level'} == 0
+						|| ( $self->{'_is_in_with'} > 1 and $self->{'_level'} == 1 )
+					  );
+				}
 			}
 			if (   ( $token =~ /(?:INNER|OUTER)$/i )
 				&& ( $last !~ /(?:LEFT|RIGHT|CROSS|NATURAL|FULL)$/i ) )
@@ -5691,6 +5702,8 @@ Currently defined defaults:
 
 =item compact_clause_body => 0
 
+=item join_subquery_level => 0
+
 =item redundant_parenthesis => 0
 
 =item vertical_align => 0
@@ -5738,6 +5751,7 @@ sub set_defaults {
 	$self->{'keep_newline'}          = 0;
 	$self->{'no_space_function'}     = 0;
 	$self->{'compact_clause_body'}   = 0;
+	$self->{'join_subquery_level'} = 0;
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'vertical_align'}        = 0;
 
