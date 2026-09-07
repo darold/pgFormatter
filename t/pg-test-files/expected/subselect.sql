@@ -31,9 +31,9 @@ FROM (
 
 SELECT
     *
-FROM (
+FROM ((
         SELECT
-            1 AS x) ss;
+            1 AS x)) ss;
 
 (
     SELECT
@@ -71,14 +71,14 @@ SELECT
             ARRAY[1, 2, 3])[1];
 
 SELECT
-    (
+    ((
             SELECT
-                ARRAY[1, 2, 3])[2];
+                ARRAY[1, 2, 3]))[2];
 
 SELECT
-    (
+    ((
                 SELECT
-                    ARRAY[1, 2, 3])[3];
+                    ARRAY[1, 2, 3]))[3];
 
 -- Set up some simple test tables
 CREATE TABLE SUBSELECT_TBL (

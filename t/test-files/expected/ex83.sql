@@ -14,17 +14,17 @@ SELECT
             1)) AS x;
 
 SELECT
-    myfn ((
+    myfn((
         SELECT
             1)) AS x;
 
 SELECT
-    public.myfn ((
+    public.myfn((
         SELECT
             1)) AS x;
 
 SELECT
-    "myfn" ((
+    "myfn"((
         SELECT
             1)) AS x;
 
