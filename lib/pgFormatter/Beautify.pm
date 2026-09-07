@@ -168,6 +168,9 @@ Takes options as hash. Following options are recognized:
 
 =item * compact_clause_body - keep the first element of a clause on the keyword line
 
+=item * break_insert_columns - break the line before the parenthesis closing the
+column list of an INSERT
+
 =item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
 
 =item * vertical_align - vertically align CREATE TABLE column definitions
@@ -186,7 +189,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body break_insert_columns redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -3018,10 +3021,19 @@ sub beautify {
 						or $self->_next_token eq ';' )
 				  );
 				$add_nl = 1
-				  if ( $self->{'_current_sql_stmt'} ne 'INSERT'
+				  if ( ( $self->{'_current_sql_stmt'} ne 'INSERT'
+						or $self->{'break_insert_columns'} )
 					and !$self->{'_is_in_function'}
-					and ( defined $self->_next_token
-						and $self->_next_token =~ /^(SELECT|WITH)$/i )
+					and defined $self->_next_token
+					and (
+						# Default: break before SELECT/WITH for non-INSERT statements.
+						( $self->{'_current_sql_stmt'} ne 'INSERT'
+							and $self->_next_token =~ /^(SELECT|WITH)$/i )
+						# Option: also break before VALUES for INSERT statements.
+						or ( $self->{'_current_sql_stmt'} eq 'INSERT'
+							and $self->{'break_insert_columns'}
+							and $self->_next_token =~ /^(SELECT|WITH|VALUES)$/i )
+					)
 					and $self->{'_tokens'}[1] !~ /^(ORDINALITY|FUNCTION)$/i
 					and (  $self->{'_is_in_create'}
 						or $last ne ')' and $last ne ']' )
@@ -5691,6 +5703,8 @@ Currently defined defaults:
 
 =item compact_clause_body => 0
 
+=item break_insert_columns => 0
+
 =item redundant_parenthesis => 0
 
 =item vertical_align => 0
@@ -5738,6 +5752,7 @@ sub set_defaults {
 	$self->{'keep_newline'}          = 0;
 	$self->{'no_space_function'}     = 0;
 	$self->{'compact_clause_body'}   = 0;
+	$self->{'break_insert_columns'}  = 0;
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'vertical_align'}        = 0;
 
