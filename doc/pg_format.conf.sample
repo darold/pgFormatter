@@ -88,3 +88,9 @@ no-space-function=0
 
 # Vertically align CREATE TABLE column definitions and trailing comments.
 vertical-align=0
+
+# Change the case of the identifiers (schema, table, column and alias names).
+# Default is unchanged: 0. Values: 0=>unchanged, 1=>lowercase, 2=>uppercase,
+# 3=>capitalize. Quoted identifiers are never changed.
+ident-case=0
+

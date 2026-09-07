@@ -144,6 +144,8 @@ Takes options as hash. Following options are recognized:
 
 =item * uc_types - what to do with data types - meaning of value like with uc_functions
 
+=item * uc_identifiers - what to do with identifiers (schema, table, column and alias names) - meaning of value like with uc_functions. Quoted identifiers are never modified because their case is significant in PostgreSQL.
+
 =item * wrap - wraps given keywords in pre- and post- markup. Specific docs in SQL::Beautify
 
 =item * format_type - try an other formatting
@@ -184,7 +186,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -567,6 +569,26 @@ sub highlight_code {
 		else {
 			$token = '<span class="kw1">' . $token . '</span>';
 		}
+		return $token;
+	}
+
+	# Colorize identifiers (schema, table, column and alias names) when the
+	# identifier-case option is enabled. The case change itself has already
+	# been applied to the token text in _add_token (component wise, so quoted
+	# parts are preserved); here we only wrap it for colorization. The plain
+	# kw2 class is used on purpose: a text-transform class (kw2_u/_l/_c) would
+	# override the baked case and wrongly re-case quoted identifiers.
+	if (
+		    $self->{'uc_identifiers'}
+		and $token =~ /[^\W\d]/
+		and !$self->_is_keyword( $token, $next_token, $last_token )
+		and !$self->_is_function( $token, $last_token, $next_token )
+		and !$self->_is_type( $token, $last_token, $next_token )
+		and !$self->_is_constant($token)
+		and !$self->_is_comment($token)
+	  )
+	{
+		$token = '<span class="kw2">' . $token . '</span>';
 		return $token;
 	}
 
@@ -4944,6 +4966,58 @@ sub _add_token {
 		}
 	}
 
+	# lowercase/uppercase/capitalize identifiers (schema, table, column and
+	# alias names), including dotted qualified names like schema.table.column.
+	# The token is split on dots and each component is handled on its own so
+	# that:
+	#   - bare (unquoted) components are changed,
+	#   - double quoted components keep their case, which is significant in
+	#     PostgreSQL (a component holding a quote never matches the bare
+	#     identifier pattern below and is reassembled verbatim, so even a dot
+	#     inside quotes like "my.col" is preserved),
+	#   - NEW/OLD record references in trigger/function/rule code are left to
+	#     the keyword handler above,
+	#   - internal placeholders used by the beautifier are left untouched.
+	# Keywords, functions, data types, constants and comments have already
+	# been handled above and are excluded here.
+	if (
+		    $self->{'uc_identifiers'}
+		and $token =~ /[^\W\d]/
+		and !$self->_is_keyword( $token, $next_token, $last_token )
+		and !$self->_is_function( $token, $last_token, $next_token )
+		and !$tk_is_type
+		and !$self->_is_constant($token)
+		and !$self->_is_comment($token)
+	  )
+	{
+		my $in_body =
+		     $self->{'_is_in_create_function'}
+		  || $self->{'_fct_code_delimiter'}
+		  || $self->{'_is_in_rule'};
+ 
+		my @parts = split( /\./, $token, -1 );
+		for ( my $i = 0 ; $i <= $#parts ; $i++ ) {
+			my $p = $parts[$i];
+ 
+			# only bare identifier components are changed; quoted parts and
+			# internal placeholders are reassembled verbatim
+			next
+			  unless ( $p =~ /\A[^\W\d][\w\$]*\z/
+				and $p !~
+ /\A(?:AAKEYWCONST\d+AA|PGF(?:ALIAS\d+|DLM|ESCQ[12]|BSLHQ))\z/ );
+ 
+			# a leading NEW/OLD record reference in trigger/function/rule code
+			# stays under keyword-case control
+			next if ( $i == 0 and $in_body and $p =~ /\A(?:NEW|OLD)\z/i );
+ 
+			$p = lc($p)            if ( $self->{'uc_identifiers'} == 1 );
+			$p = uc($p)            if ( $self->{'uc_identifiers'} == 2 );
+			$p = ucfirst( lc($p) ) if ( $self->{'uc_identifiers'} == 3 );
+			$parts[$i] = $p;
+		}
+		$token = join( '.', @parts );
+	}
+
 	# Add formatting for HTML output
 	if ( $self->{'colorize'} && $self->{'format'} eq 'html' ) {
 		$token = $self->highlight_code( $token, $last_token, $next_token );
@@ -5583,6 +5657,8 @@ Currently defined defaults:
 
 =item uc_types => 1
 
+=item uc_identifiers => 0
+
 =item no_comments => 0
 
 =item no_grouping => 0
@@ -5637,6 +5713,7 @@ sub set_defaults {
 	$self->{'uc_keywords'}  = 2;
 	$self->{'uc_functions'} = 0;
 	$self->{'uc_types'}     = 1;
+	$self->{'uc_identifiers'} = 0;
 	$self->{'no_comments'}  = 0;
 	$self->{'no_grouping'}  = 0;
 	$self->{'placeholder'}  = '';

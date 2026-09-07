@@ -106,6 +106,7 @@ sub beautify {
 	$args{'uc_keywords'}           = $self->{'cfg'}->{'keyword-case'};
 	$args{'uc_functions'}          = $self->{'cfg'}->{'function-case'};
 	$args{'uc_types'}              = $self->{'cfg'}->{'type-case'};
+	$args{'uc_identifiers'}        = $self->{'cfg'}->{'ident-case'};
 	$args{'placeholder'}           = $self->{'cfg'}->{'placeholder'};
 	$args{'multiline'}             = $self->{'cfg'}->{'multiline'};
 	$args{'separator'}             = $self->{'cfg'}->{'separator'};
@@ -287,6 +288,11 @@ Options:
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
     -i | --inplace        : override input files with formatted content.
+    -I | --ident-case N   : Change the case of the identifiers (schema,
+                            table, column and alias names). Default is
+                            unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize. Quoted identifiers
+                            are never changed.
     -k | --keep-newline   : preserve empty line in plpgsql code.
     -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
@@ -397,7 +403,7 @@ sub get_command_line_args {
 		'wrap-limit|w=i',  'wrap-after|W=i',
 		'inplace|i!',      'extra-function=s',
 		'extra-keyword=s', 'no-space-function!',
-		'compact-clause-body!',
+		'compact-clause-body!', 'ident-case|I=i',
 		'redundant-parenthesis!', 'vertical-align!',
 	);
 
@@ -455,6 +461,7 @@ sub get_command_line_args {
 	$cfg{'function-case'} //= 0;
 	$cfg{'keyword-case'}  //= 2;
 	$cfg{'type-case'}     //= 1;
+	$cfg{'ident-case'}    //= 0;
 	$cfg{'comma'}         //= 'end';
 	$cfg{'format'}        //= 'text';
 	$cfg{'comma-break'}   //= 0;
@@ -526,6 +533,9 @@ sub validate_args {
 	$self->show_help_and_die( 2,
 		'type-case can be only one of: 0, 1, 2, or 3.' )
 	  unless $self->{'cfg'}->{'type-case'} =~ m{\A[0123]\z};
+	$self->show_help_and_die( 2,
+		'identifier-case can be only one of: 0, 1, 2, or 3.' )
+	  unless $self->{'cfg'}->{'ident-case'} =~ m{\A[0123]\z};
 
 # Force output file to be the same as inout file when the inplace option is used
 	if ( $self->{'cfg'}->{'inplace'} ) {

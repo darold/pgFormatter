@@ -165,6 +165,7 @@ sub set_config {
 				$key = 'uc_keyword'  if ( $key eq 'keyword_case' );
 				$key = 'uc_function' if ( $key eq 'function_case' );
 				$key = 'uc_type'     if ( $key eq 'type_case' );
+				$key = 'uc_identifier' if ( $key eq 'ident_case' );
 				if ( $key eq 'comma' || $key eq 'format' ) {
 					$self->{$key} = lc($val);
 				}
@@ -181,6 +182,7 @@ sub set_config {
 	$self->{'uc_keyword'}            //= 2;
 	$self->{'uc_function'}           //= 0;
 	$self->{'uc_type'}               //= 1;
+	$self->{'uc_identifier'}         //= 0;
 	$self->{'anonymize'}             //= 0;
 	$self->{'separator'}             //= '';
 	$self->{'comma'}                 //= 'end';
@@ -263,7 +265,7 @@ sub get_params {
 	my $cgi = $self->{'cgi'};
 
 	for my $param_name (
-		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align)
+		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$param_name} = $cgi->param($param_name)
@@ -402,6 +404,7 @@ sub beautify_query {
 	$args{'uc_keywords'}           = $self->{'uc_keyword'};
 	$args{'uc_functions'}          = $self->{'uc_function'};
 	$args{'uc_types'}              = $self->{'uc_type'};
+	$args{'uc_identifiers'}        = $self->{'uc_identifier'};
 	$args{'separator'}             = $self->{'separator'};
 	$args{'comma'}                 = $self->{'comma'};
 	$args{'format'}                = $self->{'format'};
@@ -529,6 +532,9 @@ sub print_body {
 	my %typ_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
 	$typ_toggle{ $self->{'uc_type'} } = ' selected="selected"';
 
+	my %ide_toggle = ( 0 => '', 1 => '', 2 => '', 3 => '' );
+	$ide_toggle{ $self->{'uc_identifier'} } = ' selected="selected"';
+
 	my $service_url = $self->{'service_url'} || $self->{'cgi'}->url;
 
 	print <<_END_OF_HTML_;
@@ -597,6 +603,13 @@ sub print_body {
             <option value="1"$typ_toggle{1} >Lower case</option>
             <option value="2"$typ_toggle{2} >Upper case</option>
             <option value="3"$typ_toggle{3} >Capitalize</option>
+      </select>
+    <br />
+      Identifiers: <select name="uc_identifier" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();">
+            <option value="0"$ide_toggle{0}>Unchanged</option>
+            <option value="1"$ide_toggle{1} >Lower case</option>
+            <option value="2"$ide_toggle{2} >Upper case</option>
+            <option value="3"$ide_toggle{3} >Capitalize</option>
       </select>
     </div>
     </fieldset>

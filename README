@@ -46,6 +46,11 @@ DESCRIPTION
                                 regroupement. Default is to group statements.
         -h | --help           : show this message and exit.
         -i | --inplace        : override input files with formatted content.
+        -I | --ident-case N   : Change the case of the identifiers (schema,
+                                table, column and alias names). Default is
+                                unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+                                2=>uppercase, 3=>capitalize. Quoted identifiers
+                                are never changed.
         -k | --keep-newline   : preserve empty line in plpgsql code.
         -L | --no-extra-line  : do not add an extra empty line at end of the output.
         -m | --maxlength SIZE : maximum length of a query, it will be cutted above
@@ -81,7 +86,7 @@ DESCRIPTION
                                 formatting as PostgreSQL internal keyword. Use
                                 special value 'redshift' for support to Redshift
                                 keywords defined internaly in pgFormatter.
-        --no-space-function : remove space between function call and the open
+        --no-space-function :   remove space between function call and the open
                                 parenthesis.
         --redundant-parenthesis: do not remove redundant parenthesis in DML.
         --vertical-align      : vertically align CREATE TABLE column definitions and

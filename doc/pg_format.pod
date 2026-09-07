@@ -49,6 +49,11 @@ Options:
     -h | --help           : show this message and exit.
     -i | --inplace        : override input files with formatted content.
     -k | --keep-newline   : preserve empty line in plpgsql code.
+    -I | --ident-case N   : Change the case of the identifiers (schema,
+                            table, column and alias names). Default is
+                            unchanged: 0. Values: 0=>unchanged, 1=>lowercase,
+                            2=>uppercase, 3=>capitalize. Quoted identifiers
+                            are never changed.
     -L | --no-extra-line  : do not add an extra empty line at end of the output.
     -m | --maxlength SIZE : maximum length of a query, it will be cutted above
                             the given size. Default: no truncate.
