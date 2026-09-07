@@ -494,13 +494,15 @@ sub content {
 s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
 	}
 
-	$self->{'content'} =~ s/PGFALIAS(\d+)/$self->{ 'alias_constant' }{$1}/gs;
+	#$self->{'content'} =~ s/PGFALIAS(\d+)/$self->{ 'alias_constant' }{$1}/gs;
 
 	while ( $self->{'content'} =~
 		s/AAKEYWCONST(\d+)AA/$self->{ 'keyword_constant' }{$1}/s )
 	{
 		delete $self->{'keyword_constant'}{$1};
 	}
+
+	$self->{'content'} =~ s/PGFALIAS(\d+)/$self->{ 'alias_constant' }{$1}/gs;
 
 	# Replace any BSLHPGF by \\
 	$self->{'content'} =~ s/BSLHPGF/\\\\/g;
@@ -4568,20 +4570,19 @@ sub beautify {
         #     are shielded during the pass and restored right after. Any
         #     other ((...)), including count((unique1)) or FROM ((SELECT
         #     ...)), is still collapsed.
-	if ( !$self->{'redundant_parenthesis'} ) {
+	if ( !$self->{'redundant_parenthesis'} )
+	{
                 while (
                         $self->{'content'} =~ s{
                                 ((?:^|\s+)(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)  # $1
                                 [\(]{2}([^\(\)]+)[\)]{2}([^;]+)                    # $2 inner, $3 rest
                         }{
                                 my ( $lead, $inner, $rest ) = ( $1, $2, $3 );
-                                my $word = ( $lead =~ /([A-Za-z_][\w\.]*)\s*$/ ) ? $1 : '';
-                                if (   $inner =~ /AAKEYWCONST\d+AA/
-                                        || ( $inner =~ /^\s*SELECT\b/i
-                                                && ( $word =~ /^VALUES$/i
-                                                        || ( $word ne '' && $self->_is_function($word) ) ) ) )
+                                my $word = ( $lead =~ /([a-z0-9_"][\w\."]*)\s*$/i ) ? $1 : '';
+                                if ( ($inner =~ /AAKEYWCONST\d+AA/ || $inner =~ /^\s*SELECT\b/i)
+                                             && $word ne '' )
                                 {
-                                        "$lead\x02$inner\x03$rest";
+					"$lead\x02$inner\x03$rest";
                                 }
                                 else {
                                         "$lead($inner)$rest";
@@ -5282,7 +5283,8 @@ sub _is_function {
 		}
 		return $1;
 	}
-	else {
+	else
+	{
 		return undef;
 	}
 }
@@ -5332,7 +5334,7 @@ Refresh compiled regexp for functions.
 sub _refresh_functions_re {
 	my $self = shift;
 	$self->{'functions_re'} =
-	  _re_from_list( '\b[\.]*', '$', @{ $self->{'functions'} } );
+	  _re_from_list( '\b[\."]*', '["]*$', @{ $self->{'functions'} } );
 }
 
 =head2 add_functions

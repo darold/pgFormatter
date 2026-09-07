@@ -1,0 +1,18 @@
+SELECT "char"((SELECT 65))::text AS x;
+SELECT "abs"((SELECT 1))::int AS x;
+SELECT "abs"((SELECT 1)) AS x;
+SELECT myfn((SELECT 1)) AS x;
+SELECT public.myfn((SELECT 1)) AS x;
+SELECT "myfn"((SELECT 1)) AS x;
+SELECT pg_catalog.abs((SELECT 1)) AS x;
+SELECT abs((SELECT 1))::int AS x;
+SELECT * FROM (SELECT 1 AS x) ss;
+SELECT * FROM ((SELECT 1 AS x)) ss;
+SELECT (SELECT ARRAY[1,2,3])[1];
+SELECT ((SELECT ARRAY[1,2,3]))[2];
+SELECT (((SELECT ARRAY[1,2,3])))[3];
+SELECT (((SELECT 2)) UNION SELECT 2);
+SELECT (SELECT ARRAY[1,2,3])[1];
+SELECT ((SELECT ARRAY[1,2,3]))[2];
+SELECT (((SELECT ARRAY[1,2,3])))[3];
+SELECT 'SELECT 1 AS "Total"' AS q;

@@ -2,19 +2,15 @@
 WITH a AS (
     SELECT
         x
-    FROM
-        t
-    WHERE
-        y IN (
+    FROM t
+    WHERE y IN (
             SELECT
                 z
-            FROM
-                u)
+            FROM u)
 )
 SELECT
     *
-FROM
-    a;
+FROM a;
 
 -- Chained CTEs where the last one ends with a sub-query.
 WITH a AS (
@@ -24,54 +20,43 @@ WITH a AS (
 b AS (
     SELECT
         x
-    FROM
-        t
-    WHERE
-        x IN (
+    FROM t
+    WHERE x IN (
             SELECT
                 y
-            FROM
-                u)
+            FROM u)
 )
 SELECT
     *
-FROM
-    b;
+FROM b;
 
 -- Nested CTE example from the PostgreSQL documentation.
 WITH regional_sales AS (
     SELECT
         region,
         SUM(amount) AS total_sales
-    FROM
-        orders
+    FROM orders
     GROUP BY
         region
 ),
 top_regions AS (
     SELECT
         region
-    FROM
-        regional_sales
-    WHERE
-        total_sales > (
+    FROM regional_sales
+    WHERE total_sales > (
             SELECT
                 SUM(total_sales) / 10
-            FROM
-                regional_sales)
+            FROM regional_sales)
 )
 SELECT
     region,
     product,
     SUM(quantity)
-FROM
-    orders
-WHERE
-    region IN (
+FROM orders
+WHERE region IN (
         SELECT
             region
-        FROM
-            top_regions)
+        FROM top_regions)
 GROUP BY
     region,
     product;
@@ -80,20 +65,16 @@ GROUP BY
 WITH a AS (
     SELECT
         id
-    FROM
-        t
-    WHERE
-        id IN (
+    FROM t
+    WHERE id IN (
             SELECT
                 id
-            FROM
-                u)
+            FROM u)
 )
 INSERT INTO d (id)
 SELECT
     id
-FROM
-    a;
+FROM a;
 
 SELECT
     plan.id,
