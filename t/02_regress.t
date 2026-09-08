@@ -1,4 +1,4 @@
-use Test::Simple tests => 86;
+use Test::Simple tests => 87;
 use File::Temp qw/ tempfile /;
 
 my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
@@ -32,6 +32,7 @@ foreach my $f (@files)
 	$opt = "--compact-clause-body" if ($f =~ m#/ex82.sql$#);
 	$opt = "--no-space-function" if ($f =~ m#/ex83.sql$#);
 	$opt = "--ident-case 2 -f 1 -U 1" if ($f =~ m#/ex84\.sql$#);
+	$opt = "--isolate-semicolon" if ($f =~ m#/ex85.sql$#);
 	if ($f =~ m#/ex61.sql$#)
 	{
 		my ($fh, $tmpfile) = tempfile('tmp_pgformatXXXX', SUFFIX => '.lst', TMPDIR => 1, O_TEMPORARY => 1, UNLINK => 1 );
