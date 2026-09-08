@@ -777,7 +777,8 @@ sub tokenize_sql {
 	# Revert position when a comment is before a comma
 	if ( $self->{'comma'} eq 'end' ) {
 		for ( my $i = 0 ; $i < ( $#query - 1 ) ; $i++ ) {
-			if ( $query[ $i + 1 ] eq ',' and $self->_is_comment( $query[$i] ) )
+			if ( $query[ $i + 1 ] eq ',' and $self->_is_comment( $query[$i] )
+		       		and ($i == 0 or !$self->_is_comment( $query[$i-1]) )	)
 			{
 				$query[ $i + 1 ] = $query[$i];
 				$query[$i] = ',';
@@ -6376,6 +6377,7 @@ sub _remove_comments {
 
 	my $idx = 0;
 
+	# C style comments
 	while ( $self->{'content'} =~ s/(\/\*(.*?)\*\/)/PGF_COMMENT${idx}A/s ) {
 		$self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
 		$idx++;
@@ -6423,7 +6425,7 @@ sub _remove_comments {
 	$self->{'content'} = join( "\n", @lines );
 
 	# Remove extra newline after comment
-	while ( $self->{'content'} =~ s/(PGF_COMMENT\d+A[\n])[\n]+/$1/s ) { }
+	while ( $self->{'content'} =~ s/(PGF_COMMENT\d+A[\n])[\n]+/$1/s ) { };
 
 	# Replace subsequent comment by a single one
 	while ( $self->{'content'} =~
