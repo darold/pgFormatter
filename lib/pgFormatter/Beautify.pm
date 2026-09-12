@@ -4706,7 +4706,12 @@ sub _add_token {
 				{
 					if ( $token !~ /^['"].*['"]$/ or $last_token ne ':' ) {
 						if ( $token =~ /AAKEYWCONST\d+AA\s+AAKEYWCONST\d+AA/ ) {
-							$token =~ s/(AAKEYWCONST\d+AA)/$sp$1/gs;
+							# Rebuild the separators, the tokenizer kept them verbatim
+							my $nl_sp = $self->{'space'} x
+							  ( $self->{'spaces'} * ( $self->{'_level'} // 0 ) );
+							$token =~ s/[ \t]+(AAKEYWCONST\d+AA)/ $1/gs;
+							$token =~ s/ ?\n ?(AAKEYWCONST\d+AA)/\n$nl_sp$1/gs;
+							$token =~ s/^(AAKEYWCONST\d+AA)/$sp$1/s;
 						}
 						else {
 							$self->{'content'} .= $sp
