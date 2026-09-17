@@ -1595,6 +1595,7 @@ sub beautify {
 	$self->{'_is_in_procedure'}            = 0;
 	$self->{'_is_in_index'}                = 0;
 	$self->{'_is_in_with'}                 = 0;
+	$self->{'_with_base_level'}            = 0;
 	$self->{'_is_in_explain'}              = 0;
 	$self->{'_is_in_overlaps'}             = 0;
 	$self->{'_parenthesis_level'}          = 0;
@@ -1865,13 +1866,17 @@ sub beautify {
 		{
 			if (    !$self->{'_is_in_partition'}
 				and !$self->{'_is_in_publication'}
-				and !$self->{'_is_in_policy'} )
+				and !$self->{'_is_in_policy'}
+				and $self->_next_token() !~ /(CHECK|OPTIONS)/
+			)
 			{
 				$self->{'_is_in_with'} = 1
 				  if (  !$self->{'_is_in_using'}
 					and !$self->{'_is_in_materialized'}
 					and uc( $self->_next_token ) ne 'ORDINALITY'
 					and uc($last) ne 'START' );
+				# Record the indentation level at which this WITH clause starts
+				$self->{'_with_base_level'} = $self->{'_level'} if ( $self->{'_is_in_with'} == 1 );
 				$self->{'no_break'} = 1
 				  if ( uc( $self->_next_token ) eq 'ORDINALITY' );
 			}
@@ -1944,7 +1949,7 @@ sub beautify {
 				# parenthesis to the previous line ( "...))" or "...name)" ).
 				and not ( $self->{'_is_in_with'} > 1
 					and !$self->{'_parenthesis_level'}
-					and $self->{'_is_subquery'}
+					and ($self->{'_is_subquery'} or $self->{'_with_base_level'} )
 					and $self->_next_token =~ /^(SELECT|WITH|INSERT|UPDATE|DELETE|MERGE)$/i )
 			  )
 			{
@@ -1991,10 +1996,21 @@ sub beautify {
 					$self->_set_level( $self->_pop_level( $token, $last ),
 						$token, $last );
 					$self->_back( $token, $last );
+                                        # When the WITH clause did not start at column 0 (a CTE
+                                        # inside a PL/pgSQL function body, a DO block or any nested
+                                        # context), the closing parenthesis must align with the
+                                        # level the WITH keyword started at, not the absolute base.
+                                        $self->{'_level'} = $self->{'_with_base_level'}
+                                          if ( $self->{'_with_base_level'} );
 				}
 				$self->_add_token($token);
 				if ( !$self->{'_is_in_operator'} ) {
 					$self->_reset_level( $token, $last );
+                                        # Same rationale for the continuation of the WITH clause
+                                        # (the next CTE after a comma, or the final query): resume
+                                        # at the WITH level, not at column 0.
+                                        $self->{'_level'} = $self->{'_with_base_level'}
+                                          if ( $self->{'_with_base_level'} );
 				}
 				if ( $self->{'_is_in_with'} ) {
 					if ( defined $self->_next_token
@@ -2004,6 +2020,7 @@ sub beautify {
 					}
 					else {
 						$self->{'_is_in_with'} = 0;
+						$self->{'_with_base_level'} = 0;
 
 						# Leaving the WITH clause: the CTE body FROM
 						# context is over. Clear it so that a following
@@ -3023,7 +3040,7 @@ sub beautify {
 					and !$self->{'_is_in_function'}
 					and ( defined $self->_next_token
 						and $self->_next_token =~ /^(SELECT|WITH)$/i )
-					and $self->{'_tokens'}[1] !~ /^(ORDINALITY|FUNCTION)$/i
+					and $self->{'_tokens'}[1] !~ /^(ORDINALITY|FUNCTION|CHECK)$/i
 					and (  $self->{'_is_in_create'}
 						or $last ne ')' and $last ne ']' )
 					and (  uc( $self->_next_token ) ne 'WITH'
@@ -4820,11 +4837,24 @@ sub _add_token {
 			and $self->{'_is_in_block'} >= 0 && $self->{'_is_in_create'}
 			and !$self->{'_is_in_create_table'})
 		{
-			print STDERR "DEBUG_SPC: 6) last=", ( $last_token || '' ),
+			print STDERR "DEBUG_SPC: 6a) last=", ( $last_token || '' ),
 			  ", token=$token\n"
 			  if ($DEBUG_SP);
 			$self->{'content'} .= $sp;
 		}
+                elsif ( $token eq ')'
+                        and $self->{'_new_line'}
+                        and $self->{'_with_base_level'} )
+                {
+                        # Closing parenthesis of a CTE whose WITH clause is nested
+                        # (inside a PL/pgSQL function body, a DO block, etc.). It starts a
+                        # fresh line ( _new_line is set ) and must be indented to the
+                        # recorded WITH level; without this it would land in column 0.
+                        print STDERR "DEBUG_SPC: 6b) last=", ( $last_token || '' ),
+                          ", token=$token\n"
+                          if ($DEBUG_SP);
+                        $self->{'content'} .= $sp;
+                }
 		else {
 			print STDERR "DEBUG_SPC: 7) last=", ( $last_token || '' ),
 			  ", token=$token\n"

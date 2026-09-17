@@ -31,3 +31,40 @@ SET status = 'done'
 WHERE id = 42
 RETURNING id
     , status;
+
+CREATE FUNCTION get_jobs (orgId varchar, pagesize integer, pagenum integer)
+    RETURNS TABLE (
+        job_id varchar)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY WITH filtered_jobs AS (
+        SELECT
+            j.id AS job_id
+        FROM
+            jobs j
+        ORDER BY
+            j.created_at DESC
+        LIMIT pageSize OFFSET pageSize * (pageNum - 1)
+),
+subtask AS (
+    SELECT
+        fj.job_id
+    FROM
+        filtered_jobs fj
+),
+counts AS (
+    SELECT
+        ss.job_id,
+        COUNT(*) AS num,
+    COUNT(*) AS total_sub_tasks
+FROM
+    subtask ss
+)
+SELECT
+    j.job_id
+FROM
+    filtered_jobs j;
+END;
+$$;
+
