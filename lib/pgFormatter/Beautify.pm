@@ -1859,7 +1859,10 @@ sub beautify {
 			and (
 				!defined $last
 				or
-				( $last ne ')' and $self->_next_token !~ /^(TIME|FUNCTION)/i )
+				( ( $last ne ')'
+					or ( $self->{'_current_sql_stmt'} eq 'INSERT'
+						and !$self->{'_parenthesis_level'} ) )
+					and $self->_next_token !~ /^(TIME|FUNCTION)/i )
 			)
 		  )
 		{
@@ -1874,6 +1877,11 @@ sub beautify {
 					and uc($last) ne 'START' );
 				$self->{'no_break'} = 1
 				  if ( uc( $self->_next_token ) eq 'ORDINALITY' );
+			}
+			# Sibling CTEs and the final query inherit the enclosing block's level.
+			if ( $self->{'_is_in_with'} == 1 and !$self->{'_parenthesis_level'} ) {
+				$self->{_cte_base_level} = $self->{'_level'};
+				$self->{_cte_base_stack} = [ @{ $self->{'_level_stack'} } ];
 			}
 			$self->{'_is_in_materialized'} = 0;
 		}
@@ -1992,10 +2000,12 @@ sub beautify {
 						$token, $last );
 					$self->_back( $token, $last );
 				}
-				$self->_add_token($token);
-				if ( !$self->{'_is_in_operator'} ) {
-					$self->_reset_level( $token, $last );
+				if ( !$self->{'_is_in_operator'} and defined $self->{_cte_base_level} ) {
+					$self->_set_level( $self->{_cte_base_level}, $token, $last );
+					@{ $self->{'_level_stack'} } = @{ $self->{_cte_base_stack} };
+					$self->{'content'} .= $self->_indent if ( $self->{'_new_line'} );
 				}
+				$self->_add_token($token);
 				if ( $self->{'_is_in_with'} ) {
 					if ( defined $self->_next_token
 						&& $self->_next_token eq ',' )

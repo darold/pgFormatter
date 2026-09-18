@@ -1540,11 +1540,11 @@ CREATE RULE r2 AS ON UPDATE
         WITH t AS (
             SELECT
                 OLD.*
-)
-UPDATE
-    y SET
-    a = t.n FROM
-    t;
+        )
+        UPDATE
+            y SET
+            a = t.n FROM
+            t;
 
 --
 -- test for bug #4902
