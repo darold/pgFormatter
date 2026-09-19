@@ -21,7 +21,7 @@ SELECT
     count(*)
 FROM ( WITH q1 (
         x
-) AS (
+    ) AS (
         SELECT
             random()
         FROM
@@ -366,7 +366,7 @@ SELECT
     count(*)
 FROM ( WITH RECURSIVE t (
         n
-) AS (
+    ) AS (
         SELECT
             1
         UNION ALL
@@ -376,7 +376,7 @@ FROM ( WITH RECURSIVE t (
             t
         WHERE
             n < 500
-)
+        )
         SELECT
             *
         FROM
@@ -387,7 +387,7 @@ WHERE
             count(*)
         FROM ( WITH RECURSIVE t (
                 n
-) AS (
+            ) AS (
                 SELECT
                     1
                 UNION ALL
@@ -397,7 +397,7 @@ WHERE
                     t
                 WHERE
                     n < 100
-)
+                )
                 SELECT
                     *
                 FROM
@@ -501,17 +501,17 @@ WITH RECURSIVE q AS (
                 *
             FROM
                 q
-)
+            )
             SELECT
                 *
             FROM
                 x)
-)
-SELECT
-    *
-FROM
-    q
-LIMIT 24;
+        )
+        SELECT
+            *
+        FROM
+            q
+        LIMIT 24;
 
 WITH RECURSIVE q AS (
     SELECT
@@ -537,12 +537,12 @@ WITH RECURSIVE q AS (
                 *
             FROM
                 x)
-)
-SELECT
-    *
-FROM
-    q
-LIMIT 32;
+        )
+        SELECT
+            *
+        FROM
+            q
+        LIMIT 32;
 
 -- recursive term has sub-UNION
 WITH RECURSIVE t (
@@ -1578,7 +1578,7 @@ FROM ((
 SELECT
     ( WITH cte (
             foo
-) AS (
+        ) AS (
             VALUES (f1))
             SELECT
                 (
@@ -1592,7 +1592,7 @@ SELECT
 SELECT
     ( WITH cte (
             foo
-) AS (
+        ) AS (
             VALUES (f1))
         VALUES ((
                 SELECT
@@ -1610,7 +1610,7 @@ WITH RECURSIVE t (
 ) AS (
     WITH RECURSIVE s (
         i
-) AS (
+    ) AS (
         VALUES (1)
         UNION ALL
         SELECT
@@ -1619,7 +1619,7 @@ WITH RECURSIVE t (
             s
         WHERE
             i < 10
-)
+        )
         SELECT
             i
         FROM
@@ -1631,7 +1631,7 @@ WITH RECURSIVE t (
             t
         WHERE
             j < 10
-)
+    )
     SELECT
         *
     FROM
@@ -1648,7 +1648,7 @@ WITH outermost (
     UNION ( WITH innermost AS (
             SELECT
                 2
-)
+            )
             SELECT
                 *
             FROM
@@ -1656,13 +1656,13 @@ WITH outermost (
             UNION
             SELECT
                 3)
-)
-SELECT
-    *
-FROM
-    outermost
-ORDER BY
-    1;
+        )
+        SELECT
+            *
+        FROM
+            outermost
+        ORDER BY
+            1;
 
 WITH outermost (
     x
@@ -1672,7 +1672,7 @@ WITH outermost (
     UNION ( WITH innermost AS (
             SELECT
                 2
-)
+            )
             SELECT
                 *
             FROM
@@ -1682,13 +1682,13 @@ WITH outermost (
                 *
             FROM
                 innermost)
-)
-SELECT
-    *
-FROM
-    outermost
-ORDER BY
-    1;
+        )
+        SELECT
+            *
+        FROM
+            outermost
+        ORDER BY
+            1;
 
 WITH RECURSIVE outermost (
     x
@@ -1698,7 +1698,7 @@ WITH RECURSIVE outermost (
     UNION ( WITH innermost AS (
             SELECT
                 2
-)
+            )
             SELECT
                 *
             FROM
@@ -1708,13 +1708,13 @@ WITH RECURSIVE outermost (
                 *
             FROM
                 innermost)
-)
-SELECT
-    *
-FROM
-    outermost
-ORDER BY
-    1;
+        )
+        SELECT
+            *
+        FROM
+            outermost
+        ORDER BY
+            1;
 
 WITH RECURSIVE outermost (
     x
@@ -1733,13 +1733,13 @@ WITH RECURSIVE outermost (
             *
         FROM
             outermost
-)
-SELECT
-    *
-FROM
-    outermost
-ORDER BY
-    1;
+    )
+    SELECT
+        *
+    FROM
+        outermost
+    ORDER BY
+        1;
 
 --
 -- This test will fail with the old implementation of PARAM_EXEC parameter
@@ -1803,7 +1803,7 @@ iter (
         0, 'base', 17
     UNION ALL ( WITH remaining (
             id_key, row_type, link, min
-) AS (
+        ) AS (
             SELECT
                 tab.id_key, 'true'::text, iter.link, MIN(tab.id_key) OVER ()
             FROM tab
@@ -1827,7 +1827,7 @@ iter (
                 INNER JOIN tab ON e.id_key = tab.id_key
             WHERE
                 e.row_type = 'false'
-)
+            )
             SELECT
                 *
             FROM
@@ -1837,11 +1837,11 @@ iter (
                 *
             FROM
                 effect)
-)
-SELECT
-    *
-FROM
-    iter;
+        )
+        SELECT
+            *
+        FROM
+            iter;
 
 WITH RECURSIVE tab (
     id_key,
@@ -1861,7 +1861,7 @@ iter (
         0, 'base', 17
     UNION ( WITH remaining (
             id_key, row_type, link, min
-) AS (
+        ) AS (
             SELECT
                 tab.id_key, 'true'::text, iter.link, MIN(tab.id_key) OVER ()
             FROM tab
@@ -1885,7 +1885,7 @@ iter (
                 INNER JOIN tab ON e.id_key = tab.id_key
             WHERE
                 e.row_type = 'false'
-)
+            )
             SELECT
                 *
             FROM
@@ -1895,11 +1895,11 @@ iter (
                 *
             FROM
                 effect)
-)
-SELECT
-    *
-FROM
-    iter;
+        )
+        SELECT
+            *
+        FROM
+            iter;
 
 --
 -- Data-modifying statements in WITH
@@ -2667,7 +2667,7 @@ FROM ( WITH t AS (
             a = a + 1
         RETURNING
             *
-)
+        )
         SELECT
             *
         FROM

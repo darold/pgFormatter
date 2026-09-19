@@ -168,6 +168,9 @@ Takes options as hash. Following options are recognized:
 
 =item * compact_clause_body - keep the first element of a clause on the keyword line
 
+=item * isolate_semicolon - place the statement terminating semicolon on its own line
+when the statement spans several lines
+
 =item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
 
 =item * vertical_align - vertically align CREATE TABLE column definitions
@@ -186,7 +189,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -1595,6 +1598,7 @@ sub beautify {
 	$self->{'_is_in_procedure'}            = 0;
 	$self->{'_is_in_index'}                = 0;
 	$self->{'_is_in_with'}                 = 0;
+	$self->{'_with_base_level'}            = 0;
 	$self->{'_is_in_explain'}              = 0;
 	$self->{'_is_in_overlaps'}             = 0;
 	$self->{'_parenthesis_level'}          = 0;
@@ -1868,13 +1872,24 @@ sub beautify {
 		{
 			if (    !$self->{'_is_in_partition'}
 				and !$self->{'_is_in_publication'}
-				and !$self->{'_is_in_policy'} )
+				and !$self->{'_is_in_policy'}
+				and $self->_next_token() !~ /(CHECK|OPTIONS)/
+			)
 			{
 				$self->{'_is_in_with'} = 1
 				  if (  !$self->{'_is_in_using'}
 					and !$self->{'_is_in_materialized'}
 					and uc( $self->_next_token ) ne 'ORDINALITY'
 					and uc($last) ne 'START' );
+				# A CTE opening an INSERT ... WITH ... SELECT must start on its
+				# own line: unlike a top level WITH, it is not the first token
+				# of the statement.
+				$self->_new_line( $token, $last )
+				  if (  $self->{'_is_in_with'} == 1
+					and defined $last
+					and $self->{'_current_sql_stmt'} eq 'INSERT' );
+				# Record the indentation level at which this WITH clause starts
+				$self->{'_with_base_level'} = $self->{'_level'} if ( $self->{'_is_in_with'} == 1 );
 				$self->{'no_break'} = 1
 				  if ( uc( $self->_next_token ) eq 'ORDINALITY' );
 			}
@@ -1952,7 +1967,7 @@ sub beautify {
 				# parenthesis to the previous line ( "...))" or "...name)" ).
 				and not ( $self->{'_is_in_with'} > 1
 					and !$self->{'_parenthesis_level'}
-					and $self->{'_is_subquery'}
+					and ($self->{'_is_subquery'} or $self->{'_with_base_level'} )
 					and $self->_next_token =~ /^(SELECT|WITH|INSERT|UPDATE|DELETE|MERGE)$/i )
 			  )
 			{
@@ -1999,6 +2014,12 @@ sub beautify {
 					$self->_set_level( $self->_pop_level( $token, $last ),
 						$token, $last );
 					$self->_back( $token, $last );
+                                        # When the WITH clause did not start at column 0 (a CTE
+                                        # inside a PL/pgSQL function body, a DO block or any nested
+                                        # context), the closing parenthesis must align with the
+                                        # level the WITH keyword started at, not the absolute base.
+                                        $self->{'_level'} = $self->{'_with_base_level'}
+                                          if ( $self->{'_with_base_level'} );
 				}
 				if ( !$self->{'_is_in_operator'} and defined $self->{_cte_base_level} ) {
 					$self->_set_level( $self->{_cte_base_level}, $token, $last );
@@ -2014,6 +2035,7 @@ sub beautify {
 					}
 					else {
 						$self->{'_is_in_with'} = 0;
+						$self->{'_with_base_level'} = 0;
 
 						# Leaving the WITH clause: the CTE body FROM
 						# context is over. Clear it so that a following
@@ -3033,7 +3055,7 @@ sub beautify {
 					and !$self->{'_is_in_function'}
 					and ( defined $self->_next_token
 						and $self->_next_token =~ /^(SELECT|WITH)$/i )
-					and $self->{'_tokens'}[1] !~ /^(ORDINALITY|FUNCTION)$/i
+					and $self->{'_tokens'}[1] !~ /^(ORDINALITY|FUNCTION|CHECK)$/i
 					and (  $self->{'_is_in_create'}
 						or $last ne ')' and $last ne ']' )
 					and (  uc( $self->_next_token ) ne 'WITH'
@@ -3250,6 +3272,13 @@ sub beautify {
 
 # statement separator or executing psql meta command (prefix 'g' includes all its variants)
 
+			$self->_new_line( $token, $last )
+			  if ( $self->{'isolate_semicolon'}
+				and $token eq ';'
+				and $self->{'_is_in_block'} == -1
+				and index( $self->{'content'}, "\n",
+					$self->{'_stmt_start_offset'} ) >= 0 );
+
 			$self->_add_token($token);
 
 			if (  $token eq ';'
@@ -3410,6 +3439,7 @@ sub beautify {
 						$token, $last );
 				}
 			}
+			$self->{'_stmt_started'} = 0;
 			$last = $self->_set_last( $token, $last );
 		}
 
@@ -4656,6 +4686,11 @@ Code lifted from SQL::Beautify
 sub _add_token {
 	my ( $self, $token, $last_token ) = @_;
 
+	if ( !$self->{'_stmt_started'} and $token !~ m{^\s*(?:--|/\*)} ) {
+		$self->{'_stmt_start_offset'} = length( $self->{'content'} );
+		$self->{'_stmt_started'} = 1;
+	}
+
 	if ($DEBUG) {
 		my ( $package, $filename, $line ) = caller;
 		print STDERR "DEBUG_ADD: line: $line => last=", ( $last_token || '' ),
@@ -4830,11 +4865,24 @@ sub _add_token {
 			and $self->{'_is_in_block'} >= 0 && $self->{'_is_in_create'}
 			and !$self->{'_is_in_create_table'})
 		{
-			print STDERR "DEBUG_SPC: 6) last=", ( $last_token || '' ),
+			print STDERR "DEBUG_SPC: 6a) last=", ( $last_token || '' ),
 			  ", token=$token\n"
 			  if ($DEBUG_SP);
 			$self->{'content'} .= $sp;
 		}
+                elsif ( $token eq ')'
+                        and $self->{'_new_line'}
+                        and $self->{'_with_base_level'} )
+                {
+                        # Closing parenthesis of a CTE whose WITH clause is nested
+                        # (inside a PL/pgSQL function body, a DO block, etc.). It starts a
+                        # fresh line ( _new_line is set ) and must be indented to the
+                        # recorded WITH level; without this it would land in column 0.
+                        print STDERR "DEBUG_SPC: 6b) last=", ( $last_token || '' ),
+                          ", token=$token\n"
+                          if ($DEBUG_SP);
+                        $self->{'content'} .= $sp;
+                }
 		else {
 			print STDERR "DEBUG_SPC: 7) last=", ( $last_token || '' ),
 			  ", token=$token\n"
@@ -5702,6 +5750,8 @@ Currently defined defaults:
 
 =item compact_clause_body => 0
 
+=item isolate_semicolon => 0
+
 =item redundant_parenthesis => 0
 
 =item vertical_align => 0
@@ -5749,6 +5799,9 @@ sub set_defaults {
 	$self->{'keep_newline'}          = 0;
 	$self->{'no_space_function'}     = 0;
 	$self->{'compact_clause_body'}   = 0;
+	$self->{'isolate_semicolon'}     = 0;
+	$self->{'_stmt_start_offset'}    = 0;
+	$self->{'_stmt_started'}         = 0;
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'vertical_align'}        = 0;
 
