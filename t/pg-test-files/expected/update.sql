@@ -582,8 +582,7 @@ WHERE (
     SELECT
         c > c1
     FROM
-        mintab
-)
+        mintab)
     WITH CHECK OPTION;
 
 -- ok
