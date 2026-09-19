@@ -2511,8 +2511,7 @@ SELECT
 FROM
     base_tbl
 WHERE
-    a = ANY (b
-)
+    a = ANY (b)
     WITH CHECK OPTION;
 
 INSERT INTO rw_view1
@@ -2580,8 +2579,7 @@ WHERE
         FROM
             ref_tbl r
         WHERE
-            r.a = b.a
-)
+            r.a = b.a)
     WITH CHECK OPTION;
 
 INSERT INTO rw_view1
@@ -3777,8 +3775,7 @@ WHERE
         FROM
             sometable s
         WHERE
-            r.a = s.a
-)
+            r.a = s.a)
     WITH CHECK option;
 
 -- WITH CHECK qual will be processed with wcowrtest2's

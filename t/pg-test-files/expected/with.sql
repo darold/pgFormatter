@@ -21,7 +21,7 @@ SELECT
     count(*)
 FROM ( WITH q1 (
         x
-) AS (
+    ) AS (
         SELECT
             random()
         FROM
@@ -366,7 +366,7 @@ SELECT
     count(*)
 FROM ( WITH RECURSIVE t (
         n
-) AS (
+    ) AS (
         SELECT
             1
         UNION ALL
@@ -376,7 +376,7 @@ FROM ( WITH RECURSIVE t (
             t
         WHERE
             n < 500
-)
+        )
         SELECT
             *
         FROM
@@ -387,7 +387,7 @@ WHERE
             count(*)
         FROM ( WITH RECURSIVE t (
                 n
-) AS (
+            ) AS (
                 SELECT
                     1
                 UNION ALL
@@ -397,7 +397,7 @@ WHERE
                     t
                 WHERE
                     n < 100
-)
+                )
                 SELECT
                     *
                 FROM
@@ -501,7 +501,7 @@ WITH RECURSIVE q AS (
                 *
             FROM
                 q
-)
+            )
             SELECT
                 *
             FROM
@@ -1540,11 +1540,11 @@ CREATE RULE r2 AS ON UPDATE
         WITH t AS (
             SELECT
                 OLD.*
-)
-UPDATE
-    y SET
-    a = t.n FROM
-    t;
+        )
+        UPDATE
+            y SET
+            a = t.n FROM
+            t;
 
 --
 -- test for bug #4902
@@ -1578,7 +1578,7 @@ FROM ((
 SELECT
     ( WITH cte (
             foo
-) AS (
+        ) AS (
             VALUES (f1))
             SELECT
                 (
@@ -1592,7 +1592,7 @@ SELECT
 SELECT
     ( WITH cte (
             foo
-) AS (
+        ) AS (
             VALUES (f1))
         VALUES ((
                 SELECT
@@ -1610,7 +1610,7 @@ WITH RECURSIVE t (
 ) AS (
     WITH RECURSIVE s (
         i
-) AS (
+    ) AS (
         VALUES (1)
         UNION ALL
         SELECT
@@ -1619,7 +1619,7 @@ WITH RECURSIVE t (
             s
         WHERE
             i < 10
-)
+        )
         SELECT
             i
         FROM
@@ -1632,10 +1632,10 @@ WITH RECURSIVE t (
         WHERE
             j < 10
 )
-    SELECT
-        *
-    FROM
-        t;
+SELECT
+    *
+FROM
+    t;
 
 --
 -- test WITH attached to intermediate-level set operation
@@ -1648,7 +1648,7 @@ WITH outermost (
     UNION ( WITH innermost AS (
             SELECT
                 2
-)
+            )
             SELECT
                 *
             FROM
@@ -1672,7 +1672,7 @@ WITH outermost (
     UNION ( WITH innermost AS (
             SELECT
                 2
-)
+            )
             SELECT
                 *
             FROM
@@ -1698,7 +1698,7 @@ WITH RECURSIVE outermost (
     UNION ( WITH innermost AS (
             SELECT
                 2
-)
+            )
             SELECT
                 *
             FROM
@@ -1803,7 +1803,7 @@ iter (
         0, 'base', 17
     UNION ALL ( WITH remaining (
             id_key, row_type, link, min
-) AS (
+        ) AS (
             SELECT
                 tab.id_key, 'true'::text, iter.link, MIN(tab.id_key) OVER ()
             FROM tab
@@ -1827,7 +1827,7 @@ iter (
                 INNER JOIN tab ON e.id_key = tab.id_key
             WHERE
                 e.row_type = 'false'
-)
+            )
             SELECT
                 *
             FROM
@@ -1861,7 +1861,7 @@ iter (
         0, 'base', 17
     UNION ( WITH remaining (
             id_key, row_type, link, min
-) AS (
+        ) AS (
             SELECT
                 tab.id_key, 'true'::text, iter.link, MIN(tab.id_key) OVER ()
             FROM tab
@@ -1885,7 +1885,7 @@ iter (
                 INNER JOIN tab ON e.id_key = tab.id_key
             WHERE
                 e.row_type = 'false'
-)
+            )
             SELECT
                 *
             FROM
@@ -2667,7 +2667,7 @@ FROM ( WITH t AS (
             a = a + 1
         RETURNING
             *
-)
+        )
         SELECT
             *
         FROM
