@@ -7,7 +7,8 @@ WITH bud AS -- CBT selection des soldes des budgets
 SELECT
     *
 FROM
-    bud;
+    bud
+;
 
 INSERT INTO labo.planco_gl
 WITH rs1 AS (
@@ -17,7 +18,8 @@ WITH rs1 AS (
 SELECT
     gl_code
 FROM
-    rs1;
+    rs1
+;
 
 INSERT INTO labo.lgba_taux (taux, periode)
 WITH taux AS (
@@ -29,7 +31,8 @@ SELECT
     taux,
     periode
 FROM
-    taux;
+    taux
+;
 
 WITH cte AS (
     SELECT
@@ -39,7 +42,9 @@ INSERT INTO labo.target
 SELECT
     x
 FROM
-    cte;
+    cte
+;
+
 SET search_path = public;
 
 GRANT SELECT ON plan TO reader;
