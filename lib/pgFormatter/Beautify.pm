@@ -170,6 +170,8 @@ Takes options as hash. Following options are recognized:
 
 =item * redundant_parenthesis - do not eliminate redundant parenthesis in DML queries
 
+=item * matching_paren_newline - align multiline closing parentheses with their opening line (text output)
+
 =item * vertical_align - vertically align CREATE TABLE column definitions
 
 =back
@@ -186,7 +188,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break matching_paren_newline format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -1548,6 +1550,7 @@ Code lifted from SQL::Beautify
 
 sub beautify {
 	my $self = shift;
+	$self->{_matching_parens} = [];
 
 	# Use to store the token position in the array
 	my $pos = 0;
@@ -5057,6 +5060,21 @@ sub _add_token {
 	{
 		$self->{'content'} .= ' ' if ( $self->{'content'} !~ /DELIMITER\s$/ );
 	}
+	# Inspect rendered whitespace, while parentheses are still distinct SQL tokens.
+	# Quoted strings, comments and dynamic SQL do not enter this stack.
+	if ( $self->{matching_paren_newline} && $self->{format} eq 'text' ) {
+		if ( $token eq '(' ) {
+			my ($indent) = $self->{content} =~ /(?:^|\n)([ \t]*)[^\n]*\z/;
+			push @{ $self->{_matching_parens} }, [length($self->{content}) + 1, $indent];
+		}
+		elsif ( $token eq ')' && @{ $self->{_matching_parens} } ) {
+			my ($start, $indent) = @{ pop @{ $self->{_matching_parens} } };
+			if ( substr($self->{content}, $start) =~ /^[ \t]*\r?\n/ ) {
+				$self->{content} =~ s/\s+\z//;
+				$self->{content} .= "\n" . $indent;
+			}
+		}
+	}
 	$self->{'content'} .= $token;
 
 	# This can't be the beginning of a new line anymore.
@@ -5694,6 +5712,8 @@ Currently defined defaults:
 
 =item redundant_parenthesis => 0
 
+=item matching_paren_newline => 0
+
 =item vertical_align => 0
 
 =back
@@ -5740,6 +5760,7 @@ sub set_defaults {
 	$self->{'no_space_function'}     = 0;
 	$self->{'compact_clause_body'}   = 0;
 	$self->{'redundant_parenthesis'} = 0;
+	$self->{'matching_paren_newline'} = 0;
 	$self->{'vertical_align'}        = 0;
 
 	return;

@@ -88,6 +88,7 @@ DESCRIPTION
                                 keywords defined internaly in pgFormatter.
         --no-space-function :   remove space between function call and the open
                                 parenthesis.
+        --matching-paren-newline: align multiline closing parentheses with their opening line.
         --redundant-parenthesis: do not remove redundant parenthesis in DML.
         --vertical-align      : vertically align CREATE TABLE column definitions and
                                 trailing comments. Disabled by default.
@@ -271,6 +272,33 @@ SPECIAL FORMATTING
     By default, pgFormatter tries to remove redundant parenthesis in DML but
     in some cases they must be preseved. Using this option will keep
     redundant parenthesis untouched.
+
+  Option --matching-paren-newline
+    For text output, when formatted content starts on a new line immediately
+    after an opening parenthesis, place the matching closing parenthesis on
+    its own line. Use the indentation of the line containing the opening
+    parenthesis. Nested pairs are handled independently. This option does
+    not force opening line breaks or change content indentation, and is
+    disabled by default.
+
+    For example, combined with "--comma-break":
+
+        INSERT INTO widgets (
+            id,
+            label
+        )
+        SELECT
+            1,
+            'example';
+
+    Without this option, the closing parenthesis remains beside "label". An
+    inline list such as "INSERT INTO widgets (id, label)" stays inline. Text
+    following the closing parenthesis, such as "THEN", an alias or a comma,
+    continues to use the existing formatting rules. Quoted text and comments
+    are not treated as SQL parentheses.
+
+    Use "matching-paren-newline=1" in a configuration file, or
+    "--no-matching-paren-newline" to explicitly disable the option.
 
   Option --vertical-align
     Use this option to vertically align direct, single-line column
