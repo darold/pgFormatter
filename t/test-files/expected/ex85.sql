@@ -28,14 +28,17 @@ BEGIN
     PERFORM
         3;
 END
-$$;
+$$
+;
 
 CREATE TABLE IF NOT EXISTS widgets (
     id integer,
     enabled boolean
-);
+)
+;
 
 DROP TABLE IF EXISTS widgets;
+
 SELECT
     'a'
     'b' AS lit
