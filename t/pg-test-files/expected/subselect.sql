@@ -1808,7 +1808,7 @@ AS ((
                 *
             FROM
                 x
-)
+            )
             SELECT
                 z.a || z1.a AS a
             FROM
@@ -1831,7 +1831,7 @@ WITH RECURSIVE x (
                 *
             FROM
                 x
-)
+            )
             SELECT
                 z.a || z1.a AS a
             FROM
@@ -1840,8 +1840,8 @@ WITH RECURSIVE x (
         WHERE
             length(
                 z.a || z1.a
-) < 5
-))
+            ) < 5
+        ))
 SELECT
     *
 FROM
@@ -1859,7 +1859,7 @@ AS ((
                 *
             FROM
                 x
-)
+            )
             SELECT
                 z.a || z.a AS a
             FROM
@@ -1881,7 +1881,7 @@ WITH RECURSIVE x (
                 *
             FROM
                 x
-)
+            )
             SELECT
                 z.a || z.a AS a
             FROM
@@ -1889,8 +1889,8 @@ WITH RECURSIVE x (
             WHERE
                 length(
                     z.a || z.a
-) < 5
-))
+                ) < 5
+            ))
 SELECT
     *
 FROM
@@ -1905,7 +1905,7 @@ EXPLAIN (
         *
     FROM
         int4_tbl
-)
+    )
 SELECT
     *
 FROM ( WITH y AS (
@@ -1913,7 +1913,7 @@ FROM ( WITH y AS (
             *
         FROM
             x
-)
+        )
         SELECT
             *
         FROM
@@ -1935,7 +1935,7 @@ FROM ( WITH y AS (
             *
         FROM
             x
-)
+        )
         SELECT
             *
         FROM
@@ -1949,13 +1949,13 @@ EXPLAIN (
 ) WITH x AS (
     SELECT
         1 AS y
-)
+    )
 SELECT
     *
 FROM ( WITH x AS (
         SELECT
             2 AS y
-)
+        )
         SELECT
             *
         FROM
@@ -1970,7 +1970,7 @@ EXPLAIN (
         *
     FROM
         subselect_tbl
-)
+    )
 SELECT
     *
 FROM
