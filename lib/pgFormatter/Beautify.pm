@@ -3258,9 +3258,7 @@ sub beautify {
 			if ( $self->{'_is_in_rule'} ) {
 				$self->_back( $token, $last );
 			}
-			elsif ( $self->{'_is_in_create'} && $self->{'_is_in_block'} > -1 ) {
-				$self->_pop_level( $token, $last );
-			} elsif ( $self->{'_is_in_return_query'} ) {
+			elsif ( $self->{'_is_in_return_query'} ) {
 				$self->_pop_level( $token, $last );
 			}
 
