@@ -1863,7 +1863,10 @@ sub beautify {
 			and (
 				!defined $last
 				or
-				( $last ne ')' and $self->_next_token !~ /^(TIME|FUNCTION)/i )
+				( ( $last ne ')'
+					or ( $self->{'_current_sql_stmt'} eq 'INSERT'
+						and !$self->{'_parenthesis_level'} ) )
+					and $self->_next_token !~ /^(TIME|FUNCTION)/i )
 			)
 		  )
 		{
@@ -1889,6 +1892,11 @@ sub beautify {
 				$self->{'_with_base_level'} = $self->{'_level'} if ( $self->{'_is_in_with'} == 1 );
 				$self->{'no_break'} = 1
 				  if ( uc( $self->_next_token ) eq 'ORDINALITY' );
+			}
+			# Sibling CTEs and the final query inherit the enclosing block's level.
+			if ( $self->{'_is_in_with'} == 1 and !$self->{'_parenthesis_level'} ) {
+				$self->{_cte_base_level} = $self->{'_level'};
+				$self->{_cte_base_stack} = [ @{ $self->{'_level_stack'} } ];
 			}
 			$self->{'_is_in_materialized'} = 0;
 		}
@@ -2013,15 +2021,12 @@ sub beautify {
                                         $self->{'_level'} = $self->{'_with_base_level'}
                                           if ( $self->{'_with_base_level'} );
 				}
-				$self->_add_token($token);
-				if ( !$self->{'_is_in_operator'} ) {
-					$self->_reset_level( $token, $last );
-                                        # Same rationale for the continuation of the WITH clause
-                                        # (the next CTE after a comma, or the final query): resume
-                                        # at the WITH level, not at column 0.
-                                        $self->{'_level'} = $self->{'_with_base_level'}
-                                          if ( $self->{'_with_base_level'} );
+				if ( !$self->{'_is_in_operator'} and defined $self->{_cte_base_level} ) {
+					$self->_set_level( $self->{_cte_base_level}, $token, $last );
+					@{ $self->{'_level_stack'} } = @{ $self->{_cte_base_stack} };
+					$self->{'content'} .= $self->_indent if ( $self->{'_new_line'} );
 				}
+				$self->_add_token($token);
 				if ( $self->{'_is_in_with'} ) {
 					if ( defined $self->_next_token
 						&& $self->_next_token eq ',' )
