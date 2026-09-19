@@ -334,7 +334,8 @@ Options:
     --compact-clause-body : keep the first element of a FROM, WHERE, SET, RETURNING,
                             HAVING or VALUES clause on the same line as the keyword,
                             and the body of a CASE ... THEN on the same line as THEN.
-    --matching-paren-newline: align multiline closing parentheses with their opening line.
+    --matching-paren-newline: if content starts on a new line after an opening
+                            parenthesis, close on a new line at the same indent.
     --redundant-parenthesis: do not remove redundant parenthesis in DML.
     --vertical-align      : vertically align CREATE TABLE column definitions and
                             trailing comments.
