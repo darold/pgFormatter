@@ -10,6 +10,16 @@ BEGIN
         CREATE TEMP TABLE t2 (
             id int
         );
+    ELSE
+        PERFORM
+            2;
+    END IF;
+    PERFORM
+        3;
+END
+$$
+;
+
 -- Procedural existence checks must open an indentation level, unlike DDL guards.
 DO $$
 BEGIN
@@ -40,7 +50,6 @@ BEGIN
     PERFORM
         3;
 END
-$$;
 $$
 ;
 
