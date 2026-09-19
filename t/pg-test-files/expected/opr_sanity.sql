@@ -38,8 +38,8 @@ BEGIN
             AND casttarget = $2
             AND castmethod = 'b'
             AND castcontext = 'i') THEN
-    RETURN TRUE;
-END IF;
+        RETURN TRUE;
+    END IF;
     IF $2 = 'pg_catalog.any'::pg_catalog.regtype THEN
         RETURN TRUE;
     END IF;
@@ -53,9 +53,9 @@ END IF;
                 oid = $1
                 AND typelem != 0
                 AND typlen = -1) THEN
-        RETURN TRUE;
+            RETURN TRUE;
+        END IF;
     END IF;
-END IF;
     IF $2 = 'pg_catalog.anyrange'::pg_catalog.regtype THEN
         IF (
             SELECT
@@ -93,8 +93,8 @@ BEGIN
             castsource = $1
             AND casttarget = $2
             AND castmethod = 'b') THEN
-    RETURN TRUE;
-END IF;
+        RETURN TRUE;
+    END IF;
     IF $2 = 'pg_catalog.any'::pg_catalog.regtype THEN
         RETURN TRUE;
     END IF;
@@ -108,9 +108,9 @@ END IF;
                 oid = $1
                 AND typelem != 0
                 AND typlen = -1) THEN
-        RETURN TRUE;
+            RETURN TRUE;
+        END IF;
     END IF;
-END IF;
     IF $2 = 'pg_catalog.anyrange'::pg_catalog.regtype THEN
         IF (
             SELECT

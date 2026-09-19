@@ -3940,10 +3940,15 @@ sub beautify {
 			}
 			$self->{'no_break'} = 0;
 			if ( defined $self->_next_token
-				and $self->_next_token !~ /^(EXISTS|;)$/i )
+				and ( $self->_next_token !~ /^(EXISTS|;)$/i
+					or ( uc($self->_next_token) eq 'EXISTS'
+						and defined $self->{'_tokens'}->[1]
+						and $self->{'_tokens'}->[1] eq '(' ) ) )
 			{
 				if (   uc( $self->_next_token ) ne 'NOT'
-					|| uc( $self->{'_tokens'}->[1] ) ne 'EXISTS' )
+					|| uc( $self->{'_tokens'}->[1] ) ne 'EXISTS'
+					|| ( defined $self->{'_tokens'}->[2]
+						and $self->{'_tokens'}->[2] eq '(' ) )
 				{
 					$self->_new_line( $token, $last )
 					  if ( $token =~ /^LOOP$/i );
@@ -4179,7 +4184,9 @@ sub beautify {
 				$self->{'_has_over_in_join'} = 1;
 			}
 			$self->{'_is_in_join'} = 0;
-			if (    !$self->{'_is_in_if'}
+			# Keep query predicates multiline inside procedural conditions.
+			if (    ( !$self->{'_is_in_if'}
+					or ( $self->{'_is_subquery'} and $self->{'_parenthesis_level'} ) )
 				and !$self->{'_is_in_index'}
 				and !$self->{'_is_in_merge'}
 				and ( not defined $last or $last !~ /^(?:CREATE)$/i )
