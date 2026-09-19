@@ -100,14 +100,14 @@ BEGIN
     CREATE temp TABLE t1 (
         f1 int
     );
-INSERT INTO t1
-    VALUES ($1);
-INSERT INTO t1
-    VALUES (11);
-INSERT INTO t1
-    VALUES (12);
-INSERT INTO t1
-    VALUES (13);
+    INSERT INTO t1
+        VALUES ($1);
+    INSERT INTO t1
+        VALUES (11);
+    INSERT INTO t1
+        VALUES (12);
+    INSERT INTO t1
+        VALUES (13);
     SELECT
         sum(f1)
     INTO
@@ -376,4 +376,3 @@ EXPLAIN (
 ) EXECUTE test_mode_pp (2);
 
 DROP TABLE test_mode;
-

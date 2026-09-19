@@ -1,3 +1,15 @@
+DO $$
+BEGIN
+    IF TRUE THEN
+        CREATE TABLE t (
+            id int DEFAULT abs(-1)
+        );
+        PERFORM
+            1;
+    ELSIF FALSE THEN
+        CREATE TEMP TABLE t2 (
+            id int
+        );
 -- Procedural existence checks must open an indentation level, unlike DDL guards.
 DO $$
 BEGIN
@@ -28,6 +40,7 @@ BEGIN
     PERFORM
         3;
 END
+$$;
 $$
 ;
 
