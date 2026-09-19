@@ -1878,6 +1878,13 @@ sub beautify {
 					and !$self->{'_is_in_materialized'}
 					and uc( $self->_next_token ) ne 'ORDINALITY'
 					and uc($last) ne 'START' );
+				# A CTE opening an INSERT ... WITH ... SELECT must start on its
+				# own line: unlike a top level WITH, it is not the first token
+				# of the statement.
+				$self->_new_line( $token, $last )
+				  if (  $self->{'_is_in_with'} == 1
+					and defined $last
+					and $self->{'_current_sql_stmt'} eq 'INSERT' );
 				# Record the indentation level at which this WITH clause starts
 				$self->{'_with_base_level'} = $self->{'_level'} if ( $self->{'_is_in_with'} == 1 );
 				$self->{'no_break'} = 1
