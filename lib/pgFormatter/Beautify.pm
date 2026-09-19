@@ -2018,13 +2018,13 @@ sub beautify {
                                         # inside a PL/pgSQL function body, a DO block or any nested
                                         # context), the closing parenthesis must align with the
                                         # level the WITH keyword started at, not the absolute base.
-                                        $self->{'_level'} = $self->{'_with_base_level'}
-                                          if ( $self->{'_with_base_level'} );
+					$self->{'_level'} = $self->{'_with_base_level'}
+					 if ( $self->{'_with_base_level'} );
 				}
 				if ( !$self->{'_is_in_operator'} and defined $self->{_cte_base_level} ) {
 					$self->_set_level( $self->{_cte_base_level}, $token, $last );
 					@{ $self->{'_level_stack'} } = @{ $self->{_cte_base_stack} };
-					$self->{'content'} .= $self->_indent if ( $self->{'_new_line'} );
+					#$self->{'content'} .= $self->_indent if ( $self->{'_new_line'} );
 				}
 				$self->_add_token($token);
 				if ( $self->{'_is_in_with'} ) {
