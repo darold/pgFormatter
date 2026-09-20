@@ -952,8 +952,8 @@ FROM (
         coalesce(t1.stringu1, t2.stringu1) AS x2
     FROM
         tenk1 t1
-    LEFT JOIN tenk1 t2 ON t1.unique1 = t2.unique1
-    JOIN tenk1 t3 ON t1.unique2 = t3.unique2) ss,
+        LEFT JOIN tenk1 t2 ON t1.unique1 = t2.unique1
+        JOIN tenk1 t3 ON t1.unique2 = t3.unique2) ss,
     tenk1 t4,
     tenk1 t5
 WHERE
@@ -2280,7 +2280,7 @@ FROM (
         coalesce(unique1, -1) + q1 AS fault
     FROM
         int8_tbl
-    LEFT JOIN tenk1 ON (q2 = unique2)) ss
+        LEFT JOIN tenk1 ON (q2 = unique2)) ss
 WHERE
     fault = 122
 ORDER BY
@@ -2295,7 +2295,7 @@ FROM (
         coalesce(unique1, -1) + q1 AS fault
     FROM
         int8_tbl
-    LEFT JOIN tenk1 ON (q2 = unique2)) ss
+        LEFT JOIN tenk1 ON (q2 = unique2)) ss
 WHERE
     fault = 122
 ORDER BY
@@ -3079,7 +3079,7 @@ FROM (
         a.id
     FROM
         a
-    LEFT JOIN b ON a.b_id = b.id) q,
+        LEFT JOIN b ON a.b_id = b.id) q,
     LATERAL generate_series(1, q.id) gs (i)
 WHERE
     q.id = gs.i;

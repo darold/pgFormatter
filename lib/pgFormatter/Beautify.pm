@@ -4142,12 +4142,17 @@ sub beautify {
 			# When join_on_indent is enabled, only step back once per join clause:
 			# a join spelled with several keywords, such as LEFT OUTER JOIN, must
 			# not step back once per keyword or it loses one indentation level.
+			my $level_before_join = $self->{'_level'};
+			my $stepped_back = 0;
 			if (    !$self->{'_is_in_join'}
 				and ( defined $last and $last ne ')' )
 				and ( !$self->{'join_on_indent'}
 					or $last !~ /^(?:LEFT|RIGHT|FULL|INNER|OUTER|CROSS|NATURAL)$/i ) )
 			{
-				$self->_back( $token, $last ) if ($#{ $self->{'_level_stack'} } < 0 or $self->{'_level'} > $self->{'_level_stack'}[-1]+1);
+				if ($#{ $self->{'_level_stack'} } < 0 or $self->{'_level'} > $self->{'_level_stack'}[-1]+1) {
+					$self->_back( $token, $last );
+					$stepped_back = 1;
+				}
 			}
 			if ( $self->{'_has_over_in_join'} ) {
 				$self->{'_has_over_in_join'} = 0;
@@ -4160,6 +4165,15 @@ sub beautify {
 				  if (
 					$self->{'_level'} == 0
 					|| ( $self->{'_is_in_with'} > 1 and $self->{'_level'} == 1 )
+					# A plain relation ( a table, not a sub-query ) sits at the FROM
+					# level, so the alignment step back above must be compensated
+					# to line the join keyword up with it, exactly as at top level.
+					# When the relation is itself a parenthesised sub-query
+					# ( ... ) AS x its closing parenthesis has already dropped the
+					# level below the FROM level, so the step back is what aligns
+					# the join with the FROM keyword and must not be compensated.
+					|| ( $stepped_back
+						and $level_before_join == $self->{'_is_in_from'} )
 				  );
 			}
 			if (   ( $token =~ /(?:INNER|OUTER)$/i )
