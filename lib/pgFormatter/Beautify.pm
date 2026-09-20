@@ -191,8 +191,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break matching_paren_newline format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body redundant_parenthesis vertical_align)
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
