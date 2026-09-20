@@ -83,7 +83,7 @@ WITH ins (
     b,
     c
 ) AS (
-INSERT INTO mlparted (b, a)
+    INSERT INTO mlparted (b, a)
     SELECT
         s.a,
         1

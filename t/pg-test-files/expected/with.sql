@@ -1906,7 +1906,7 @@ FROM
 --
 -- INSERT ... RETURNING
 WITH t AS (
-INSERT INTO y
+    INSERT INTO y
     VALUES
         (11),
         (12),
@@ -1919,11 +1919,12 @@ INSERT INTO y
         (19),
         (20)
     RETURNING
-        *)
-    SELECT
         *
-    FROM
-        t;
+)
+SELECT
+    *
+FROM
+    t;
 
 SELECT
     *
@@ -1968,7 +1969,7 @@ FROM
 
 -- forward reference
 WITH RECURSIVE t AS (
-INSERT INTO y
+    INSERT INTO y
     SELECT
         a + 5
     FROM
@@ -2040,7 +2041,8 @@ FROM
 WITH t1 AS (
     DELETE FROM bug6051
 RETURNING
-    *)
+    *
+)
 INSERT INTO bug6051
 SELECT
     *
@@ -2065,7 +2067,8 @@ CREATE RULE bug6051_ins AS ON INSERT TO bug6051
 WITH t1 AS (
     DELETE FROM bug6051
 RETURNING
-    *)
+    *
+)
 INSERT INTO bug6051
 SELECT
     *
@@ -2097,7 +2100,7 @@ WITH RECURSIVE t (
         a + 1 < 5
 ),
 t2 AS (
-INSERT INTO y
+    INSERT INTO y
     SELECT
         *
     FROM
@@ -2123,7 +2126,8 @@ WITH t AS (
     DELETE FROM y
     WHERE a <= 10
     RETURNING
-        *)
+        *
+)
 INSERT INTO y
 SELECT
     - a
@@ -2169,7 +2173,7 @@ ALTER TABLE withz
     ADD UNIQUE (k);
 
 WITH t AS (
-INSERT INTO withz
+    INSERT INTO withz
     SELECT
         i,
         'insert'
@@ -2181,18 +2185,18 @@ INSERT INTO withz
         RETURNING
             *
 )
-    SELECT
-        *
-    FROM
-        t
-        JOIN y ON t.k = y.a
-    ORDER BY
-        a,
-        k;
+SELECT
+    *
+FROM
+    t
+    JOIN y ON t.k = y.a
+ORDER BY
+    a,
+    k;
 
 -- Test EXCLUDED.* reference within CTE
 WITH aa AS (
-INSERT INTO withz
+    INSERT INTO withz
         VALUES (1, 5)
     ON CONFLICT (k)
         DO UPDATE SET
@@ -2200,11 +2204,12 @@ INSERT INTO withz
         WHERE
             withz.k != EXCLUDED.k
         RETURNING
-            *)
-        SELECT
             *
-        FROM
-            aa;
+)
+SELECT
+    *
+FROM
+    aa;
 
 -- New query/snapshot demonstrates side-effects of previous query.
 SELECT
@@ -2325,7 +2330,7 @@ WITH simpletup AS (
         'Green' v
 ),
 upsert_cte AS (
-INSERT INTO withz
+    INSERT INTO withz
         VALUES (2, 'Blue')
     ON CONFLICT (k)
         DO UPDATE SET
@@ -2371,7 +2376,7 @@ CREATE TEMPORARY TABLE yy (
 );
 
 WITH RECURSIVE t1 AS (
-INSERT INTO y
+    INSERT INTO y
     SELECT
         *
     FROM
@@ -2380,7 +2385,7 @@ INSERT INTO y
         *
 ),
 t2 AS (
-INSERT INTO yy
+    INSERT INTO yy
     SELECT
         *
     FROM
@@ -2402,7 +2407,7 @@ FROM
     yy;
 
 WITH RECURSIVE t1 AS (
-INSERT INTO yy
+    INSERT INTO yy
     SELECT
         *
     FROM
@@ -2411,7 +2416,7 @@ INSERT INTO yy
         *
 ),
 t2 AS (
-INSERT INTO y
+    INSERT INTO y
     SELECT
         *
     FROM
@@ -2455,17 +2460,18 @@ CREATE TRIGGER y_trig
     EXECUTE PROCEDURE y_trigger ();
 
 WITH t AS (
-INSERT INTO y
+    INSERT INTO y
     VALUES
         (21),
         (22),
         (23)
     RETURNING
-        *)
-    SELECT
         *
-    FROM
-        t;
+)
+SELECT
+    *
+FROM
+    t;
 
 SELECT
     *
@@ -2480,18 +2486,19 @@ CREATE TRIGGER y_trig
     EXECUTE PROCEDURE y_trigger ();
 
 WITH t AS (
-INSERT INTO y
+    INSERT INTO y
     VALUES
         (31),
         (32),
         (33)
     RETURNING
-        *)
-    SELECT
         *
-    FROM
-        t
-    LIMIT 1;
+)
+SELECT
+    *
+FROM
+    t
+LIMIT 1;
 
 SELECT
     *
@@ -2516,17 +2523,18 @@ CREATE TRIGGER y_trig
     EXECUTE PROCEDURE y_trigger ();
 
 WITH t AS (
-INSERT INTO y
+    INSERT INTO y
     VALUES
         (41),
         (42),
         (43)
     RETURNING
-        *)
-    SELECT
         *
-    FROM
-        t;
+)
+SELECT
+    *
+FROM
+    t;
 
 SELECT
     *
@@ -2584,16 +2592,17 @@ FROM
     parent;
 
 WITH wcte AS (
-INSERT INTO child1
+    INSERT INTO child1
         VALUES (42, 'new')
     RETURNING
-        id AS newid)
-    UPDATE
-        parent
-    SET
-        id = id + newid
-    FROM
-        wcte;
+        id AS newid
+)
+UPDATE
+    parent
+SET
+    id = id + newid
+FROM
+    wcte;
 
 SELECT
     *
@@ -2614,12 +2623,13 @@ FROM
     parent;
 
 WITH wcte AS (
-INSERT INTO child2
+    INSERT INTO child2
         VALUES (42, 'new2')
     RETURNING
-        id AS newid)
-    DELETE FROM parent USING wcte
-        WHERE id = newid;
+        id AS newid
+)
+DELETE FROM parent USING wcte
+WHERE id = newid;
 
 SELECT
     *
@@ -2641,7 +2651,7 @@ INSERT INTO int8_tbl
 -- error cases
 -- data-modifying WITH tries to use its own output
 WITH RECURSIVE t AS (
-INSERT INTO y
+    INSERT INTO y
     SELECT
         *
     FROM
@@ -2650,12 +2660,13 @@ VALUES (FALSE);
 
 -- no RETURNING in a referenced data-modifying WITH
 WITH t AS (
-INSERT INTO y
-        VALUES (0))
-    SELECT
-        *
-    FROM
-        t;
+    INSERT INTO y
+        VALUES (0)
+)
+SELECT
+    *
+FROM
+    t;
 
 -- data-modifying WITH allowed only at the top level
 SELECT
@@ -2680,7 +2691,7 @@ CREATE RULE y_rule AS ON INSERT TO y WHERE
         DELETE FROM y;
 
 WITH t AS (
-INSERT INTO y
+    INSERT INTO y
         VALUES (0))
         VALUES (FALSE);
 

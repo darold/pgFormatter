@@ -2877,6 +2877,20 @@ sub beautify {
 				$self->{'_is_in_cast'} = 0;
 				$self->{'_is_subquery'}++;
 			}
+			# A data-modifying CTE body -- WITH x AS ( INSERT/UPDATE/DELETE/MERGE ... )
+			# -- is the only place in valid SQL where a '(' is directly followed
+			# by one of these keywords. Treat it like the parenthesised sub-query
+			# handled just above so the body is indented and the CTE closing
+			# parenthesis (and the trailing top-level statement) are dedented
+			# correctly. Without this the body keyword is mistaken for a fresh
+			# top-level statement and reset to the base level.
+			elsif ( defined $self->_next_token
+				and $self->{'_is_in_with'} > 1
+				and $self->_next_token =~ /^(INSERT|UPDATE|DELETE|MERGE)$/i )
+			{
+				$self->{'_is_in_cast'} = 0;
+				$self->{'_is_subquery'}++;
+			}
 			if (    defined $self->_next_token
 				and $self->_next_token eq ')'
 				and !$self->{'_is_in_create'} )
@@ -4825,7 +4839,16 @@ sub _add_token {
 			&& $token ne ')'
 			&& $token !~ /^::/
 			&& !$self->{'wrap_after'}
-			&& $self->{'_is_in_with'} == 1 )
+			&& ( $self->{'_is_in_with'} == 1
+				# First keyword of a data-modifying CTE body
+				# ( WITH x AS ( INSERT/UPDATE/DELETE/MERGE ... ) ): it sits on
+				# its own line right after the opening parenthesis and must be
+				# indented like the SELECT of a read-only CTE body. Unlike the
+				# WITH column list ( _is_in_with == 1 ), the body opens with
+				# _is_in_with == 2, so restrict this to the DML keyword to avoid
+				# adding a spurious leading space to ordinary tokens.
+				|| (   $self->{'_is_in_with'} > 1
+					&& $token =~ /^(INSERT|UPDATE|DELETE|MERGE)$/i ) ) )
 		{
 			print STDERR "DEBUG_SPC: 3) last=", ( $last_token || '' ),
 			  ", token=$token\n"
