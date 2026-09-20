@@ -465,7 +465,7 @@ WHERE
             LEAST (col1)
         FROM
             mvtest_mv1
-)
+    )
     WITH NO DATA;
 
 DROP MATERIALIZED VIEW mvtest_mv1 CASCADE;

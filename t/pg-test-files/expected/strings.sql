@@ -7,7 +7,7 @@
 SELECT
     'first line'
     ' - next line'
-	    ' - third line' AS "Three lines to one";
+    ' - third line' AS "Three lines to one";
 
 -- illegal string continuation syntax
 SELECT

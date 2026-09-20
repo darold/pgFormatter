@@ -132,6 +132,7 @@ sub beautify {
 	$args{'no_space_function'}     = $self->{'cfg'}->{'no-space-function'};
 	$args{'compact_clause_body'}   = $self->{'cfg'}->{'compact-clause-body'};
 	$args{'join_on_indent'}        = $self->{'cfg'}->{'join-on-indent'};
+	$args{'isolate_semicolon'}     = $self->{'cfg'}->{'isolate-semicolon'};
 	$args{'redundant_parenthesis'} = $self->{'cfg'}->{'redundant-parenthesis'};
 	$args{'vertical_align'}        = $self->{'cfg'}->{'vertical-align'};
 
@@ -337,6 +338,9 @@ Options:
     --join-on-indent      : indent the ON clause continuation lines (AND/OR) of a
                             multi-keyword join (e.g. LEFT OUTER JOIN) one level
                             below the join keyword.
+    --isolate-semicolon : place the statement terminating semicolon on its own line
+                            instead of appending it to the last token, unless the
+                            whole statement fits on a single line.
     --redundant-parenthesis: do not remove redundant parenthesis in DML.
     --vertical-align      : vertically align CREATE TABLE column definitions and
                             trailing comments.
@@ -408,6 +412,7 @@ sub get_command_line_args {
 		'inplace|i!',      'extra-function=s',
 		'extra-keyword=s', 'no-space-function!',
 		'compact-clause-body!', 'join-on-indent!', 'ident-case|I=i',
+		'compact-clause-body!', 'ident-case|I=i', 'isolate-semicolon!',
 		'redundant-parenthesis!', 'vertical-align!',
 	);
 

@@ -6521,14 +6521,14 @@ BEGIN
             level1_no
         HAVING
             sum(delta) < 0
-)
-SELECT
-    level1_no
-FROM
-    p
-    JOIN transition_table_level2 c ON c.parent_no = p.level1_no
-INTO
-    x;
+    )
+    SELECT
+        level1_no
+    FROM
+        p
+        JOIN transition_table_level2 c ON c.parent_no = p.level1_no
+    INTO
+        x;
     IF FOUND THEN
         RAISE EXCEPTION 'RI error';
     END IF;
