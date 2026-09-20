@@ -111,6 +111,7 @@ sub beautify {
 	$args{'multiline'}             = $self->{'cfg'}->{'multiline'};
 	$args{'separator'}             = $self->{'cfg'}->{'separator'};
 	$args{'comma'}                 = $self->{'cfg'}->{'comma'};
+	$args{'matching_paren_newline'} = $self->{'cfg'}->{'matching-paren-newline'};
 	$args{'comma_break'}           = $self->{'cfg'}->{'comma-break'};
 	$args{'format'}                = $self->{'cfg'}->{'format'};
 	$args{'maxlength'}             = $self->{'cfg'}->{'maxlength'};
@@ -334,6 +335,8 @@ Options:
     --compact-clause-body : keep the first element of a FROM, WHERE, SET, RETURNING,
                             HAVING or VALUES clause on the same line as the keyword,
                             and the body of a CASE ... THEN on the same line as THEN.
+    --matching-paren-newline: if content starts on a new line after an opening
+                            parenthesis, close on a new line at the same indent.
     --isolate-semicolon : place the statement terminating semicolon on its own line
                             instead of appending it to the last token, unless the
                             whole statement fits on a single line.
@@ -391,7 +394,7 @@ sub get_command_line_args {
 	my %cfg;
 	my @options = (
 		'anonymize|a!',    'comma-start|b!',
-		'comma-break|B!',  'config|c=s',
+		'matching-paren-newline!', 'comma-break|B!',  'config|c=s',
 		'no-rcfile|X!',    'wrap-comment|C!',
 		'debug|d!',        'comma-end|e!',
 		'format|F=s',      'nogrouping|g!',
@@ -469,6 +472,7 @@ sub get_command_line_args {
 	$cfg{'ident-case'}    //= 0;
 	$cfg{'comma'}         //= 'end';
 	$cfg{'format'}        //= 'text';
+	$cfg{'matching-paren-newline'} //= 0;
 	$cfg{'comma-break'}   //= 0;
 	$cfg{'maxlength'}     //= 0;
 	$cfg{'format-type'}   //= 0;

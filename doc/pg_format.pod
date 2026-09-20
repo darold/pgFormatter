@@ -90,6 +90,8 @@ Options:
 			    keywords defined internaly in pgFormatter.
     --no-space-function : remove space between function call and the open
                             parenthesis.
+    --matching-paren-newline: if content starts on a new line after an opening
+                            parenthesis, close on a new line at the same indent.
     --redundant-parenthesis: do not remove redundant parenthesis in DML.
 
 Examples:
@@ -282,6 +284,22 @@ When this option is used the resulting query is formatted as follow:
 By default, pgFormatter tries to remove redundant parenthesis in DML but in
 some cases they must be preseved. Using this option will keep redundant
 parenthesis untouched.
+
+=head2 Option --matching-paren-newline
+
+When formatted content starts on a new line after an opening parenthesis,
+put the matching closing parenthesis on its own line, aligned with the opening
+line. Disabled by default; applies to text output.
+
+For example, combined with C<--comma-break>:
+
+    INSERT INTO widgets (
+        id,
+        label
+    )
+    SELECT
+        1,
+        'example';
 
 =head2 Option --vertical-align
 
