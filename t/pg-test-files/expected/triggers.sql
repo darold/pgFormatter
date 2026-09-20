@@ -2602,26 +2602,28 @@ CREATE TRIGGER trig_del_after_3
 WITH ins (
     a
 ) AS (
-INSERT INTO parted2_stmt_trig
+    INSERT INTO parted2_stmt_trig
     VALUES
         (1),
         (2)
     RETURNING
-        a)
-    INSERT INTO parted_stmt_trig
-    SELECT
         a
-    FROM
-        ins
-    RETURNING
-        tableoid::regclass,
-        a;
+)
+INSERT INTO parted_stmt_trig
+SELECT
+    a
+FROM
+    ins
+RETURNING
+    tableoid::regclass,
+    a;
 
 WITH upd AS (
     UPDATE
         parted2_stmt_trig
     SET
-        a = a)
+        a = a
+)
 UPDATE
     parted_stmt_trig
 SET
@@ -3565,16 +3567,18 @@ CREATE TRIGGER table2_trig
     EXECUTE PROCEDURE dump_insert ();
 
 WITH wcte AS (
-INSERT INTO table1
-        VALUES (42))
-    INSERT INTO table2
-        VALUES ('hello world');
+    INSERT INTO table1
+        VALUES (42)
+)
+INSERT INTO table2
+    VALUES ('hello world');
 
 WITH wcte AS (
-INSERT INTO table1
-        VALUES (43))
     INSERT INTO table1
-        VALUES (44);
+        VALUES (43)
+)
+INSERT INTO table1
+    VALUES (44);
 
 SELECT
     *

@@ -23,15 +23,16 @@ SELECT
     '["a", {"b":1}]'::jsonb #- '{1,b}';
 
 WITH result AS (
-INSERT INTO brtrigpartcon
+    INSERT INTO brtrigpartcon
         VALUES (1, 'hi there')
     RETURNING
-        1)
-    INSERT INTO inserttest3 (f3)
-    SELECT
-        *
-    FROM
-        result;
+        1
+)
+INSERT INTO inserttest3 (f3)
+SELECT
+    *
+FROM
+    result;
 
 CREATE POLICY "transport_company_employees_delete_as_company_admin_policy" ON "transport_company_employees" AS PERMISSIVE
     FOR DELETE TO "authenticated"

@@ -55,8 +55,7 @@ CREATE TABLE personsx OF person_type (
 -- error
 CREATE TABLE persons2 OF person_type (
     id WITH OPTIONS PRIMARY KEY,
-    UNIQUE (
-        name)
+    UNIQUE (name)
 );
 
 \d persons2
@@ -107,8 +106,7 @@ FROM
 
 CREATE TABLE persons2 OF person_type (
     id WITH OPTIONS PRIMARY KEY,
-    UNIQUE (
-        name)
+    UNIQUE (name)
 );
 
 \d persons2
