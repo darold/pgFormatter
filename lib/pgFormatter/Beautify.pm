@@ -617,6 +617,9 @@ sub highlight_code {
 		elsif ( $self->{'uc_functions'} == 3 ) {
 			$token = '<span class="kw2_c">' . $token . '</span>';
 		}
+		elsif ( $token eq ')' ) {
+			$token = '<span class="br0">' . $token . '</span>';
+		}
 		else {
 			$token = '<span class="kw2">' . $token . '</span>';
 		}
