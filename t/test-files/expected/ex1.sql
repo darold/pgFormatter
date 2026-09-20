@@ -129,18 +129,18 @@ FROM (
                         alllibrarysales.column1,
                         alllibrarysales.column2) AS onelibrarysales) AS library
             LEFT OUTER JOIN db1.v_table3 librarystat ON librarystat.column1 = library.column1
-            AND librarystat.column2 = library.column2
-            OR (librarystat.column4 = library.column4
-                AND librarystat.column5 = library.column5)
-            /*******************        
-             * This is a block  *       
-             * comment within a *        
-             * SQL statement    *     
-             *******************/
-            AND (librarystat.column5 = 'I'
-                OR librarystat.column4 = 'Gold'
-                OR librarystat.column5 = 'Bold')
-            AND librarystat.column6 <= 'Z74') AS x) AS price
+                AND librarystat.column2 = library.column2
+                OR (librarystat.column4 = library.column4
+                    AND librarystat.column5 = library.column5)
+                /*******************        
+                 * This is a block  *       
+                 * comment within a *        
+                 * SQL statement    *     
+                 *******************/
+                AND (librarystat.column5 = 'I'
+                    OR librarystat.column4 = 'Gold'
+                    OR librarystat.column5 = 'Bold')
+                AND librarystat.column6 <= 'Z74') AS x) AS price
 WHERE
     price.column1 < 'R45'
     OR (price.column2 = 'R46'

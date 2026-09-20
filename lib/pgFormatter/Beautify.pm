@@ -168,7 +168,6 @@ Takes options as hash. Following options are recognized:
 
 =item * compact_clause_body - keep the first element of a clause on the keyword line
 
-=item * join_on_indent - indent the ON clause continuation lines (AND/OR) of a multi-keyword join (e.g. LEFT OUTER JOIN) one level below the join keyword
 =item * isolate_semicolon - place the statement terminating semicolon on its own line
 when the statement spans several lines
 
@@ -190,7 +189,6 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body join_on_indent redundant_parenthesis vertical_align)
 		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align)
 	  )
 	{
@@ -5769,7 +5767,6 @@ Currently defined defaults:
 
 =item compact_clause_body => 0
 
-=item join_on_indent => 0
 =item isolate_semicolon => 0
 
 =item redundant_parenthesis => 0
@@ -5819,7 +5816,7 @@ sub set_defaults {
 	$self->{'keep_newline'}          = 0;
 	$self->{'no_space_function'}     = 0;
 	$self->{'compact_clause_body'}   = 0;
-	$self->{'join_on_indent'}        = 0;
+	$self->{'join_on_indent'}        = 1;
 	$self->{'isolate_semicolon'}     = 0;
 	$self->{'_stmt_start_offset'}    = 0;
 	$self->{'_stmt_started'}         = 0;

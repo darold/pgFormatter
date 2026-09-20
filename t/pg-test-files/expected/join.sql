@@ -527,12 +527,12 @@ FROM (
     FROM
         t2) AS s2
     NATURAL INNER JOIN (
-    SELECT
-        name,
-        n AS s3_n,
-        3 AS s3_2
-    FROM
-        t3) s3;
+        SELECT
+            name,
+            n AS s3_n,
+            3 AS s3_2
+        FROM
+            t3) s3;
 
 SELECT
     *
@@ -580,12 +580,12 @@ FROM (
     FROM
         t1) AS s1
     NATURAL INNER JOIN (
-    SELECT
-        name,
-        n AS s2_n,
-        2 AS s2_2
-    FROM
-        t2) AS s2
+        SELECT
+            name,
+            n AS s2_n,
+            2 AS s2_2
+        FROM
+            t2) AS s2
     NATURAL INNER JOIN (
         SELECT
             name,
@@ -1783,10 +1783,10 @@ FROM (
     FROM
         int8_tbl a) AS ss1
     FULL OUTER JOIN (
-    SELECT
-        COALESCE(q2, -1) AS qq
-    FROM
-        int8_tbl b) AS ss2 USING (qq)
+        SELECT
+            COALESCE(q2, -1) AS qq
+        FROM
+            int8_tbl b) AS ss2 USING (qq)
     INNER JOIN tenk1 c ON qq = unique2;
 
 SELECT
@@ -1798,10 +1798,10 @@ FROM (
     FROM
         int8_tbl a) AS ss1
     FULL OUTER JOIN (
-    SELECT
-        COALESCE(q2, -1) AS qq
-    FROM
-        int8_tbl b) AS ss2 USING (qq)
+        SELECT
+            COALESCE(q2, -1) AS qq
+        FROM
+            int8_tbl b) AS ss2 USING (qq)
     INNER JOIN tenk1 c ON qq = unique2;
 
 --
