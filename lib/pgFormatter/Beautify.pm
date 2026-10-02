@@ -708,7 +708,7 @@ sub tokenize_sql {
 		|
 		(?:<\%|\%>|<<\->|<\->>|<\->)  # pg_trgm and some geometry operators
 		|
-		(?:\->>|\->|<\#>|\#>>|\#>|\?\&|\?\||\?|\@\?)  # Vector and Json Operators
+		(?:\->>|\->|<\#>|\#>>|\#>|\?\&|\@\?)  # Vector and Json Operators
 		|
 		(?:\#<=|\#>=|\#<>|\#<|\#=) # compares tinterval and reltime
 		|
