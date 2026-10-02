@@ -1504,7 +1504,7 @@ CREATE FUNCTION priv_testfunc6a (b int)
         $1::priv_testdomain1
 $$;
 
-CREATE OPERATOR "!+!" (
+CREATE OPERATOR !+! (
     PROCEDURE = int4pl,
     LEFTARG = priv_testdomain1,
     RIGHTARG = priv_testdomain1
@@ -1594,7 +1594,7 @@ CREATE FUNCTION priv_testfunc6b (b int)
         $1::priv_testdomain1
 $$;
 
-CREATE OPERATOR !+! (
+CREATE OPERATOR !! (
     PROCEDURE = priv_testfunc5b,
     RIGHTARG = priv_testdomain1
 );
@@ -1650,7 +1650,7 @@ DROP AGGREGATE priv_testagg1b (priv_testdomain1);
 
 DROP DOMAIN priv_testdomain2b;
 
-DROP OPERATOR !+! (
+DROP OPERATOR !! (
     NONE, priv_testdomain1);
 
 DROP FUNCTION priv_testfunc5b (a priv_testdomain1);

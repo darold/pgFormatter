@@ -47,13 +47,13 @@ WHERE
 
 DROP OPERATOR === (bigint, bigint);
 
-CREATE OPERATOR <||<| (
+CREATE OPERATOR <| (
     PROCEDURE = int8lt,
     LEFTARG = bigint,
     RIGHTARG = bigint
 );
 
-CREATE OPERATOR <||><| (
+CREATE OPERATOR |> (
     PROCEDURE = int8gt,
     LEFTARG = bigint,
     RIGHTARG = bigint,
@@ -61,7 +61,7 @@ CREATE OPERATOR <||><| (
     COMMUTATOR = <|
 );
 
-DROP OPERATOR <||><| (bigint, bigint);
+DROP OPERATOR |> (bigint, bigint);
 
 SELECT
     ctid,
@@ -93,5 +93,5 @@ WHERE
         WHERE
             pk.oid = fk.oprnegate);
 
-DROP OPERATOR <||<| (bigint, bigint);
+DROP OPERATOR <| (bigint, bigint);
 
