@@ -377,13 +377,14 @@ s/([\n\r])\s+([EU]*'(?:[^']*)')/$1 . ($self->{ 'space' } x $self->{ 'spaces' }) 
 				}
 			}
 
-			# C function language with AS obj_file, link_symbol
+			# C function language with AS obj_file [, link_symbol]
 			elsif ( $language =~ /^c$/i ) {
 				if ( $temp_content[$j] =~
-s/AS ('[^\']+')\s*,\s*('[^\']+')/AS CODEPARTB${i}CODEPARTB/is
+s/AS ('[^\']+')(?:\s*,\s*('[^\']+'|AAKEYWCONST\d+AA))?/AS CODEPARTB${i}CODEPARTB/is
 				  )
 				{
-					push( @{ $self->{'placeholder_values'} }, "$1, $2" );
+					push( @{ $self->{'placeholder_values'} },
+						defined $2 ? "$1, $2" : $1 );
 					$i++;
 				}
 			}

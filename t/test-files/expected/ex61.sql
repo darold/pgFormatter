@@ -6,11 +6,8 @@ FROM
 
 CREATE OR REPLACE FUNCTION f ()
     RETURNS bool
-    AS '
-    / foo;
-
-', 'bar'
-LANGUAGE C;
+    AS '/foo', 'bar'
+    LANGUAGE C;
 
 SELECT
     lives_ok ('INSERT INTO "order".v_order (status, order_id, name)
