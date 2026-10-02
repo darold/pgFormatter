@@ -6460,7 +6460,7 @@ sub _restore_operator {
 	my ( $self, $str ) = @_;
 
 	foreach my $op ( @{ $self->{operator} } ) {
-		$$str =~ s/"$op"/$op/gs;
+		$$str =~ s/"\Q$op\E"/$op/gs;
 	}
 	if ( exists $self->{COMMUTATOR} ) {
 		$$str =~ s/COMMUTATOR(\d+)/$self->{COMMUTATOR}{$1}/igs;

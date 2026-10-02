@@ -134,14 +134,14 @@ CREATE OPERATOR schema_op1. # * # (
 ROLLBACK;
 -- Should fail. SETOF type functions not allowed as argument (testing leftarg)
 BEGIN TRANSACTION;
-CREATE OPERATOR "#*#" (
+CREATE OPERATOR #*# (
     LEFTARG = SETOF int8,
     PROCEDURE = numeric_fac
 );
 ROLLBACK;
 -- Should fail. SETOF type functions not allowed as argument (testing rightarg)
 BEGIN TRANSACTION;
-CREATE OPERATOR "#*#" (
+CREATE OPERATOR #*# (
     RIGHTARG = SETOF int8,
     PROCEDURE = numeric_fac
 );
@@ -206,7 +206,7 @@ REVOKE USAGE ON TYPE type_op3 FROM regress_rol_op3;
 REVOKE USAGE ON TYPE type_op3 FROM PUBLIC;
 -- Need to do this so that regress_rol_op3 is not allowed USAGE via PUBLIC
 SET ROLE regress_rol_op3;
-CREATE OPERATOR "#*#" (
+CREATE OPERATOR #*# (
     LEFTARG = type_op3,
     RIGHTARG = int8,
     PROCEDURE = fn_op3
@@ -233,7 +233,7 @@ REVOKE USAGE ON TYPE type_op4 FROM regress_rol_op4;
 REVOKE USAGE ON TYPE type_op4 FROM PUBLIC;
 -- Need to do this so that regress_rol_op3 is not allowed USAGE via PUBLIC
 SET ROLE regress_rol_op4;
-CREATE OPERATOR "#*#" (
+CREATE OPERATOR #*# (
     LEFTARG = int8,
     RIGHTARG = type_op4,
     PROCEDURE = fn_op4
@@ -260,7 +260,7 @@ REVOKE EXECUTE ON FUNCTION fn_op5 (int8, int8) FROM regress_rol_op5;
 REVOKE EXECUTE ON FUNCTION fn_op5 (int8, int8) FROM PUBLIC;
 -- Need to do this so that regress_rol_op3 is not allowed EXECUTE via PUBLIC
 SET ROLE regress_rol_op5;
-CREATE OPERATOR "#*#" (
+CREATE OPERATOR #*# (
     LEFTARG = int8,
     RIGHTARG = int8,
     PROCEDURE = fn_op5
@@ -287,7 +287,7 @@ REVOKE USAGE ON TYPE type_op6 FROM regress_rol_op6;
 REVOKE USAGE ON TYPE type_op6 FROM PUBLIC;
 -- Need to do this so that regress_rol_op3 is not allowed USAGE via PUBLIC
 SET ROLE regress_rol_op6;
-CREATE OPERATOR "#*#" (
+CREATE OPERATOR #*# (
     LEFTARG = int8,
     RIGHTARG = int8,
     PROCEDURE = fn_op6
