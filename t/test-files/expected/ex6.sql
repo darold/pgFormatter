@@ -14,3 +14,17 @@ CREATE TABLE foobar (
     FOREIGN KEY (id, version) REFERENCES barfoo (next_id, next_version)
 );
 
+CREATE TABLE accounts (
+    password varchar(255),
+    type varchar(255),
+    passwords varchar(255),
+    set double precision,
+    exclude varchar(255),
+    created date DEFAULT DATE '2026-01-01',
+    CONSTRAINT DATE UNIQUE (passwords)
+);
+
+CREATE UNLOGGED TABLE accounts_unlogged (
+    password varchar(255)
+);
+
