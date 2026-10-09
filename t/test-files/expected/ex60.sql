@@ -135,3 +135,9 @@ ORDER BY
     dist
 LIMIT 10;
 
+CREATE TABLE accounts (
+    password UUID,
+    type UUID,
+    passwords UUID
+);
+

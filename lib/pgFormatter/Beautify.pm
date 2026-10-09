@@ -1541,6 +1541,16 @@ sub _set_last {
 		  ", token=$token\n";
 	}
 
+	# Remember column context even when the name is a keyword. CONSTRAINT and
+	# LIKE introduce object names that can also happen to be known type names.
+	$self->{'_last_is_column'} = (
+		$self->{'_is_in_create_table'}
+		and $self->{'_is_in_create'} == 2
+		and defined $last_token and $last_token =~ /^[,(]$/
+		and $token !~ /^(CONSTRAINT|LIKE)$/i
+		and $self->_is_type( $self->_next_token )
+	);
+
 	return $token;
 }
 
@@ -1640,6 +1650,7 @@ sub beautify {
 	$self->{'_is_in_returns_table'}        = 0;
 	$self->{'_has_limit'}                  = 0;
 	$self->{'_not_a_type'}                 = 0;
+	$self->{'_last_is_column'}             = 0;
 	$self->{'stmt_number'}                 = 1;
 	$self->{'_is_subquery'}                = 0;
 	$self->{'_mysql_delimiter'}            = '';
@@ -2228,6 +2239,12 @@ sub beautify {
 		}
 		elsif ( $token =~ /^DROP$/i ) {
 			$self->{'_is_in_drop'} = 1;
+		}
+		elsif ( $token =~ /^TABLE$/i
+			and $self->{'_is_in_create'} == 1
+			and !$self->{'_is_in_create_function'} )
+		{
+			$self->{'_is_in_create_table'} = 1;
 		}
 		elsif ( $token =~ /^VIEW$/i and $self->{'_is_in_create'} ) {
 			$self->{'_is_in_index'}  = 1;
@@ -5053,7 +5070,7 @@ sub _add_token {
 	if ( $token =~ /^(AT|SET)$/i ) {
 		$self->{'_not_a_type'} = 1;
 	}
-	elsif ( !$tk_is_type ) {
+	elsif ( !$tk_is_type or $self->{'_last_is_column'} ) {
 		$self->{'_not_a_type'} = 0;
 	}
 
@@ -5074,6 +5091,7 @@ sub _add_token {
 		  )
 		{
 			if (   $last_token =~ /^(AS|RETURNS|INOUT|IN|OUT)$/i
+				or $self->{'_last_is_column'}
 				or !$self->_is_keyword($last_token)
 				or $self->_is_type($last_token)
 				or $self->_is_type($next_token) )
