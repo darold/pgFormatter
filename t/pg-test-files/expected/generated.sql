@@ -940,7 +940,7 @@ CREATE TABLE gtest26 (
 );
 
 CREATE FUNCTION gtest_trigger_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1038,7 +1038,7 @@ DROP TRIGGER gtest3 ON gtest26;
 -- Check that an UPDATE of "a" fires the trigger for UPDATE OF b, per
 -- SQL standard.
 CREATE FUNCTION gtest_trigger_func3 ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1066,7 +1066,7 @@ TRUNCATE gtest26;
 -- check that modifications of stored generated columns in triggers do
 -- not get propagated
 CREATE FUNCTION gtest_trigger_func4 ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN

@@ -380,7 +380,7 @@ CREATE TABLE main_table (
 );
 
 CREATE FUNCTION trigger_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS '
 BEGIN
@@ -658,7 +658,7 @@ CREATE TABLE some_t (
 );
 
 CREATE FUNCTION dummy_update_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'dummy_update_func(%) called: action = %, old = %, new = %', TG_ARGV[0], TG_OP, OLD, NEW;
@@ -769,7 +769,7 @@ CREATE TABLE trigtest2 (
 );
 
 CREATE FUNCTION trigtest ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE '% % % %', TG_TABLE_NAME, TG_OP, TG_WHEN, TG_LEVEL;
@@ -850,7 +850,7 @@ CREATE TABLE trigger_test (
 );
 
 CREATE OR REPLACE FUNCTION trigger_data ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -926,7 +926,7 @@ CREATE TABLE trigger_test (
 
 -- this is the obvious (and wrong...) way to compare rows
 CREATE FUNCTION mytrigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -968,7 +968,7 @@ SET
 
 -- the right way when considering nulls is
 CREATE OR REPLACE FUNCTION mytrigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1003,7 +1003,7 @@ DROP FUNCTION mytrigger ();
 -- Test snapshot management in serializable transactions involving triggers
 -- per bug report in 6bc73d4c0910042358k3d1adff3qa36f8df75198ecea@mail.gmail.com
 CREATE FUNCTION serializable_update_trig ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -1108,7 +1108,7 @@ FROM
 
 -- VIEW trigger function
 CREATE OR REPLACE FUNCTION view_trigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -1396,7 +1396,7 @@ FROM
     LEFT JOIN country_table co ON co.country_id = ci.country_id;
 
 CREATE FUNCTION city_insert ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -1440,7 +1440,7 @@ CREATE TRIGGER city_insert_trig
     EXECUTE PROCEDURE city_insert ();
 
 CREATE FUNCTION city_delete ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1459,7 +1459,7 @@ CREATE TRIGGER city_delete_trig
     EXECUTE PROCEDURE city_delete ();
 
 CREATE FUNCTION city_update ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -1634,7 +1634,7 @@ FROM
     european_city_view;
 
 CREATE FUNCTION no_op_trig_fn ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS '
 BEGIN
@@ -1769,7 +1769,7 @@ CREATE TABLE depth_c (
 );
 
 CREATE FUNCTION depth_a_tf ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1786,7 +1786,7 @@ CREATE TRIGGER depth_a_tr
     EXECUTE PROCEDURE depth_a_tf ();
 
 CREATE FUNCTION depth_b_tf ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1811,7 +1811,7 @@ CREATE TRIGGER depth_b_tr
     EXECUTE PROCEDURE depth_b_tf ();
 
 CREATE FUNCTION depth_c_tf ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1871,7 +1871,7 @@ CREATE temp TABLE child (
 );
 
 CREATE FUNCTION parent_upd_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1890,7 +1890,7 @@ CREATE TRIGGER parent_upd_trig
     EXECUTE PROCEDURE parent_upd_func ();
 
 CREATE FUNCTION parent_del_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1905,7 +1905,7 @@ CREATE TRIGGER parent_del_trig
     EXECUTE PROCEDURE parent_del_func ();
 
 CREATE FUNCTION child_ins_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1924,7 +1924,7 @@ CREATE TRIGGER child_ins_trig
     EXECUTE PROCEDURE child_ins_func ();
 
 CREATE FUNCTION child_del_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1993,7 +1993,7 @@ FROM
 -- replace the trigger function with one that restarts the deletion after
 -- having modified a child
 CREATE OR REPLACE FUNCTION parent_del_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -2042,7 +2042,7 @@ CREATE temp TABLE self_ref_trigger (
 );
 
 CREATE FUNCTION self_ref_trigger_ins_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -2063,7 +2063,7 @@ CREATE TRIGGER self_ref_trigger_ins_trig
     EXECUTE PROCEDURE self_ref_trigger_ins_func ();
 
 CREATE FUNCTION self_ref_trigger_del_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -2136,7 +2136,7 @@ INHERITS (
 );
 
 CREATE FUNCTION update_stmt_notice ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'updating %', TG_TABLE_NAME;
@@ -2186,7 +2186,7 @@ CREATE TABLE trigger_ddl_table (
 );
 
 CREATE FUNCTION trigger_ddl_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     ALTER TABLE trigger_ddl_table
@@ -2205,7 +2205,7 @@ INSERT INTO trigger_ddl_table
 
 -- fail
 CREATE OR REPLACE FUNCTION trigger_ddl_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     CREATE INDEX ON trigger_ddl_table (col2);
@@ -2232,7 +2232,7 @@ CREATE TABLE upsert (
 );
 
 CREATE FUNCTION upsert_before_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -2256,7 +2256,7 @@ CREATE TRIGGER upsert_before_trig
     EXECUTE PROCEDURE upsert_before_func ();
 
 CREATE FUNCTION upsert_after_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -2348,7 +2348,7 @@ FROM
     my_table;
 
 CREATE FUNCTION my_trigger_function ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
 END;
@@ -2374,7 +2374,7 @@ CREATE TABLE parted_trig (
 PARTITION BY LIST (a);
 
 CREATE FUNCTION trigger_nothing ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -2499,7 +2499,7 @@ CREATE TABLE parted2_stmt_trig2 PARTITION OF parted2_stmt_trig
 FOR VALUES IN (2);
 
 CREATE OR REPLACE FUNCTION trigger_notice ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'trigger % on % % % for %', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL;
@@ -2701,7 +2701,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION trigger_notice_ab ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'trigger % on % % % for %: (a,b)=(%,%)', TG_NAME, TG_TABLE_NAME, TG_WHEN, TG_OP, TG_LEVEL, NEW.a, NEW.b;
@@ -3089,7 +3089,7 @@ DROP TABLE trg_clone;
 -- tuple formats (though not dropped attributes).
 --
 CREATE OR REPLACE FUNCTION dump_insert ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -3103,7 +3103,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION dump_update ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -3122,7 +3122,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION dump_delete ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -3301,7 +3301,7 @@ DELETE FROM parent;
 -- insert into parent with a before trigger on a child tuple before
 -- insertion, and we capture the newly modified row in parent format
 CREATE OR REPLACE FUNCTION intercept_insert ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN

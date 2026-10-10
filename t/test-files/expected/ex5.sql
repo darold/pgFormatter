@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION inserta_esquema_pago_backup ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $BODY$
 BEGIN
     INSERT INTO educaciondistancia.esquema_pago_backup (curso, numpago, montopagar, estatus, usuario, fecha)

@@ -677,7 +677,7 @@ DROP TABLE T;
 -- test that we account for missing columns without defaults correctly
 -- in expand_tuple, and that rows are correctly expanded for triggers
 CREATE FUNCTION test_trigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN

@@ -73,7 +73,7 @@ FROM
 
 -- now create a trigger that forces all Datums to be indirect ones
 CREATE FUNCTION update_using_indirect ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN

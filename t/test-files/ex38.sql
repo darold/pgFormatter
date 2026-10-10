@@ -1,3 +1,10 @@
+CREATE FUNCTION check_account_update() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN NEW;
+END;
+$$;
+
 CREATE TRIGGER check_update
     BEFORE UPDATE ON accounts
     FOR EACH ROW

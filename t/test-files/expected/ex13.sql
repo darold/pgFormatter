@@ -46,7 +46,7 @@ FROM
     t;
 
 CREATE FUNCTION tg_phone_bu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     IF NEW.slotname != OLD.slotname THEN

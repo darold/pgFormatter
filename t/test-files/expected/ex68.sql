@@ -1,5 +1,5 @@
 CREATE FUNCTION rw_view1_trig_fn ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     IF tg_op = 'insert' THEN
