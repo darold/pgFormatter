@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION foo ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     IF NEW.role NOT IN (

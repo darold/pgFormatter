@@ -645,7 +645,7 @@ RETURNING (range_parted),
 :init_range_parted;
 
 CREATE FUNCTION trans_updatetrigfunc ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -723,7 +723,7 @@ DROP TRIGGER trans_inserttrig ON range_parted;
 -- BR trigger because the trigger can change the inserted row. So install a
 -- BR triggers on those child partitions where the rows will be moved.
 CREATE FUNCTION func_parted_mod_b ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     NEW.b = NEW.b + 1;
@@ -838,7 +838,7 @@ RESET SESSION AUTHORIZATION;
 
 -- Create a trigger on part_d_1_15
 CREATE FUNCTION func_d_1_15 ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     NEW.c = NEW.c + 1;
@@ -988,7 +988,7 @@ DROP TABLE mintab;
 :init_range_parted;
 
 CREATE FUNCTION trigfunc ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -1288,7 +1288,7 @@ ORDER BY
 
 -- Test the case where BR UPDATE triggers change the partition key.
 CREATE FUNCTION func_parted_mod_b ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     NEW.b = 2;
@@ -1338,7 +1338,7 @@ DROP TRIGGER parted_mod_b ON sub_part1;
 -- If BR DELETE trigger prevented DELETE from happening, we should also skip
 -- the INSERT if that delete is part of UPDATE=>DELETE+INSERT.
 CREATE OR REPLACE FUNCTION func_parted_mod_b ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'Trigger: Got OLD row %, but returning NULL', OLD;

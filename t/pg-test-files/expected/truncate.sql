@@ -366,7 +366,7 @@ CREATE TABLE trunc_trigger_log (
 );
 
 CREATE FUNCTION trunctrigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 DECLARE
     c bigint;

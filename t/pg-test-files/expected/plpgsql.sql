@@ -115,7 +115,7 @@ CREATE UNIQUE INDEX PHone_name ON PHone USING btree (slotname bpchar_ops);
 -- *	- If room no changes let wall slots follow
 -- ************************************************************
 CREATE FUNCTION tg_room_au ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.roomno != OLD.roomno THEN
@@ -140,7 +140,7 @@ CREATE TRIGGER tg_room_au
 -- *	- delete wall slots in this room
 -- ************************************************************
 CREATE FUNCTION tg_room_ad ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     DELETE FROM WSlot
@@ -159,7 +159,7 @@ CREATE TRIGGER tg_room_ad
 -- *	- Check that room exists
 -- ************************************************************
 CREATE FUNCTION tg_wslot_biu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     IF count(*) = 0
@@ -183,7 +183,7 @@ CREATE TRIGGER tg_wslot_biu
 -- *	- Let PSlots of this field follow
 -- ************************************************************
 CREATE FUNCTION tg_pfield_au ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.name != OLD.name THEN
@@ -208,7 +208,7 @@ CREATE TRIGGER tg_pfield_au
 -- *	- Remove all slots of this patchfield
 -- ************************************************************
 CREATE FUNCTION tg_pfield_ad ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     DELETE FROM PSlot
@@ -227,7 +227,7 @@ CREATE TRIGGER tg_pfield_ad
 -- *	- Ensure that our patchfield does exist
 -- ************************************************************
 CREATE FUNCTION tg_pslot_biu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $proc$
 DECLARE
     pfrec record;
@@ -257,7 +257,7 @@ CREATE TRIGGER tg_pslot_biu
 -- *	- If system name changes let interfaces follow
 -- ************************************************************
 CREATE FUNCTION tg_system_au ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.name != OLD.name THEN
@@ -282,7 +282,7 @@ CREATE TRIGGER tg_system_au
 -- *	- set the slotname to IF.sysname.ifname
 -- ************************************************************
 CREATE FUNCTION tg_iface_biu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 DECLARE
     sname text;
@@ -319,7 +319,7 @@ CREATE TRIGGER tg_iface_biu
 -- *	- insert/delete/rename slots as required
 -- ************************************************************
 CREATE FUNCTION tg_hub_a ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     hname text;
@@ -391,7 +391,7 @@ COMMENT ON FUNCTION tg_hub_adjustslots (bpchar, integer, integer) IS NULL;
 -- *	- set the slotname to HS.hubname.slotno
 -- ************************************************************
 CREATE FUNCTION tg_hslot_biu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     sname text;
@@ -441,7 +441,7 @@ CREATE TRIGGER tg_hslot_biu
 -- *	- prevent from manual manipulation
 -- ************************************************************
 CREATE FUNCTION tg_hslot_bd ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     hubrec record;
@@ -473,7 +473,7 @@ CREATE TRIGGER tg_hslot_bd
 -- *	- Check name prefix
 -- ************************************************************
 CREATE FUNCTION tg_chkslotname ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF substr(NEW.slotname, 1, 2) != tg_argv[0] THEN
@@ -509,7 +509,7 @@ CREATE TRIGGER tg_chkslotname
 -- *	- Set slotlink to empty string if NULL value given
 -- ************************************************************
 CREATE FUNCTION tg_chkslotlink ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.slotlink ISNULL THEN
@@ -545,7 +545,7 @@ CREATE TRIGGER tg_chkslotlink
 -- *	- Set backlink to empty string if NULL value given
 -- ************************************************************
 CREATE FUNCTION tg_chkbacklink ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.backlink ISNULL THEN
@@ -573,7 +573,7 @@ CREATE TRIGGER tg_chkbacklink
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
 CREATE FUNCTION tg_pslot_bu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.slotname != OLD.slotname THEN
@@ -597,7 +597,7 @@ CREATE TRIGGER tg_pslot_bu
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
 CREATE FUNCTION tg_wslot_bu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.slotname != OLD.slotname THEN
@@ -621,7 +621,7 @@ CREATE TRIGGER tg_wslot_bu
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
 CREATE FUNCTION tg_pline_bu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.slotname != OLD.slotname THEN
@@ -645,7 +645,7 @@ CREATE TRIGGER tg_pline_bu
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
 CREATE FUNCTION tg_iface_bu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.slotname != OLD.slotname THEN
@@ -669,7 +669,7 @@ CREATE TRIGGER tg_iface_bu
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
 CREATE FUNCTION tg_hslot_bu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.slotname != OLD.slotname OR NEW.hubname != OLD.hubname THEN
@@ -693,7 +693,7 @@ CREATE TRIGGER tg_hslot_bu
 -- *	- do delete/insert instead of update if name changes
 -- ************************************************************
 CREATE FUNCTION tg_phone_bu ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 BEGIN
     IF NEW.slotname != OLD.slotname THEN
@@ -717,7 +717,7 @@ CREATE TRIGGER tg_phone_bu
 -- *	- Ensure that the opponent correctly points back to us
 -- ************************************************************
 CREATE FUNCTION tg_backlink_a ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     dummy integer;
@@ -939,7 +939,7 @@ LANGUAGE plpgsql;
 -- *	- Ensure that the opponent correctly points back to us
 -- ************************************************************
 CREATE FUNCTION tg_slotlink_a ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     dummy integer;
@@ -6396,7 +6396,7 @@ CREATE TABLE transition_table_base (
     val text
 );
 CREATE FUNCTION transition_table_base_ins_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -6431,7 +6431,7 @@ VALUES
     (3, 'Three'),
     (4, 'Four');
 CREATE OR REPLACE FUNCTION transition_table_base_upd_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -6474,7 +6474,7 @@ CREATE TABLE transition_table_status (
     status int,
     PRIMARY KEY (level, node_no)) WITHOUT OIDS;
 CREATE FUNCTION transition_table_level1_ri_parent_del_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -6495,7 +6495,7 @@ CREATE TRIGGER transition_table_level1_ri_parent_del_trigger
     FOR EACH STATEMENT
     EXECUTE PROCEDURE transition_table_level1_ri_parent_del_func ();
 CREATE FUNCTION transition_table_level1_ri_parent_upd_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -6540,7 +6540,7 @@ CREATE TRIGGER transition_table_level1_ri_parent_upd_trigger
     FOR EACH STATEMENT
     EXECUTE PROCEDURE transition_table_level1_ri_parent_upd_func ();
 CREATE FUNCTION transition_table_level2_ri_child_insupd_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -6598,7 +6598,7 @@ SELECT
 ANALYZE transition_table_level1;
 -- behave reasonably if someone tries to modify a transition table
 CREATE FUNCTION transition_table_level2_bad_usage_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -6651,7 +6651,7 @@ CREATE TABLE alter_table_under_transition_tables (
     name text
 );
 CREATE FUNCTION alter_table_under_transition_tables_upd_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -6717,7 +6717,7 @@ CREATE TABLE multi_test (
 INSERT INTO multi_test
     VALUES (1);
 CREATE OR REPLACE FUNCTION multi_test_trig ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN

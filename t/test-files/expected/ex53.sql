@@ -132,7 +132,7 @@ LOCK hs1 IN SHARE UPDATE EXCLUSIVE MODE;
 COMMIT;
 
 CREATE FUNCTION tg_hub_a ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     hname text;
@@ -190,7 +190,7 @@ END
 LANGUAGE plpgsql;
 
 CREATE FUNCTION tg_backlink_a ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     dummy integer;

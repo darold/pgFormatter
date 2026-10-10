@@ -81,7 +81,7 @@ CREATE AGGREGATE addr_nsp.genaggr (int4) (
 CREATE DOMAIN addr_nsp.gendomain AS int4 CONSTRAINT domconstr CHECK (value > 0);
 
 CREATE FUNCTION addr_nsp.trig ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN

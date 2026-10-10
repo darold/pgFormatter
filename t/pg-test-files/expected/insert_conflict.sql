@@ -1417,7 +1417,7 @@ ORDER BY
 
 -- test with statement level triggers
 CREATE OR REPLACE FUNCTION parted_conflict_update_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 DECLARE
     r record;

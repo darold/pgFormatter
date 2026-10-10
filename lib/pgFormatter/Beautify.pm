@@ -5369,6 +5369,10 @@ sub _is_keyword {
 		and ( not defined $next_token or $next_token ) !~ /^ON|IS$/i );
 
 	if ( defined $last_token ) {
+		# A known return type follows type-case rather than keyword-case.
+		return 0
+		  if ( uc($last_token) eq 'RETURNS'
+			and $self->_is_type( $token, $last_token, $next_token ) );
 		return 0
 		  if ( uc($token) eq 'KEY'
 			and $last_token !~ /^(PRIMARY|FOREIGN|PARTITION|NO)$/i );
@@ -5421,6 +5425,11 @@ sub _is_type {
 
 	return if ( !defined $token );
 	return if ( defined $next_token and $next_token =~ /^(SEARCH)$/i );
+
+	# TRIGGER is also a DDL keyword; recognize its use as a return type.
+	return 1
+	  if ( uc($token) eq 'TRIGGER'
+		and defined $last_token and uc($last_token) eq 'RETURNS' );
 
 	if ( $DEBUG and defined $token ) {
 		my ( $package, $filename, $line ) = caller;
