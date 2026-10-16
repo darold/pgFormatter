@@ -346,9 +346,9 @@ Options:
 
 Examples:
 
-    cat samples/ex1.sql | $0 -
-    $0 -n samples/ex1.sql
-    $0 -f 2 -n -o result.sql samples/ex1.sql
+    cat t/test-files/ex1.sql | $0 -
+    $0 -n t/test-files/ex1.sql
+    $0 -f 2 -n -o result.sql t/test-files/ex1.sql
 };
 
 	if ($status) {
