@@ -747,7 +747,7 @@ sub tokenize_sql {
 		|
 		`(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
 		|
-		[EB]*'[^']+' # anything inside single quotes, ungreedy.
+		[EB]*'[^']*' # anything inside single quotes, ungreedy.
 		|
 		/\*[\ \t\r\n\S]*?\*/      # C style comments
 		|
