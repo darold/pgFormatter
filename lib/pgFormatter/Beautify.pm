@@ -298,8 +298,11 @@ s/([\n\r])\s+([EU]*'(?:[^']*)')/$1 . ($self->{ 'space' } x $self->{ 'spaces' }) 
 	}
 
 	# Escape quote in comments
-	while ( $self->{'query'} =~ s/(\/\*(?:.*)?)'((?:.*)?\*\/)/$1SNGLQUOTE$2/s )
-	{
+	my $first = index( $self->{'query'}, '/*' );
+	my $last  = rindex( $self->{'query'}, '*/' );
+	if ( $first >= 0 && $last > $first + 2 ) {
+		substr( $self->{'query'}, $first + 2, $last - $first - 2 ) =~
+		  s/'/SNGLQUOTE/g;
 	}
 
 	# replace all constant between quote
