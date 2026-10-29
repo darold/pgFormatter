@@ -93,3 +93,18 @@ SELECT t, 'word' <->> t AS dist
   FROM test_trgm
   ORDER BY dist LIMIT 10;
 
+
+SELECT t, strict_word_similarity('word', t) AS sml
+  FROM test_trgm
+  WHERE 'word' <<% t AND 'hello' %>> t
+  ORDER BY sml DESC, t;
+
+SELECT t, 'word' <<<-> t AS dist, 'word' <->>> t AS dist2
+  FROM test_trgm
+  ORDER BY dist LIMIT 10;
+
+-- pgvector operators
+SELECT id FROM items ORDER BY embedding <+> '[3,1,2]', embedding <~> '101', embedding <%> '101' LIMIT 5;
+
+-- PostGIS operators
+SELECT a.id FROM a, b WHERE a.geom &&& b.geom ORDER BY a.geom <<->> b.geom, a.traj |=| b.traj LIMIT 5;
