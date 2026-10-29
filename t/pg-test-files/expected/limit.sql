@@ -315,11 +315,11 @@ EXPLAIN (
 )
 SELECT
     generate_series(0, 2) AS s1,
-    generate_series((random() *.1)::int, 2) AS s2;
+    generate_series((random() * .1)::int, 2) AS s2;
 
 SELECT
     generate_series(0, 2) AS s1,
-    generate_series((random() *.1)::int, 2) AS s2;
+    generate_series((random() * .1)::int, 2) AS s2;
 
 EXPLAIN (
     VERBOSE,
@@ -327,13 +327,13 @@ EXPLAIN (
 )
 SELECT
     generate_series(0, 2) AS s1,
-    generate_series((random() *.1)::int, 2) AS s2
+    generate_series((random() * .1)::int, 2) AS s2
 ORDER BY
     s2 DESC;
 
 SELECT
     generate_series(0, 2) AS s1,
-    generate_series((random() *.1)::int, 2) AS s2
+    generate_series((random() * .1)::int, 2) AS s2
 ORDER BY
     s2 DESC;
 
