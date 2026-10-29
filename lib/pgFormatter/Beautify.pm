@@ -709,9 +709,11 @@ sub tokenize_sql {
 		|
 		(?:\%[\d\-\*\$]*[sIL]) # format() placeholder
 		|
-		(?:<\%|\%>|<<\->|<\->>|<\->)  # pg_trgm and some geometry operators
+		(?:\&\&\&|<<\->>|\|=\|)  # PostGIS n-D and trajectory operators
 		|
-		(?:\->>|\->|<\#>|\#>>|\#>|\?\&|\?\||\?|\@\?)  # Vector and Json Operators
+		(?:<<<\->|<\->>>|<<\%|\%>>|<\%>|<\%|\%>|<<\->|<\->>|<\->)  # pg_trgm, pgvector and some geometry operators
+		|
+		(?:<\+>|<\~>|\->>|\->|<\#>|\#>>|\#>|\?\&|\?\||\?|\@\?)  # Vector and Json Operators
 		|
 		(?:\#<=|\#>=|\#<>|\#<|\#=) # compares tinterval and reltime
 		|
