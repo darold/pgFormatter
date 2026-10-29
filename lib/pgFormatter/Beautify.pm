@@ -736,6 +736,8 @@ sub tokenize_sql {
 		|
 		(?:<>|<=>|>=|<=|=>|==|!=|:=|=|!|<<|>>|<|>|\|\||\||&&|&|\-|\+|\*(?!/)|/(?!\*)|\%|~|\^|\?) # operators and tests
 		|
+		\.\d+(?:e[\+\-]?\d+)?          # number without a leading zero, like .5
+		|
 		[\[\]\(\),;.]            # punctuation (parenthesis, comma)
 		|
 		\"\"(?!\"")             # empty double quoted string
