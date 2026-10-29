@@ -695,6 +695,8 @@ sub tokenize_sql {
 		|
 		AAKEYWCONST\d+AA             # preserved constants
 		|
+		U&(?:AAKEYWCONST\d+AA|"(?>(?:(?>[^"\\]+)|""|\\.)*)+")   # Unicode escape string or identifier, U&'...' or U&"..."
+		|
 		\/\/			# mysql delimiter ( $$ is handled later with PG code delimiters )
 		|
 		\d*\.?\d+e[-+]\d+			# scientific notation with exponents

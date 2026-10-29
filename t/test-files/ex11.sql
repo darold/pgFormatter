@@ -30,3 +30,6 @@ begin
     raise notice '%; %; %; %; %; %', a, a[i], c, (select c || 'abc'), row(10,'aaa',NULL,30), NULL;
 end;$$ language plpgsql;
 
+
+-- Unicode escapes in strings and identifiers
+SELECT U&'\00E4b', u&'d!0061t!+000061' UESCAPE '!' AS U&"d\0061t" FROM t WHERE b = U&'\00E4';

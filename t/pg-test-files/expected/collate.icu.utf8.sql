@@ -1351,10 +1351,10 @@ CREATE TABLE test6 (
 
 -- same string in different normal forms
 INSERT INTO test6
-    VALUES (1, U & '\00E4bc');
+    VALUES (1, U&'\00E4bc');
 
 INSERT INTO test6
-    VALUES (2, U & '\0061\0308bc');
+    VALUES (2, U&'\0061\0308bc');
 
 SELECT
     *

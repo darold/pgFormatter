@@ -20,13 +20,13 @@ SELECT
 SET standard_conforming_strings TO ON;
 
 SELECT
-    U & 'd\0061t\+000061' AS U & "d\0061t\+000061";
+    U&'d\0061t\+000061' AS U&"d\0061t\+000061";
 
 SELECT
-    U & 'd!0061t\+000061' UESCAPE '!' AS U & "d*0061t\+000061" UESCAPE '*';
+    U&'d!0061t\+000061' UESCAPE '!' AS U&"d*0061t\+000061" UESCAPE '*';
 
 SELECT
-    U & ' \' UESCAPE ' ! ' AS "tricky";
+    U&' \' UESCAPE ' ! ' AS "tricky";
 SELECT 'tricky' AS U&"\" UESCAPE '!';
 
 SELECT U&'wrong: \061';
@@ -41,7 +41,7 @@ SELECT U&'d!0061t\+000061' UESCAPE '!' AS U&"d*0061t\+000061" UESCAPE '*';
 SELECT U&' \' UESCAPE '!' AS "tricky";
 
 SELECT
-    'tricky' AS U & "\" UESCAPE '!';
+    'tricky' AS U&"\" UESCAPE '!';
 
 SELECT U&'wrong: \061';
 SELECT U&'wrong: \+0061';
