@@ -11,10 +11,10 @@ SET client_encoding TO UTF8;
 --
 -- trivial cases:
 SELECT
-    'aⓐ' ~ U & 'a\24D0' AS t;
+    'aⓐ' ~ U&'a\24D0' AS t;
 
 SELECT
-    'aⓐ' ~ U & 'a\24D1' AS f;
+    'aⓐ' ~ U&'a\24D1' AS f;
 
 SELECT
     'aⓕ' ~ 'a[ⓐ-ⓩ]' AS t;
