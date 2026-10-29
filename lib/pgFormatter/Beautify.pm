@@ -4678,10 +4678,10 @@ sub beautify {
         #  2. the two parentheses of a scalar sub-SELECT are BOTH required
         #     when the outer one belongs to a function call -- fn((SELECT
         #     ...)) -- or to a VALUES row constructor -- VALUES ((SELECT
-        #     ...)); collapsing them would produce invalid SQL. Such pairs
-        #     are shielded during the pass and restored right after. Any
-        #     other ((...)), including count((unique1)) or FROM ((SELECT
-        #     ...)), is still collapsed.
+        #     ...)) or VALUES (1), ((SELECT ...)); collapsing them would
+        #     produce invalid SQL. Such pairs are shielded during the pass
+        #     and restored right after. Any other ((...)), including
+        #     count((unique1)) or FROM ((SELECT ...)), is still collapsed.
 	if ( !$self->{'redundant_parenthesis'} )
 	{
                 while (
@@ -4691,8 +4691,9 @@ sub beautify {
                         }{
                                 my ( $lead, $inner, $rest ) = ( $1, $2, $3 );
                                 my $word = ( $lead =~ /([a-z0-9_"][\w\."]*)\s*$/i ) ? $1 : '';
+                                my $values_row = ( $lead =~ /\bVALUES\s*\(.*\)\s*,\s*$/is );
                                 if ( ($inner =~ /AAKEYWCONST\d+AA/ || $inner =~ /^\s*SELECT\b/i)
-                                             && $word ne '' )
+                                             && ($word ne '' || $values_row) )
                                 {
 					"$lead\x02$inner\x03$rest";
                                 }
