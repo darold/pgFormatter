@@ -4686,7 +4686,7 @@ sub beautify {
 	{
                 while (
                         $self->{'content'} =~ s{
-                                ((?:^|\s+)(?:WHERE|SELECT|FROM)\s+(?!TO)\s+[^;]+)  # $1
+                                ((?:^|\s)(?:WHERE|SELECT|FROM)\s\s[^;]+)           # $1
                                 [\(]{2}([^\(\)]+)[\)]{2}([^;]+)                    # $2 inner, $3 rest
                         }{
                                 my ( $lead, $inner, $rest ) = ( $1, $2, $3 );
