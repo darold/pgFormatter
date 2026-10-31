@@ -1601,6 +1601,7 @@ sub beautify {
 	$self->{'_is_in_work'}                 = 0;
 	$self->{'_is_in_function'}             = 0;
 	$self->{'_is_in_merge'}                = 0;
+	$self->{'_is_in_merge_cte'}            = 0;
 	$self->{'_current_function'}           = '';
 	$self->{'_is_in_statistics'}           = 0;
 	$self->{'_is_in_cast'}                 = 0;
@@ -1774,6 +1775,11 @@ sub beautify {
 			  if ( $self->{'_parenthesis_filter_level'} );
 			$self->{'_parenthesis_with_level'}--
 			  if ( $self->{'_parenthesis_with_level'} );
+			# A MERGE in a CTE ends with the parenthesis that closes this CTE
+			if ( $self->{'_is_in_merge_cte'} and !$self->{'_parenthesis_with_level'} ) {
+				$self->{'_is_in_merge'}     = 0;
+				$self->{'_is_in_merge_cte'} = 0;
+			}
 			$self->{'_is_in_filter'} = 0
 			  if ( !$self->{'_parenthesis_filter_level'} );
 
@@ -2272,6 +2278,7 @@ sub beautify {
 			&& $self->_next_token =~ /^INTO/i )
 		{
 			$self->{'_is_in_merge'} = 1;
+			$self->{'_is_in_merge_cte'} = ( $self->{'_parenthesis_with_level'} > 0 ) ? 1 : 0;
 			$self->{'_current_sql_stmt'} = 'MERGE';
 		}
 
@@ -3336,6 +3343,7 @@ sub beautify {
 			$self->{'_is_in_create_schema'}        = 0;
 			$self->{'_is_in_alter'}                = 0;
 			$self->{'_is_in_merge'}                = 0;
+			$self->{'_is_in_merge_cte'}            = 0;
 			$self->{'_is_in_rule'}                 = 0;
 			$self->{'_is_in_publication'}          = 0;
 			$self->{'_is_in_call'}                 = 0;
