@@ -1402,7 +1402,7 @@ CREATE TABLE tab_part_create (
 PARTITION BY LIST (a);
 
 CREATE OR REPLACE FUNCTION func_part_create ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
