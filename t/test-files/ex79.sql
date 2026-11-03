@@ -34,3 +34,29 @@ CREATE POLICY "transport_company_employees_delete_as_company_admin_policy" ON "t
             "transport_company_employees" AS admin_membership
         WHERE
             "admin_membership"."employee_profile_id" = app.current_profile_id () AND "admin_membership"."role" = 'admin' AND "admin_membership"."transport_company_id" = "transport_company_employees"."transport_company_id"));
+
+WITH t AS (
+    MERGE INTO a USING b ON (a.x = b.x)
+    WHEN NOT MATCHED THEN INSERT VALUES (1, 2)
+    WHEN MATCHED THEN DELETE
+    RETURNING *
+)
+INSERT INTO c SELECT * FROM t RETURNING *;
+
+WITH t AS (
+    MERGE INTO a USING b ON a.x = b.x
+    WHEN MATCHED THEN DELETE
+    RETURNING *
+), u AS (
+    SELECT * FROM t
+)
+UPDATE c SET d = 1 FROM u WHERE c.id = u.id;
+
+WITH x AS (SELECT 1 AS i)
+MERGE INTO a USING x ON (a.i = x.i)
+WHEN MATCHED THEN UPDATE SET y = 1
+WHEN NOT MATCHED THEN INSERT (i) VALUES (x.i);
+
+MERGE INTO a USING b ON (a.x = b.x)
+WHEN MATCHED THEN UPDATE SET y = 1
+WHEN NOT MATCHED THEN INSERT VALUES (1);

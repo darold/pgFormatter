@@ -1714,7 +1714,7 @@ FROM
 
 -- triggers will fire, too
 CREATE FUNCTION noticetrigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'noticetrigger % %', NEW.f1, NEW.data;

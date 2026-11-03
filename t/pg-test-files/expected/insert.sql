@@ -706,7 +706,7 @@ ALTER TABLE mlparted
 
 -- have a BR trigger modify the row such that the check_b is violated
 CREATE FUNCTION mlparted11_trig_fn ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     NEW.b := 4;
@@ -838,7 +838,7 @@ INSERT INTO mlparted
     VALUES (1, 45, 'a');
 
 CREATE FUNCTION mlparted5abrtrig_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     NEW.c = 'b';
@@ -1182,7 +1182,7 @@ CREATE TABLE brtrigpartcon1 PARTITION OF brtrigpartcon
 FOR VALUES IN (1);
 
 CREATE OR REPLACE FUNCTION brtrigpartcon1trigf ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     NEW.a := 2;
@@ -1270,7 +1270,7 @@ ALTER TABLE donothingbrtrig_test2
     DROP COLUMN c;
 
 CREATE OR REPLACE FUNCTION donothingbrtrig_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'b: %', NEW.b;

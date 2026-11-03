@@ -33,7 +33,7 @@ FROM
     my_table;
 
 CREATE OR REPLACE FUNCTION task_job_maint_after ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     CASE NEW.state

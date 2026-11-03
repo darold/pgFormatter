@@ -569,13 +569,13 @@ FROM
     generate_series(0, 3) g (i);
 
 -- Operators can return sets too
-CREATE OPERATOR |@|||@|||@| (
+CREATE OPERATOR |@| (
     PROCEDURE = unnest,
     RIGHTARG = ANYARRAY
 );
 
 SELECT
-    | |@| | ARRAY[1, 2, 3];
+    | @ | ARRAY[1, 2, 3];
 
 -- Some fun cases involving duplicate SRF calls
 EXPLAIN (
