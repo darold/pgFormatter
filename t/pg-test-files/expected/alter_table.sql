@@ -5766,7 +5766,7 @@ CREATE TABLE tab_part_attach (
 PARTITION BY LIST (a);
 
 CREATE OR REPLACE FUNCTION func_part_attach ()
-    RETURNS TRIGGER
+    RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN

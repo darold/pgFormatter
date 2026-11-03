@@ -952,7 +952,7 @@ ORDER BY
     ordinal_position;
 
 CREATE FUNCTION rw_view1_trig_fn ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
@@ -1733,7 +1733,7 @@ INSERT INTO base_tbl
     VALUES (2, 'Row 2');
 
 CREATE FUNCTION rw_view1_trig_fn ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
@@ -2623,7 +2623,7 @@ CREATE TABLE base_tbl (
 );
 
 CREATE FUNCTION base_tbl_trig_fn ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     NEW.b := 10;
@@ -2679,7 +2679,7 @@ WHERE
     a < b;
 
 CREATE FUNCTION rw_view1_trig_fn ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
@@ -4211,7 +4211,7 @@ ORDER BY
 -- Adding an INSTEAD OF trigger should cause NULLs to be inserted instead of
 -- table defaults, where there are no view defaults.
 CREATE FUNCTION base_tab_def_view_instrig_func ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     INSERT INTO base_tab_def

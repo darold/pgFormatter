@@ -1,3 +1,14 @@
+CREATE FUNCTION preserve_trigger_case() RETURNS tRiGgEr
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN NEW;
+END;
+$$;
+
+CREATE trigger preserve_trigger_case
+    BEFORE UPDATE ON accounts
+    FOR EACH ROW
+    EXECUTE FUNCTION preserve_trigger_case();
 -- A scalar sub-SELECT used as a row of a VALUES list keeps both pairs of
 -- parentheses after another row: the outer pair is the row constructor.
 SELECT * FROM (VALUES (1), ((SELECT 2))) AS t (i);

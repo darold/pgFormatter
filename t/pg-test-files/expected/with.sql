@@ -2445,7 +2445,7 @@ SELECT
     generate_series(1, 10);
 
 CREATE FUNCTION y_trigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'y_trigger: a = %', NEW.a;
@@ -2508,7 +2508,7 @@ FROM
 DROP TRIGGER y_trig ON y;
 
 CREATE OR REPLACE FUNCTION y_trigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RAISE NOTICE 'y_trigger';

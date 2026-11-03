@@ -1284,7 +1284,7 @@ DROP SERVER s10 CASCADE;
 
 -- Triggers
 CREATE FUNCTION dummy_trigger ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS $$
 BEGIN
     RETURN NULL;
