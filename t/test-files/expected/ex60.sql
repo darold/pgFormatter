@@ -140,6 +140,7 @@ CREATE TABLE accounts (
     type UUID,
     passwords UUID
 );
+
 SELECT
     t,
     strict_word_similarity ('word', t) AS sml
