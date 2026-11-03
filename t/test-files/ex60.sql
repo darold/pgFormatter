@@ -93,6 +93,11 @@ SELECT t, 'word' <->> t AS dist
   FROM test_trgm
   ORDER BY dist LIMIT 10;
 
+CREATE TABLE accounts (
+    password uuid,
+    type uuid,
+    passwords uuid
+);
 
 SELECT t, strict_word_similarity('word', t) AS sml
   FROM test_trgm
