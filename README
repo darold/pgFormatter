@@ -96,9 +96,9 @@ DESCRIPTION
 
     Examples:
 
-        cat samples/ex1.sql | pg_format -
-        pg_format -n samples/ex1.sql
-        pg_format -f 2 -n -o result.sql samples/ex1.sql
+        cat t/test-files/ex1.sql | pg_format -
+        pg_format -n t/test-files/ex1.sql
+        pg_format -f 2 -n -o result.sql t/test-files/ex1.sql
 
   CGI context
     Install pg_format into your cgi-bin folder, grant execution on it as a
@@ -419,7 +419,7 @@ HINTS
     expression to instruct pgFormatter to keep some part of the query
     untouched. For example:
 
-            pg_format samples/ex9.sql -p '<<(?:.*)?>>'
+            pg_format t/test-files/ex9.sql -p '<<(?:.*)?>>'
 
     will not format the bit-shift like operators.
 
@@ -428,7 +428,7 @@ HINTS
     wrapped. If you would prefer not to wrap urls, you can use a regular
     expression to avoid wrapping urls. For example:
 
-            pg_format samples/ex62.sql -C -w 60 -p 'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
+            pg_format t/test-files/ex62.sql -C -w 60 -p 'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
 
     will wrap the queries and the comments, but not the urls.
 

@@ -132,7 +132,7 @@ LOCK hs1 IN SHARE UPDATE EXCLUSIVE MODE;
 COMMIT;
 
 CREATE FUNCTION tg_hub_a ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     hname text;
@@ -190,7 +190,7 @@ END
 LANGUAGE plpgsql;
 
 CREATE FUNCTION tg_backlink_a ()
-    RETURNS TRIGGER
+    RETURNS trigger
     AS '
 DECLARE
     dummy integer;
@@ -244,4 +244,13 @@ SELECT
     -1.3 * 10, (1 + 2) - -9,
     ARRAY[-15, -14, -13],
     fnsum (-12 + 34);
+
+SELECT
+    -.5,
+    +.5,
+    (-.5),
+    x * -.5,
+    1 - .5,
+    .5,
+    ARRAY[-.25, .75];
 
