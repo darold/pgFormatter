@@ -55,7 +55,7 @@ SELECT
 FROM
     POINT_TBL p1
 WHERE
-    p1.f1 ? - point '(0,0)';
+    p1.f1 ?- point '(0,0)';
 
 -- "is vertical" function
 SELECT
@@ -276,7 +276,7 @@ SELECT
 FROM
     LINE_TBL
 WHERE
-    ? - s;
+    ?- s;
 
 -- Same as line
 SELECT
@@ -296,7 +296,7 @@ FROM
     LINE_TBL l1,
     LINE_TBL l2
 WHERE
-    l1.s ?| | l2.s;
+    l1.s ?|| l2.s;
 
 -- Perpendicular to line
 SELECT
@@ -306,7 +306,7 @@ FROM
     LINE_TBL l1,
     LINE_TBL l2
 WHERE
-    l1.s ? - | l2.s;
+    l1.s ?-| l2.s;
 
 -- Distance to line
 SELECT
@@ -334,7 +334,7 @@ FROM
     LINE_TBL l1,
     LINE_TBL l2
 WHERE
-    l1.s ? # l2.s;
+    l1.s ?# l2.s;
 
 -- Intersect with box
 SELECT
@@ -344,7 +344,7 @@ FROM
     LINE_TBL l,
     BOX_TBL b
 WHERE
-    l.s ? # b.f1;
+    l.s ?# b.f1;
 
 -- Intersection point with line
 SELECT
@@ -407,7 +407,7 @@ SELECT
 FROM
     LSEG_TBL
 WHERE
-    ? - s;
+    ?- s;
 
 -- Center
 SELECT
@@ -491,7 +491,7 @@ FROM
     LSEG_TBL l1,
     LSEG_TBL l2
 WHERE
-    l1.s ?| | l2.s;
+    l1.s ?|| l2.s;
 
 -- Perpendicular with line segment
 SELECT
@@ -501,7 +501,7 @@ FROM
     LSEG_TBL l1,
     LSEG_TBL l2
 WHERE
-    l1.s ? - | l2.s;
+    l1.s ?-| l2.s;
 
 -- Distance to line
 SELECT
@@ -538,7 +538,7 @@ FROM
     LSEG_TBL l,
     LINE_TBL l1
 WHERE
-    l.s ? # l1.s;
+    l.s ?# l1.s;
 
 -- Intersect with box
 SELECT
@@ -548,7 +548,7 @@ FROM
     LSEG_TBL l,
     BOX_TBL b
 WHERE
-    l.s ? # b.f1;
+    l.s ?# b.f1;
 
 -- Intersection point with line segment
 SELECT
