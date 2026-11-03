@@ -26,6 +26,7 @@ SELECT
     j @? '$.a'
 FROM
     t;
+
 CREATE FUNCTION preserve_trigger_case ()
     RETURNS tRiGgEr
     LANGUAGE plpgsql
