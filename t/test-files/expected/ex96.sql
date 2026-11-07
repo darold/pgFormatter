@@ -19,14 +19,17 @@ FROM (
                 customer
             WHERE
                 c_acctbal > 0.00
-                AND substring(c_phone FROM 1 FOR 2) IN ('13', '31', '23', '29', '30', '18', '17'))
+                AND substring(c_phone FROM 1 FOR 2) IN ('13', '31', '23', '29', '30', '18', '17')
+        )
         AND NOT EXISTS (
             SELECT
                 *
             FROM
                 orders
             WHERE
-                o_custkey = c_custkey)) AS custsale
+                o_custkey = c_custkey
+        )
+) AS custsale
 GROUP BY
     cntrycode
 ORDER BY
@@ -47,19 +50,23 @@ FROM (
             FROM
                 u
             WHERE
-                y = 1)
+                y = 1
+        )
         AND c <> ALL (
             SELECT
                 z
             FROM
-                v)
+                v
+        )
         AND d IN (
             SELECT
                 w
             FROM
-                x)
+                x
+        )
     GROUP BY
-        a) s
+        a
+) s
 WHERE
     s.a = 1;
 
@@ -70,11 +77,15 @@ FROM (
         1
     UNION ALL (
         SELECT
-            2)) s1
+            2
+    )
+) s1
     CROSS JOIN LATERAL ((
             SELECT
-                3)
+                3
+    )
     UNION ALL (
         SELECT
-            4)) s2;
+            4
+    )) s2;
 
