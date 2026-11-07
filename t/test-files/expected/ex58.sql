@@ -175,12 +175,13 @@ test1 AS (
 				SELECT
 					/* subquery comment b */
 					max(2) AS test_b
-				FROM dual) test_1b) test_c)
-	--  CTE2 comment
-	--
-	, test2 AS (
-		SELECT 1 AS test2_col_a
-		FROM dual
+				FROM dual) test_1b) test_c
+)
+--  CTE2 comment
+--
+, test2 AS (
+	SELECT 1 AS test2_col_a
+	FROM dual
 )
 SELECT *
 FROM test2;

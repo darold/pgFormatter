@@ -852,13 +852,21 @@ sub tokenize_sql {
 	}
 
 	# Revert position when a comment is before a comma
+	# or before several consecutive comments: the comma is moved before the
+	# first comment, never between two comments.
 	if ( $self->{'comma'} eq 'end' ) {
 		for ( my $i = 0 ; $i < ( $#query - 1 ) ; $i++ ) {
-			if ( $query[ $i + 1 ] eq ',' and $self->_is_comment( $query[$i] )
-		       		and ($i == 0 or !$self->_is_comment( $query[$i-1]) )	)
-			{
-				$query[ $i + 1 ] = $query[$i];
-				$query[$i] = ',';
+			next
+			  if ( !$self->_is_comment( $query[$i] )
+				or ( $i > 0 and $self->_is_comment( $query[ $i - 1 ] ) ) );
+
+			# $i is the first comment of a run, find the token after it
+			my $j = $i + 1;
+			$j++ while ( $j <= $#query and $self->_is_comment( $query[$j] ) );
+			if ( $j <= $#query and $query[$j] eq ',' ) {
+				splice( @query, $j, 1 );
+				splice( @query, $i, 0, ',' );
+				$i = $j;
 			}
 		}
 	}
@@ -2091,10 +2099,10 @@ sub beautify {
 			if (
 					defined $self->_next_token
 				and $self->_next_token !~ /^(AS|WITH|,)$/i
+				# one or more comments between the parenthesis and a comma
 				and (
 					!$self->_is_comment( $self->_next_token )
-					or (    $#{ $self->{'_tokens'} } >= 1
-						and $self->{'_tokens'}[1] ne ',' )
+					or $self->_next_token_skip_comment ne ','
 				)
 				and !$self->{'_parenthesis_with_level'}
 				and $self->{'_is_in_with'}

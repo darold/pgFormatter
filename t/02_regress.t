@@ -1,4 +1,4 @@
-use Test::Simple tests => 98;
+use Test::Simple tests => 99;
 use File::Temp qw/ tempfile /;
 
 my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
@@ -36,6 +36,7 @@ foreach my $f (@files)
 	$opt = "--matching-paren-newline --comma-break" if ($f =~ m#/ex86.sql$#);
 	$opt = "--type-case 0" if ($f =~ m#/ex88.sql$#);
 	$opt = "--matching-paren-newline" if ($f =~ m#/ex96.sql$#);
+	$opt = "--keyword-case 2 --function-case 1 --comma-start --wrap-after 1 --wrap-limit 120 --tabs --spaces 4" if ($f =~ m#/ex97.sql$#);
 	if ($f =~ m#/ex61.sql$#)
 	{
 		my ($fh, $tmpfile) = tempfile('tmp_pgformatXXXX', SUFFIX => '.lst', TMPDIR => 1, O_TEMPORARY => 1, UNLINK => 1 );
