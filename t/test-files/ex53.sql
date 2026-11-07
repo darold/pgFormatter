@@ -175,3 +175,5 @@ CREATE ROLE :user WITH LOGIN noinherit PASSWORD :'passwd';
 select -11,  -10 * -1.3, -1.3 * 10, (1+2) - -9, ARRAY[- 15, -14, -13], fnsum(-12+34);
 
 select -.5, +.5, (-.5), x * -.5, 1 - .5, .5, ARRAY[-.25, .75];
+
+select 4664.E+5, 1.e-3, 1.5e-3, .5e+2, 1e+3;

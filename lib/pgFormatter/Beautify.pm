@@ -700,7 +700,7 @@ sub tokenize_sql {
 		|
 		\/\/			# mysql delimiter ( $$ is handled later with PG code delimiters )
 		|
-		\d*\.?\d+e[-+]\d+			# scientific notation with exponents
+		(?:\d+(?:\.\d*)?|\.\d+)e[-+]\d+	# scientific notation with exponents, also 4664.E+5
 		|
 		(?:COPY\s+[^\s]+\s+\((?:.*?)\\\.)		# COPY and its content
 		|

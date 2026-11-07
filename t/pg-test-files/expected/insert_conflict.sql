@@ -812,7 +812,7 @@ ON CONFLICT
     DO NOTHING;
 
 INSERT INTO capitals
-    VALUES ('Sacramento', 4664.E + 5, 30, 'CA')
+    VALUES ('Sacramento', 4664.E+5, 30, 'CA')
 ON CONFLICT (name)
     DO UPDATE SET
         population = excluded.population;
