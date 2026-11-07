@@ -1504,8 +1504,8 @@ FROM (
                 inhrelid
             FROM
                 r)
-        GROUP BY
-            inhrelid) e
+    GROUP BY
+        inhrelid) e
     JOIN pg_attribute a ON e.inhrelid = a.attrelid
 WHERE
     NOT attislocal

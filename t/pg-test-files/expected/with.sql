@@ -2342,9 +2342,9 @@ upsert_cte AS (
                     simpletup
                 WHERE
                     simpletup.k = withz.k)
-            RETURNING
-                k,
-                v
+        RETURNING
+            k,
+            v
 )
 INSERT INTO withz
     VALUES (2, 'Red')

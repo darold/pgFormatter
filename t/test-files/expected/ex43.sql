@@ -23,22 +23,22 @@ INSERT INTO tt_tmp_wrk1 (
                                 PCM
                             WHERE
                                 PCM.compo = CMF.compo)
-                            OR CUS = ( SELECT DISTINCT
-                                    CPIR
-                                FROM
-                                    PCM
-                                WHERE
-                                    PCM.compo = CMF.compo)
-                                OR CUS = ( SELECT DISTINCT
-                                        CPIR
-                                    FROM
-                                        PCM,
-                                        CT,
-                                        PIDR,
-                                        CPIR,
-                                        CMF
-                                    WHERE
-                                        PCM.compo = CMF.compo)))
+                        OR CUS = ( SELECT DISTINCT
+                                CPIR
+                            FROM
+                                PCM
+                            WHERE
+                                PCM.compo = CMF.compo)
+                        OR CUS = ( SELECT DISTINCT
+                                CPIR
+                            FROM
+                                PCM,
+                                CT,
+                                PIDR,
+                                CPIR,
+                                CMF
+                            WHERE
+                                PCM.compo = CMF.compo)))
             WHEN MAR = 'SEUIL_OBJ' THEN
             (
                 SELECT

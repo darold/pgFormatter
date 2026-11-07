@@ -4248,12 +4248,12 @@ FROM (
                                 q2 = (
                                     SELECT
                                         greatest (t1.q1, t2.q2))
-                                    AND (
-                                        SELECT
-                                            v.id = 0))
-                                    OFFSET 0) ss2) ss
-                        WHERE
-                            t1.q1 = ss.q2) ss0;
+                                AND (
+                                    SELECT
+                                        v.id = 0))
+                                OFFSET 0) ss2) ss
+                    WHERE
+                        t1.q1 = ss.q2) ss0;
 
 SELECT
     *
@@ -4282,12 +4282,12 @@ FROM (
                                 q2 = (
                                     SELECT
                                         greatest (t1.q1, t2.q2))
-                                    AND (
-                                        SELECT
-                                            v.id = 0))
-                                    OFFSET 0) ss2) ss
-                        WHERE
-                            t1.q1 = ss.q2) ss0;
+                                AND (
+                                    SELECT
+                                        v.id = 0))
+                                OFFSET 0) ss2) ss
+                    WHERE
+                        t1.q1 = ss.q2) ss0;
 
 -- test some error cases where LATERAL should have been used but wasn't
 SELECT

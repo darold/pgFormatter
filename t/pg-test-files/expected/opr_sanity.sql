@@ -1027,8 +1027,8 @@ WHERE
                     pg_am
                 WHERE
                     amname = 'btree')
-                AND amopopr = p1.oid
-                AND amopstrategy = 3);
+            AND amopopr = p1.oid
+            AND amopstrategy = 3);
 
 -- And the converse.
 SELECT
@@ -1071,8 +1071,8 @@ WHERE
                     pg_am
                 WHERE
                     amname = 'hash')
-                AND amopopr = p1.oid
-                AND amopstrategy = 1);
+            AND amopopr = p1.oid
+            AND amopstrategy = 1);
 
 -- And the converse.
 SELECT
@@ -1829,9 +1829,9 @@ WHERE
                     pg_am
                 WHERE
                     amname = 'btree')
-                AND amopopr = o.oid
-                AND amoplefttype = o.oprleft
-                AND amoprighttype = o.oprright);
+            AND amopopr = o.oid
+            AND amoplefttype = o.oprleft
+            AND amoprighttype = o.oprright);
 
 -- Check correspondence of btree strategies and names
 SELECT DISTINCT

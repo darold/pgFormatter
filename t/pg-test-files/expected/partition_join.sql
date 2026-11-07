@@ -887,9 +887,9 @@ WHERE
                     prt1_e t1
                 WHERE
                     t1.c = 0))
-        AND t1.b = 0
-    ORDER BY
-        t1.a;
+    AND t1.b = 0
+ORDER BY
+    t1.a;
 
 SELECT
     t1.*
@@ -909,9 +909,9 @@ WHERE
                     prt1_e t1
                 WHERE
                     t1.c = 0))
-        AND t1.b = 0
-    ORDER BY
-        t1.a;
+    AND t1.b = 0
+ORDER BY
+    t1.a;
 
 -- test merge joins
 SET enable_hashjoin TO OFF;
@@ -939,9 +939,9 @@ WHERE
                     prt1_e t1
                 WHERE
                     t1.c = 0))
-        AND t1.b = 0
-    ORDER BY
-        t1.a;
+    AND t1.b = 0
+ORDER BY
+    t1.a;
 
 SELECT
     t1.*
@@ -961,9 +961,9 @@ WHERE
                     prt1_e t1
                 WHERE
                     t1.c = 0))
-        AND t1.b = 0
-    ORDER BY
-        t1.a;
+    AND t1.b = 0
+ORDER BY
+    t1.a;
 
 EXPLAIN (
     COSTS OFF

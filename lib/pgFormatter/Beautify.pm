@@ -1728,6 +1728,7 @@ sub beautify {
 	$self->{'_is_in_operator'}             = 0;
 	$self->{'_is_in_exception'}            = 0;
 	$self->{'_is_in_sub_query'}            = 0;
+	$self->{'_sub_query_paren'}            = [];
 	$self->{'_is_in_fetch'}                = 0;
 	$self->{'_is_in_aggregate'}            = 0;
 	$self->{'_is_in_value'}                = 0;
@@ -1919,8 +1920,20 @@ sub beautify {
 					or !$self->{'_parenthesis_function_level'} )
 			  );
 
+			# Closing parenthesis of a subquery: at parenthesis level 0 or,
+			# for a subquery inside another parenthesis (a subquery in the
+			# WHERE clause of a subquery for example), when the level goes
+			# back below the level stored at its opening parenthesis.
+			my $sub_query_paren = $self->{'_sub_query_paren'}[-1];
 			if (
-				   !$self->{'_parenthesis_level'}
+				(
+					!$self->{'_parenthesis_level'}
+					or (    !$self->{'_is_in_function'}
+						and defined $sub_query_paren
+						and $sub_query_paren > 1
+						and $self->{'_parenthesis_level'} ==
+						$sub_query_paren - 1 )
+				)
 				and $self->{'_is_in_sub_query'}
 				and defined $self->_next_token
 				and ( !$self->{'_is_in_order_by'}
@@ -1928,6 +1941,7 @@ sub beautify {
 			  )
 			{
 				$self->{'_is_in_sub_query'}--;
+				pop( @{ $self->{'_sub_query_paren'} } );
 				$self->_back( $token, $last );
 			}
 			if ( $self->{'_is_in_value'} ) {
@@ -1966,8 +1980,23 @@ sub beautify {
 			if ( defined $self->_next_token
 				and $self->_next_token =~ /^(SELECT|WITH)$/i )
 			{
-				$self->{'_is_in_sub_query'}++
-				  if ( defined $last and uc($last) ne 'AS' );
+				if ( defined $last and uc($last) ne 'AS' ) {
+					$self->{'_is_in_sub_query'}++;
+					# Parenthesis level inside a subquery used as an operand
+					# of a comparison or a predicate, used to find the
+					# parenthesis that closes it. Subqueries in a FROM list
+					# have their own way to restore the indentation.
+					# ANY/ALL/SOME only after a comparison operator, not in
+					# UNION ALL for example.
+					my $predicate = (
+						$last =~ /^(?:=|<>|!=|<|>|<=|>=|IN|EXISTS)$/i
+						  or (  $last =~ /^(?:ANY|ALL|SOME)$/i
+							and $self->{'content'} =~
+							/(?:=|<>|!=|<|>|<=|>=)\s*(?:ANY|ALL|SOME)\s*\z/i )
+					);
+					push( @{ $self->{'_sub_query_paren'} },
+						($predicate) ? $self->{'_parenthesis_level'} : undef );
+				}
 			}
 		}
 
@@ -3493,6 +3522,7 @@ sub beautify {
 			$self->{'_is_in_operator'}             = 0;
 			$self->{'_is_in_explain'}              = 0;
 			$self->{'_is_in_sub_query'}            = 0;
+			$self->{'_sub_query_paren'}            = [];
 			$self->{'_is_in_fetch'}                = 0;
 			$self->{'_is_in_aggregate'}            = 0;
 			$self->{'_is_in_value'}                = 0;
