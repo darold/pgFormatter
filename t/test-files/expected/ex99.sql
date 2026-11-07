@@ -1,0 +1,81 @@
+-- CREATE [MATERIALIZED] VIEW ... AS ( query ): closing parenthesis on its own line like CTAS
+CREATE VIEW v AS (
+    SELECT
+        f (x) AS y
+    FROM
+        z
+);
+
+CREATE OR REPLACE VIEW v2 AS (
+    WITH u AS (
+        SELECT
+            1 AS a
+    ),
+    w AS (
+        SELECT
+            2 AS b
+    )
+    SELECT
+        *
+    FROM
+        u,
+        w
+);
+
+CREATE MATERIALIZED VIEW mv AS (
+    SELECT
+        1 AS a
+    FROM
+        z
+)
+    WITH NO DATA;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv2 AS (
+    SELECT
+        1 AS a
+    FROM
+        z
+);
+
+CREATE VIEW v3 (a, b) WITH (security_barrier)
+AS (
+    SELECT
+        1 AS a,
+        2 AS b
+);
+
+CREATE RECURSIVE VIEW v4 (n)
+AS (
+    VALUES (1)
+    UNION ALL
+    SELECT
+        n + 1
+    FROM
+        v4
+    WHERE
+        n < 5
+);
+
+CREATE VIEW v5 AS
+SELECT
+    1 AS a;
+
+CREATE VIEW v6 AS
+WITH a AS (
+    SELECT
+        1 AS x
+    FROM
+        aa
+),
+b AS (
+    SELECT
+        2 AS y
+    FROM
+        bb
+)
+SELECT
+    *
+FROM
+    a,
+    b;
+

@@ -25,16 +25,17 @@ FROM ( WITH q1 (
         SELECT
             random()
         FROM
-            generate_series(1, 5))
-        SELECT
-            *
-        FROM
-            q1
-        UNION
-        SELECT
-            *
-        FROM
-            q1) ss;
+            generate_series(1, 5)
+    )
+    SELECT
+        *
+    FROM
+        q1
+    UNION
+    SELECT
+        *
+    FROM
+        q1) ss;
 
 -- WITH RECURSIVE
 -- sum of 1..100
@@ -376,11 +377,11 @@ FROM ( WITH RECURSIVE t (
             t
         WHERE
             n < 500
-        )
-        SELECT
-            *
-        FROM
-            t) AS t
+    )
+    SELECT
+        *
+    FROM
+        t) AS t
 WHERE
     n < (
         SELECT
@@ -397,15 +398,15 @@ WHERE
                     t
                 WHERE
                     n < 100
-                )
-                SELECT
-                    *
-                FROM
-                    t
-                WHERE
-                    n < 50000) AS t
+            )
+            SELECT
+                *
+            FROM
+                t
             WHERE
-                n < 100);
+                n < 50000) AS t
+        WHERE
+            n < 100);
 
 -- use same CTE twice at different subquery levels
 WITH q1 (
@@ -1579,15 +1580,16 @@ SELECT
     ( WITH cte (
             foo
         ) AS (
-            VALUES (f1))
-            SELECT
-                (
-                    SELECT
-                        foo
-                    FROM
-                        cte))
-        FROM
-            int4_tbl;
+            VALUES (f1)
+        )
+        SELECT
+            (
+                SELECT
+                    foo
+                FROM
+                    cte))
+    FROM
+        int4_tbl;
 
 SELECT
     ( WITH cte (
@@ -2678,11 +2680,11 @@ FROM ( WITH t AS (
             a = a + 1
         RETURNING
             *
-        )
-        SELECT
-            *
-        FROM
-            t) ss;
+    )
+    SELECT
+        *
+    FROM
+        t) ss;
 
 -- most variants of rules aren't allowed
 CREATE RULE y_rule AS ON INSERT TO y WHERE

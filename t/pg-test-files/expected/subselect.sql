@@ -1913,11 +1913,11 @@ FROM ( WITH y AS (
             *
         FROM
             x
-        )
-        SELECT
-            *
-        FROM
-            y) ss;
+    )
+    SELECT
+        *
+    FROM
+        y) ss;
 
 EXPLAIN (
     VERBOSE,
@@ -1935,11 +1935,11 @@ FROM ( WITH y AS (
             *
         FROM
             x
-        )
-        SELECT
-            *
-        FROM
-            y) ss;
+    )
+    SELECT
+        *
+    FROM
+        y) ss;
 
 -- Ensure that we inline the currect CTE when there are
 -- multiple CTEs with the same name
@@ -1949,17 +1949,17 @@ EXPLAIN (
 ) WITH x AS (
     SELECT
         1 AS y
-    )
+)
 SELECT
     *
 FROM ( WITH x AS (
         SELECT
             2 AS y
-        )
-        SELECT
-            *
-        FROM
-            x) ss;
+    )
+    SELECT
+        *
+    FROM
+        x) ss;
 
 -- Row marks are not pushed into CTEs
 EXPLAIN (
@@ -1970,7 +1970,7 @@ EXPLAIN (
         *
     FROM
         subselect_tbl
-    )
+)
 SELECT
     *
 FROM

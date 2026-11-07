@@ -1708,6 +1708,9 @@ sub beautify {
 	$self->{'_is_in_procedure'}            = 0;
 	$self->{'_is_in_index'}                = 0;
 	$self->{'_is_in_with'}                 = 0;
+	$self->{'_with_paren_base'}            = 0;
+	delete $self->{'_ctas_paren'};
+	$self->{'_is_in_create_view'} = 0;
 	$self->{'_with_base_level'}            = 0;
 	$self->{'_is_in_explain'}              = 0;
 	$self->{'_is_in_overlaps'}             = 0;
@@ -1897,6 +1900,15 @@ sub beautify {
 			if ( !$self->{'_is_in_function'} ) {
 				$self->{'_parenthesis_level'}--
 				  if ( $self->{'_parenthesis_level'} > 0 );
+
+				# Closing parenthesis of the query of CREATE ... AS ( query )
+				my $ctas = $self->{'_ctas_paren'};
+				if ( $ctas
+					and $self->{'_parenthesis_level'} == $ctas->{'paren'} - 1 )
+				{
+					delete $self->{'_ctas_paren'};
+					$self->_json_layout_break( $ctas->{'level'}, $token, $last );
+				}
 			}
 			else {
 				if ( $self->{'_parenthesis_function_level'} > 0 ) {
@@ -2030,6 +2042,11 @@ sub beautify {
 				and $self->_next_token() !~ /(CHECK|OPTIONS)/
 			)
 			{
+				# Parenthesis level of a new WITH clause, it is not 0 when the
+				# WITH clause is in a parenthesis, like a subquery or the query
+				# of CREATE TABLE ... AS ( WITH ... ).
+				$self->{'_with_paren_base'} = $self->{'_parenthesis_level'}
+				  if ( !$self->{'_is_in_with'} );
 				$self->{'_is_in_with'} = 1
 				  if (  !$self->{'_is_in_using'}
 					and !$self->{'_is_in_materialized'}
@@ -2048,7 +2065,7 @@ sub beautify {
 				  if ( uc( $self->_next_token ) eq 'ORDINALITY' );
 			}
 			# Sibling CTEs and the final query inherit the enclosing block's level.
-			if ( $self->{'_is_in_with'} == 1 and !$self->{'_parenthesis_level'} ) {
+			if ( $self->{'_is_in_with'} == 1 and $self->_at_with_level ) {
 				$self->{_cte_base_level} = $self->{'_level'};
 				$self->{_cte_base_stack} = [ @{ $self->{'_level_stack'} } ];
 			}
@@ -2120,12 +2137,13 @@ sub beautify {
 				# 0 here would short-circuit that block and glue the closing
 				# parenthesis to the previous line ( "...))" or "...name)" ).
 				and not ( $self->{'_is_in_with'} > 1
-					and !$self->{'_parenthesis_level'}
+					and $self->_at_with_level
 					and ($self->{'_is_subquery'} or $self->{'_with_base_level'} )
 					and $self->_next_token =~ /^(SELECT|WITH|INSERT|UPDATE|DELETE|MERGE)$/i )
 			  )
 			{
 				$self->{'_is_in_with'} = 0;
+				$self->{'_with_paren_base'} = 0;
 				$self->{'_is_in_from'} = 0;
 			}
 
@@ -2152,8 +2170,12 @@ sub beautify {
 					  if ( $self->{'_is_in_procedure'} );
 				}
 			}
-			if (   ( $self->{'_is_in_with'} > 1 || $self->{'_is_in_operator'} )
-				&& !$self->{'_parenthesis_level'}
+			if (
+				(
+					( $self->{'_is_in_with'} > 1 && $self->_at_with_level )
+					|| ( $self->{'_is_in_operator'}
+						&& !$self->{'_parenthesis_level'} )
+				)
 				&& !$self->{'_parenthesis_with_level'}
 				&& !$self->{'_is_in_alter'}
 				&& !$self->{'_is_in_policy'} )
@@ -2189,6 +2211,7 @@ sub beautify {
 					}
 					else {
 						$self->{'_is_in_with'} = 0;
+						$self->{'_with_paren_base'} = 0;
 						$self->{'_with_base_level'} = 0;
 
 						# Leaving the WITH clause: the CTE body FROM
@@ -2311,6 +2334,16 @@ sub beautify {
 		{
 			$self->{'_is_in_index'} = 1;
 		}
+
+		# CREATE VIEW ... AS ( query ) only: the view query is not between
+		# parentheses when the token following AS is not a parenthesis, like
+		# in CREATE VIEW v AS WITH a AS ( ... ).
+		$self->{'_is_in_create_view'} = 0
+		  if (  $self->{'_is_in_create_view'}
+			and defined $last
+			and uc($last) eq 'AS'
+			and $token ne '(' );
+
 		if ( $token =~ /^CREATE$/i
 			and defined $self->_next_token
 			&& $self->_next_token !~
@@ -2384,8 +2417,9 @@ sub beautify {
 			$self->{'_is_in_create_table'} = 1;
 		}
 		elsif ( $token =~ /^VIEW$/i and $self->{'_is_in_create'} ) {
-			$self->{'_is_in_index'}  = 1;
-			$self->{'_is_in_create'} = 0;
+			$self->{'_is_in_index'}       = 1;
+			$self->{'_is_in_create'}      = 0;
+			$self->{'_is_in_create_view'} = 1;
 		}
 		elsif ( $token =~ /^STATISTICS$/i and $self->{'_is_in_create'} ) {
 			$self->{'_is_in_statistics'} = 1;
@@ -3021,6 +3055,26 @@ sub beautify {
 				$self->{'_is_in_aggregate'} = 0;
 				$self->{'_has_order_by'}    = 0;
 			}
+			# CREATE ... AS ( query ): the parenthesis encloses a query, not
+			# a list of column definitions, like CREATE ... AS WITH and
+			# CREATE ... AS SELECT the CREATE statement context ends here.
+			# CREATE [MATERIALIZED] VIEW ... AS ( query ) is formatted the
+			# same way.
+			if (    ( $self->{'_is_in_create'} or $self->{'_is_in_create_view'} )
+				and uc($last) eq 'AS'
+				and defined $self->_next_token
+				and $self->_next_token =~ /^(SELECT|WITH|VALUES|TABLE)$/i )
+			{
+				$self->{'_is_in_create'}      = 0;
+				$self->{'_is_in_create_view'} = 0;
+
+				# Its closing parenthesis goes on its own line at the level
+				# of the CREATE statement.
+				$self->{'_ctas_paren'} = {
+					paren => $self->{'_parenthesis_level'},
+					level => $self->_current_line_level()
+				};
+			}
 			$self->{'_is_in_create'}++     if ( $self->{'_is_in_create'} );
 			$self->{'_is_in_constraint'}++ if ( $self->{'_is_in_constraint'} );
 			# case of insert with multiple values, don't stay single line
@@ -3396,8 +3450,7 @@ sub beautify {
 			  if ( $self->{'_is_in_using'} and $self->{'_parenthesis_level'} );
 			$add_newline = 0 if ( $self->{'no_break'} );
 
-			if ( $self->{'_is_in_with'} >= 1 && !$self->{'_parenthesis_level'} )
-			{
+			if ( $self->{'_is_in_with'} >= 1 && $self->_at_with_level ) {
 				$add_newline = 1 if ( !$self->{'wrap_after'} );
 			}
 			if (   $self->{'format_type'}
@@ -3506,6 +3559,9 @@ sub beautify {
 			$self->{'_is_in_if'}                   = 0;
 			$self->{'_is_in_set'}                  = 0;
 			$self->{'_is_in_with'}                 = 0;
+			$self->{'_with_paren_base'}            = 0;
+			delete $self->{'_ctas_paren'};
+			$self->{'_is_in_create_view'} = 0;
 			$self->{'_is_in_overlaps'}             = 0;
 			$self->{'_has_order_by'}               = 0;
 			$self->{'_has_over_in_join'}           = 0;
@@ -5480,6 +5536,20 @@ sub _next_token {
 	return @{ $self->{'_tokens'} } ? $self->{'_tokens'}->[0] : undef;
 }
 
+=head2 _at_with_level
+
+Return true when the current parenthesis level is the one where the current
+WITH clause starts: 0 for a WITH clause at the top of a statement, more for a
+WITH clause in a parenthesis like a subquery or CREATE TABLE ... AS ( WITH ...).
+
+=cut
+
+sub _at_with_level {
+	my ($self) = @_;
+
+	return ( $self->{'_parenthesis_level'} == ( $self->{'_with_paren_base'} // 0 ) );
+}
+
 =head2 _next_token_skip_comment
 
 Have a look at the token that's coming up next omitting comments.
@@ -5868,9 +5938,7 @@ sub _json_layout {
 		my $kind = $self->_json_layout_kind($last);
 		if ($kind) {
 			# Indentation level of the line where the call starts
-			my ($ws) = $self->{'content'} =~ /([ \t]*)[^\n]*\z/;
-			my $unit = length( $self->{'space'} x $self->{'spaces'} ) || 1;
-			my $open = int( length($ws) / $unit );
+			my $open = $self->_current_line_level();
 			push(
 				@{ $self->{'_jl_stack'} },
 				{
@@ -5926,6 +5994,20 @@ sub _json_layout {
 			multiline => ( $token =~ /[\r\n]/ ) ? 1 : 0
 		};
 	}
+}
+
+=head2 _current_line_level
+
+Return the indentation level of the last line of the content.
+
+=cut
+
+sub _current_line_level {
+	my $self = shift;
+
+	my ($ws) = $self->{'content'} =~ /([ \t]*)[^\n]*\z/;
+	my $unit = length( $self->{'space'} x $self->{'spaces'} ) || 1;
+	return int( length($ws) / $unit );
 }
 
 =head2 _json_layout_break
