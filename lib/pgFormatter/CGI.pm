@@ -200,6 +200,7 @@ sub set_config {
 	$self->{'redundant_parenthesis'} //= 0;
 	$self->{'vertical_align'}        //= 0;
 	$self->{'isolate_semicolon'}     //= 0;
+	$self->{'split_in_param'}        //= 0;
 
 	# Backward compatibility
 	$self->{'extra_keyword'} = 'redshift'
@@ -266,7 +267,7 @@ sub get_params {
 	my $cgi = $self->{'cgi'};
 
 	for my $param_name (
-		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align isolate_semicolon) 
+		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align isolate_semicolon split_in_param) 
 	  )
 	{
 		$self->{$param_name} = $cgi->param($param_name)
@@ -371,6 +372,7 @@ sub sanitize_params {
 	$self->{'vertical_align'} = 0
 	  if ( $self->{'vertical_align'} !~ /^(0|1)$/ );
 	$self->{'isolate_semicolon'}     = 0 if ( $self->{'isolate_semicolon'}     !~ /^(0|1)$/ );
+	$self->{'split_in_param'}        = 0 if ( $self->{'split_in_param'}        !~ /^(0|1)$/ );
 
 	if ( $self->{'show_example'} ) {
 		$self->{'content'} = q{
@@ -422,6 +424,7 @@ sub beautify_query {
 	$args{'redundant_parenthesis'} = 1 if $self->{'redundant_parenthesis'};
 	$args{'vertical_align'}        = 1 if $self->{'vertical_align'};
 	$args{'isolate_semicolon'}     = 1 if $self->{'isolate_semicolon'};
+	$args{'split_in_param'}        = 1 if $self->{'split_in_param'};
 
 	$self->{'content'} = &remove_extra_parenthesis( $self->{'content'} )
 	  if ( !$self->{'redundant_parenthesis'} && $self->{'content'} );
@@ -522,6 +525,7 @@ sub print_body {
 	my $chk_redshift    = $self->{'redshift'}       ? 'checked="checked" ' : '';
 	my $chk_keepnewline = $self->{'keep_newline'}   ? 'checked="checked" ' : '';
 	my $chk_isolate_semicolon = $self->{'isolate_semicolon'} ? 'checked="checked" ' : '';
+	my $chk_split_in_param    = $self->{'split_in_param'}    ? 'checked="checked" ' : '';
 	my $chk_spacefunctioncall =
 	  $self->{'no_space_function'} ? 'checked="checked" ' : '';
 	my $chk_redundantparenthesis =
@@ -585,6 +589,9 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_isolate_semicolon" name="isolate_semicolon" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_isolate_semicolon/>
       <label for="id_isolate_semicolon">Isolate semincolon</label>
+      <br />
+      <input type="checkbox" id="id_split_in_param" name="split_in_param" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_split_in_param/>
+      <label for="id_split_in_param">Split IN list values</label>
       </div>
     </fieldset>
       <br />
