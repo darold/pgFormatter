@@ -217,6 +217,10 @@ sub new {
 	# Hash to store and preserve aliases between double quote
 	%{ $self->{'alias_constant'} } = ();
 
+	# Array to store and preserve double quoted identifiers containing
+	# a single quote or a doubled double quote
+	@{ $self->{'qident_constant'} } = ();
+
 	# Check comma value, when invalid set to default: end
 	if ( lc( $self->{'comma'} ) ne 'start' ) {
 		$self->{'comma'} = 'end';
@@ -255,6 +259,11 @@ sub query {
 	$self->{'query'} = $new_value if defined $new_value;
 
 	$self->{idx_code} = 0;
+
+	# Hide double quoted identifiers containing a single quote or a doubled
+	# double quote, the regexes used below to extract constants and aliases
+	# would take their quotes as the start or the end of a string.
+	$self->_protect_quoted_identifiers();
 
 	# Replace any COMMENT constant between single quote
 	while ( $self->{'query'} =~
@@ -530,6 +539,10 @@ s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
 	# Replace any PGFESCQ2 by ""
 	$self->{'content'} =~ s/PGFESCQ2/""/g;
 
+	# Restore double quoted identifiers hidden by _protect_quoted_identifiers()
+	$self->{'content'} =~ s/PGFQIDENT(\d+)/$self->{'qident_constant'}[$1]/gi
+	  if ( $#{ $self->{'qident_constant'} } >= 0 );
+
 	if ( $self->{'vertical_align'} && $self->{'format'} eq 'text' ) {
 		$self->{'content'} =
 		  $self->_align_create_table_columns( $self->{'content'} );
@@ -678,6 +691,48 @@ Splits input SQL into tokens
 Code lifted from SQL::Beautify
 
 =cut
+
+=head2 _protect_quoted_identifiers
+
+Replace double quoted identifiers that contain a single quote or a doubled
+double quote, like "'" or """", by a placeholder. The query is walked from
+left to right so that quotes inside comments, string literals and other
+identifiers are never taken as identifier delimiters. The placeholders are
+restored at the end of beautify().
+
+=cut
+
+sub _protect_quoted_identifiers {
+	my $self = shift;
+
+	return if ( index( $self->{'query'}, '"' ) < 0 );
+
+	my $out = '';
+	while (
+		$self->{'query'} =~ m{\G(
+			--[^\n]*                     # single line comment
+			| /\*.*?\*/                  # C style comment
+			| (?<!\w)[Ee]'(?:[^'\\]|\\.|'')*'  # escape string, E'...'
+			| '(?:[^']|'')*'             # standard conforming string literal
+			| "(?:[^"]|"")*"             # double quoted identifier
+			| \w+                        # words, consumed whole
+			| [^-/'"\w]+                 # anything else
+			| .                          # single char
+		)}gcsx
+	  )
+	{
+		my $tok = $1;
+		if ( $tok =~ /^"/
+			and length($tok) > 2
+			and substr( $tok, 1, -1 ) =~ /'|""/ )
+		{
+			push( @{ $self->{'qident_constant'} }, $tok );
+			$tok = 'PGFQIDENT' . $#{ $self->{'qident_constant'} };
+		}
+		$out .= $tok;
+	}
+	$self->{'query'} = $out;
+}
 
 sub tokenize_sql {
 	my $self  = shift;
@@ -5206,7 +5261,7 @@ sub _add_token {
 			next
 			  unless ( $p =~ /\A[^\W\d][\w\$]*\z/
 				and $p !~
- /\A(?:AAKEYWCONST\d+AA|PGF(?:ALIAS\d+|DLM|ESCQ[12]|BSLHQ))\z/ );
+ /\A(?:AAKEYWCONST\d+AA|PGF(?:ALIAS\d+|QIDENT\d+|DLM|ESCQ[12]|BSLHQ))\z/ );
  
 			# a leading NEW/OLD record reference in trigger/function/rule code
 			# stays under keyword-case control
