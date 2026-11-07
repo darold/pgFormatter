@@ -90,6 +90,8 @@ DESCRIPTION
                                 parenthesis.
         --matching-paren-newline: if content starts on a new line after an opening
                                 parenthesis, close on a new line at the same indent.
+        --split-in-param    :   write each value of the list of an IN clause on its
+                                own line, the closing parenthesis on a new line.
         --redundant-parenthesis: do not remove redundant parenthesis in DML.
         --vertical-align      : vertically align CREATE TABLE column definitions and
                                 trailing comments. Disabled by default.
@@ -289,6 +291,26 @@ SPECIAL FORMATTING
         SELECT
             1,
             'example';
+
+  Option --split-in-param
+    Write each value of the list of an IN clause on its own line, one level
+    more than the line of the IN keyword, and the closing parenthesis on its
+    own line at the level of the line of the IN keyword. An IN clause
+    followed by a subquery and the partition bound of FOR VALUES IN ( ... )
+    are not changed. Disabled by default. For example:
+
+        SELECT
+            username
+        FROM
+            employees
+        WHERE
+            username IN (
+                'tcbgpF46JJ',
+                '5m6PFQ60Gd',
+                'z7vz3WJH6E'
+            )
+        ORDER BY
+            username;
 
   Option --vertical-align
     Use this option to vertically align direct, single-line column

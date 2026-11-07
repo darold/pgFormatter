@@ -175,6 +175,8 @@ when the statement spans several lines
 
 =item * matching_paren_newline - align multiline closing parentheses with their opening line (text output)
 
+=item * split_in_param - write each value of the list of an IN clause on its own line
+
 =item * vertical_align - vertically align CREATE TABLE column definitions
 
 =back
@@ -191,7 +193,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline split_in_param)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -552,7 +554,12 @@ s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
 		  $self->_align_create_table_columns( $self->{'content'} );
 	}
 
-	return $self->{'content'};
+	# Remove the markers set by _json_layout() to keep a line break between
+	# two opening parentheses, they stay in the content so that the merge of
+	# these parentheses above never applies, even if called several times.
+	( my $content = $self->{'content'} ) =~ s/\x{1}//g;
+
+	return $content;
 }
 
 =head2 highlight_code
@@ -5884,6 +5891,15 @@ line where the call starts. A function call having such a call in its
 arguments, like json_agg(json_build_object(...)), is laid out the same way
 with one argument per line.
 
+With the split_in_param option, the list of values of an IN clause is laid
+out the same way with one value per line, like:
+
+    WHERE
+        username IN (
+            'a',
+            'b'
+        )
+
 It is called at the top of the main loop of beautify() for each token, before
 the token is processed. A line break is applied before the next token, so the
 normal processing of the token is not changed.
@@ -5922,6 +5938,12 @@ sub _json_layout {
 	# Line break requested after the previous token
 	if ( defined $self->{'_jl_pending_level'} ) {
 		my $level = delete $self->{'_jl_pending_level'};
+
+		# A line break between two opening parentheses, like in
+		# IN ( (1, 2), ... ), must not be removed by content(): mark it.
+		$self->{'content'} .= "\x{1}"
+		  if ( $token eq '(' and $self->{'content'} =~ /\(\z/ );
+
 		$self->_set_level( $level, $token, $last );
 		$self->_json_layout_break( $level, $token, $last );
 	}
@@ -5965,7 +5987,7 @@ sub _json_layout {
 			$e->{'commas'}++;
 
 			# break after each value of a pair or after each argument
-			if ( $e->{'kind'} eq 'wrap' or $e->{'commas'} % 2 == 0 ) {
+			if ( $e->{'kind'} ne 'object' or $e->{'commas'} % 2 == 0 ) {
 				if ( $self->{'comma'} eq 'start' ) {
 					$self->_set_level( $e->{'open'} + 1, $token, $last );
 					$self->_json_layout_break( $e->{'open'} + 1, $token,
@@ -6055,9 +6077,11 @@ sub _json_layout_indent {
 Return 'object' when the parenthesis that is being processed opens the
 arguments of a json_build_object() or jsonb_build_object() call, 'wrap' when
 it opens the arguments of another function call having such a call in its
-arguments, and an empty string otherwise. Calls without argument are never
-laid out. A json_build_object() call is only searched through function call
-parentheses, never inside a subquery or an expression parenthesis.
+arguments, 'in' when it opens the list of values of an IN clause and the
+split_in_param option is enabled, and an empty string otherwise. Calls
+without argument are never laid out. A json_build_object() call is only
+searched through function call parentheses, never inside a subquery or an
+expression parenthesis. An IN clause followed by a subquery is not laid out.
 
 =cut
 
@@ -6068,6 +6092,16 @@ sub _json_layout_kind {
 	return '' if ( !defined $last or $last !~ /^[\w\.\$]+$/ );
 	return '' if ( !@{$tokens} or $tokens->[0] eq ')' );
 	return 'object' if ( $last =~ /(?:^|\.)jsonb?_build_object$/i );
+
+	# List of values of an IN clause, not a subquery and not the partition
+	# bound of FOR VALUES IN ( ... ).
+	if ( uc($last) eq 'IN' ) {
+		return (    $self->{'split_in_param'}
+				and $tokens->[0] !~ /^(SELECT|WITH|VALUES|TABLE)$/i
+				and $self->{'content'} !~ /\bVALUES\s+IN\s*\z/i )
+		  ? 'in'
+		  : '';
+	}
 
 	# Other function calls, only those detected by the main loop
 	return '' if ( !$self->{'_is_in_function'} or uc($last) eq 'IN' );
@@ -6369,6 +6403,8 @@ Currently defined defaults:
 
 =item matching_paren_newline => 0
 
+=item split_in_param => 0
+
 =item vertical_align => 0
 
 =back
@@ -6420,6 +6456,7 @@ sub set_defaults {
 	$self->{'_stmt_started'}         = 0;
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'matching_paren_newline'} = 0;
+	$self->{'split_in_param'}         = 0;
 	$self->{'vertical_align'}        = 0;
 
 	return;

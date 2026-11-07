@@ -12,6 +12,9 @@ comma=end
 # In insert statement, add a newline after each comma.
 comma-break=0
 
+# Write each value of the list of an IN clause on its own line.
+split-in-param=0
+
 # Output format: text or html. Default: text.
 format=text
 

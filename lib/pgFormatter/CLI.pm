@@ -112,6 +112,7 @@ sub beautify {
 	$args{'separator'}             = $self->{'cfg'}->{'separator'};
 	$args{'comma'}                 = $self->{'cfg'}->{'comma'};
 	$args{'matching_paren_newline'} = $self->{'cfg'}->{'matching-paren-newline'};
+	$args{'split_in_param'}        = $self->{'cfg'}->{'split-in-param'};
 	$args{'comma_break'}           = $self->{'cfg'}->{'comma-break'};
 	$args{'format'}                = $self->{'cfg'}->{'format'};
 	$args{'maxlength'}             = $self->{'cfg'}->{'maxlength'};
@@ -337,6 +338,8 @@ Options:
                             and the body of a CASE ... THEN on the same line as THEN.
     --matching-paren-newline: if content starts on a new line after an opening
                             parenthesis, close on a new line at the same indent.
+    --split-in-param    : write each value of the list of an IN clause on its
+                            own line, the closing parenthesis on a new line.
     --isolate-semicolon : place the statement terminating semicolon on its own line
                             instead of appending it to the last token, unless the
                             whole statement fits on a single line.
@@ -395,6 +398,7 @@ sub get_command_line_args {
 	my @options = (
 		'anonymize|a!',    'comma-start|b!',
 		'matching-paren-newline!', 'comma-break|B!',  'config|c=s',
+		'split-in-param!',
 		'no-rcfile|X!',    'wrap-comment|C!',
 		'debug|d!',        'comma-end|e!',
 		'format|F=s',      'nogrouping|g!',
@@ -473,6 +477,7 @@ sub get_command_line_args {
 	$cfg{'comma'}         //= 'end';
 	$cfg{'format'}        //= 'text';
 	$cfg{'matching-paren-newline'} //= 0;
+	$cfg{'split-in-param'}        //= 0;
 	$cfg{'comma-break'}   //= 0;
 	$cfg{'maxlength'}     //= 0;
 	$cfg{'format-type'}   //= 0;
