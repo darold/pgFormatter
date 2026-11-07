@@ -1500,6 +1500,21 @@ sub _pop_level {
 
 }
 
+sub _drop_using_level {
+	my ( $self, $token, $last_token ) = @_;
+
+	my $idx = delete $self->{'_using_stack_idx'};
+	return if ( not defined $idx or $idx > $#{ $self->{'_level_stack'} } );
+
+	if ($DEBUG) {
+		my ( $package, $filename, $line ) = caller;
+		print STDERR "DEBUG_DROP_USING: line: $line => idx=$idx, last=",
+		  ( $last_token || '' ), ", token=$token\n";
+	}
+
+	splice( @{ $self->{'_level_stack'} }, $idx, 1 );
+}
+
 sub _reset_level {
 	my ( $self, $token, $last_token ) = @_;
 
@@ -1510,6 +1525,7 @@ sub _reset_level {
 	}
 
 	@{ $self->{'_level_stack'} } = ();
+	delete $self->{'_using_stack_idx'};
 	$self->{'_level'} = 0;
 	$self->{'break'}  = ' ' unless ( $self->{'spaces'} != 0 );
 }
@@ -3326,6 +3342,9 @@ sub beautify {
 
 # statement separator or executing psql meta command (prefix 'g' includes all its variants)
 
+			# End of statement, remove the level stored by a USING clause
+			$self->_drop_using_level( $token, $last );
+
 			$self->_new_line( $token, $last )
 			  if ( $self->{'isolate_semicolon'}
 				and $token eq ';'
@@ -4005,6 +4024,9 @@ sub beautify {
 				{
 					$self->_new_line( $token, $last )
 					  if ( $token =~ /^LOOP$/i );
+					# FOR ... IN EXECUTE ... USING ... LOOP
+					$self->_drop_using_level( $token, $last )
+					  if ( $token =~ /^LOOP$/i );
 					$self->_over( $token, $last );
 					$self->_push_level( $self->{'_level'}, $token, $last );
 					if ( $token =~ /^IF$/i ) {
@@ -4351,8 +4373,13 @@ sub beautify {
 					$self->_over( $token, $last ) if ($self->{'_level'} == 0);
 
 				}
-				$self->_push_level( $self->{'_level'}, $token, $last )
-				  if ( $token =~ /^USING$/i );
+				if ( $token =~ /^USING$/i ) {
+					$self->_push_level( $self->{'_level'}, $token, $last );
+					# Remember the stack entry so that it can be removed at
+					# the end of the statement (EXECUTE ... USING, RAISE ...
+					# USING), otherwise it leaks and breaks END LOOP/END IF.
+					$self->{'_using_stack_idx'} = $#{ $self->{'_level_stack'} };
+				}
 				$self->_set_level( $self->_pop_level( $token, $last ),
 					$token, $last )
 				  if ( uc($token) eq 'WITH' and uc($self->_next_token) eq 'CHECK'
@@ -4378,16 +4405,20 @@ sub beautify {
 				# USING from join clause disable line break like in function
 				$self->{'_is_in_function'}++;
 
-				# Restore FROM position
+				# Restore FROM position, but not inside a PL/pgSQL block:
+				# FROM doesn't push any level so this would pop the level
+				# stored by the enclosing LOOP/IF/BEGIN (DELETE ... USING).
 				$self->_set_level( $self->_pop_level( $token, $last ),
 					$token, $last )
-				  if ( !$self->{'_is_in_join'} );
+				  if ( !$self->{'_is_in_join'} and $self->{'_is_in_block'} == -1 );
 			}
 			$self->_add_token($token);
 
 			if (defined $self->_next_token and uc($self->_next_token) eq 'ERRCODE') {
 				$self->_set_level( $self->_pop_level( $token, $last ),
 					$token, $last );
+				# the level stored by USING has already been removed
+				delete $self->{'_using_stack_idx'};
 			}
 
 			$self->{'_is_in_using'} = 1;
