@@ -1521,10 +1521,23 @@ SELECT
 
 -- ok
 SELECT
-    json_build_object('a', 1, 'b', 1.2, 'c', TRUE, 'd', NULL, 'e', json '{"x": 3, "y": [1,2,3]}');
+    json_build_object(
+        'a', 1,
+        'b', 1.2,
+        'c', TRUE,
+        'd', NULL,
+        'e', json '{"x": 3, "y": [1,2,3]}'
+    );
 
 SELECT
-    json_build_object('a', json_build_object('b', FALSE, 'c', 99), 'd', json_build_object('e', ARRAY[9, 8, 7]::int[], 'f', (
+    json_build_object(
+        'a', json_build_object(
+            'b', FALSE,
+            'c', 99
+        ),
+        'd', json_build_object(
+            'e', ARRAY[9, 8, 7]::int[],
+            'f', (
                 SELECT
                     row_to_json(r)
                 FROM (
@@ -1532,58 +1545,87 @@ SELECT
                         relkind, oid::regclass AS name
                     FROM pg_class
                     WHERE
-                        relname = 'pg_class') r)));
+                        relname = 'pg_class') r)
+        )
+    );
 
 SELECT
-    json_build_object('{a,b,c}'::text[]);
+    json_build_object(
+        '{a,b,c}'::text[]
+    );
 
 -- error
 SELECT
-    json_build_object('{a,b,c}'::text[], '{d,e,f}'::text[]);
+    json_build_object(
+        '{a,b,c}'::text[], '{d,e,f}'::text[]
+    );
 
 -- error, key cannot be array
 SELECT
-    json_build_object('a', 'b', 'c');
+    json_build_object(
+        'a', 'b',
+        'c'
+    );
 
 -- error
 SELECT
-    json_build_object(NULL, 'a');
+    json_build_object(
+        NULL, 'a'
+    );
 
 -- error, key cannot be NULL
 SELECT
-    json_build_object('a', NULL);
+    json_build_object(
+        'a', NULL
+    );
 
 -- ok
 SELECT
-    json_build_object(VARIADIC NULL::text[]);
+    json_build_object(
+        VARIADIC NULL::text[]
+    );
 
 -- ok
 SELECT
-    json_build_object(VARIADIC '{}'::text[]);
+    json_build_object(
+        VARIADIC '{}'::text[]
+    );
 
 -- ok
 SELECT
-    json_build_object(VARIADIC '{a,b,c}'::text[]);
+    json_build_object(
+        VARIADIC '{a,b,c}'::text[]
+    );
 
 -- error
 SELECT
-    json_build_object(VARIADIC ARRAY['a', NULL]::text[]);
+    json_build_object(
+        VARIADIC ARRAY['a', NULL]::text[]
+    );
 
 -- ok
 SELECT
-    json_build_object(VARIADIC ARRAY[NULL, 'a']::text[]);
+    json_build_object(
+        VARIADIC ARRAY[NULL, 'a']::text[]
+    );
 
 -- error, key cannot be NULL
 SELECT
-    json_build_object(VARIADIC '{1,2,3,4}'::text[]);
+    json_build_object(
+        VARIADIC '{1,2,3,4}'::text[]
+    );
 
 -- ok
 SELECT
-    json_build_object(VARIADIC '{1,2,3,4}'::int[]);
+    json_build_object(
+        VARIADIC '{1,2,3,4}'::int[]
+    );
 
 -- ok
 SELECT
-    json_build_object(VARIADIC '{{1,4},{2,5},{3,6}}'::int[][]);
+    json_build_object(
+        VARIADIC '{{1,4},{2,5},{3,6}}'::int[][]
+    );
 
 -- ok
 -- empty objects/arrays
@@ -1595,24 +1637,34 @@ SELECT
 
 -- make sure keys are quoted
 SELECT
-    json_build_object(1, 2);
+    json_build_object(
+        1, 2
+    );
 
 -- keys must be scalar and not null
 SELECT
-    json_build_object(NULL, 2);
+    json_build_object(
+        NULL, 2
+    );
 
 SELECT
-    json_build_object(r, 2)
+    json_build_object(
+        r, 2
+    )
 FROM (
     SELECT
         1 AS a,
         2 AS b) r;
 
 SELECT
-    json_build_object(json '{"a":1,"b":2}', 3);
+    json_build_object(
+        json '{"a":1,"b":2}', 3
+    );
 
 SELECT
-    json_build_object('{1,2,3}'::int[], 3);
+    json_build_object(
+        '{1,2,3}'::int[], 3
+    );
 
 CREATE TEMP TABLE foo (
     serial_num int,
@@ -1630,7 +1682,15 @@ INSERT INTO foo
     VALUES (847003, 'sub-alpha', 'GESS90');
 
 SELECT
-    json_build_object('turbines', json_object_agg(serial_num, json_build_object('name', name, 'type', type)))
+    json_build_object(
+        'turbines', json_object_agg(
+            serial_num,
+            json_build_object(
+                'name', name,
+                'type', type
+            )
+        )
+    )
 FROM
     foo;
 

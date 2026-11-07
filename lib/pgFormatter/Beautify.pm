@@ -499,6 +499,10 @@ sub content {
 	my $new_value = shift;
 
 	$self->{'content'} = $new_value if defined $new_value;
+
+	# Indentation of the last line started by the json_build_object layout
+	$self->_json_layout_indent() if ( !defined $new_value );
+
 	$self->{'content'} =~ s/\(\s+\(/\(\(/gs;
 
 	# Replace placeholders with their original dynamic code
@@ -1747,11 +1751,20 @@ sub beautify {
 	my $last = '';
 	$self->tokenize_sql();
 
+	# State of the json_build_object() layout, see _json_layout()
+	$self->{'_jl_depth'} = 0;
+	$self->{'_jl_stack'} = [];
+	delete $self->{'_jl_pending_level'};
+	delete $self->{'_jl_fix'};
+
 	$self->{'content'} .= "-- Statement # $self->{ 'stmt_number' }\n"
 	  if ( $self->{'numbering'} and $#{ $self->{'_tokens'} } > 0 );
 	while ( defined( my $token = $self->_token ) ) {
 		my $rule = $self->_get_rule($token);
 		$self->{'_is_closing_function'} = 0;
+
+		# Put json_build_object() key/value pairs on their own line
+		$self->_json_layout( $token, $last );
 
 		if (    $self->{'keep_newline'}
 			and $self->{'_is_in_block'} >= 0
@@ -5753,6 +5766,237 @@ sub add_rule {
 	my $group = $rules->{$format} ||= [];
 
 	push @{$group}, ref($token) ? @{$token} : $token;
+}
+
+=head2 _json_layout
+
+Lay out json_build_object() and jsonb_build_object() calls with one key/value
+pair per line and the closing parenthesis on its own line, at the level of the
+line where the call starts. A function call having such a call in its
+arguments, like json_agg(json_build_object(...)), is laid out the same way
+with one argument per line.
+
+It is called at the top of the main loop of beautify() for each token, before
+the token is processed. A line break is applied before the next token, so the
+normal processing of the token is not changed.
+
+=cut
+
+sub _json_layout {
+	my ( $self, $token, $last ) = @_;
+
+	# Nothing to do when statements are written on a single line
+	return if ( !$self->{'spaces'} );
+
+	# Set the indentation of the line started for the previous token
+	$self->_json_layout_indent();
+
+	# Lines started by the main loop inside a call laid out here, like the
+	# ORDER BY clause of json_agg(), must be indented inside the call.
+	my $prev = delete $self->{'_jl_prev'};
+	if (    $prev
+		and !$prev->{'multiline'}
+		and length( $self->{'content'} ) >= $prev->{'len'} )
+	{
+		# The previous token has no line break, a multiline string or
+		# comment is never changed: all line breaks found here have been
+		# added between tokens by the main loop.
+		my $min = $self->{'space'} x ( $self->{'spaces'} * $prev->{'min'} );
+
+		# the line may have been started by the token before
+		my $start = $prev->{'len'};
+		$start-- if ( $start > 0
+			and substr( $self->{'content'}, $start - 1, 1 ) eq "\n" );
+		substr( $self->{'content'}, $start ) =~
+		  s/\n([ \t]*)(?=\S)/(length($1) < length($min)) ? "\n$min" : "\n$1"/ge;
+	}
+
+	# Line break requested after the previous token
+	if ( defined $self->{'_jl_pending_level'} ) {
+		my $level = delete $self->{'_jl_pending_level'};
+		$self->_set_level( $level, $token, $last );
+		$self->_json_layout_break( $level, $token, $last );
+	}
+
+	# Commas between brackets, like in ARRAY[1, 2], are not arguments
+	if ( $token eq '[' ) {
+		$self->{'_jl_depth'}++;
+	}
+	elsif ( $token eq ']' ) {
+		$self->{'_jl_depth'}-- if ( $self->{'_jl_depth'} > 0 );
+	}
+	elsif ( $token eq '(' ) {
+		$self->{'_jl_depth'}++;
+		my $kind = $self->_json_layout_kind($last);
+		if ($kind) {
+			# Indentation level of the line where the call starts
+			my ($ws) = $self->{'content'} =~ /([ \t]*)[^\n]*\z/;
+			my $unit = length( $self->{'space'} x $self->{'spaces'} ) || 1;
+			my $open = int( length($ws) / $unit );
+			push(
+				@{ $self->{'_jl_stack'} },
+				{
+					depth  => $self->{'_jl_depth'},
+					kind   => $kind,
+					open   => $open,
+					commas => 0
+				}
+			);
+			$self->{'_jl_pending_level'} = $open + 1;
+		}
+	}
+	elsif ( $token eq ')' ) {
+		my $e = $self->{'_jl_stack'}[-1];
+		if ( $e and $e->{'depth'} == $self->{'_jl_depth'} ) {
+			pop( @{ $self->{'_jl_stack'} } );
+			$self->_json_layout_break( $e->{'open'}, $token, $last );
+		}
+		$self->{'_jl_depth'}-- if ( $self->{'_jl_depth'} > 0 );
+	}
+	elsif ( $token eq ',' ) {
+		my $e = $self->{'_jl_stack'}[-1];
+		if ( $e and $e->{'depth'} == $self->{'_jl_depth'} ) {
+			$e->{'commas'}++;
+
+			# break after each value of a pair or after each argument
+			if ( $e->{'kind'} eq 'wrap' or $e->{'commas'} % 2 == 0 ) {
+				if ( $self->{'comma'} eq 'start' ) {
+					$self->_set_level( $e->{'open'} + 1, $token, $last );
+					$self->_json_layout_break( $e->{'open'} + 1, $token,
+						$last );
+				}
+				else {
+					$self->{'_jl_pending_level'} = $e->{'open'} + 1;
+				}
+			}
+		}
+	}
+	elsif ( $token eq ';' ) {
+		# Never carry an unbalanced state to the next statement
+		$self->{'_jl_depth'} = 0;
+		$self->{'_jl_stack'} = [];
+		delete $self->{'_jl_pending_level'};
+	}
+
+	# Remember where the processing of this token starts when it is at the
+	# top level of a call laid out here.
+	my $e = $self->{'_jl_stack'}[-1];
+	if ( $e and $e->{'depth'} == $self->{'_jl_depth'} ) {
+		$self->{'_jl_prev'} = {
+			len       => length( $self->{'content'} ),
+			min       => $e->{'open'} + 1,
+			multiline => ( $token =~ /[\r\n]/ ) ? 1 : 0
+		};
+	}
+}
+
+=head2 _json_layout_break
+
+Start a new line for the token being processed and remember where it starts
+and the indentation level it must have. The main loop sets the indentation
+of a line when its first token is added, but some tokens like a closing
+parenthesis or the token following an opening parenthesis are never indented,
+so the indentation is set by _json_layout_indent() once the token is added.
+
+=cut
+
+sub _json_layout_break {
+	my ( $self, $level, $token, $last ) = @_;
+
+	$self->_new_line( $token, $last );
+	$self->{'_jl_fix'} = { pos => length( $self->{'content'} ), level => $level };
+}
+
+=head2 _json_layout_indent
+
+Set the indentation of the line started by _json_layout_break(). The line is
+left unchanged if the content before it has been modified in the meantime.
+
+=cut
+
+sub _json_layout_indent {
+	my $self = shift;
+
+	my $fix = delete $self->{'_jl_fix'};
+	return if ( !$fix );
+
+	my $pos = $fix->{'pos'};
+	return
+	  if ( $pos < 1
+		or $pos > length( $self->{'content'} )
+		or substr( $self->{'content'}, $pos - 1, 1 ) ne "\n" );
+
+	my $indent = $self->{'space'} x ( $self->{'spaces'} * $fix->{'level'} );
+	substr( $self->{'content'}, $pos ) =~ s/^[ \t]*/$indent/;
+}
+
+=head2 _json_layout_kind
+
+Return 'object' when the parenthesis that is being processed opens the
+arguments of a json_build_object() or jsonb_build_object() call, 'wrap' when
+it opens the arguments of another function call having such a call in its
+arguments, and an empty string otherwise. Calls without argument are never
+laid out. A json_build_object() call is only searched through function call
+parentheses, never inside a subquery or an expression parenthesis.
+
+=cut
+
+sub _json_layout_kind {
+	my ( $self, $last ) = @_;
+
+	my $tokens = $self->{'_tokens'};
+	return '' if ( !defined $last or $last !~ /^[\w\.\$]+$/ );
+	return '' if ( !@{$tokens} or $tokens->[0] eq ')' );
+	return 'object' if ( $last =~ /(?:^|\.)jsonb?_build_object$/i );
+
+	# Other function calls, only those detected by the main loop
+	return '' if ( !$self->{'_is_in_function'} or uc($last) eq 'IN' );
+
+	# Look for a json_build_object() call in the arguments
+	my @fct_paren = (1);
+	my $prev      = '(';
+	for ( my $i = 0 ; $i <= $#{$tokens} ; $i++ ) {
+		my $t = $tokens->[$i];
+		last if ( $t eq ';' );
+		if ( $t eq '(' ) {
+			push( @fct_paren,
+				( $fct_paren[-1] and $self->_is_function_call_name($prev) )
+				? 1
+				: 0 );
+		}
+		elsif ( $t eq ')' ) {
+			pop(@fct_paren);
+			last if ( !@fct_paren );
+		}
+		elsif ( $fct_paren[-1]
+			and $t =~ /(?:^|\.)jsonb?_build_object$/i
+			and defined $tokens->[ $i + 1 ]
+			and $tokens->[ $i + 1 ] eq '(' )
+		{
+			return 'wrap';
+		}
+		$prev = $t;
+	}
+
+	return '';
+}
+
+=head2 _is_function_call_name
+
+Return true when the token can be the name of a function followed by the
+parenthesis of its arguments: a known function or a word that is not a
+keyword.
+
+=cut
+
+sub _is_function_call_name {
+	my ( $self, $token ) = @_;
+
+	return 0 if ( !defined $token or $token !~ /^[\w\.\$]+$/ );
+	my $word = lc($token);
+	$word =~ s/^.*\.//;
+	return 1 if ( exists $self->{'dict'}->{'pg_functions'}{$word} );
+	return ( $self->_is_keyword($token) ) ? 0 : 1;
 }
 
 =head2 _get_rule
