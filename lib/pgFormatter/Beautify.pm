@@ -5055,7 +5055,7 @@ sub _add_token {
 	my @next_cast  = ();
 
 	# Be sure that we not going to modify a constant
-	if ( $self->{'_is_in_create'} < 2 and $token !~ /^[E]*'.*'$/ ) {
+	if ( $self->{'_is_in_create'} < 2 and $token !~ /^[E]*'.*'$/is ) {
 		@cast       = split( /::/, $token, -1 );
 		$token      = shift(@cast) if ( $#cast >= 0 );
 		@next_cast  = split( /::/, $next_token );
@@ -5225,11 +5225,12 @@ sub _add_token {
 		$token = $self->highlight_code( $token, $last_token, $next_token );
 	}
 
+	my $token_is_type = @cast ? $self->_is_type($token) : 0;
 	foreach my $c (@cast) {
 		my @words = split( /(\s+)/, $c );
 		$c = '';
 		foreach my $w (@words) {
-			if ( !$self->_is_type($token) ) {
+			if ( !$token_is_type ) {
 				$c .= $w;
 			}
 			else {
