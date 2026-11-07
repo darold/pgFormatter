@@ -4165,7 +4165,7 @@ DECLARE
 BEGIN
     OPEN c;
     FETCH LAST FROM c INTO x;
-    while found LOOP
+    WHILE found LOOP
         RETURN NEXT x;
         FETCH prior FROM c INTO x;
     END LOOP;
@@ -4192,7 +4192,7 @@ DECLARE
 BEGIN
     OPEN c;
     FETCH LAST FROM c INTO x;
-    while found LOOP
+    WHILE found LOOP
         RETURN NEXT x;
         FETCH prior FROM c INTO x;
     END LOOP;
@@ -4220,7 +4220,7 @@ BEGIN
         FROM
             int4_tbl;
     FETCH LAST FROM c INTO x;
-    while found LOOP
+    WHILE found LOOP
         RETURN NEXT x;
         FETCH prior FROM c INTO x;
     END LOOP;
@@ -4243,7 +4243,7 @@ DECLARE
 BEGIN
     OPEN c SCROLL FOR EXECUTE 'select f1 from int4_tbl';
     FETCH LAST FROM c INTO x;
-    while found LOOP
+    WHILE found LOOP
         RETURN NEXT x;
         FETCH relative - 2 FROM c INTO x;
     END LOOP;
@@ -4266,7 +4266,7 @@ DECLARE
 BEGIN
     OPEN c SCROLL FOR EXECUTE 'select f1 from int4_tbl';
     FETCH LAST FROM c INTO x;
-    while found LOOP
+    WHILE found LOOP
         RETURN NEXT x;
         MOVE BACKWARD 2
     FROM
@@ -4489,15 +4489,15 @@ DECLARE
 BEGIN
     FOR r IN c (5,
         7)
-        LOOP
-            RAISE NOTICE '% from %', r.i, c;
-        END LOOP;
+    LOOP
+        RAISE NOTICE '% from %', r.i, c;
+    END LOOP;
     -- again, to test if cursor was closed properly
     FOR r IN c (9,
         10)
-        LOOP
-            RAISE NOTICE '% from %', r.i, c;
-        END LOOP;
+    LOOP
+        RAISE NOTICE '% from %', r.i, c;
+    END LOOP;
     -- and test a parameterless cursor
     FOR r IN c2 LOOP
         RAISE NOTICE '% from %', r.i, c2;

@@ -22,12 +22,12 @@ BEGIN
         FOR child IN
         SELECT
             json_array_elements(node -> 'Plans')
-            LOOP
-                x := find_hash (child);
-                IF x IS NOT NULL THEN
-                    RETURN x;
-                END IF;
-            END LOOP;
+        LOOP
+            x := find_hash (child);
+            IF x IS NOT NULL THEN
+                RETURN x;
+            END IF;
+        END LOOP;
         RETURN NULL;
     END IF;
 END;

@@ -4002,9 +4002,23 @@ sub beautify {
 		elsif ($token =~ /^(?:IF|LOOP)$/i
 			&& $self->{'_current_sql_stmt'} ne 'GRANT' )
 		{
+			# WHILE/FOR condition ending with a parenthesis: the closing
+			# parenthesis doesn't restore the level before a LOOP so go
+			# back to the level of the WHILE/FOR statement.
+			my $level_restored = 0;
+			if (    $token =~ /^LOOP$/i
+				and $last eq ')'
+				and $self->{'_is_in_block'} > -1
+				and $#{ $self->{'_is_in_case'} } < 0
+				and $#{ $self->{'_level_stack'} } >= 0
+				and $self->{'_level'} > $self->{'_level_stack'}[-1] )
+			{
+				$self->_set_level( $self->{'_level_stack'}[-1], $token, $last );
+				$level_restored = 1;
+			}
 			if ( $self->{'_is_in_join'} ) {
 				$self->{'_is_in_join'} = 0;
-				$self->_back( $token, $last );
+				$self->_back( $token, $last ) if ( !$level_restored );
 				$self->_add_token($token);
 			}
 			else {
@@ -4022,10 +4036,10 @@ sub beautify {
 					|| ( defined $self->{'_tokens'}->[2]
 						and $self->{'_tokens'}->[2] eq '(' ) )
 				{
-					$self->_new_line( $token, $last )
-					  if ( $token =~ /^LOOP$/i );
 					# FOR ... IN EXECUTE ... USING ... LOOP
 					$self->_drop_using_level( $token, $last )
+					  if ( $token =~ /^LOOP$/i );
+					$self->_new_line( $token, $last )
 					  if ( $token =~ /^LOOP$/i );
 					$self->_over( $token, $last );
 					$self->_push_level( $self->{'_level'}, $token, $last );
