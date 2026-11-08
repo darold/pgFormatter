@@ -254,6 +254,7 @@ sub query {
 	if ( defined $new_value ) {
 		$self->{'query'} = $new_value;
 		$self->_reset_query_state();
+		$self->_hide_nested_comments();
 	}
 
 	$self->{idx_code} = 0;
@@ -552,6 +553,17 @@ s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
 		  $self->_align_create_table_columns( $self->{'content'} );
 	}
 
+	# Restore the nested comments hidden by _hide_nested_comments()
+	if ( @{ $self->{'nested_comments'} || [] } ) {
+		$self->{'content'} =~ s{/\*PGFNESTCMT(\d+)E\*/}{
+			my $c = $self->{'nested_comments'}[$1];
+			if ( $self->{'format'} eq 'html' ) {
+				$c =~ s/&/&amp;/g; $c =~ s/</&lt;/g; $c =~ s/>/&gt;/g;
+			}
+			$c;
+		}ge;
+	}
+
 	# Remove the markers set by _json_layout() to keep a line break between
 	# two opening parentheses, they stay in the content so that the merge of
 	# these parentheses above never applies, even if called several times.
@@ -734,6 +746,73 @@ sub _reset_query_state {
 	# Comments hidden by _remove_comments() and _quote_comment_stmt()
 	$self->{'comments'} = {};
 	delete $self->{'comment_str'};
+
+	# Nested C style comments hidden by _hide_nested_comments()
+	$self->{'nested_comments'} = [];
+}
+
+=head2 _hide_nested_comments
+
+PostgreSQL allows nested C style comments, /* a /* b */ c */, while the
+parser of the query ends a comment at the first */. Replace the comments
+containing a nested comment by a placeholder restored unchanged by
+content(). The strings, quoted identifiers, dollar quoted strings and single
+line comments are skipped.
+
+=cut
+
+sub _hide_nested_comments {
+	my $self = shift;
+
+	return if ( $self->{'query'} !~ m{/\*[^\0]*/\*} );
+
+	my $q   = $self->{'query'};
+	my $out = '';
+	pos($q) = 0;
+	while ( pos($q) < length($q) ) {
+		if (
+			$q =~ m{\G(
+				  [Ee]'(?:[^'\\]|\\.|'')*'
+				| '(?:[^']|'')*'
+				| "(?:[^"]|"")*"
+				| (\$(?:[A-Za-z_][A-Za-z_0-9]*)?\$).*?\2
+				| --[^\n]*
+				| [^'"\$/\-Ee]+
+			)}gcsx
+		  )
+		{
+			$out .= $1;
+			next;
+		}
+		if ( $q =~ m{\G/\*}gc ) {
+			my $start = pos($q) - 2;
+			my ( $depth, $max ) = ( 1, 1 );
+			while ( $depth and $q =~ m{\G.*?(/\*|\*/)}gcs ) {
+				$depth += ( $1 eq '/*' ) ? 1 : -1;
+				$max = $depth if ( $depth > $max );
+			}
+			if ($depth) {
+
+				# Not ended comment: keep the end of the query unchanged
+				$out .= substr( $q, $start );
+				last;
+			}
+			my $cmt = substr( $q, $start, pos($q) - $start );
+			if ( $max > 1 ) {
+				push( @{ $self->{'nested_comments'} }, $cmt );
+				# A C style comment for the parser: it is written and removed
+				# like the other comments
+				$out .= '/*PGFNESTCMT' . $#{ $self->{'nested_comments'} } . 'E*/';
+			}
+			else {
+				$out .= $cmt;
+			}
+			next;
+		}
+		$q =~ m{\G(.)}gcs;
+		$out .= $1;
+	}
+	$self->{'query'} = $out;
 }
 
 =head2 _protect_quoted_identifiers
