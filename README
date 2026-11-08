@@ -548,7 +548,7 @@ HINTS
     uc_function, uc_type, uc_identifier, nocomment, nogrouping, anonymize,
     separator, comma, comma_break, format_type, wrap_after, numbering,
     redshift, keep_newline, no_space_function, redundant_parenthesis,
-    vertical_align, isolate_semicolon and split_in_param. For example:
+    vertical_align, isolate_semicolon, split_in_param and celko. For example:
 
         curl -X POST -H 'Accept: application/json' \
             -H 'Content-Type: application/json' \

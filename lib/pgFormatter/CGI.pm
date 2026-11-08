@@ -201,6 +201,7 @@ sub set_config {
 	$self->{'vertical_align'}        //= 0;
 	$self->{'isolate_semicolon'}     //= 0;
 	$self->{'split_in_param'}        //= 0;
+	$self->{'celko'}                 //= 0;
 
 	# Backward compatibility
 	$self->{'extra_keyword'} = 'redshift'
@@ -267,7 +268,7 @@ sub get_params {
 	my $cgi = $self->{'cgi'};
 
 	for my $param_name (
-		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align isolate_semicolon split_in_param) 
+		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align isolate_semicolon split_in_param celko) 
 	  )
 	{
 		$self->{$param_name} = $cgi->param($param_name)
@@ -328,7 +329,7 @@ sub get_api_params {
 	my $postdata    = $cgi->param('POSTDATA');
 	my $json_params = decode_json($postdata);
 	for my $param_name (
-		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align isolate_semicolon split_in_param)
+		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align isolate_semicolon split_in_param celko)
 	  )
 	{
 		$self->{$param_name} = $json_params->{$param_name}
@@ -373,6 +374,7 @@ sub sanitize_params {
 	  if ( $self->{'vertical_align'} !~ /^(0|1)$/ );
 	$self->{'isolate_semicolon'}     = 0 if ( $self->{'isolate_semicolon'}     !~ /^(0|1)$/ );
 	$self->{'split_in_param'}        = 0 if ( $self->{'split_in_param'}        !~ /^(0|1)$/ );
+	$self->{'celko'}                 = 0 if ( $self->{'celko'}                 !~ /^(0|1)$/ );
 
 	if ( $self->{'show_example'} ) {
 		$self->{'content'} = q{
@@ -425,6 +427,7 @@ sub beautify_query {
 	$args{'vertical_align'}        = 1 if $self->{'vertical_align'};
 	$args{'isolate_semicolon'}     = 1 if $self->{'isolate_semicolon'};
 	$args{'split_in_param'}        = 1 if $self->{'split_in_param'};
+	$args{'celko'}                 = 1 if $self->{'celko'};
 
 	$self->{'content'} = &remove_extra_parenthesis( $self->{'content'} )
 	  if ( !$self->{'redundant_parenthesis'} && $self->{'content'} );
@@ -526,6 +529,7 @@ sub print_body {
 	my $chk_keepnewline = $self->{'keep_newline'}   ? 'checked="checked" ' : '';
 	my $chk_isolate_semicolon = $self->{'isolate_semicolon'} ? 'checked="checked" ' : '';
 	my $chk_split_in_param    = $self->{'split_in_param'}    ? 'checked="checked" ' : '';
+	my $chk_celko             = $self->{'celko'}             ? 'checked="checked" ' : '';
 	my $chk_spacefunctioncall =
 	  $self->{'no_space_function'} ? 'checked="checked" ' : '';
 	my $chk_redundantparenthesis =
@@ -592,6 +596,9 @@ sub print_body {
       <br />
       <input type="checkbox" id="id_split_in_param" name="split_in_param" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_split_in_param/>
       <label for="id_split_in_param">Split IN list values</label>
+      <br />
+      <input type="checkbox" id="id_celko" name="celko" value="1" onchange="document.forms[0].original_content.value != ''; document.forms[0].submit();" $chk_celko/>
+      <label for="id_celko">Joe Celko style</label>
       </div>
     </fieldset>
       <br />
