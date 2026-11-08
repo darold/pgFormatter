@@ -26,6 +26,7 @@ use autodie;
 use pgFormatter::Beautify;
 use Getopt::Long qw(:config no_ignore_case bundling);
 use File::Basename;
+use IO::Handle;
 
 =head1 SYNOPSIS
 
@@ -78,6 +79,12 @@ sub run {
 			$self->{'cfg'}->{'input'}
 		);
 		$self->load_sql();
+
+		# Interactive mode, the input starts with STARTSTREAM
+		if ( $self->{'stream'} ) {
+			$self->run_stream();
+			next;
+		}
 		$self->logmsg( 'DEBUG', 'Beautifying' );
 		$self->beautify();
 		if ( $self->{'wrap_limit'} ) {
@@ -353,6 +360,10 @@ Examples:
     cat t/test-files/ex1.sql | $0 -
     $0 -n t/test-files/ex1.sql
     $0 -f 2 -n -o result.sql t/test-files/ex1.sql
+
+Interactive mode: when the first non empty line of the input is STARTSTREAM,
+each block of SQL code ended by a line with ENDSTREAM is formatted and written
+at once, followed by an ENDSTREAM line, until the end of the input (Ctrl+D).
 };
 
 	if ($status) {
@@ -373,7 +384,6 @@ Loads SQL from input file or stdin.
 
 sub load_sql {
 	my $self = shift;
-	local $/ = undef;
 	my $fh;
 	if ( $self->{'cfg'}->{'input'} ne '-' ) {
 		open $fh, '<', $self->{'cfg'}->{'input'};
@@ -382,8 +392,95 @@ sub load_sql {
 		$fh = \*STDIN;
 	}
 	binmode( $fh, ":encoding(utf8)" );
-	$self->{'query'} = <$fh>;
+
+	# Read the input up to its first non empty line, when it is STARTSTREAM
+	# the input is read and formatted block by block by run_stream().
+	$self->{'stream'} = 0;
+	$self->{'query'}  = '';
+	while ( my $l = <$fh> ) {
+		if ( $l =~ /^\s*STARTSTREAM\s*$/i ) {
+			$self->{'stream'} = 1;
+			$self->{'_in_fh'} = $fh;
+			return;
+		}
+		$self->{'query'} .= $l;
+		last if ( $l =~ /\S/ );
+	}
+	{
+		local $/ = undef;
+		my $rest = <$fh>;
+		$self->{'query'} .= $rest if ( defined $rest );
+	}
 	close $fh if ( $self->{'cfg'}->{'input'} ne '-' );
+	return;
+}
+
+=head2 run_stream
+
+Interactive mode, used when the first non empty line of the input is
+STARTSTREAM: the lines are read and stored until a line with ENDSTREAM, the
+stored SQL code is then formatted and written followed by an ENDSTREAM line
+that marks the end of the formatted code, and the output is flushed. Then the
+next block is read until the end of the input, Ctrl+D on a terminal. A block
+not ended by ENDSTREAM is formatted at the end of the input. Each block is
+formatted independently with the options of the command line.
+
+=cut
+
+sub run_stream {
+	my $self = shift;
+
+	$self->show_help_and_die( 2,
+'can not use -i | --inplace option with the STARTSTREAM interactive mode.'
+	) if ( $self->{'cfg'}->{'inplace'} );
+
+	my $in = delete $self->{'_in_fh'};
+	my $out;
+	if ( $self->{'cfg'}->{'output'} ne '-' ) {
+		open $out, '>', $self->{'cfg'}->{'output'};
+	}
+	else {
+		$out = \*STDOUT;
+	}
+	$out->autoflush(1);
+
+	my $block = '';
+	while ( my $l = <$in> ) {
+		if ( $l =~ /^\s*ENDSTREAM\s*$/i ) {
+			$self->_write_stream_block( $out, $block );
+			$block = '';
+		}
+		elsif ( $l !~ /^\s*STARTSTREAM\s*$/i ) {
+			$block .= $l;
+		}
+	}
+	$self->_write_stream_block( $out, $block ) if ( $block =~ /\S/ );
+
+	close $in  if ( $self->{'cfg'}->{'input'} ne '-' );
+	close $out if ( $self->{'cfg'}->{'output'} ne '-' );
+	$self->{'stream'} = 0;
+
+	return;
+}
+
+=head2 _write_stream_block
+
+Format a block of SQL code read by run_stream() and write it followed by an
+ENDSTREAM line.
+
+=cut
+
+sub _write_stream_block {
+	my ( $self, $out, $block ) = @_;
+
+	if ( $block =~ /\S/ ) {
+		$self->logmsg( 'DEBUG', 'Beautifying stream block' );
+		$self->{'query'} = $block;
+		$self->beautify();
+		print $out $self->{'ready'};
+	}
+	print $out "ENDSTREAM\n";
+
 	return;
 }
 
