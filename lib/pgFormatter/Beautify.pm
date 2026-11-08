@@ -302,13 +302,9 @@ s/([\n\r])\s+([EU]*'(?:[^']*)')/$1 . ($self->{ 'space' } x $self->{ 'spaces' }) 
 	my $j = 0;
 	$self->{'query'} =~ s/(\s+AS\s*)("+[^"]+"+)/$self->{'alias_constant'}{$j} = $2; "${1}PGFALIAS" . $j++/gise;
 
-	# Escape quote in comments
-	my $first = index( $self->{'query'}, '/*' );
-	my $last  = rindex( $self->{'query'}, '*/' );
-	if ( $first >= 0 && $last > $first + 2 ) {
-		substr( $self->{'query'}, $first + 2, $last - $first - 2 ) =~
-		  s/'/SNGLQUOTE/g;
-	}
+	# Escape quote in C style comments, only inside the comments: the strings
+	# of the code between two comments must still be found.
+	$self->_escape_comment_quotes() if ( index( $self->{'query'}, '/*' ) >= 0 );
 
 	# replace all constant between quote
 	$j = 0;
@@ -751,6 +747,46 @@ sub _reset_query_state {
 
 	# Nested C style comments hidden by _hide_nested_comments()
 	$self->{'nested_comments'} = [];
+}
+
+=head2 _escape_comment_quotes
+
+Replace the single quotes in the C style comments of the query by the
+SNGLQUOTE placeholder, restored after the extraction of the strings. The
+strings, quoted identifiers and single line comments are skipped, the code
+of the dollar quoted function bodies is searched.
+
+=cut
+
+sub _escape_comment_quotes {
+	my $self = shift;
+
+	my $q   = $self->{'query'};
+	my $out = '';
+	pos($q) = 0;
+	while ( pos($q) < length($q) ) {
+		if (
+			$q =~ m{\G(
+				  [Ee]'(?:[^'\\]|\\.|'')*'
+				| '(?:[^']|'')*'
+				| "(?:[^"]|"")*"
+				| --[^\n]*
+				| [^'"/\-Ee]+
+			)}gcsx
+		  )
+		{
+			$out .= $1;
+			next;
+		}
+		if ( $q =~ m{\G(/\*.*?\*/)}gcs ) {
+			( my $c = $1 ) =~ s/'/SNGLQUOTE/g;
+			$out .= $c;
+			next;
+		}
+		$q =~ m{\G(.)}gcs;
+		$out .= $1;
+	}
+	$self->{'query'} = $out;
 }
 
 =head2 _hide_nested_comments

@@ -10,13 +10,14 @@ WHERE
     c = 'another long literal value';
 
 
-/* the quotes between two C style comments are not stored as placeholders */
+/* strings between two C style comments */
 SELECT
     a
 FROM
     t
 WHERE
-    b IN ('one',
+    b IN
+	('one',
 	' two',
 	'three four five six seven',
 	'eight');
