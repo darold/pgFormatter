@@ -93,6 +93,8 @@ DESCRIPTION
                                 parenthesis, close on a new line at the same indent.
         --split-in-param    :   write each value of the list of an IN clause on its
                                 own line, the closing parenthesis on a new line.
+        --celko             :   use the Joe Celko style for the DML statements: the
+                                clause keywords are right aligned on a river.
         --redundant-parenthesis: do not remove redundant parenthesis in DML.
         --vertical-align      : vertically align CREATE TABLE column definitions and
                                 trailing comments. Disabled by default.
@@ -344,6 +346,31 @@ SPECIAL FORMATTING
             )
         ORDER BY
             username;
+
+  Option --celko
+    Use the Joe Celko style, also described in the SQL style guide of Simon
+    Holywell (https://www.sqlstyle.guide/), for the SELECT, INSERT, UPDATE,
+    DELETE and WITH statements, including the subqueries and the statements in
+    the code of the functions. The clause keywords (SELECT, FROM, WHERE, AND, OR,
+    GROUP BY, ORDER BY, SET, VALUES, RETURNING...) are right aligned on a
+    "river", the column where the first word of SELECT ends, and their body
+    starts on the same line just after it. A subquery starts just after its
+    opening parenthesis and has its own river. With --comma-start the comma is
+    written just before the river. The other statements are formatted as usual.
+    The alignment always uses spaces, and the redundant parentheses are kept as
+    with --redundant-parenthesis. Disabled by default. For example:
+
+        SELECT r.last_name,
+               (SELECT max(championship_date)
+                  FROM champions AS c
+                 WHERE c.last_name = r.last_name
+                   AND c.confirmed = 'Y') AS last_championship_year
+          FROM riders AS r
+               INNER JOIN bikes AS b ON r.bike_vin_num = b.vin_num
+         WHERE r.last_name IN (SELECT c.last_name
+                                 FROM champions AS c
+                                WHERE c.confirmed = 'Y')
+         ORDER BY 1;
 
   Option --vertical-align
     Use this option to vertically align direct, single-line column

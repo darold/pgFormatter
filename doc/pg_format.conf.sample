@@ -15,6 +15,10 @@ comma-break=0
 # Write each value of the list of an IN clause on its own line.
 split-in-param=0
 
+# Use the Joe Celko style for the DML statements: the clause keywords are
+# right aligned on a river.
+celko=0
+
 # Output format: text or html. Default: text.
 format=text
 

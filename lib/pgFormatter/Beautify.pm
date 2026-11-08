@@ -177,6 +177,8 @@ when the statement spans several lines
 
 =item * split_in_param - write each value of the list of an IN clause on its own line
 
+=item * celko - use the Joe Celko style: the clause keywords of the DML statements are right aligned on a river
+
 =item * vertical_align - vertically align CREATE TABLE column definitions
 
 =back
@@ -193,7 +195,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline split_in_param)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline split_in_param celko)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -1712,6 +1714,8 @@ sub beautify {
 	# Main variables used to store differents state
 	$self->content('');
 	$self->{'_level'}                      = 0;
+	$self->{'_celko_ctx'}                  = [];
+	$self->{'_celko_depth'}                = 0;
 	$self->{'_level_stack'}                = [];
 	$self->{'_level_parenthesis'}          = [];
 	$self->{'_new_line'}                   = 1;
@@ -5021,7 +5025,9 @@ sub beautify {
         #     produce invalid SQL. Such pairs are shielded during the pass
         #     and restored right after. Any other ((...)), including
         #     count((unique1)) or FROM ((SELECT ...)), is still collapsed.
-	if ( !$self->{'redundant_parenthesis'} )
+	# Not with the Celko style, the pass relies on the line break after the
+	# clause keywords: the parentheses are kept like with redundant_parenthesis
+	if ( !$self->{'redundant_parenthesis'} and !$self->{'celko'} )
 	{
                 while (
                         $self->{'content'} =~ s{
@@ -5077,6 +5083,8 @@ Code lifted from SQL::Beautify
 
 sub _add_token {
 	my ( $self, $token, $last_token ) = @_;
+
+	$self->{'_celko_token'} = $token if ( $self->{'celko'} );
 
 	if ( !$self->{'_stmt_started'} and $token !~ m{^\s*(?:--|/\*)} ) {
 		# Only needed by isolate_semicolon, and the length of a long UTF-8 string is not cached once it changes
@@ -5292,7 +5300,7 @@ sub _add_token {
 		}
                 elsif ( $token eq ')'
                         and $self->{'_new_line'}
-                        and $self->{'_with_base_level'} )
+                        and ( $self->{'_with_base_level'} or $self->{'celko'} ) )
                 {
                         # Closing parenthesis of a CTE whose WITH clause is nested
                         # (inside a PL/pgSQL function body, a DO block, etc.). It starts a
@@ -5560,6 +5568,9 @@ sub _add_token {
 	# This can't be the beginning of a new line anymore.
 	$self->{'_new_line'} = 0;
 
+	# The token may have been modified, like with the html highlighting
+	$self->_celko_track( $self->{'_celko_token'}, $last_token ) if ( $self->{'celko'} );
+
 	# A single line comment and a psql meta-command end at the end of the line
 	if ( $token =~ /\n\s*\z/ ) {
 		$self->{'_eol_required'} = 0;
@@ -5611,6 +5622,188 @@ sub _back {
 	--$self->{'_level'} if ( $self->{'_level'} > 0 );
 }
 
+=head2 _celko_track
+
+Celko style: maintain the stack of rivers, one for each statement and
+subquery. The river is the column where the first word of the clause
+keywords of the statement ends: SELECT, FROM, WHERE, AND, GROUP BY... are
+right aligned on it and their body starts one character after it.
+
+=cut
+
+my $CELKO_START = qr/^(?:SELECT|INSERT|UPDATE|DELETE|WITH|VALUES)$/i;
+my $CELKO_ROOT  = qr/^(?:SELECT|INTO|FROM|WHERE|AND|OR|GROUP|ORDER|HAVING|LIMIT|OFFSET|FETCH|UNION|INTERSECT|EXCEPT|INSERT|VALUES|UPDATE|SET|DELETE|RETURNING|WINDOW|WITH|USING)$/i;
+
+# Width of the river: length of SELECT, INSERT, UPDATE, DELETE and VALUES
+my $CELKO_WIDTH = 6;
+
+sub _celko_track {
+	my ( $self, $token, $last_token ) = @_;
+
+	if ( $token eq '(' ) {
+		$self->{'_celko_depth'}++;
+		return;
+	}
+	if ( $token eq ')' ) {
+		$self->{'_celko_depth'}-- if ( $self->{'_celko_depth'} );
+		pop( @{ $self->{'_celko_ctx'} } )
+		  while ( @{ $self->{'_celko_ctx'} }
+			and $self->{'_celko_ctx'}[-1]{'depth'} > $self->{'_celko_depth'} );
+		return;
+	}
+	if ( $token eq ';' ) {
+		pop( @{ $self->{'_celko_ctx'} } )
+		  while ( @{ $self->{'_celko_ctx'} }
+			and $self->{'_celko_ctx'}[-1]{'depth'} >= $self->{'_celko_depth'} );
+		return;
+	}
+	# Clause of the current statement, AND and OR are only aligned on the
+	# river in a WHERE or HAVING clause
+	my $ctx = $self->{'_celko_ctx'}[-1];
+	if (    $ctx
+		and $ctx->{'depth'} == $self->{'_celko_depth'}
+		and $token =~ $CELKO_ROOT
+		and $token !~ /^(?:AND|OR)$/i )
+	{
+		$ctx->{'clause'} = uc($token);
+
+		# End of a clause keyword longer than the river, like RETURNING:
+		# the lines of its body are written after it.
+		my $line = $self->_celko_line();
+		$ctx->{'clause_end'} = ( $line =~ /^\s*\S+$/ ) ? length($line) : 0;
+	}
+	return if ( $token !~ $CELKO_START );
+
+	# A subquery starts just after its opening parenthesis
+	$self->{'content'} =~ s/\(((?:<[^>]+>)*)[ \t]+((?:<[^>]+>)*\Q$token\E(?:<[^>]+>)*)\z/($1$2/i;
+
+	# A statement already started at this parenthesis level: the keyword is
+	# one of its clauses (INSERT ... SELECT, UNION SELECT, WITH ... SELECT)
+	return if ( $ctx and $ctx->{'depth'} == $self->{'_celko_depth'} );
+
+	# VALUES only starts a statement in a subquery or as a statement
+	return if ( $token =~ /^VALUES$/i and $ctx and !( defined $last_token and $last_token eq '(' ) );
+
+	my $line = $self->_celko_line();
+	# The keyword starting a line has been right aligned on the river by
+	# _celko_column(), a keyword after a parenthesis is not.
+	my $river = length($line);
+	$river += $CELKO_WIDTH - length($token)
+	  if ( length($token) < $CELKO_WIDTH and $line !~ /^\s*\Q$token\E$/i );
+	push(
+		@{ $self->{'_celko_ctx'} },
+		{
+			'depth'  => $self->{'_celko_depth'},
+			'river'  => $river,
+			'level'  => $self->{'_level'} // 0,
+			'clause' => uc($token),
+		}
+	);
+}
+
+=head2 _celko_column
+
+Celko style: column of the token starting a line, from the river of the
+current statement or subquery: a clause keyword is right aligned on the
+river, the other tokens are written after it with the relative indentation
+of the normal formatting.
+
+=cut
+
+sub _celko_column {
+	my $self  = shift;
+	my $ctx   = $self->{'_celko_ctx'}[-1];
+	my $token = $self->{'_celko_token'} // '';
+
+	# First keyword of a statement: right aligned on the river of the
+	# statement, a WITH is shorter than a SELECT.
+	if ( $token =~ $CELKO_START
+		and ( !$ctx or $ctx->{'depth'} < $self->{'_celko_depth'} ) )
+	{
+		my $base =
+		  $ctx
+		  ? $ctx->{'river'} + 1
+		  : $self->{'spaces'} * ( $self->{'_level'} // 0 );
+		$base += $CELKO_WIDTH - length($token) if ( length($token) < $CELKO_WIDTH );
+		return $base;
+	}
+	return undef if ( !$ctx );
+
+	# Parenthesis closing a subquery starting a line: aligned with the body
+	# of the clauses of the enclosing statement
+	if ( $token eq ')' and $ctx->{'depth'} == $self->{'_celko_depth'} ) {
+		my $parent = $self->{'_celko_ctx'}[-2];
+		return $parent
+		  ? $parent->{'river'} + 1
+		  : $self->{'spaces'} * ( $self->{'_level'} // 0 );
+	}
+
+	# With the comma at start of line, the comma is written just before the
+	# river so that the items stay aligned
+	if ( $token eq ',' and $self->{'_celko_depth'} == $ctx->{'depth'} ) {
+		return $ctx->{'river'} - 1;
+	}
+
+	if (    $token =~ $CELKO_ROOT
+		and $self->{'_celko_depth'} == $ctx->{'depth'}
+		and ( $token !~ /^(?:AND|OR)$/i or $ctx->{'clause'} =~ /^(?:WHERE|HAVING)$/ )
+		and $#{ $self->{'_is_in_case'} } < 0 )
+	{
+		my $col = $ctx->{'river'} - length($token);
+		return ( $col > 0 ) ? $col : 0;
+	}
+
+	my $extra = ( $self->{'_level'} // 0 ) - $ctx->{'level'} - 1;
+	$extra = 0 if ( $extra < 0 );
+
+	# The alignment on the river uses spaces, a tabulation counts for 4
+	my $unit = ( $self->{'space'} eq "\t" ) ? 4 : $self->{'spaces'};
+	my $body = $ctx->{'river'} + 1;
+	$body = $ctx->{'clause_end'} + 1
+	  if ( $ctx->{'clause_end'} and $ctx->{'clause_end'} > $ctx->{'river'} );
+	return $body + $extra * $unit;
+}
+
+=head2 _celko_line
+
+Celko style: return the text of the current line as it is displayed, without
+the html tags and entities of the html output.
+
+=cut
+
+sub _celko_line {
+	my $self = shift;
+
+	my ($line) = $self->{'content'} =~ /([^\n]*)\z/;
+	if ( $self->{'format'} eq 'html' ) {
+		$line =~ s/<[^>]+>//g;
+		$line =~ s/&(?:lt|gt|amp|quot|#\d+);/x/g;
+	}
+	return $line;
+}
+
+=head2 _celko_same_line
+
+Celko style: return 1 when the line must not be broken before the given
+token: after a clause keyword alone on its line, its body follows it, and
+between a parenthesis and the subquery it opens.
+
+=cut
+
+sub _celko_same_line {
+	my ( $self, $token ) = @_;
+
+	return 0 if ( !@{ $self->{'_celko_ctx'} } and !( defined $token and $token =~ $CELKO_START ) );
+	my $line = $self->_celko_line();
+	return 1
+	  if ( $line =~
+/(?:^|\()\s*(?:SELECT(?:\s+DISTINCT)?|INTO|FROM|WHERE|GROUP\s+BY|ORDER\s+BY|HAVING|SET|VALUES|UPDATE|RETURNING|WINDOW)$/i
+	  );
+	return 1
+	  if ( $line =~ /\(\s*$/ and defined $token and $token =~ /^(?:SELECT|WITH|VALUES)$/i );
+	return 0;
+}
+
 =head2 _indent
 
 Return a string of spaces according to the current indentation level and the
@@ -5624,6 +5817,10 @@ sub _indent {
 	my ($self) = @_;
 
 	if ( $self->{'_new_line'} ) {
+		if ( $self->{'celko'} ) {
+			my $col = $self->_celko_column();
+			return ' ' x $col if ( defined $col );
+		}
 		return $self->{'space'} x
 		  ( $self->{'spaces'} * ( $self->{'_level'} // 0 ) );
 	}
@@ -5650,6 +5847,10 @@ sub _new_line {
 		print STDERR "DEBUG_NL: line: $line => last=", ( $last || '' ),
 		  ", token=$token\n";
 	}
+
+	# Celko style: the body of a clause starts on the line of its keyword
+	# and a subquery just after its opening parenthesis.
+	return if ( $self->{'celko'} and $self->_celko_same_line($token) );
 
 	$self->{'content'} .= $self->{'break'} unless ( $self->{'_new_line'} );
 	$self->{'_new_line'} = 1;
@@ -6844,6 +7045,7 @@ sub set_defaults {
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'matching_paren_newline'} = 0;
 	$self->{'split_in_param'}         = 0;
+	$self->{'celko'}                  = 0;
 	$self->{'vertical_align'}        = 0;
 
 	return;
