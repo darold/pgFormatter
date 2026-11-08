@@ -207,21 +207,8 @@ sub new {
 	# Initialize internal stuff.
 	$self->{'_level'} = 0;
 
-	# Array to store placeholders values
-	@{ $self->{'placeholder_values'} } = ();
-
-	# Hash to store dynamic code
-	%{ $self->{'dynamic_code'} } = ();
-
-	# Hash to store and preserve constants
-	%{ $self->{'keyword_constant'} } = ();
-
-	# Hash to store and preserve aliases between double quote
-	%{ $self->{'alias_constant'} } = ();
-
-	# Array to store and preserve double quoted identifiers containing
-	# a single quote or a doubled double quote
-	@{ $self->{'qident_constant'} } = ();
+	# Storage of the values hidden behind placeholders
+	$self->_reset_query_state();
 
 	# Check comma value, when invalid set to default: end
 	if ( lc( $self->{'comma'} ) ne 'start' ) {
@@ -258,7 +245,14 @@ sub query {
 	my $self      = shift;
 	my $new_value = shift;
 
-	$self->{'query'} = $new_value if defined $new_value;
+	# A new query: forget the values hidden behind the placeholders of the
+	# previous one, the placeholders are numbered from 0 for each query so
+	# the old values would be restored in place of the new ones when the
+	# same object is used to format several queries.
+	if ( defined $new_value ) {
+		$self->{'query'} = $new_value;
+		$self->_reset_query_state();
+	}
 
 	$self->{idx_code} = 0;
 
@@ -704,6 +698,39 @@ Splits input SQL into tokens
 Code lifted from SQL::Beautify
 
 =cut
+
+=head2 _reset_query_state
+
+Initialize the storage of the values hidden behind placeholders during the
+formatting of a query: constants, aliases, quoted identifiers, dynamic code
+and comments. Called by new() and each time a new query is set by query().
+
+=cut
+
+sub _reset_query_state {
+	my $self = shift;
+
+	# Array to store placeholders values
+	$self->{'placeholder_values'} = [];
+
+	# Hash to store dynamic code
+	$self->{'dynamic_code'} = {};
+	$self->{'idx_code'}     = 0;
+
+	# Hash to store and preserve constants
+	$self->{'keyword_constant'} = {};
+
+	# Hash to store and preserve aliases between double quote
+	$self->{'alias_constant'} = {};
+
+	# Array to store and preserve double quoted identifiers containing
+	# a single quote or a doubled double quote
+	$self->{'qident_constant'} = [];
+
+	# Comments hidden by _remove_comments() and _quote_comment_stmt()
+	$self->{'comments'} = {};
+	delete $self->{'comment_str'};
+}
 
 =head2 _protect_quoted_identifiers
 
@@ -6690,7 +6717,10 @@ sub anonymize {
 		  . "'";
 	}
 
-	$self->query($query);
+	# Process the anonymized query again, keeping the values already hidden
+	# behind placeholders: query() with a new value would forget them.
+	$self->{'query'} = $query;
+	$self->query();
 }
 
 =head2 set_defaults
