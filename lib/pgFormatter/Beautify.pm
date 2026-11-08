@@ -3776,6 +3776,20 @@ sub beautify {
 				$self->{'_is_in_from'}++
 				  if ( !$self->{'_is_in_function'}
 					&& !$self->{'_is_in_partition'} );
+
+				# FROM clause of a subquery in the arguments of a function,
+				# not FROM in extract(year FROM d): on a new line at the
+				# level of the SELECT of the subquery, the indentation of
+				# the line is set once FROM is written.
+				if ( $self->{'_is_in_function'} and $self->_at_subquery_top ) {
+					my $cl = $self->{'_subquery_stack'}[-1]{'clause_level'};
+					if ( defined $cl ) {
+						$self->_json_layout_break( $cl, $token, $last );
+					}
+					else {
+						$self->_new_line( $token, $last );
+					}
+				}
 			}
 
 			if ( $token =~ /^WHERE$/i && !$self->{'_is_in_filter'} ) {
@@ -3846,6 +3860,16 @@ sub beautify {
 						and $self->{'_is_subquery'} <= 2 )
 					{
 						$self->_over( $token, $last );
+					}
+
+					# WHERE or HAVING clause of a subquery in the arguments
+					# of a function: at the level of its SELECT
+					if (    $token =~ /^(?:WHERE|HAVING)$/i
+						and $self->{'_is_in_function'}
+						and $self->_at_subquery_top )
+					{
+						my $cl = $self->{'_subquery_stack'}[-1]{'clause_level'};
+						$self->_set_level( $cl, $token, $last ) if ( defined $cl );
 					}
 					$self->_new_line( $token, $last )
 					  if ( !$self->{'_is_in_rule'}
@@ -4068,7 +4092,17 @@ sub beautify {
 			}
 			$self->{'_is_in_join'} = 0;
 			$self->{'_has_limit'}  = 1 if ( uc($token) eq 'LIMIT' );
-			if ( $token !~ /^EXCEPTION/i ) {
+			# Clause of a subquery in the arguments of a function: at the
+			# level of its SELECT, the FROM clause there does not indent the
+			# list of tables.
+			my $subq =
+			  ( $self->{'_is_in_function'} and $self->_at_subquery_top )
+			  ? $self->{'_subquery_stack'}[-1]
+			  : undef;
+			if ( $subq and defined $subq->{'clause_level'} ) {
+				$self->_set_level( $subq->{'clause_level'}, $token, $last );
+			}
+			elsif ( $token !~ /^EXCEPTION/i ) {
 				$self->_back( $token, $last );
 			}
 			else {
@@ -4082,7 +4116,11 @@ sub beautify {
 				# Excluding CREATE/DROP GROUP
 				if ( uc($token) ne 'LIMIT' or !$self->{'_is_in_create'} ) {
 					$self->_new_line( $token, $last )
-					  if ( !$self->{'_is_in_function'}
+					  if (
+						(
+							!$self->{'_is_in_function'}
+							or $self->_at_subquery_top
+						)
 						and ( not defined $last or $last !~ /^(CREATE|DROP)$/ )
 					  );
 				}
@@ -4115,7 +4153,9 @@ sub beautify {
 			  if ( defined $last && $last =~ /^(?:GROUP|ORDER)/i );
 			if ( !$self->{'_has_order_by'} and !$self->{'_is_in_over'} ) {
 				$self->_new_line( $token, $last )
-				  if ( !$self->{'wrap_after'} and !$self->{'_is_in_function'} and !$self->{'_is_in_merge'} );
+				  if (  !$self->{'wrap_after'}
+					and ( !$self->{'_is_in_function'} or $self->_at_subquery_top )
+					and !$self->{'_is_in_merge'} );
 				$self->_over( $token, $last );
 			}
 		}
@@ -5924,7 +5964,11 @@ sub _subquery_track {
 				substr( $self->{'content'}, $start, length($1), $indent );
 				$self->_set_level( $self->{'_level'} + $d, $token );
 				$fix->{'entry'}{'shift'} = $d;
+				$level = $fix->{'min'};
 			}
+
+			# Level of the clauses of the subquery, the one of SELECT
+			$fix->{'entry'}{'clause_level'} = $level;
 		}
 	}
 
@@ -5957,6 +6001,23 @@ sub _subquery_track {
 	}
 }
 
+=head2 _at_subquery_top
+
+Return true when the innermost open parenthesis is the one of a
+( SELECT ... ) subquery, used to detect the clauses of a subquery in the
+arguments of a function, like FROM, GROUP BY or ORDER BY, from the same
+keywords in the arguments of a function, like in extract(year FROM d) or
+string_agg(x ORDER BY y).
+
+=cut
+
+sub _at_subquery_top {
+	my $self = shift;
+
+	my $stack = $self->{'_subquery_stack'};
+	return ( @{$stack} and $stack->[-1]{'depth'} == $self->{'_paren_depth'} ) ? 1 : 0;
+}
+
 =head2 _subquery_open
 
 Remember the depth of the opening parenthesis of a ( SELECT ... ) subquery.
@@ -5980,10 +6041,21 @@ sub _subquery_open {
 	};
 	push( @{ $self->{'_subquery_stack'} }, $entry );
 
-	if ( $self->{'spaces'} and $self->{'content'} =~ /\(\s*\(\z/ ) {
+	# The first line of a subquery in the arguments of a function is checked
+	# once written: to store the level of its clauses and, for a subquery
+	# just after the parenthesis of the function, to indent it at least one
+	# level more than the line where it is opened.
+	if (
+		$self->{'spaces'}
+		and (  $self->{'_is_in_function'}
+			or $self->{'content'} =~ /\(\s*\(\z/ )
+	  )
+	{
 		$self->{'_subq_fix'} = {
 			len   => length( $self->{'content'} ),
-			min   => $self->_current_line_level() + 1,
+			min   => ( $self->{'content'} =~ /\(\s*\(\z/ )
+			? $self->_current_line_level() + 1
+			: 0,
 			entry => $entry
 		};
 	}

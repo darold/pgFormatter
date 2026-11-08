@@ -11,7 +11,8 @@ SELECT
     jsonb_build_object(
         'subs', (
             SELECT
-                json_agg(q.col) AS data FROM q
+                json_agg(q.col) AS data
+            FROM q
             WHERE
                 q.id = t.pid)
     ) AS data
