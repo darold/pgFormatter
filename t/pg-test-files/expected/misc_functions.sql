@@ -23,7 +23,7 @@ SELECT
     num_nonnulls (VARIADIC '{"1","2","3","4"}'::text[]);
 
 SELECT
-    num_nonnulls (VARIADIC ARRAY (
+    num_nonnulls (VARIADIC ARRAY(
             SELECT
                 CASE WHEN i <> 40 THEN
                     i
@@ -52,7 +52,7 @@ SELECT
     num_nulls (VARIADIC '{"1","2","3","4"}'::text[]);
 
 SELECT
-    num_nulls (VARIADIC ARRAY (
+    num_nulls (VARIADIC ARRAY(
             SELECT
                 CASE WHEN i <> 40 THEN
                     i

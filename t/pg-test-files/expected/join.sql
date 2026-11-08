@@ -1922,7 +1922,8 @@ WHERE
             1
         FROM int8_tbl t3
         WHERE
-            ss.y IS NOT NULL LIMIT 1)
+            ss.y IS NOT NULL
+        LIMIT 1)
 ORDER BY
     1,
     2;
@@ -1943,7 +1944,8 @@ WHERE
             1
         FROM int8_tbl t3
         WHERE
-            ss.y IS NOT NULL LIMIT 1)
+            ss.y IS NOT NULL
+        LIMIT 1)
 ORDER BY
     1,
     2;

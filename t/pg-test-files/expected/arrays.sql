@@ -636,11 +636,10 @@ SELECT
     ARRAY[ARRAY['hello'], ARRAY['world']];
 
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
             f2
-        FROM
-            arrtest_f
+        FROM arrtest_f
         ORDER BY
             f2) AS "ARRAY";
 
@@ -710,7 +709,7 @@ SELECT
     array_positions(ARRAY[1, 2, 3, NULL, 5, 6, 1, 2, 3, NULL, 5, 6], NULL);
 
 SELECT
-    array_length(array_positions(ARRAY (
+    array_length(array_positions(ARRAY(
                 SELECT
                     'AAAAAAAAAAAAAAAAAAAAAAAAA'::text || i % 10
                 FROM generate_series(1, 100) g (i)), 'AAAAAAAAAAAAAAAAAAAAAAAAA5'), 1);
@@ -1091,11 +1090,10 @@ SELECT
 
 -- nulls later in the bitmap
 SELECT
-    -1 != ALL (ARRAY (
+    -1 != ALL (ARRAY(
             SELECT
                 NULLIF (g.i, 900)
-            FROM
-                generate_series(1, 1000) g (i)));
+            FROM generate_series(1, 1000) g (i)));
 
 -- test indexes on arrays
 CREATE temp TABLE arr_tbl (
@@ -1740,18 +1738,16 @@ SELECT
 
 -- array(select array-value ...)
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
             ARRAY[i, i / 2]
-        FROM
-            generate_series(1, 5) i);
+        FROM generate_series(1, 5) i);
 
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
             ARRAY['Hello', i::text]
-        FROM
-            generate_series(9, 11) i);
+        FROM generate_series(9, 11) i);
 
 -- Insert/update on a column that is array of composite
 CREATE temp TABLE t1 (

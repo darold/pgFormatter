@@ -1003,7 +1003,8 @@ FROM
             FROM wide
         LEFT JOIN (
             SELECT
-                id, coalesce(t, '') || '' AS t FROM wide) s USING (id);
+                id, coalesce(t, '') || '' AS t
+            FROM wide) s USING (id);
 
 $$);
 

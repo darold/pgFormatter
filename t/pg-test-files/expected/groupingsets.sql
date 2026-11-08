@@ -967,23 +967,17 @@ ORDER BY
     ten;
 
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
-            ROW (v.a,
-                s1.*)
+            ROW (v.a, s1.*)
         FROM (
             SELECT
-                two,
-                four,
-                count(*)
-            FROM
-                onek
+                two, four, count(*)
+            FROM onek
             GROUP BY
-                CUBE (two,
-                    four)
+                CUBE (two, four)
             ORDER BY
-                two,
-                four) s1)
+                two, four) s1)
 FROM (
     VALUES (1),
         (2)) v (a);
@@ -1521,23 +1515,17 @@ ORDER BY
     ten;
 
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
-            ROW (v.a,
-                s1.*)
+            ROW (v.a, s1.*)
         FROM (
             SELECT
-                two,
-                four,
-                count(*)
-            FROM
-                onek
+                two, four, count(*)
+            FROM onek
             GROUP BY
-                CUBE (two,
-                    four)
+                CUBE (two, four)
             ORDER BY
-                two,
-                four) s1)
+                two, four) s1)
 FROM (
     VALUES (1),
         (2)) v (a);
@@ -1563,23 +1551,17 @@ ORDER BY
     ten;
 
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
-            ROW (v.a,
-                s1.*)
+            ROW (v.a, s1.*)
         FROM (
             SELECT
-                two,
-                four,
-                count(*)
-            FROM
-                onek
+                two, four, count(*)
+            FROM onek
             GROUP BY
-                GROUPING SETS (two,
-                    four)
+                GROUPING SETS (two, four)
             ORDER BY
-                two,
-                four) s1)
+                two, four) s1)
 FROM (
     VALUES (1),
         (2)) v (a);

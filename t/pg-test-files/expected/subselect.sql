@@ -1013,15 +1013,14 @@ WHERE EXISTS (
         CROSS JOIN (
             SELECT
                 f1,
-                ARRAY (
+                ARRAY(
                     SELECT
                         q1
-                    FROM
-                        int8_tbl) AS arr
-                FROM
-                    text_tbl) ss
-            WHERE
-                road.name = ss.f1);
+                    FROM int8_tbl) AS arr
+            FROM
+                text_tbl) ss
+        WHERE
+            road.name = ss.f1);
 ROLLBACK;
 
 --

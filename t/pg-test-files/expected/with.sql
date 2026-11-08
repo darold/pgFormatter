@@ -1769,15 +1769,14 @@ FROM
 C AS (
     SELECT
         A.id,
-        ARRAY (
+        ARRAY(
             SELECT
                 B.id
-            FROM
-                B
+            FROM B
             WHERE
                 B.id = A.id)
-        FROM
-            A
+    FROM
+        A
 )
 SELECT
     *

@@ -191,7 +191,7 @@ SELECT
 --constructors
 -- array_to_json
 SELECT
-    array_to_json(ARRAY (
+    array_to_json(ARRAY(
             SELECT
                 1 AS a));
 
@@ -273,7 +273,8 @@ FROM
 SELECT
     row_to_json(ROW ((
             SELECT
-                array_agg(x) AS d FROM generate_series(5, 10) x)), FALSE);
+                array_agg(x) AS d
+            FROM generate_series(5, 10) x)), FALSE);
 
 -- anyarray column
 SELECT

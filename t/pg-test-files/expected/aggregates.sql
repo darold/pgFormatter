@@ -510,11 +510,10 @@ EXPLAIN (
     COSTS OFF
 )
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
             sum(x + y) s
-        FROM
-            generate_series(1, 3) y
+        FROM generate_series(1, 3) y
         GROUP BY
             y
         ORDER BY
@@ -523,11 +522,10 @@ FROM
     generate_series(1, 3) x;
 
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
             sum(x + y) s
-        FROM
-            generate_series(1, 3) y
+        FROM generate_series(1, 3) y
         GROUP BY
             y
         ORDER BY
@@ -1824,16 +1822,15 @@ FROM
 
 -- outer-level agg can't use a grouped arg of a lower level, either:
 SELECT
-    ARRAY (
+    ARRAY(
         SELECT
             percentile_disc(a) WITHIN GROUP (ORDER BY x)
         FROM (
-            VALUES (0.3),
-                (0.7)) v (a)
-            GROUP BY
-                a)
-    FROM
-        generate_series(1, 5) g (x);
+            VALUES (0.3), (0.7)) v (a)
+        GROUP BY
+            a)
+FROM
+    generate_series(1, 5) g (x);
 
 -- agg in the direct args is a grouping violation, too:
 SELECT

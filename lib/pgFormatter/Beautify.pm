@@ -5046,6 +5046,19 @@ sub _add_token {
 		  ", token=$token\n";
 	}
 
+	# The previous token is a single line comment or a psql meta-command, both
+	# end at the end of the line: the token must not be written on the same
+	# line, it would be commented out or taken as an argument of the command.
+	# This happens when the statements are written on a single line (spaces 0)
+	# where the line breaks are replaced by a space. The \\ separator is the
+	# only token that can follow a meta-command on the same line.
+	if ( my $eol = $self->{'_eol_required'} ) {
+		$self->{'_eol_required'} = 0;
+		$self->{'content'} =~ s/[ \t]*\z/\n/
+		  if ( $self->{'content'} !~ /\n[ \t]*\z/
+			and ( $eol eq 'comment' or $token ne "\\\\" ) );
+	}
+
 	if ( $self->{'wrap'} ) {
 		my $wrap;
 		if ( $self->_is_keyword( $token, $self->_next_token(), $last_token ) ) {
@@ -5502,6 +5515,20 @@ sub _add_token {
 
 	# This can't be the beginning of a new line anymore.
 	$self->{'_new_line'} = 0;
+
+	# A single line comment and a psql meta-command end at the end of the line
+	if ( $token =~ /\n\s*\z/ ) {
+		$self->{'_eol_required'} = 0;
+	}
+	elsif ( $token =~ /^(?:<[^>]+>)?[ \t]*--/ ) {
+		$self->{'_eol_required'} = 'comment';
+	}
+	elsif ( $token =~ /^\\[^\\\s]/ ) {
+		$self->{'_eol_required'} = 'meta';
+	}
+	else {
+		$self->{'_eol_required'} = 0;
+	}
 }
 
 =head2 _over
