@@ -36,3 +36,5 @@ SELECT
 SELECT
     4;
 
+\d+x tbl_heap
+\d+x

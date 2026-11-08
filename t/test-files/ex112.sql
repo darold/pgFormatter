@@ -17,3 +17,5 @@ SELECT $1, $2 \parse stmt3
 SELECT 3;
 \a\t
 select 4;
+\d+x tbl_heap
+\d+x

@@ -910,7 +910,7 @@ sub tokenize_sql {
 		|
 		(?:\\copy\s[^\n]*\bfrom\s+p?stdin\b[^\n]*\n.*?^\\\.[\ \t]*$)	# psql \copy from stdin and its data
 		|
-		(?:\\(?:[a-zA-Z_][a-zA-Z0-9_]*[+!]*|\?|\!))(?:$|[\n]|(?=\\)|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
+		(?:\\(?:[a-zA-Z_][a-zA-Z0-9_]*(?:[+!][a-zA-Z0-9_]*)*|\?|\!))(?:$|[\n]|(?=\\)|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
 		|
 		AAKEYWCONST\d+AA(?:\s+AAKEYWCONST\d+AA)+             # preserved multiple constants with newline
 		|

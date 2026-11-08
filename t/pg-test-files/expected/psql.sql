@@ -823,7 +823,9 @@ FROM
 \set HIDE_TABLEAM on
 \d+
 -- \d with 'x' enables expanded mode, but only without a pattern
-d + x tbl_heap d + x RESET ROLE;
+\d+x tbl_heap
+\d+x
+RESET ROLE;
 
 RESET search_path;
 
