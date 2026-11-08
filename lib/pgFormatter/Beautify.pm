@@ -3858,7 +3858,7 @@ sub beautify {
 				$self->_new_line( $token, $last );
 				$self->{'_has_limit'} = 0;
 			}
-			elsif ( $self->_next_token =~ /^EACH$/
+			elsif ( $self->_next_token =~ /^EACH$/i
 				and $self->{'_is_in_trigger'} )
 			{
 				$self->_new_line( $token, $last );

@@ -165,17 +165,20 @@ CREATE TABLE part1 (
 );
 
 CREATE TRIGGER parted_trig
-    AFTER INSERT ON parted_irreg FOR EACH ROW
+    AFTER INSERT ON parted_irreg
+    FOR EACH ROW
     EXECUTE PROCEDURE trigger_notice_ab ();
 
 CREATE CONSTRAINT TRIGGER parted_trig_two
-    AFTER INSERT ON parted_constr DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+    AFTER INSERT ON parted_constr DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
     WHEN (bark (new.b) AND new.a % 2 = 1)
     EXECUTE PROCEDURE trigger_notice_ab ();
 
 BEGIN;
 CREATE TRIGGER ttdummy
-    BEFORE DELETE OR UPDATE ON alterlock FOR EACH ROW
+    BEFORE DELETE OR UPDATE ON alterlock
+    FOR EACH ROW
     EXECUTE PROCEDURE ttdummy (1, 1);
 SELECT
     *
