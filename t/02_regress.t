@@ -1,4 +1,4 @@
-use Test::Simple tests => 124;
+use Test::Simple tests => 125;
 use File::Temp qw/ tempfile /;
 
 my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
@@ -15,6 +15,7 @@ foreach my $f (@files)
 	next if ( $#ARGV >= 0 and lc($ARGV[0]) ne 'update' and !grep(m#^$f$#, @ARGV) );
 	my $opt = '';
 	$opt = "-S '\$f\$'" if ($f =~ m#/ex19.sql$#);
+	$opt = "--backslash-escape" if ($f =~ m#/ex8.sql$#);
 	$opt = "-W 4" if ($f =~ m#/ex46.sql$#);
 	$opt .= ' -t' if (grep(/^-t/, @ARGV));
 	$opt = "-T -n " if ($f =~ m#/ex51.sql$#);

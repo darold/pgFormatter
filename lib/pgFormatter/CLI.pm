@@ -121,6 +121,7 @@ sub beautify {
 	$args{'matching_paren_newline'} = $self->{'cfg'}->{'matching-paren-newline'};
 	$args{'split_in_param'}        = $self->{'cfg'}->{'split-in-param'};
 	$args{'celko'}                 = $self->{'cfg'}->{'celko'};
+	$args{'backslash_escape'}      = $self->{'cfg'}->{'backslash-escape'};
 	$args{'comma_break'}           = $self->{'cfg'}->{'comma-break'};
 	$args{'format'}                = $self->{'cfg'}->{'format'};
 	$args{'maxlength'}             = $self->{'cfg'}->{'maxlength'};
@@ -388,6 +389,9 @@ Options:
                             own line, the closing parenthesis on a new line.
     --celko             : use the Joe Celko style for the DML statements: the
                             clause keywords are right aligned on a river.
+    --backslash-escape  : the backslash is an escape character in all strings,
+                            like with standard_conforming_strings off or MySQL.
+                            By default it is only in E'' strings.
     --isolate-semicolon : place the statement terminating semicolon on its own line
                             instead of appending it to the last token, unless the
                             whole statement fits on a single line.
@@ -541,6 +545,7 @@ sub get_command_line_args {
 		'matching-paren-newline!', 'comma-break|B!',  'config|c=s',
 		'split-in-param!',
 		'celko!',
+		'backslash-escape!',
 		'no-rcfile|X!',    'wrap-comment|C!',
 		'debug|d!',        'comma-end|e!',
 		'format|F=s',      'nogrouping|g!',
@@ -621,6 +626,7 @@ sub get_command_line_args {
 	$cfg{'matching-paren-newline'} //= 0;
 	$cfg{'split-in-param'}        //= 0;
 	$cfg{'celko'}                 //= 0;
+	$cfg{'backslash-escape'}      //= 0;
 	$cfg{'comma-break'}   //= 0;
 	$cfg{'maxlength'}     //= 0;
 	$cfg{'format-type'}   //= 0;

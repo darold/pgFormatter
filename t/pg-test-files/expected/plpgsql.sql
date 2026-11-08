@@ -6124,7 +6124,7 @@ CREATE OR REPLACE FUNCTION strtest ()
     AS $$
 BEGIN
     RAISE NOTICE 'foo\\bar\041baz\';
-  return ' foo\\bar 041baz\';
+    RETURN 'foo\\bar\041baz\';
 END
 $$
 LANGUAGE plpgsql;

@@ -3932,92 +3932,144 @@ SELECT
     'foox' LIKE 'foo\' COLLATE ignore_accents;
 
 -- literal backslash with nondeterministic collation (bug #19474)
-SELECT 'back\slash' COLLATE ignore_accents LIKE 'back\slash%' ESCAPE '#';
-SELECT 'aäb' COLLATE ignore_accents LIKE 'a#äb' ESCAPE '#' AS multibyte_escape;
-SELECT 'a\äb' COLLATE ignore_accents LIKE 'a\äb%' ESCAPE '#' AS backslash_multibyte;
-SELECT 'a\b%c' COLLATE ignore_accents LIKE 'a#\b#%%c' ESCAPE '#' AS mixed_escapes;
-SELECT 'backslash' COLLATE ignore_accents LIKE 'back\\slash%';
+SELECT
+    'back\slash' COLLATE ignore_accents LIKE 'back\slash%' ESCAPE '#';
+
+SELECT
+    'aäb' COLLATE ignore_accents LIKE 'a#äb' ESCAPE '#' AS multibyte_escape;
+
+SELECT
+    'a\äb' COLLATE ignore_accents LIKE 'a\äb%' ESCAPE '#' AS backslash_multibyte;
+
+SELECT
+    'a\b%c' COLLATE ignore_accents LIKE 'a#\b#%%c' ESCAPE '#' AS mixed_escapes;
+
+SELECT
+    'backslash' COLLATE ignore_accents LIKE 'back\\slash%';
 
 -- foreign keys (mixing different nondeterministic collations not allowed)
-CREATE TABLE test10pk (x text COLLATE case_sensitive PRIMARY KEY);
-CREATE TABLE test10fk (x text COLLATE case_insensitive REFERENCES test10pk (x) ON UPDATE CASCADE ON DELETE CASCADE);  -- error
+CREATE TABLE test10pk (
+    x text COLLATE case_sensitive PRIMARY KEY
+);
 
-CREATE TABLE test11pk (x text COLLATE case_insensitive PRIMARY KEY);
-CREATE TABLE test11fk (x text COLLATE case_sensitive REFERENCES test11pk (x) ON UPDATE CASCADE ON DELETE CASCADE);  -- error
+CREATE TABLE test10fk (
+    x text COLLATE case_insensitive REFERENCES test10pk (x) ON UPDATE CASCADE ON DELETE CASCADE
+);
 
+-- error
+CREATE TABLE test11pk (
+    x text COLLATE case_insensitive PRIMARY KEY
+);
+
+CREATE TABLE test11fk (
+    x text COLLATE case_sensitive REFERENCES test11pk (x) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- error
 -- The referenced index's collation can differ from the column's collation.
 -- Use reversed index columns to exercise the index-to-table column mapping.
-CREATE TABLE fk_collation_pk (id int, x text COLLATE case_insensitive);
+CREATE TABLE fk_collation_pk (
+    id int,
+    x text COLLATE case_insensitive
+);
+
 CREATE UNIQUE INDEX fk_collation_idx ON fk_collation_pk (x COLLATE "C", id);
-INSERT INTO fk_collation_pk VALUES (1, 'ABC');
-CREATE TABLE fk_collation_fk (id int, x text COLLATE case_insensitive);
-INSERT INTO fk_collation_fk VALUES (1, 'abc');
+
+INSERT INTO fk_collation_pk
+    VALUES (1, 'ABC');
+
+CREATE TABLE fk_collation_fk (
+    id int,
+    x text COLLATE case_insensitive
+);
+
+INSERT INTO fk_collation_fk
+    VALUES (1, 'abc');
+
 -- Lack of SELECT on the PK table forces per-row validation.
 CREATE ROLE regress_fk_collation;
+
 GRANT USAGE ON SCHEMA collate_tests TO regress_fk_collation;
+
 GRANT REFERENCES ON fk_collation_pk TO regress_fk_collation;
+
 ALTER TABLE fk_collation_fk OWNER TO regress_fk_collation;
+
 SET ROLE regress_fk_collation;
-ALTER TABLE fk_collation_fk ADD CONSTRAINT fk_collation_fkey
-    FOREIGN KEY (id, x) REFERENCES fk_collation_pk (id, x);
--- Ordinary DML must also use the column'
-    s CASE - insensitive equality. INSERT INTO fk_collation_fk
-        VALUES (1, 'aBc');
-        INSERT INTO fk_collation_fk
-            VALUES (2, 'abc'); -- fails
-            RESET ROLE;
-            DROP TABLE fk_collation_fk, fk_collation_pk;
-            REVOKE USAGE ON SCHEMA collate_tests FROM regress_fk_collation;
-            DROP ROLE regress_fk_collation;
 
-            -- Conversely, a case-insensitive index must not make the FK comparison
-            -- accept unequal values under the column's deterministic collation.
-            CREATE TABLE fk_collation_pk (
-                x text COLLATE "C"
-);
-            CREATE UNIQUE INDEX fk_collation_idx ON fk_collation_pk (
-                x COLLATE case_insensitive
-);
-            INSERT INTO fk_collation_pk
-        VALUES (
-            'ABC'
-);
-        CREATE TABLE fk_collation_fk (
-            x text COLLATE "C", CONSTRAINT fk_collation_fkey FOREIGN KEY (x) REFERENCES fk_collation_pk (x)
-);
-            INSERT INTO fk_collation_fk
-        VALUES (
-            'ABC'
-);
-            INSERT INTO fk_collation_fk
-        VALUES (
-            'abc'
-); -- fails
-        -- SPI fallback must preserve checks already buffered for another FK.
-        CREATE TABLE fk_collation_intpk (
-            id int PRIMARY KEY
-);
-            INSERT INTO fk_collation_intpk
-        VALUES (
-            1
-);
-        CREATE TABLE fk_collation_mix (
-            id int REFERENCES fk_collation_intpk, x text COLLATE "C" REFERENCES fk_collation_pk (x)
+ALTER TABLE fk_collation_fk
+    ADD CONSTRAINT fk_collation_fkey FOREIGN KEY (id, x) REFERENCES fk_collation_pk (id, x);
+
+-- Ordinary DML must also use the column's case-insensitive equality.
+INSERT INTO fk_collation_fk
+    VALUES (1, 'aBc');
+
+INSERT INTO fk_collation_fk
+    VALUES (2, 'abc');
+
+-- fails
+RESET ROLE;
+
+DROP TABLE fk_collation_fk, fk_collation_pk;
+
+REVOKE USAGE ON SCHEMA collate_tests FROM regress_fk_collation;
+
+DROP ROLE regress_fk_collation;
+
+-- Conversely, a case-insensitive index must not make the FK comparison
+-- accept unequal values under the column's deterministic collation.
+CREATE TABLE fk_collation_pk (
+    x text COLLATE "C"
 );
 
-        -- Name the INSERT triggers after their constraints so the integer check is
-        -- buffered before the text check falls back to SPI, regardless of their OIDs.
-        DO $$
+CREATE UNIQUE INDEX fk_collation_idx ON fk_collation_pk (x COLLATE case_insensitive);
+
+INSERT INTO fk_collation_pk
+    VALUES ('ABC');
+
+CREATE TABLE fk_collation_fk (
+    x text COLLATE "C",
+    CONSTRAINT fk_collation_fkey FOREIGN KEY (x) REFERENCES fk_collation_pk (x)
+);
+
+INSERT INTO fk_collation_fk
+    VALUES ('ABC');
+
+INSERT INTO fk_collation_fk
+    VALUES ('abc');
+
+-- fails
+-- SPI fallback must preserve checks already buffered for another FK.
+CREATE TABLE fk_collation_intpk (
+    id int PRIMARY KEY
+);
+
+INSERT INTO fk_collation_intpk
+    VALUES (1);
+
+CREATE TABLE fk_collation_mix (
+    id int REFERENCES fk_collation_intpk,
+    x text COLLATE "C" REFERENCES fk_collation_pk (x)
+);
+
+-- Name the INSERT triggers after their constraints so the integer check is
+-- buffered before the text check falls back to SPI, regardless of their OIDs.
+DO $$
 DECLARE
     trig record;
 BEGIN
-    FOR trig IN SELECT t.tgname, c.conname FROM pg_trigger t
-    JOIN pg_constraint c ON c.oid = t.tgconstraint
-WHERE
-    t.tgrelid = 'fk_collation_mix'::regclass
+    FOR trig IN
+    SELECT
+        t.tgname,
+        c.conname
+    FROM
+        pg_trigger t
+        JOIN pg_constraint c ON c.oid = t.tgconstraint
+    WHERE
+        t.tgrelid = 'fk_collation_mix'::regclass
         AND t.tgfoid = '"RI_FKey_check_ins"'::regproc LOOP
             EXECUTE format('ALTER TRIGGER %I ON fk_collation_mix RENAME TO %I', trig.tgname, trig.conname);
-            END LOOP;
+        END LOOP;
 END
 $$;
 
@@ -4216,10 +4268,10 @@ SELECT
             count(*)
         FROM
             test22_0) = (
-            SELECT
-                count(*)
-            FROM
-                test22_1);
+        SELECT
+            count(*)
+        FROM
+            test22_1);
 
 -- same with arrays
 CREATE TABLE test22a (
@@ -4247,10 +4299,10 @@ SELECT
             count(*)
         FROM
             test22a_0) = (
-            SELECT
-                count(*)
-            FROM
-                test22a_1);
+        SELECT
+            count(*)
+        FROM
+            test22a_1);
 
 CREATE TABLE test23 (
     a int,
@@ -4277,10 +4329,10 @@ SELECT
             count(*)
         FROM
             test23_0) <> (
-            SELECT
-                count(*)
-            FROM
-                test23_1);
+        SELECT
+            count(*)
+        FROM
+            test23_1);
 
 -- same with arrays
 CREATE TABLE test23a (
@@ -4308,10 +4360,10 @@ SELECT
             count(*)
         FROM
             test23a_0) <> (
-            SELECT
-                count(*)
-            FROM
-                test23a_1);
+        SELECT
+            count(*)
+        FROM
+            test23a_1);
 
 CREATE TABLE test30 (
     a int,
@@ -4378,10 +4430,10 @@ SELECT
             count(*)
         FROM
             test32_0) = (
-            SELECT
-                count(*)
-            FROM
-                test32_1);
+        SELECT
+            count(*)
+        FROM
+            test32_1);
 
 CREATE TABLE test33 (
     a int,
@@ -4408,10 +4460,10 @@ SELECT
             count(*)
         FROM
             test33_0) <> (
-            SELECT
-                count(*)
-            FROM
-                test33_1);
+        SELECT
+            count(*)
+        FROM
+            test33_1);
 
 --
 -- Bug #18568

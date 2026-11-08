@@ -177,6 +177,8 @@ when the statement spans several lines
 
 =item * split_in_param - write each value of the list of an IN clause on its own line
 
+=item * backslash_escape - the backslash is an escape character in all strings, not only in the E'' strings, like with standard_conforming_strings off or with MySQL
+
 =item * celko - use the Joe Celko style: the clause keywords of the DML statements are right aligned on a river
 
 =item * vertical_align - vertically align CREATE TABLE column definitions
@@ -195,7 +197,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline split_in_param celko)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline split_in_param celko backslash_escape)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -277,8 +279,15 @@ s/([\n\r])\s+([EU]*'(?:[^']*)')/$1 . ($self->{ 'space' } x $self->{ 'spaces' }) 
 	# Replace any \\ by BSLHPGF
 	$self->{'query'} =~ s/\\\\/BSLHPGF/sg;
 
-	# Replace any \' by PGFBSLHQ
-	$self->{'query'} =~ s/\\'/PGFBSLHQ/sg;
+	# Replace any \' by PGFBSLHQ, only in the E'' strings like PostgreSQL
+	# with standard_conforming_strings, the default, unless the backslash is
+	# an escape character in all strings (backslash_escape).
+	if ( $self->{'backslash_escape'} ) {
+		$self->{'query'} =~ s/\\'/PGFBSLHQ/sg;
+	}
+	elsif ( $self->{'query'} =~ /\\'/ ) {
+		$self->_escape_estring_quotes();
+	}
 
 	# Replace any '' by PGFESCQ1
 	while ( $self->{'query'} =~ s/([^'])''([^'])/$1PGFESCQ1$2/s ) { }
@@ -749,6 +758,47 @@ sub _reset_query_state {
 	$self->{'nested_comments'} = [];
 }
 
+=head2 _escape_estring_quotes
+
+With standard conforming strings, the default in PostgreSQL, a backslash is
+only an escape character in the E'' strings: 'foo\' is a complete string.
+Replace the escaped quotes \' of the E'' strings only by the PGFBSLHQ
+placeholder. The comments, quoted identifiers and other strings are skipped.
+
+=cut
+
+sub _escape_estring_quotes {
+	my $self = shift;
+
+	my $q   = $self->{'query'};
+	my $out = '';
+	pos($q) = 0;
+	while ( pos($q) < length($q) ) {
+		if ( $q =~ m{\G((?<![\w\$])[Ee]')((?:[^'\\]|\\.|'')*)'}gcs ) {
+			my ( $start, $str ) = ( $1, $2 );
+			$str =~ s/\\'/PGFBSLHQ/g;
+			$out .= $start . $str . "'";
+			next;
+		}
+		if (
+			$q =~ m{\G(
+				  '(?:[^']|'')*'
+				| "(?:[^"]|"")*"
+				| --[^\n]*
+				| /\*.*?\*/
+				| [^'"/\-Ee]+
+			)}gcsx
+		  )
+		{
+			$out .= $1;
+			next;
+		}
+		$q =~ m{\G(.)}gcs;
+		$out .= $1;
+	}
+	$self->{'query'} = $out;
+}
+
 =head2 _escape_comment_quotes
 
 Replace the single quotes in the C style comments of the query by the
@@ -904,6 +954,14 @@ sub tokenize_sql {
 	# just in case it has not been called in the main script
 	$query = $self->query() if ( !$query );
 
+	# Double quoted identifier: the backslash is not an escape character in
+	# PostgreSQL, a double quote is escaped by doubling it, except with the
+	# backslash_escape option.
+	my $dquoted =
+	  $self->{'backslash_escape'}
+	  ? qr/"(?>(?:(?>[^"\\]+)|""|\\.)*)+"/
+	  : qr/"(?>(?:(?>[^"]+)|"")*)+"/;
+
 	my $re = qr{
         (
 		\\;		# psql escaped semicolon: statements sent as a single query
@@ -916,7 +974,7 @@ sub tokenize_sql {
 		|
 		AAKEYWCONST\d+AA             # preserved constants
 		|
-		U&(?:AAKEYWCONST\d+AA|"(?>(?:(?>[^"\\]+)|""|\\.)*)+")   # Unicode escape string or identifier, U&'...' or U&"..."
+		U&(?:AAKEYWCONST\d+AA|$dquoted)   # Unicode escape string or identifier, U&'...' or U&"..."
 		|
 		\/\/			# mysql delimiter ( $$ is handled later with PG code delimiters )
 		|
@@ -983,7 +1041,7 @@ sub tokenize_sql {
 		|
 		:"[^"\s]+"	# psql variable interpolated as an identifier, :"name"
 		|
-		"(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
+		$dquoted # anything inside double quotes
 		|
 		`(?>(?:(?>[^`\\]+)|``|\\.)*)+` # anything inside backticks quotes, ungreedy
 		|
@@ -7175,6 +7233,8 @@ Currently defined defaults:
 
 =item split_in_param => 0
 
+=item backslash_escape => 0
+
 =item vertical_align => 0
 
 =back
@@ -7227,6 +7287,7 @@ sub set_defaults {
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'matching_paren_newline'} = 0;
 	$self->{'split_in_param'}         = 0;
+	$self->{'backslash_escape'}       = 0;
 	$self->{'celko'}                  = 0;
 	$self->{'vertical_align'}        = 0;
 

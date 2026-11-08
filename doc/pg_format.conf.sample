@@ -19,6 +19,11 @@ split-in-param=0
 # right aligned on a river.
 celko=0
 
+# The backslash is an escape character in all strings, like with
+# standard_conforming_strings off or MySQL. By default it is only in E''
+# strings.
+backslash-escape=0
+
 # Output format: text or html. Default: text.
 format=text
 

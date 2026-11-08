@@ -95,6 +95,9 @@ DESCRIPTION
                                 own line, the closing parenthesis on a new line.
         --celko             :   use the Joe Celko style for the DML statements: the
                                 clause keywords are right aligned on a river.
+        --backslash-escape  :   the backslash is an escape character in all strings,
+                                like with standard_conforming_strings off or MySQL.
+                                By default it is only in E'' strings.
         --redundant-parenthesis: do not remove redundant parenthesis in DML.
         --vertical-align      : vertically align CREATE TABLE column definitions and
                                 trailing comments. Disabled by default.
@@ -371,6 +374,14 @@ SPECIAL FORMATTING
                                  FROM champions AS c
                                 WHERE c.confirmed = 'Y')
          ORDER BY 1;
+
+  Option --backslash-escape
+    Like PostgreSQL with standard_conforming_strings on, the default since
+    PostgreSQL 9.1, the backslash is only an escape character in the E''
+    strings: 'foo\' is a complete string and E'it\'s' a string with an escaped
+    quote. With this option, the backslash is an escape character in all the
+    strings, like with standard_conforming_strings off or with MySQL:
+    'it\'s' is then a string with an escaped quote. Disabled by default.
 
   Option --vertical-align
     Use this option to vertically align direct, single-line column
