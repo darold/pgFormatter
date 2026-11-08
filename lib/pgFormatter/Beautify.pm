@@ -6015,10 +6015,23 @@ sub _subquery_track {
 		# Remove the shift applied at the opening of the subquery
 		$self->_set_level( $self->{'_level'} - $closed->{'shift'}, $token )
 		  if ( $closed->{'shift'} and $self->{'_level'} >= $closed->{'shift'} );
+
+		# What follows a subquery in a list, like the next column of the
+		# SELECT list, is at the level where the subquery was opened and
+		# in the same clause: the clauses of the subquery, like a LIMIT or
+		# a WHERE clause, must not change them.
+		if ( $closed->{'restore'} and $token eq ',' ) {
+			$self->_set_level( $closed->{'level'}, $token );
+			$self->{'_is_in_where'} = $closed->{'in_where'};
+		}
 	}
 
 	if ( $token eq '(' ) {
 		$self->{'_paren_depth'}++;
+		$self->{'_paren_state'}[ $self->{'_paren_depth'} ] = {
+			level    => $self->{'_level'},
+			in_where => $self->{'_is_in_where'}
+		};
 	}
 	elsif ( $token eq ')' ) {
 		my $stack = $self->{'_subquery_stack'};
@@ -6066,10 +6079,21 @@ subquery is closed.
 sub _subquery_open {
 	my $self = shift;
 
+	my $state = $self->{'_paren_state'}[ $self->{'_paren_depth'} ] || {};
 	my $entry = {
-		depth   => $self->{'_paren_depth'},
-		in_with => ( $self->{'_is_in_with'} ? 1 : 0 ),
-		shift   => 0
+		depth    => $self->{'_paren_depth'},
+		in_with  => ( $self->{'_is_in_with'} ? 1 : 0 ),
+		shift    => 0,
+
+		# Only for a subquery in a list of the statement or of an enclosing
+		# subquery, like the SELECT list, not in a function call or VALUES
+		restore => (
+			      defined $state->{'level'}
+			  and !$self->{'_is_in_with'}
+			  and $#{ $self->{'_subquery_stack'} } + 2 == $self->{'_paren_depth'}
+		) ? 1 : 0,
+		level    => $state->{'level'},
+		in_where => $state->{'in_where'}
 	};
 	push( @{ $self->{'_subquery_stack'} }, $entry );
 

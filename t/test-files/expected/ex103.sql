@@ -29,7 +29,10 @@ SELECT
             extract(year FROM d)
         FROM t
         WHERE
-            x = 1), ARRAY[1, 2, 3], array_agg(x), x = ANY (ARRAY(
+            x = 1),
+    ARRAY[1, 2, 3],
+    array_agg(x),
+    x = ANY (ARRAY(
             SELECT
                 y
             FROM u
