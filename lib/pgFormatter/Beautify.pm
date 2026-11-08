@@ -893,6 +893,13 @@ sub tokenize_sql {
 		|
 		(?:\%[\d\-\*\$]*[sIL]) # format() placeholder
 		|
+		# Operators following the rules of the PostgreSQL lexer: a sequence of
+		# operator characters, not containing the start of a comment, that can
+		# end with + or - only if it contains one of ~ ! @ # % ^ & | ` ?
+		(?:(?!--|/\*)[+\-*/<>=~!\@\#%^&|`?])*[~!\@\#%^&|`?](?:(?!--|/\*)[+\-*/<>=~!\@\#%^&|`?])*
+		|
+		(?:(?!--|/\*)[+\-*/<>=])*(?:(?!--|/\*)[*/<>=])
+		|
 		(?:\&\&\&|<<\->>|\|=\|)  # PostGIS n-D and trajectory operators
 		|
 		(?:<<<\->|<\->>>|<<\%|\%>>|<\%>|<\%|\%>|<<\->|<\->>|<\->)  # pg_trgm, pgvector and some geometry operators
@@ -7706,7 +7713,7 @@ sub _quote_operator {
 	my @lines = split( /[\n]/, $$str );
 	for ( my $i = 0 ; $i <= $#lines ; $i++ ) {
 		if ( $lines[$i] =~
-s/((?:CREATE|DROP|ALTER)\s+OPERATOR\s+(?:IF\s+EXISTS)?)\s*((:?[a-z0-9]+\.)?[\+\-\*\/<>=\~\!\@\#\%\^\&\|\`\?]+)\s*/$1 "$2" /i
+s/((?:CREATE|DROP|ALTER)\s+OPERATOR\s+(?:IF\s+EXISTS)?)\s*((?:[a-z0-9_\$]+\.)?[\+\-\*\/<>=\~\!\@\#\%\^\&\|\`\?]+)\s*/$1 "$2" /i
 		  )
 		{
 			push( @{ $self->{operator} }, $2 )
