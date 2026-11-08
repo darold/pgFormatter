@@ -583,11 +583,13 @@ sub highlight_code {
 		}
 	}
 
-	# lowercase/uppercase keywords taking care of function with same name
+	# lowercase/uppercase keywords taking care of function with same name,
+	# ARRAY ( subquery ) keeps the keyword case
 	if (
 		$self->_is_keyword( $token, $next_token, $last_token )
 		&& (  !$self->_is_function( $token, $last_token, $next_token )
-			|| $next_token ne '(' )
+			|| $next_token ne '('
+			|| uc($token) eq 'ARRAY' )
 	  )
 	{
 		if ( $self->{'uc_keywords'} == 1 ) {
@@ -5293,9 +5295,12 @@ sub _add_token {
 			or $self->{'_is_in_create_function'}
 			or uc($token) eq 'AS'
 		)
+		# ARRAY ( subquery ) is formatted like a function call but its case
+		# is the keyword case
 		and (  $next_token ne '('
 			or ( defined $last_token and $last_token =~ /^(CREATE|ALTER)$/i )
-			or !$self->_is_function($token) )
+			or !$self->_is_function($token)
+			or uc($token) eq 'ARRAY' )
 	  )
 	{
 		# Be sure that we are not formating with time zone
@@ -6750,7 +6755,7 @@ sub set_dicts {
 	  aclexplode aclinsert aclitemeq aclitemin aclitemout aclremove acos
 	  any_in any_out anyarray_in anyarray_out anyarray_recv anyarray_send anyelement_in
 	  anyelement_out anyenum_in anyenum_out anynonarray_in anynonarray_out anyrange_in anyrange_out
-	  anytextcat area areajoinsel areasel armor array_agg array_agg_finalfn
+	  anytextcat area areajoinsel areasel armor array array_agg array_agg_finalfn
 	  array_agg_transfn array_append array_cat array_dims array_eq array_fill array_ge array_positions
 	  array_gt array_in array_larger array_le array_length array_lower array_lt array_position
 	  array_ndims array_ne array_out array_prepend array_recv array_remove array_replace array_send array_smaller
