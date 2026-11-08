@@ -7337,15 +7337,20 @@ sub _remove_comments {
 		}
 
 		# Mysql supports differents kinds of comment's starter
-		if (   ( $lines[$j] =~ s/(\s*COMMENT\s+'.*)$/PGF_COMMENT${idx}A/ )
-			|| ( $lines[$j] =~ s/(\s*\# .*)$/PGF_COMMENT${idx}A/ ) )
-		{
+		if ( $lines[$j] =~ s/(\s*COMMENT\s+'.*)$/PGF_COMMENT${idx}A/ ) {
 			$self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
 
 			# Normalize start of comment
 			$self->{'comments'}{"PGF_COMMENT${idx}A"} =~
 			  s/^(\s*)COMMENT/$1\-\- /;
-			$self->{'comments'}{"PGF_COMMENT${idx}A"} =~ s/^(\s*)\#/$1\-\- /;
+			$idx++;
+		}
+
+		# A line starting with # is not wrapped but kept as is: it can be a
+		# Mysql comment as well as the PostgreSQL # operator (a # b, # path)
+		# that must not be changed into a comment.
+		elsif ( $lines[$j] =~ s/^(\s*\# .*)$/PGF_COMMENT${idx}A/ ) {
+			$self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
 			$idx++;
 		}
 	}
@@ -7387,7 +7392,10 @@ sub _restore_comments {
 					my @data = split( /\n/, $self->{'comments'}{$k} );
 					map { s/^\s*--//; } @data;
 					$self->{'comments'}{$k} = join( "\n", @data );
-					$Text::Wrap::columns = $self->{'wrap_limit'};
+					# Text::Wrap aborts when the width is not greater
+					# than the indentation of the continuation lines
+					local $Text::Wrap::columns =
+					  ( $self->{'wrap_limit'} > 3 ) ? $self->{'wrap_limit'} : 3;
 					my $t = wrap( '', ' ', $self->{'comments'}{$k} );
 					@data = split( /\n/, $t );
 					map { s/^/$indent--/; } @data;
@@ -7425,6 +7433,11 @@ sub wrap_lines {
 
 	$self->_remove_comments();
 
+	# Text::Wrap breaks the lines at whitespace: hide the whitespace inside
+	# the strings and the quoted identifiers that are not stored as
+	# placeholders, a line break there would change their value.
+	$self->{'content'} =~ s/('(?:[^']|'')*'|"(?:[^"]|"")*")/_hide_blank($1)/ge;
+
 	my @lines = split( /\n/, $self->{'content'} );
 	$self->{'content'} = '';
 
@@ -7435,11 +7448,26 @@ sub wrap_lines {
 		if ( $l =~ s/^(\s+)// ) {
 			$indent = $1;
 		}
+		# A psql meta-command ends at the end of the line, it can not be wrapped
 		if (
 			length($l) >
-			$self->{'wrap_limit'} + ( $self->{'wrap_limit'} * 10 / 100 ) )
+			$self->{'wrap_limit'} + ( $self->{'wrap_limit'} * 10 / 100 )
+			and $l !~ /^\\/ )
 		{
-			$Text::Wrap::columns = $self->{'wrap_limit'};
+			# The width must be greater than the indentation of the
+			# continuation lines, otherwise Text::Wrap raises a warning that
+			# aborts pg_format.
+			my $lead = " " x $self->{'spaces'} . $indent;
+			my $min  = length( Text::Tabs::expand($lead) ) + 2;
+			local $Text::Wrap::columns =
+			  ( $self->{'wrap_limit'} > $min ) ? $self->{'wrap_limit'} : $min;
+
+			# Never break a word longer than the line: the constants, the
+			# aliases and the quoted identifiers are stored as placeholders
+			# at this point (AAKEYWCONST1AA, PGFALIAS1...) that must stay
+			# whole to be restored, and breaking an identifier or a number
+			# would change the statement.
+			local $Text::Wrap::huge = 'overflow';
 			my $t = wrap( $indent, " " x $self->{'spaces'} . $indent, $l );
 			$self->{'content'} .= "$t\n";
 		}
@@ -7447,11 +7475,18 @@ sub wrap_lines {
 			$self->{'content'} .= $indent . "$l\n";
 		}
 	}
+	$self->{'content'} =~ tr/\x01\x02/ \t/;
 
 	$self->_restore_comments( $wrap_comment || $self->{'wrap_comment'} )
 	  if ( $self->{'content'} );
 
 	return;
+}
+
+sub _hide_blank {
+	my $str = shift;
+	$str =~ tr/ \t/\x01\x02/;
+	return $str;
 }
 
 sub _dump_var {
