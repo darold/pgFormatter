@@ -385,9 +385,11 @@ s/([\n\r])\s+([EU]*'(?:[^']*)')/$1 . ($self->{ 'space' } x $self->{ 'spaces' }) 
 				}
 			}
 
+			# The name of an internal function, in a string or a dollar
+			# quoted string, must not be changed
 			if ( $language =~ /^internal$/i ) {
 				if ( $temp_content[$j] =~
-					s/AS ('[^\']+')/AS CODEPARTB${i}CODEPARTB/is )
+					s/AS ('[^\']+'|(\$(?:[A-Za-z_]\w*)?\$)[^\$]*?\2)/AS CODEPARTB${i}CODEPARTB/is )
 				{
 					push( @{ $self->{'placeholder_values'} }, $1 );
 					$i++;
@@ -940,6 +942,8 @@ sub tokenize_sql {
 		[^\"\s=<>!~\*&\(\):\|\-\+\%\^\?\@\#\[\]\{\}\.,;']+\."[^\"\s]+" # fqdn identifier form schema."table" or table."column"
 		|
 		"[^\"\s]+"\."[^\"\s]+" # fqdn identifier form "schema"."table" or "table"."column"
+		|
+		:"[^"\s]+"	# psql variable interpolated as an identifier, :"name"
 		|
 		"(?>(?:(?>[^"\\]+)|""|\\.)*)+" # anything inside double quotes, ungreedy
 		|
@@ -2893,7 +2897,9 @@ sub beautify {
 			if ( $self->_next_token =~ /CODEPART/ ) {
 				$self->{'_fct_code_delimiter'} = '0';
 			}
-			elsif ( $token =~ /^'.*'$/ ) {
+			# A string or a psql variable (:'var', :"var", :var): the code is
+			# complete, there is no closing delimiter to wait for
+			elsif ( $token =~ /^(?:'.*'|:AAKEYWCONST\d+AA|:'?"?\w+'?"?)$/s ) {
 				$self->{'_fct_code_delimiter'} = "'";
 			}
 			else {
