@@ -4026,8 +4026,7 @@ CREATE OR REPLACE FUNCTION stricttest ()
 DECLARE
     x record;
     p1 int := 2;
-    p3 text := $a$ 'Valame Dios!' dijo Sancho;
-    'no le dije yo a vuestra merced que mirase bien lo que hacia?' $a$;
+    p3 text := $a$'Valame Dios!' dijo Sancho; 'no le dije yo a vuestra merced que mirase bien lo que hacia?'$a$;
 BEGIN
     -- no rows
     SELECT

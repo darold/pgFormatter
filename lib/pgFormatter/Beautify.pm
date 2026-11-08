@@ -440,7 +440,8 @@ s/AS ('[^\']+')(?:\s*,\s*('[^\']+'|AAKEYWCONST\d+AA))?/AS CODEPARTB${i}CODEPARTB
 	}
 	$self->{'query'} = join( '', @temp_content );
 
-        # replace all inline dollar-quoted constants, but leave untouched the
+        # replace all inline dollar-quoted constants, $$...$$ or $tag$...$tag$,
+        # but leave untouched the
         # ones that are not real string constants: PL/pgSQL code bodies
         # introduced by AS (function body) or DO (anonymous block, with an
         # optional LANGUAGE clause) -- the keyword and the opening $$ can be
@@ -448,7 +449,7 @@ s/AS ('[^\']+')(?:\s*,\s*('[^\']+'|AAKEYWCONST\d+AA))?/AS CODEPARTB${i}CODEPARTB
         # prefix is consumed but rewritten as-is so it is skipped without looping.
         $self->{'query'} =~ s{
                 (\bAS\s+ | \bDO\s+(?:LANGUAGE\s+\w+\s+)? | \bDELIMITER[ \t]+)?   # $1: skip prefix, kept verbatim
-                (\$\$[ ]*\S[^\n\r]*?\$\$)                                        # $2: inline $$...$$
+                ((\$(?:[A-Za-z_]\w*)?\$)[ ]*\S[^\n\r]*?\3)                     # $2: inline $$...$$ or $tag$...$tag$
         }{
                 if ( defined $1 ) {
                         "$1$2";

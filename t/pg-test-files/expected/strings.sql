@@ -764,31 +764,31 @@ SELECT
 \pset null '\\N'
 -- return all matches from regexp
 SELECT
-    regexp_matches('foobarbequebaz', $re$ (bar) (beque) $re$);
+    regexp_matches('foobarbequebaz', $re$(bar)(beque)$re$);
 
 -- test case insensitive
 SELECT
-    regexp_matches('foObARbEqUEbAz', $re$ (bar) (beque) $re$, 'i');
+    regexp_matches('foObARbEqUEbAz', $re$(bar)(beque)$re$, 'i');
 
 -- global option - more than one match
 SELECT
-    regexp_matches('foobarbequebazilbarfbonk', $re$ (b[^ b] +) (b[^ b] +) $re$, 'g');
+    regexp_matches('foobarbequebazilbarfbonk', $re$(b[^b]+)(b[^b]+)$re$, 'g');
 
 -- empty capture group (matched empty string)
 SELECT
-    regexp_matches('foobarbequebaz', $re$ (bar) (.*) (beque) $re$);
+    regexp_matches('foobarbequebaz', $re$(bar)(.*)(beque)$re$);
 
 -- no match
 SELECT
-    regexp_matches('foobarbequebaz', $re$ (bar) (.+) (beque) $re$);
+    regexp_matches('foobarbequebaz', $re$(bar)(.+)(beque)$re$);
 
 -- optional capture group did not match, null entry in array
 SELECT
-    regexp_matches('foobarbequebaz', $re$ (bar) (.+) ? (beque) $re$);
+    regexp_matches('foobarbequebaz', $re$(bar)(.+)?(beque)$re$);
 
 -- no capture groups
 SELECT
-    regexp_matches('foobarbequebaz', $re$ barbeque $re$);
+    regexp_matches('foobarbequebaz', $re$barbeque$re$);
 
 -- start/end-of-line matches are of zero length
 SELECT
@@ -808,32 +808,32 @@ SELECT
 
 -- give me errors
 SELECT
-    regexp_matches('foobarbequebaz', $re$ (bar) (beque) $re$, 'gz');
+    regexp_matches('foobarbequebaz', $re$(bar)(beque)$re$, 'gz');
 
 SELECT
-    regexp_matches('foobarbequebaz', $re$ (barbeque $re$);
+    regexp_matches('foobarbequebaz', $re$(barbeque$re$);
 
 SELECT
-    regexp_matches('foobarbequebaz', $re$ (bar) (beque) {2, 1 }$re$);
+    regexp_matches('foobarbequebaz', $re$(bar)(beque){2,1}$re$);
 
 -- split string on regexp
 SELECT
     foo,
     length(foo)
 FROM
-    regexp_split_to_table('the quick brown fox jumps over the lazy dog', $re$ s + $re$) AS foo;
+    regexp_split_to_table('the quick brown fox jumps over the lazy dog', $re$\s+$re$) AS foo;
 
 SELECT
-    regexp_split_to_array('the quick brown fox jumps over the lazy dog', $re$ s + $re$);
+    regexp_split_to_array('the quick brown fox jumps over the lazy dog', $re$\s+$re$);
 
 SELECT
     foo,
     length(foo)
 FROM
-    regexp_split_to_table('the quick brown fox jumps over the lazy dog', $re$ s * $re$) AS foo;
+    regexp_split_to_table('the quick brown fox jumps over the lazy dog', $re$\s*$re$) AS foo;
 
 SELECT
-    regexp_split_to_array('the quick brown fox jumps over the lazy dog', $re$ s * $re$);
+    regexp_split_to_array('the quick brown fox jumps over the lazy dog', $re$\s*$re$);
 
 SELECT
     foo,
