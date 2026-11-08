@@ -133,7 +133,6 @@ SELECT
 -- Examples of targets involving tables
 --
 SELECT
-    '' AS "Five",
     CASE WHEN i >= 3 THEN
         i
     END AS ">= 3 or Null"
@@ -141,7 +140,6 @@ FROM
     CASE_TBL;
 
 SELECT
-    '' AS "Five",
     CASE WHEN i >= 3 THEN
         (i + i)
     ELSE
@@ -151,7 +149,6 @@ FROM
     CASE_TBL;
 
 SELECT
-    '' AS "Five",
     i AS "Value",
     CASE WHEN (i < 0) THEN
         'small'
@@ -168,7 +165,6 @@ FROM
     CASE_TBL;
 
 SELECT
-    '' AS "Five",
     CASE WHEN ((i < 0)
         OR (i < 0)) THEN
         'small'
@@ -224,7 +220,6 @@ WHERE
     COALESCE(a.f, b.i, b.j) = 2;
 
 SELECT
-    '' AS Five,
     NULLIF (a.i, b.i) AS "NULLIF(a.i,b.i)",
     NULLIF (b.i, 4) AS "NULLIF(b.i,4)"
 FROM
@@ -232,13 +227,43 @@ FROM
     CASE2_TBL b;
 
 SELECT
-    '' AS "Two",
     *
 FROM
     CASE_TBL a,
     CASE2_TBL b
 WHERE
     COALESCE(f, b.i) = 2;
+
+-- Tests for constant subexpression simplification
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    CASE_TBL
+WHERE
+    NULLIF (1, 2) = 2;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    CASE_TBL
+WHERE
+    NULLIF (1, 1) IS NOT NULL;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    CASE_TBL
+WHERE
+    NULLIF (1, NULL) = 2;
 
 --
 -- Examples of updates involving tables
@@ -403,6 +428,10 @@ SELECT
     WHEN ARRAY[1, 2]::arrdomain THEN
         'right'
     END;
+-- While we're here, also test handling of a NULLIF arg that is a read/write
+-- object (bug #18722)
+SELECT
+    NULLIF (make_ad (1, 2), ARRAY[2, 3]::arrdomain);
 ROLLBACK;
 
 -- Test interaction of CASE with ArrayCoerceExpr (bug #15471)

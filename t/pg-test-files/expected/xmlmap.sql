@@ -22,7 +22,9 @@ CREATE TABLE testxmlschema.test2 (
     u bigint,
     t real,
     s time,
+    stz timetz,
     r timestamp,
+    rtz timestamptz,
     q date,
     p xml,
     o testxmldomain,
@@ -35,7 +37,7 @@ ALTER TABLE testxmlschema.test2
     DROP COLUMN aaa;
 
 INSERT INTO testxmlschema.test2
-    VALUES (55, 'abc', 'def', 98.6, 2, 999, 0, '21:07', '2009-06-08 21:07:30', '2009-06-08', NULL, 'ABC', TRUE, 'XYZ');
+    VALUES (55, 'abc', 'def', 98.6, 2, 999, 0, '21:07', '21:11 +05', '2009-06-08 21:07:30', '2009-06-08 21:07:30 -07', '2009-06-08', NULL, 'ABC', TRUE, 'XYZ');
 
 SELECT
     table_to_xml('testxmlschema.test1', FALSE, FALSE, '');

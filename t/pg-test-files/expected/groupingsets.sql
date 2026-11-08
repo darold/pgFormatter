@@ -45,6 +45,17 @@ CREATE temp TABLE gstest2 (
     h integer
 );
 
+copy gstest2 from stdin;
+1	1	1	1	1	1	1	1
+1	1	1	1	1	1	1	2
+1	1	1	1	1	1	2	2
+1	1	1	1	1	2	2	2
+1	1	1	1	2	2	2	2
+1	1	1	2	2	2	2	2
+1	1	2	2	2	2	2	2
+1	2	2	2	2	2	2	2
+2	2	2	2	2	2	2	2
+\.
 CREATE temp TABLE gstest3 (
     a integer,
     b integer,
@@ -52,6 +63,10 @@ CREATE temp TABLE gstest3 (
     d integer
 );
 
+copy gstest3 from stdin;
+1	1	1	1
+2	2	2	2
+\.
 ALTER TABLE gstest3
     ADD PRIMARY KEY (a);
 
@@ -224,8 +239,8 @@ FROM
 GROUP BY
     GROUPING SETS ((),
     GROUPING SETS ((),
-    GROUPING SETS (a,
-                b)))
+    GROUPING SETS (((a,
+                b)))))
 ORDER BY
     1 DESC;
 
@@ -264,8 +279,8 @@ SELECT
 FROM
     gstest2
 GROUP BY
-    GROUPING SETS (GROUPING SETS (a,
-                b))
+    GROUPING SETS (GROUPING SETS ((a,
+                b)))
 ORDER BY
     1 DESC;
 
@@ -288,7 +303,7 @@ GROUP BY
     GROUPING SETS (GROUPING SETS (a,
             GROUPING SETS (a,
                 GROUPING SETS (a),
-                (a),
+                ((a)),
                 a,
                 GROUPING SETS (a),
                 (a)),
@@ -417,6 +432,45 @@ GROUP BY
             b),
         ());
 
+SELECT
+    a,
+    b,
+    GROUPING (a, b),
+    sum(t1.v),
+    max(t2.c)
+FROM
+    gstest1 t1
+    FULL JOIN gstest2 t2 USING (a, b)
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        ());
+
+-- references in subqueries should work too
+SELECT
+    (
+        SELECT
+            a),
+    (
+        SELECT
+            b),
+    (
+        SELECT
+            GROUPING (a, b)),
+    (
+        SELECT
+            sum(t1.v)),
+    (
+        SELECT
+            max(t2.c))
+FROM
+    gstest1 t1
+    FULL JOIN gstest2 t2 USING (a, b)
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        ());
+
 -- check that functionally dependent cols are not nulled
 SELECT
     a,
@@ -514,6 +568,256 @@ GROUP BY
 ORDER BY
     x,
     q2;
+
+SELECT
+    x,
+    y
+FROM (
+    SELECT
+        four AS x,
+        four AS y
+    FROM
+        tenk1) AS t
+GROUP BY
+    GROUPING SETS (x,
+        y)
+HAVING
+    y IS NULL
+ORDER BY
+    1,
+    2;
+
+SELECT
+    x,
+    y || 'y'
+FROM (
+    SELECT
+        four AS x,
+        four AS y
+    FROM
+        tenk1) AS t
+GROUP BY
+    GROUPING SETS (x,
+        y)
+ORDER BY
+    1,
+    2;
+
+-- check that operands wrapped in PlaceHolderVars are capable of index matching
+BEGIN;
+SET local enable_bitmapscan = OFF;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x,
+    y
+FROM (
+    SELECT
+        unique1 AS x,
+        unique2 AS y
+    FROM
+        tenk1) AS t
+WHERE
+    x = 1
+GROUP BY
+    GROUPING SETS (x,
+        y)
+ORDER BY
+    1,
+    2;
+SELECT
+    x,
+    y
+FROM (
+    SELECT
+        unique1 AS x,
+        unique2 AS y
+    FROM
+        tenk1) AS t
+WHERE
+    x = 1
+GROUP BY
+    GROUPING SETS (x,
+        y)
+ORDER BY
+    1,
+    2;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x,
+    y
+FROM (
+    SELECT
+        unique1::oid AS x,
+        unique2 AS y
+    FROM
+        tenk1) AS t
+WHERE
+    x::integer = 1
+GROUP BY
+    GROUPING SETS (x,
+        y)
+ORDER BY
+    1,
+    2;
+SELECT
+    x,
+    y
+FROM (
+    SELECT
+        unique1::oid AS x,
+        unique2 AS y
+    FROM
+        tenk1) AS t
+WHERE
+    x::integer = 1
+GROUP BY
+    GROUPING SETS (x,
+        y)
+ORDER BY
+    1,
+    2;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x,
+    y
+FROM (
+    SELECT
+        t1.unique1 AS x,
+        t1.unique2 AS y
+    FROM
+        tenk1 t1,
+        tenk1 t2) AS t
+WHERE
+    x = 1
+GROUP BY
+    GROUPING SETS (x,
+        y)
+ORDER BY
+    1,
+    2;
+SELECT
+    x,
+    y
+FROM (
+    SELECT
+        t1.unique1 AS x,
+        t1.unique2 AS y
+    FROM
+        tenk1 t1,
+        tenk1 t2) AS t
+WHERE
+    x = 1
+GROUP BY
+    GROUPING SETS (x,
+        y)
+ORDER BY
+    1,
+    2;
+ROLLBACK;
+
+-- check qual push-down rules for a subquery with grouping sets
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    *
+FROM (
+    SELECT
+        1 AS x,
+        q1,
+        sum(q2)
+    FROM
+        int8_tbl i1
+    GROUP BY
+        GROUPING SETS (1,
+            2)) ss
+WHERE
+    x = 1
+    AND q1 = 123;
+
+SELECT
+    *
+FROM (
+    SELECT
+        1 AS x,
+        q1,
+        sum(q2)
+    FROM
+        int8_tbl i1
+    GROUP BY
+        GROUPING SETS (1,
+            2)) ss
+WHERE
+    x = 1
+    AND q1 = 123;
+
+-- check handling of pulled-up SubPlan in GROUPING() argument (bug #17479)
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    GROUPING (ss.x)
+FROM
+    int8_tbl i1
+    CROSS JOIN LATERAL (
+        SELECT
+            (
+                SELECT
+                    i1.q1) AS x) ss
+GROUP BY
+    ss.x;
+
+SELECT
+    GROUPING (ss.x)
+FROM
+    int8_tbl i1
+    CROSS JOIN LATERAL (
+        SELECT
+            (
+                SELECT
+                    i1.q1) AS x) ss
+GROUP BY
+    ss.x;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    (
+        SELECT
+            GROUPING (ss.x))
+    FROM
+        int8_tbl i1
+    CROSS JOIN LATERAL (
+        SELECT
+            (
+                SELECT
+                    i1.q1) AS x) ss
+GROUP BY
+    ss.x;
+
+SELECT
+    (
+        SELECT
+            GROUPING (ss.x))
+    FROM
+        int8_tbl i1
+    CROSS JOIN LATERAL (
+        SELECT
+            (
+                SELECT
+                    i1.q1) AS x) ss
+GROUP BY
+    ss.x;
 
 -- simple rescan tests
 SELECT
@@ -753,6 +1057,24 @@ ORDER BY
     a,
     b;
 
+-- Test reordering of grouping sets
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    gstest1
+GROUP BY
+    GROUPING SETS ((a,
+            b,
+            v),
+        (v))
+ORDER BY
+    v,
+    b,
+    a;
+
 -- Agg level check. This query should error out.
 SELECT
     (
@@ -870,6 +1192,140 @@ FROM (
         (TRUE)) v (c)
 ORDER BY
     v.c;
+
+-- test pushdown of non-degenerate HAVING clause that does not reference any
+-- columns that are nullable by grouping sets
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a))
+HAVING
+    a > 1
+    AND b > 1;
+
+SELECT
+    a,
+    b,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a))
+HAVING
+    a > 1
+    AND b > 1;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    ROLLUP (a),
+    b
+HAVING
+    b > 1;
+
+SELECT
+    a,
+    b,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    ROLLUP (a),
+    b
+HAVING
+    b > 1;
+
+-- test pushdown of degenerate HAVING clause
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS (())
+HAVING
+    FALSE;
+
+SELECT
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS (())
+HAVING
+    FALSE;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS ((a),
+        ())
+HAVING
+    FALSE;
+
+SELECT
+    a,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS ((a),
+        ())
+HAVING
+    FALSE;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS ((a),
+        (b))
+HAVING
+    FALSE;
+
+SELECT
+    a,
+    b,
+    count(*)
+FROM
+    gstest2
+GROUP BY
+    GROUPING SETS ((a),
+        (b))
+HAVING
+    FALSE;
 
 -- HAVING with GROUPING queries
 SELECT
@@ -1495,6 +1951,103 @@ ORDER BY
     a,
     b;
 
+-- Verify that we correctly handle the child node returning a
+-- non-minimal slot, which happens if the input is pre-sorted,
+-- e.g. due to an index scan.
+BEGIN;
+SET LOCAL enable_hashagg = FALSE;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b,
+    count(*),
+    max(a),
+    max(b)
+FROM
+    gstest3
+GROUP BY
+    GROUPING SETS (a,
+        b,
+        ())
+ORDER BY
+    a,
+    b;
+SELECT
+    a,
+    b,
+    count(*),
+    max(a),
+    max(b)
+FROM
+    gstest3
+GROUP BY
+    GROUPING SETS (a,
+        b,
+        ())
+ORDER BY
+    a,
+    b;
+SET LOCAL enable_seqscan = FALSE;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b,
+    count(*),
+    max(a),
+    max(b)
+FROM
+    gstest3
+GROUP BY
+    GROUPING SETS (a,
+        b,
+        ())
+ORDER BY
+    a,
+    b;
+SELECT
+    a,
+    b,
+    count(*),
+    max(a),
+    max(b)
+FROM
+    gstest3
+GROUP BY
+    GROUPING SETS (a,
+        b,
+        ())
+ORDER BY
+    a,
+    b;
+COMMIT;
+
+-- Verify handling of injecting NULL values for the rollup row works correctly
+-- when additional columns need to be deformed from the tuple after the NULL
+-- is added.
+BEGIN;
+INSERT INTO gstest3
+    VALUES (3, 4, NULL, 5);
+SET enable_hashagg = FALSE;
+SELECT
+    b,
+    c,
+    d,
+    GROUPING (b, c) AS g
+FROM
+    gstest3
+WHERE
+    a = 3
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a,
+            c));
+ROLLBACK;
+
 -- More rescan tests
 SELECT
     *
@@ -1568,6 +2121,8 @@ FROM (
 
 -- test the knapsack
 SET enable_indexscan = FALSE;
+
+SET hash_mem_multiplier = 1.0;
 
 SET work_mem = '64kB';
 
@@ -1677,5 +2232,735 @@ GROUP BY
 ORDER BY
     1,
     3;
+
+-- Bug #16784
+CREATE TABLE bug_16784 (
+    i int,
+    j int
+);
+
+ANALYZE bug_16784;
+
+ALTER TABLE bug_16784 SET (autovacuum_enabled = 'false');
+
+UPDATE
+    pg_class
+SET
+    reltuples = 10
+WHERE
+    relname = 'bug_16784';
+
+INSERT INTO bug_16784
+SELECT
+    g / 10,
+    g
+FROM
+    generate_series(1, 40) g;
+
+SET work_mem = '64kB';
+
+SET enable_groupagg = FALSE;
+
+SELECT
+    *
+FROM (
+    VALUES (1),
+        (2)) v (a),
+    LATERAL (
+        SELECT
+            a, i, j, count(*)
+        FROM
+            bug_16784
+        GROUP BY
+            CUBE (i,
+                j)) s
+ORDER BY
+    v.a,
+    i,
+    j;
+
+--
+-- Compare results between plans using sorting and plans using hash
+-- aggregation. Force spilling in both cases by setting work_mem low
+-- and altering the statistics.
+--
+CREATE TABLE gs_data_1 AS
+SELECT
+    g % 1000 AS g1000,
+    g % 100 AS g100,
+    g % 10 AS g10,
+    g
+FROM
+    generate_series(0, 1999) g;
+
+ANALYZE gs_data_1;
+
+ALTER TABLE gs_data_1 SET (autovacuum_enabled = 'false');
+
+UPDATE
+    pg_class
+SET
+    reltuples = 10
+WHERE
+    relname = 'gs_data_1';
+
+SET work_mem = '64kB';
+
+-- Produce results with sorting.
+SET enable_groupagg = TRUE;
+
+SET enable_hashagg = FALSE;
+
+SET jit_above_cost = 0;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    g100,
+    g10,
+    sum(g::numeric),
+    count(*),
+    max(g::text)
+FROM
+    gs_data_1
+GROUP BY
+    CUBE (g1000,
+        g100,
+        g10);
+
+CREATE TABLE gs_group_1 AS
+SELECT
+    g100,
+    g10,
+    sum(g::numeric),
+    count(*),
+    max(g::text)
+FROM
+    gs_data_1
+GROUP BY
+    CUBE (g1000,
+        g100,
+        g10);
+
+-- Produce results with hash aggregation.
+SET enable_hashagg = TRUE;
+
+SET enable_groupagg = FALSE;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    g100,
+    g10,
+    sum(g::numeric),
+    count(*),
+    max(g::text)
+FROM
+    gs_data_1
+GROUP BY
+    CUBE (g1000,
+        g100,
+        g10);
+
+CREATE TABLE gs_hash_1 AS
+SELECT
+    g100,
+    g10,
+    sum(g::numeric),
+    count(*),
+    max(g::text)
+FROM
+    gs_data_1
+GROUP BY
+    CUBE (g1000,
+        g100,
+        g10);
+
+SET enable_groupagg = TRUE;
+
+SET work_mem TO DEFAULT;
+
+SET hash_mem_multiplier TO DEFAULT;
+
+-- Compare results
+(
+    SELECT
+        *
+    FROM
+        gs_hash_1
+    EXCEPT
+    SELECT
+        *
+    FROM
+        gs_group_1)
+UNION ALL (
+    SELECT
+        *
+    FROM
+        gs_group_1
+    EXCEPT
+    SELECT
+        *
+    FROM
+        gs_hash_1);
+
+DROP TABLE gs_group_1;
+
+DROP TABLE gs_hash_1;
+
+-- GROUP BY DISTINCT
+-- "normal" behavior...
+SELECT
+    a,
+    b,
+    c
+FROM (
+    VALUES (1, 2, 3),
+        (4, NULL, 6),
+        (7, 8, 9)) AS t (a, b, c)
+GROUP BY
+    ALL ROLLUP (a, b),
+    ROLLUP (a, c)
+ORDER BY
+    a,
+    b,
+    c;
+
+-- ...which is also the default
+SELECT
+    a,
+    b,
+    c
+FROM (
+    VALUES (1, 2, 3),
+        (4, NULL, 6),
+        (7, 8, 9)) AS t (a, b, c)
+GROUP BY
+    ROLLUP (a, b),
+    ROLLUP (a, c)
+ORDER BY
+    a,
+    b,
+    c;
+
+-- "group by distinct" behavior...
+SELECT
+    a,
+    b,
+    c
+FROM (
+    VALUES (1, 2, 3),
+        (4, NULL, 6),
+        (7, 8, 9)) AS t (a, b, c)
+GROUP BY
+    DISTINCT ROLLUP (a, b),
+    ROLLUP (a, c)
+ORDER BY
+    a,
+    b,
+    c;
+
+-- ...which is not the same as "select distinct"
+SELECT DISTINCT
+    a,
+    b,
+    c
+FROM (
+    VALUES (1, 2, 3),
+        (4, NULL, 6),
+        (7, 8, 9)) AS t (a, b, c)
+GROUP BY
+    ROLLUP (a, b),
+    ROLLUP (a, c)
+ORDER BY
+    a,
+    b,
+    c;
+
+-- test handling of outer GroupingFunc within subqueries
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    (
+        SELECT
+            GROUPING (v1))
+    FROM (
+        VALUES ((
+                    SELECT
+                        1))) v (v1)
+GROUP BY
+    CUBE (v1);
+
+SELECT
+    (
+        SELECT
+            GROUPING (v1))
+    FROM (
+        VALUES ((
+                    SELECT
+                        1))) v (v1)
+GROUP BY
+    CUBE (v1);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    (
+        SELECT
+            GROUPING (v1))
+    FROM (
+        VALUES ((
+                    SELECT
+                        1))) v (v1)
+GROUP BY
+    v1;
+
+SELECT
+    (
+        SELECT
+            GROUPING (v1))
+    FROM (
+        VALUES ((
+                    SELECT
+                        1))) v (v1)
+GROUP BY
+    v1;
+
+-- test handling of subqueries in grouping sets
+CREATE temp TABLE gstest5 (
+    id integer PRIMARY KEY,
+    v integer
+);
+
+INSERT INTO gstest5
+SELECT
+    i,
+    i
+FROM
+    generate_series(1, 5) i;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)),
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id) AS s
+FROM
+    gstest5 t1
+GROUP BY
+    GROUPING SETS (v,
+        s)
+ORDER BY
+    CASE WHEN GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)) = 0 THEN
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)
+    ELSE
+        NULL
+    END nulls FIRST;
+
+SELECT
+    GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)),
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id) AS s
+FROM
+    gstest5 t1
+GROUP BY
+    GROUPING SETS (v,
+        s)
+ORDER BY
+    CASE WHEN GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)) = 0 THEN
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)
+    ELSE
+        NULL
+    END nulls FIRST;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)),
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id) AS s,
+    CASE WHEN GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)) = 0 THEN
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)
+    ELSE
+        NULL
+    END AS o
+FROM
+    gstest5 t1
+GROUP BY
+    GROUPING SETS (v,
+        s)
+ORDER BY
+    o nulls FIRST;
+
+SELECT
+    GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)),
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id) AS s,
+    CASE WHEN GROUPING ((
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)) = 0 THEN
+    (
+        SELECT
+            t1.v
+        FROM
+            gstest5 t2
+        WHERE
+            id = t1.id)
+    ELSE
+        NULL
+    END AS o
+FROM
+    gstest5 t1
+GROUP BY
+    GROUPING SETS (v,
+        s)
+ORDER BY
+    o nulls FIRST;
+
+-- test handling of expressions that should match lower target items
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a < b
+    AND b < 3
+FROM (
+    VALUES (1, 2)) t (a, b)
+GROUP BY
+    ROLLUP (a < b
+        AND b < 3)
+    HAVING
+        a < b
+        AND b < 3;
+
+SELECT
+    a < b
+    AND b < 3
+FROM (
+    VALUES (1, 2)) t (a, b)
+GROUP BY
+    ROLLUP (a < b
+        AND b < 3)
+    HAVING
+        a < b
+        AND b < 3;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    NOT a
+FROM (
+    VALUES (TRUE)) t (a)
+GROUP BY
+    ROLLUP (NOT a)
+HAVING
+    NOT NOT a;
+
+SELECT
+    NOT a
+FROM (
+    VALUES (TRUE)) t (a)
+GROUP BY
+    ROLLUP (NOT a)
+HAVING
+    NOT NOT a;
+
+-- test handling of expressions nullable by grouping sets
+EXPLAIN (
+    COSTS OFF
+) SELECT DISTINCT ON (a, b)
+    a,
+    b
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+WHERE
+    a = b
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a))
+ORDER BY
+    a,
+    b;
+
+SELECT DISTINCT ON (a, b)
+    a,
+    b
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+WHERE
+    a = b
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a))
+ORDER BY
+    a,
+    b;
+
+EXPLAIN (
+    COSTS OFF
+) SELECT DISTINCT ON (a, b + 1)
+    a,
+    b + 1
+FROM (
+    VALUES (1, 0),
+        (2, 1)) AS t (a, b)
+WHERE
+    a = b + 1
+GROUP BY
+    GROUPING SETS ((a,
+            b + 1),
+        (a))
+ORDER BY
+    a,
+    b + 1;
+
+SELECT DISTINCT ON (a, b + 1)
+    a,
+    b + 1
+FROM (
+    VALUES (1, 0),
+        (2, 1)) AS t (a, b)
+WHERE
+    a = b + 1
+GROUP BY
+    GROUPING SETS ((a,
+            b + 1),
+        (a))
+ORDER BY
+    a,
+    b + 1;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+WHERE
+    a = b
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a))
+ORDER BY
+    a,
+    b nulls FIRST;
+
+SELECT
+    a,
+    b
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+WHERE
+    a = b
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a))
+ORDER BY
+    a,
+    b nulls FIRST;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    1 AS one
+GROUP BY
+    ROLLUP (one)
+ORDER BY
+    one nulls FIRST;
+
+SELECT
+    1 AS one
+GROUP BY
+    ROLLUP (one)
+ORDER BY
+    one nulls FIRST;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b,
+    row_number() OVER (ORDER BY a, b nulls FIRST)
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+WHERE
+    a = b
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a));
+
+SELECT
+    a,
+    b,
+    row_number() OVER (ORDER BY a, b nulls FIRST)
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+WHERE
+    a = b
+GROUP BY
+    GROUPING SETS ((a,
+            b),
+        (a));
+
+-- test handling of SRFs with grouping sets
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    generate_series(1, a) AS g
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+GROUP BY
+    ROLLUP (g)
+ORDER BY
+    1;
+
+SELECT
+    generate_series(1, a) AS g
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+GROUP BY
+    ROLLUP (g)
+ORDER BY
+    1;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    generate_series(1, a) AS g,
+    a + b AS ab
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+GROUP BY
+    ROLLUP (a, ab)
+ORDER BY
+    1,
+    2;
+
+SELECT
+    generate_series(1, a) AS g,
+    a + b AS ab
+FROM (
+    VALUES (1, 1),
+        (2, 2)) AS t (a, b)
+GROUP BY
+    ROLLUP (a, ab)
+ORDER BY
+    1,
+    2;
 
 -- end

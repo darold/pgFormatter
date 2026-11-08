@@ -116,9 +116,26 @@ LANGUAGE SQL
 FROM
     SQL WITH FUNCTION prsd_lextype(internal), TO SQL WITH FUNCTION int4recv(internal));
 
+-- make a function that uses it too, mainly to exercise pg_dump
+CREATE FUNCTION public.sql_func_with_transform (int)
+    RETURNS int
+    LANGUAGE sql
+    AS '
+    SELECT
+        $1 + 1;
+
+' TRANSFORM FOR TYPE int;
+
+-- suppress warning that depends on wal_level
+SET client_min_messages = 'ERROR';
+
 CREATE PUBLICATION addr_pub FOR TABLE addr_nsp.gentable;
 
-CREATE SUBSCRIPTION addr_sub CONNECTION '' PUBLICATION bar WITH (
+CREATE PUBLICATION addr_pub_schema FOR TABLES IN SCHEMA addr_nsp;
+
+RESET client_min_messages;
+
+CREATE SUBSCRIPTION regress_addr_sub CONNECTION '' PUBLICATION bar WITH (
     connect = FALSE,
     slot_name = NONE
 );
@@ -181,7 +198,7 @@ DECLARE
     names text[];
     args text[];
 BEGIN
-    FOR objtype IN VALUES ('table'), ('index'), ('sequence'), ('view'), ('materialized view'), ('foreign table'), ('table column'), ('foreign table column'), ('aggregate'), ('function'), ('procedure'), ('type'), ('cast'), ('table constraint'), ('domain constraint'), ('conversion'), ('default value'), ('operator'), ('operator class'), ('operator family'), ('rule'), ('trigger'), ('text search parser'), ('text search dictionary'), ('text search template'), ('text search configuration'), ('policy'), ('user mapping'), ('default acl'), ('transform'), ('operator of access method'), ('function of access method'), ('publication relation')
+    FOR objtype IN VALUES ('table'), ('index'), ('sequence'), ('view'), ('materialized view'), ('foreign table'), ('table column'), ('foreign table column'), ('aggregate'), ('function'), ('procedure'), ('type'), ('cast'), ('table constraint'), ('domain constraint'), ('conversion'), ('default value'), ('operator'), ('operator class'), ('operator family'), ('rule'), ('trigger'), ('text search parser'), ('text search dictionary'), ('text search template'), ('text search configuration'), ('policy'), ('user mapping'), ('default acl'), ('transform'), ('operator of access method'), ('function of access method'), ('publication namespace'), ('publication relation'), ('publication excluded relation')
     LOOP
         FOR names IN VALUES ('{eins}'), ('{addr_nsp, zwei}'), ('{eins, zwei, drei}')
         LOOP
@@ -283,6 +300,12 @@ SELECT
 SELECT
     pg_get_object_address('subscription', '{one,two}', '{}');
 
+-- Make sure that NULL handling is correct.
+\pset null 'NULL'
+-- Temporarily disable fancy output, so as future additions never create
+-- a large amount of diffs.
+\a
+\t
 -- test successful cases
 WITH objects (
     type,
@@ -311,7 +334,7 @@ WITH objects (
         ('collation', '{default}', '{}'),
         ('table constraint', '{addr_nsp, gentable, a_chk}', '{}'),
         ('domain constraint', '{addr_nsp.gendomain}', '{domconstr}'),
-        ('conversion', '{pg_catalog, ascii_to_mic}', '{}'),
+        ('conversion', '{pg_catalog, koi8_r_to_utf8}', '{}'),
         ('default value', '{addr_nsp, gentable, b}', '{}'),
         ('language', '{plpgsql}', '{}'),
         -- large object
@@ -341,22 +364,42 @@ WITH objects (
         ('transform', '{int}', '{sql}'),
         ('access method', '{btree}', '{}'),
         ('publication', '{addr_pub}', '{}'),
+        ('publication namespace', '{addr_nsp}', '{addr_pub_schema}'),
         ('publication relation', '{addr_nsp, gentable}', '{addr_pub}'),
-        ('subscription', '{addr_sub}', '{}'),
+        ('subscription', '{regress_addr_sub}', '{}'),
         ('statistics object', '{addr_nsp, gentable_stat}', '{}'))
 SELECT
     (pg_identify_object (addr1.classid, addr1.objid, addr1.objsubid)).*,
     -- test roundtrip through pg_identify_object_as_address
-    ROW (pg_identify_object (addr1.classid, addr1.objid, addr1.objsubid)) = ROW (pg_identify_object (addr2.classid, addr2.objid, addr2.objsubid))
+    ROW (pg_identify_object (addr1.classid, addr1.objid, addr1.objsubid)) = ROW (pg_identify_object (addr2.classid, addr2.objid, addr2.objsubid)) AS roundtrip
 FROM
     objects,
-    pg_get_object_address(type, name, args) addr1,
-    pg_identify_object_as_address(classid, objid, objsubid) ioa (typ, nms, args),
+    pg_get_object_address(type, name, args) AS addr1,
+    pg_identify_object_as_address(classid, objid, objsubid) AS ioa (typ, nms, args),
     pg_get_object_address(typ, nms, ioa.args) AS addr2
 ORDER BY
     addr1.classid,
     addr1.objid,
     addr1.objsubid;
+
+-- A FOR ALL TABLES publication is listed by \d for every table in the
+-- database, which would disturb the other tests running concurrently in this
+-- parallel group.  Create it in a transaction that is rolled back, so that it
+-- is never visible to another session.
+BEGIN;
+SET LOCAL client_min_messages = 'ERROR';
+CREATE PUBLICATION addr_pub_except FOR ALL TABLES
+EXCEPT (TABLE addr_nsp.gentable);
+SELECT
+    (pg_identify_object (addr1.classid, addr1.objid, addr1.objsubid)).*,
+    ROW (pg_identify_object (addr1.classid, addr1.objid, addr1.objsubid)) = ROW (pg_identify_object (addr2.classid, addr2.objid, addr2.objsubid)) AS roundtrip
+FROM
+    pg_get_object_address('publication excluded relation', '{addr_nsp, gentable}', '{addr_pub_except}') AS addr1,
+    pg_identify_object_as_address(classid, objid, objsubid) AS ioa (typ,
+        nms,
+        args),
+    pg_get_object_address(typ, nms, ioa.args) AS addr2;
+ROLLBACK;
 
 ---
 --- Cleanup resources
@@ -365,7 +408,9 @@ DROP FOREIGN DATA WRAPPER addr_fdw CASCADE;
 
 DROP PUBLICATION addr_pub;
 
-DROP SUBSCRIPTION addr_sub;
+DROP PUBLICATION addr_pub_schema;
+
+DROP SUBSCRIPTION regress_addr_sub;
 
 DROP SCHEMA addr_nsp CASCADE;
 
@@ -373,3 +418,70 @@ DROP OWNED BY regress_addr_user;
 
 DROP USER regress_addr_user;
 
+--
+-- Checks for invalid objects
+--
+-- Keep this list in the same order as getObjectIdentityParts()
+-- in objectaddress.c.
+WITH objects (
+    classid,
+    objid,
+    objsubid
+) AS (
+    VALUES ('pg_class'::regclass, 0, 0), -- no relation
+        ('pg_class'::regclass, 'pg_class'::regclass, 100), -- no column for relation
+        ('pg_proc'::regclass, 0, 0), -- no function
+        ('pg_type'::regclass, 0, 0), -- no type
+        ('pg_cast'::regclass, 0, 0), -- no cast
+        ('pg_collation'::regclass, 0, 0), -- no collation
+        ('pg_constraint'::regclass, 0, 0), -- no constraint
+        ('pg_conversion'::regclass, 0, 0), -- no conversion
+        ('pg_attrdef'::regclass, 0, 0), -- no default attribute
+        ('pg_language'::regclass, 0, 0), -- no language
+        ('pg_largeobject'::regclass, 0, 0), -- no large object, no error
+        ('pg_operator'::regclass, 0, 0), -- no operator
+        ('pg_opclass'::regclass, 0, 0), -- no opclass, no need to check for no access method
+        ('pg_opfamily'::regclass, 0, 0), -- no opfamily
+        ('pg_am'::regclass, 0, 0), -- no access method
+        ('pg_amop'::regclass, 0, 0), -- no AM operator
+        ('pg_amproc'::regclass, 0, 0), -- no AM proc
+        ('pg_rewrite'::regclass, 0, 0), -- no rewrite
+        ('pg_trigger'::regclass, 0, 0), -- no trigger
+        ('pg_namespace'::regclass, 0, 0), -- no schema
+        ('pg_statistic_ext'::regclass, 0, 0), -- no statistics
+        ('pg_ts_parser'::regclass, 0, 0), -- no TS parser
+        ('pg_ts_dict'::regclass, 0, 0), -- no TS dictionary
+        ('pg_ts_template'::regclass, 0, 0), -- no TS template
+        ('pg_ts_config'::regclass, 0, 0), -- no TS configuration
+        ('pg_authid'::regclass, 0, 0), -- no role
+        ('pg_auth_members'::regclass, 0, 0), -- no role membership
+        ('pg_database'::regclass, 0, 0), -- no database
+        ('pg_tablespace'::regclass, 0, 0), -- no tablespace
+        ('pg_foreign_data_wrapper'::regclass, 0, 0), -- no FDW
+        ('pg_foreign_server'::regclass, 0, 0), -- no server
+        ('pg_user_mapping'::regclass, 0, 0), -- no user mapping
+        ('pg_default_acl'::regclass, 0, 0), -- no default ACL
+        ('pg_extension'::regclass, 0, 0), -- no extension
+        ('pg_event_trigger'::regclass, 0, 0), -- no event trigger
+        ('pg_parameter_acl'::regclass, 0, 0), -- no parameter ACL
+        ('pg_policy'::regclass, 0, 0), -- no policy
+        ('pg_publication'::regclass, 0, 0), -- no publication
+        ('pg_publication_namespace'::regclass, 0, 0), -- no publication namespace
+        ('pg_publication_rel'::regclass, 0, 0), -- no publication relation
+        ('pg_subscription'::regclass, 0, 0), -- no subscription
+        ('pg_transform'::regclass, 0, 0) -- no transformation
+)
+SELECT
+    ROW (pg_identify_object (objects.classid, objects.objid, objects.objsubid)) AS ident,
+    ROW (pg_identify_object_as_address(objects.classid, objects.objid, objects.objsubid)) AS addr,
+    pg_describe_object(objects.classid, objects.objid, objects.objsubid) AS descr
+FROM
+    objects
+ORDER BY
+    objects.classid,
+    objects.objid,
+    objects.objsubid;
+
+-- restore normal output mode
+\a
+\t

@@ -84,6 +84,18 @@ SELECT
 SELECT
     bool '' AS error;
 
+-- Also try it with non-error-throwing API
+SELECT
+    pg_input_is_valid ('true', 'bool');
+
+SELECT
+    pg_input_is_valid ('asdf', 'bool');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('junk', 'bool');
+
 -- and, or, not in qualifications
 SELECT
     bool 't'
@@ -150,13 +162,11 @@ INSERT INTO BOOLTBL1 (f1)
 
 -- BOOLTBL1 should be full of true's at this point
 SELECT
-    '' AS t_3,
     BOOLTBL1.*
 FROM
     BOOLTBL1;
 
 SELECT
-    '' AS t_3,
     BOOLTBL1.*
 FROM
     BOOLTBL1
@@ -164,7 +174,6 @@ WHERE
     f1 = bool 'true';
 
 SELECT
-    '' AS t_3,
     BOOLTBL1.*
 FROM
     BOOLTBL1
@@ -172,7 +181,6 @@ WHERE
     f1 <> bool 'false';
 
 SELECT
-    '' AS zero,
     BOOLTBL1.*
 FROM
     BOOLTBL1
@@ -183,7 +191,6 @@ INSERT INTO BOOLTBL1 (f1)
     VALUES (bool 'f');
 
 SELECT
-    '' AS f_1,
     BOOLTBL1.*
 FROM
     BOOLTBL1
@@ -213,13 +220,11 @@ INSERT INTO BOOLTBL2 (f1)
 
 -- BOOLTBL2 should be full of false's at this point
 SELECT
-    '' AS f_4,
     BOOLTBL2.*
 FROM
     BOOLTBL2;
 
 SELECT
-    '' AS tf_12,
     BOOLTBL1.*,
     BOOLTBL2.*
 FROM
@@ -229,7 +234,6 @@ WHERE
     BOOLTBL2.f1 <> BOOLTBL1.f1;
 
 SELECT
-    '' AS tf_12,
     BOOLTBL1.*,
     BOOLTBL2.*
 FROM
@@ -239,7 +243,6 @@ WHERE
     boolne(BOOLTBL2.f1, BOOLTBL1.f1);
 
 SELECT
-    '' AS ff_4,
     BOOLTBL1.*,
     BOOLTBL2.*
 FROM
@@ -250,7 +253,6 @@ WHERE
     AND BOOLTBL1.f1 = bool 'false';
 
 SELECT
-    '' AS tf_12_ff_4,
     BOOLTBL1.*,
     BOOLTBL2.*
 FROM
@@ -269,7 +271,6 @@ ORDER BY
 -- - thomas 2000-01-04
 --
 SELECT
-    '' AS "True",
     f1
 FROM
     BOOLTBL1
@@ -277,7 +278,6 @@ WHERE
     f1 IS TRUE;
 
 SELECT
-    '' AS "Not False",
     f1
 FROM
     BOOLTBL1
@@ -285,7 +285,6 @@ WHERE
     f1 IS NOT FALSE;
 
 SELECT
-    '' AS "False",
     f1
 FROM
     BOOLTBL1
@@ -293,7 +292,6 @@ WHERE
     f1 IS FALSE;
 
 SELECT
-    '' AS "Not True",
     f1
 FROM
     BOOLTBL1
@@ -301,7 +299,6 @@ WHERE
     f1 IS NOT TRUE;
 
 SELECT
-    '' AS "True",
     f1
 FROM
     BOOLTBL2
@@ -309,7 +306,6 @@ WHERE
     f1 IS TRUE;
 
 SELECT
-    '' AS "Not False",
     f1
 FROM
     BOOLTBL2
@@ -317,7 +313,6 @@ WHERE
     f1 IS NOT FALSE;
 
 SELECT
-    '' AS "False",
     f1
 FROM
     BOOLTBL2
@@ -325,7 +320,6 @@ WHERE
     f1 IS FALSE;
 
 SELECT
-    '' AS "Not True",
     f1
 FROM
     BOOLTBL2
@@ -365,7 +359,7 @@ ORDER BY
 
 -- Test to make sure short-circuiting and NULL handling is
 -- correct. Use a table as source to prevent constant simplification
--- to interfer.
+-- from interfering.
 CREATE TABLE booltbl4 (
     isfalse bool,
     istrue bool,
@@ -463,6 +457,16 @@ SELECT
     OR isfalse
 FROM
     booltbl4;
+
+-- Casts
+SELECT
+    0::boolean;
+
+SELECT
+    1::boolean;
+
+SELECT
+    2::boolean;
 
 --
 -- Clean up

@@ -118,24 +118,47 @@ SELECT q1 FROM int8_tbl EXCEPT ALL SELECT q1 FROM int8_tbl FOR NO KEY UPDATE;
 (SELECT 1,2,3 UNION SELECT 4,5,6) EXCEPT SELECT 4,5,6;
 (SELECT 1,2,3 UNION SELECT 4,5,6 ORDER BY 1,2) EXCEPT SELECT 4,5,6;
 
--- exercise both hashed and sorted implementations of INTERSECT/EXCEPT
+-- exercise both hashed and sorted implementations of UNION/INTERSECT/EXCEPT
 
 set enable_hashagg to on;
 
 explain (costs off)
 select count(*) from
+  ( select unique1 from tenk1 union select fivethous from tenk1 ) ss;
+select count(*) from
+  ( select unique1 from tenk1 union select fivethous from tenk1 ) ss;
+
+explain (costs off)
+select count(*) from
   ( select unique1 from tenk1 intersect select fivethous from tenk1 ) ss;
 select count(*) from
   ( select unique1 from tenk1 intersect select fivethous from tenk1 ) ss;
 
+-- this query will prefer a sorted setop unless we force it.
+set enable_groupagg to off;
+
 explain (costs off)
 select unique1 from tenk1 except select unique2 from tenk1 where unique2 != 10;
 select unique1 from tenk1 except select unique2 from tenk1 where unique2 != 10;
+
+reset enable_groupagg;
+
+-- the hashed implementation is sensitive to child plans' tuple slot types
+explain (costs off)
+select * from int8_tbl intersect select q2, q1 from int8_tbl order by 1, 2;
+select * from int8_tbl intersect select q2, q1 from int8_tbl order by 1, 2;
+select q2, q1 from int8_tbl intersect select * from int8_tbl order by 1, 2;
 
 set enable_hashagg to off;
 
 explain (costs off)
 select count(*) from
+  ( select unique1 from tenk1 union select fivethous from tenk1 ) ss;
+select count(*) from
+  ( select unique1 from tenk1 union select fivethous from tenk1 ) ss;
+
+explain (costs off)
+select count(*) from
   ( select unique1 from tenk1 intersect select fivethous from tenk1 ) ss;
 select count(*) from
   ( select unique1 from tenk1 intersect select fivethous from tenk1 ) ss;
@@ -143,6 +166,104 @@ select count(*) from
 explain (costs off)
 select unique1 from tenk1 except select unique2 from tenk1 where unique2 != 10;
 select unique1 from tenk1 except select unique2 from tenk1 where unique2 != 10;
+
+explain (costs off)
+select f1 from int4_tbl union all
+  (select unique1 from tenk1 union select unique2 from tenk1);
+
+reset enable_hashagg;
+
+-- non-hashable type
+set enable_hashagg to on;
+
+explain (costs off)
+select x from (values ('11'::varbit), ('10'::varbit)) _(x) union select x from (values ('11'::varbit), ('10'::varbit)) _(x);
+
+set enable_hashagg to off;
+
+explain (costs off)
+select x from (values ('11'::varbit), ('10'::varbit)) _(x) union select x from (values ('11'::varbit), ('10'::varbit)) _(x);
+
+reset enable_hashagg;
+
+-- arrays
+set enable_hashagg to on;
+
+explain (costs off)
+select x from (values (array[1, 2]), (array[1, 3])) _(x) union select x from (values (array[1, 2]), (array[1, 4])) _(x);
+select x from (values (array[1, 2]), (array[1, 3])) _(x) union select x from (values (array[1, 2]), (array[1, 4])) _(x);
+explain (costs off)
+select x from (values (array[1, 2]), (array[1, 3])) _(x) intersect select x from (values (array[1, 2]), (array[1, 4])) _(x);
+select x from (values (array[1, 2]), (array[1, 3])) _(x) intersect select x from (values (array[1, 2]), (array[1, 4])) _(x);
+explain (costs off)
+select x from (values (array[1, 2]), (array[1, 3])) _(x) except select x from (values (array[1, 2]), (array[1, 4])) _(x);
+select x from (values (array[1, 2]), (array[1, 3])) _(x) except select x from (values (array[1, 2]), (array[1, 4])) _(x);
+
+-- non-hashable type
+explain (costs off)
+select x from (values (array['10'::varbit]), (array['11'::varbit])) _(x) union select x from (values (array['10'::varbit]), (array['01'::varbit])) _(x);
+select x from (values (array['10'::varbit]), (array['11'::varbit])) _(x) union select x from (values (array['10'::varbit]), (array['01'::varbit])) _(x);
+
+set enable_hashagg to off;
+
+explain (costs off)
+select x from (values (array[1, 2]), (array[1, 3])) _(x) union select x from (values (array[1, 2]), (array[1, 4])) _(x);
+select x from (values (array[1, 2]), (array[1, 3])) _(x) union select x from (values (array[1, 2]), (array[1, 4])) _(x);
+explain (costs off)
+select x from (values (array[1, 2]), (array[1, 3])) _(x) intersect select x from (values (array[1, 2]), (array[1, 4])) _(x);
+select x from (values (array[1, 2]), (array[1, 3])) _(x) intersect select x from (values (array[1, 2]), (array[1, 4])) _(x);
+explain (costs off)
+select x from (values (array[1, 2]), (array[1, 3])) _(x) except select x from (values (array[1, 2]), (array[1, 4])) _(x);
+select x from (values (array[1, 2]), (array[1, 3])) _(x) except select x from (values (array[1, 2]), (array[1, 4])) _(x);
+
+reset enable_hashagg;
+
+-- records
+set enable_hashagg to on;
+
+explain (costs off)
+select x from (values (row(1, 2)), (row(1, 3))) _(x) union select x from (values (row(1, 2)), (row(1, 4))) _(x);
+select x from (values (row(1, 2)), (row(1, 3))) _(x) union select x from (values (row(1, 2)), (row(1, 4))) _(x);
+explain (costs off)
+select x from (values (row(1, 2)), (row(1, 3))) _(x) intersect select x from (values (row(1, 2)), (row(1, 4))) _(x);
+select x from (values (row(1, 2)), (row(1, 3))) _(x) intersect select x from (values (row(1, 2)), (row(1, 4))) _(x);
+explain (costs off)
+select x from (values (row(1, 2)), (row(1, 3))) _(x) except select x from (values (row(1, 2)), (row(1, 4))) _(x);
+select x from (values (row(1, 2)), (row(1, 3))) _(x) except select x from (values (row(1, 2)), (row(1, 4))) _(x);
+
+-- non-hashable type
+
+-- With an anonymous row type, the typcache does not report that the
+-- type is hashable.  (Otherwise, this would fail at execution time.)
+explain (costs off)
+select x from (values (row('10'::varbit)), (row('11'::varbit))) _(x) union select x from (values (row('10'::varbit)), (row('01'::varbit))) _(x);
+select x from (values (row('10'::varbit)), (row('11'::varbit))) _(x) union select x from (values (row('10'::varbit)), (row('01'::varbit))) _(x);
+
+-- With a defined row type, the typcache can inspect the type's fields
+-- for hashability.
+create type ct1 as (f1 varbit);
+explain (costs off)
+select x from (values (row('10'::varbit)::ct1), (row('11'::varbit)::ct1)) _(x) union select x from (values (row('10'::varbit)::ct1), (row('01'::varbit)::ct1)) _(x);
+select x from (values (row('10'::varbit)::ct1), (row('11'::varbit)::ct1)) _(x) union select x from (values (row('10'::varbit)::ct1), (row('01'::varbit)::ct1)) _(x);
+drop type ct1;
+
+set enable_hashagg to off;
+
+explain (costs off)
+select x from (values (row(1, 2)), (row(1, 3))) _(x) union select x from (values (row(1, 2)), (row(1, 4))) _(x);
+select x from (values (row(1, 2)), (row(1, 3))) _(x) union select x from (values (row(1, 2)), (row(1, 4))) _(x);
+explain (costs off)
+select x from (values (row(1, 2)), (row(1, 3))) _(x) intersect select x from (values (row(1, 2)), (row(1, 4))) _(x);
+select x from (values (row(1, 2)), (row(1, 3))) _(x) intersect select x from (values (row(1, 2)), (row(1, 4))) _(x);
+explain (costs off)
+select x from (values (row(1, 2)), (row(1, 3))) _(x) except select x from (values (row(1, 2)), (row(1, 4))) _(x);
+select x from (values (row(1, 2)), (row(1, 3))) _(x) except select x from (values (row(1, 2)), (row(1, 4))) _(x);
+
+-- non-sortable type
+
+-- Ensure we get a HashAggregate plan.  Keep enable_hashagg=off to ensure
+-- there's no chance of a sort.
+explain (costs off) select '123'::xid union select '123'::xid;
 
 reset enable_hashagg;
 
@@ -200,7 +321,7 @@ select except select;
 
 -- check hashed implementation
 set enable_hashagg = true;
-set enable_sort = false;
+set enable_groupagg = false;
 
 explain (costs off)
 select from generate_series(1,5) union select from generate_series(1,3);
@@ -216,7 +337,7 @@ select from generate_series(1,5) except all select from generate_series(1,3);
 
 -- check sorted implementation
 set enable_hashagg = false;
-set enable_sort = true;
+set enable_groupagg = true;
 
 explain (costs off)
 select from generate_series(1,5) union select from generate_series(1,3);
@@ -230,8 +351,19 @@ select from generate_series(1,5) intersect all select from generate_series(1,3);
 select from generate_series(1,5) except select from generate_series(1,3);
 select from generate_series(1,5) except all select from generate_series(1,3);
 
+-- Try a variation of the above but with a CTE which contains a column, again
+-- with an empty final select list.
+
+-- Ensure we get the expected 1 row with 0 columns
+with cte as materialized (select s from generate_series(1,5) s)
+select from cte union select from cte;
+
+-- Ensure we get the same result as the above.
+with cte as not materialized (select s from generate_series(1,5) s)
+select from cte union select from cte;
+
 reset enable_hashagg;
-reset enable_sort;
+reset enable_groupagg;
 
 --
 -- Check handling of a case with unknown constants.  We don't guarantee
@@ -261,6 +393,7 @@ INSERT INTO t2 VALUES ('ab'), ('xy');
 set enable_seqscan = off;
 set enable_indexscan = on;
 set enable_bitmapscan = off;
+set enable_sort = off;
 
 explain (costs off)
  SELECT * FROM
@@ -307,6 +440,7 @@ explain (costs off)
 reset enable_seqscan;
 reset enable_indexscan;
 reset enable_bitmapscan;
+reset enable_sort;
 
 -- This simpler variant of the above test has been observed to fail differently
 
@@ -324,6 +458,114 @@ select event_id
 drop table events_child, events, other_events;
 
 reset enable_indexonlyscan;
+
+--
+-- Test handling of UNION / EXCEPT / INTERSECT with provably empty inputs
+--
+
+-- Ensure the empty UNION input is pruned and de-duplication is done for the
+-- remaining relation.
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1 WHERE 1=2
+UNION
+SELECT four FROM tenk1
+ORDER BY 1;
+
+-- Validate that the results of the above are correct
+SELECT two FROM tenk1 WHERE 1=2
+UNION
+SELECT four FROM tenk1
+ORDER BY 1;
+
+-- All UNION inputs are proven empty.  Ensure the planner provides a
+-- const-false Result node
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1 WHERE 1=2
+UNION
+SELECT four FROM tenk1 WHERE 1=2
+UNION
+SELECT ten FROM tenk1 WHERE 1=2
+ORDER BY 1;
+
+-- Ensure the planner provides a const-false Result node
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1 WHERE 1=2
+INTERSECT
+SELECT four FROM tenk1
+ORDER BY 1;
+
+-- As above, with the inputs swapped
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT four FROM tenk1
+INTERSECT
+SELECT two FROM tenk1 WHERE 1=2
+ORDER BY 1;
+
+-- Try with both inputs dummy
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT four FROM tenk1 WHERE 1=2
+INTERSECT
+SELECT two FROM tenk1 WHERE 1=2
+ORDER BY 1;
+
+-- Ensure the planner provides a const-false Result node when the left input
+-- is empty
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1 WHERE 1=2
+EXCEPT
+SELECT four FROM tenk1
+ORDER BY 1;
+
+-- Ensure the planner only scans the left input when right input is empty
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1
+EXCEPT ALL
+SELECT four FROM tenk1 WHERE 1=2
+ORDER BY 1;
+
+-- Try mixed setop cases.  Ensure the right-hand UNION child gets removed.
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1 t1
+EXCEPT
+SELECT four FROM tenk1 t2
+UNION
+SELECT ten FROM tenk1 dummy WHERE 1=2;
+
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1 t1 WHERE two = 1
+INTERSECT ALL
+SELECT four FROM tenk1 t2 WHERE four = 1
+UNION
+SELECT ten FROM tenk1 dummy WHERE 1=2;
+
+-- As above, but with sorting: ensure we do not get confused by child pathkeys
+SET enable_hashagg = off;
+
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two FROM tenk1 t1 WHERE two = 1
+INTERSECT ALL
+SELECT four FROM tenk1 t2 WHERE four = 1
+UNION
+SELECT ten FROM tenk1 dummy WHERE 1=2;
+
+-- also check case where the upper op is EXCEPT
+EXPLAIN (COSTS OFF, VERBOSE)
+(SELECT two FROM tenk1 t1 WHERE two = 1
+ INTERSECT
+ SELECT four FROM tenk1 t2 WHERE four = 1)
+EXCEPT ALL
+SELECT ten FROM tenk1 dummy WHERE 1=2;
+
+RESET enable_hashagg;
+
+-- Ensure EXPLAIN can show a dummy set operation whose output is coerced
+-- to another type by the parent set operation.
+EXPLAIN (COSTS OFF, VERBOSE)
+SELECT two::numeric FROM tenk1 t1
+EXCEPT
+(SELECT four FROM tenk1 dummy WHERE 1=2
+ EXCEPT ALL
+ SELECT ten FROM tenk1 t2);
 
 -- Test constraint exclusion of UNION ALL subqueries
 explain (costs off)
@@ -379,6 +621,34 @@ SELECT * FROM
 WHERE x > 3
 ORDER BY x;
 
+-- Test cases where the native ordering of a sub-select has more pathkeys
+-- than the outer query cares about
+explain (costs off)
+select distinct q1 from
+  (select distinct * from int8_tbl i81
+   union all
+   select distinct * from int8_tbl i82) ss
+where q2 = q2;
+
+select distinct q1 from
+  (select distinct * from int8_tbl i81
+   union all
+   select distinct * from int8_tbl i82) ss
+where q2 = q2;
+
+explain (costs off)
+select distinct q1 from
+  (select distinct * from int8_tbl i81
+   union all
+   select distinct * from int8_tbl i82) ss
+where -q1 = q2;
+
+select distinct q1 from
+  (select distinct * from int8_tbl i81
+   union all
+   select distinct * from int8_tbl i82) ss
+where -q1 = q2;
+
 -- Test proper handling of parameterized appendrel paths when the
 -- potential join qual is expensive
 create function expensivefunc(int) returns int
@@ -412,3 +682,31 @@ select * from
    union all
    select *, 1 as x from int8_tbl b) ss
 where (x = 0) or (q1 >= q2 and q1 <= q2);
+
+--
+-- Test the planner's ability to produce cheap startup plans with Append nodes
+--
+
+-- Ensure we get a Nested Loop join between tenk1 and tenk2
+explain (costs off)
+select t1.unique1 from tenk1 t1
+inner join tenk2 t2 on t1.tenthous = t2.tenthous and t2.thousand = 0
+   union all
+(values(1)) limit 1;
+
+-- Ensure there is no problem if cheapest_startup_path is NULL
+explain (costs off)
+select * from tenk1 t1
+left join lateral
+  (select t1.tenthous from tenk2 t2 union all (values(1)))
+on true limit 1;
+
+-- Test handling of Vars with varno 0 in estimate_array_length
+explain (verbose, costs off)
+select null::int[] union all select null::int[] union all select null::bigint[];
+
+-- Estimate a UNION's output rows as the sum of its children's distinct-group
+-- estimates, not the total input size.  Ensure we get an index nested loop
+explain (costs off)
+select * from tenk1 t
+join (select ten from tenk1 union select ten from onek) s on s.ten = t.unique1;

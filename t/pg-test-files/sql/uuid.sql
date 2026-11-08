@@ -10,6 +10,12 @@ CREATE TABLE guid2
 	guid_field UUID,
 	text_field TEXT DEFAULT(now())
 );
+CREATE TABLE guid3
+(
+	id SERIAL,
+	guid_field UUID,
+	guid_encoded text GENERATED ALWAYS AS (encode(guid_field::bytea, 'base32hex')) STORED
+);
 
 -- inserting invalid data tests
 -- too long
@@ -22,6 +28,10 @@ INSERT INTO guid1(guid_field) VALUES('{22222222-2222-2222-2222-222222222222 ');
 -- invalid data
 INSERT INTO guid1(guid_field) VALUES('11111111-1111-1111-G111-111111111111');
 INSERT INTO guid1(guid_field) VALUES('11+11111-1111-1111-1111-111111111111');
+
+-- test non-error-throwing API
+SELECT pg_input_is_valid('11', 'uuid');
+SELECT * FROM pg_input_error_info('11', 'uuid');
 
 --inserting three input formats
 INSERT INTO guid1(guid_field) VALUES('11111111-1111-1111-1111-111111111111');
@@ -53,12 +63,27 @@ SELECT COUNT(*) FROM guid1 WHERE guid_field > '22222222-2222-2222-2222-222222222
 -- >= operator test
 SELECT COUNT(*) FROM guid1 WHERE guid_field >= '22222222-2222-2222-2222-222222222222';
 
+-- min() and max() aggregate test
+SELECT MIN(guid_field), MAX(guid_field) FROM guid1;
+
 -- btree and hash index creation test
 CREATE INDEX guid1_btree ON guid1 USING BTREE (guid_field);
 CREATE INDEX guid1_hash  ON guid1 USING HASH  (guid_field);
 
 -- unique index test
 CREATE UNIQUE INDEX guid1_unique_BTREE ON guid1 USING BTREE (guid_field);
+
+EXPLAIN (COSTS OFF)
+SELECT COUNT(*) FROM guid1 WHERE guid_field <> '11111111111111111111111111111111' OR
+							guid_field <> '3f3e3c3b-3a30-3938-3736-353433a2313e';
+EXPLAIN (COSTS OFF)
+SELECT COUNT(*) FROM guid1 WHERE guid_field <= '22222222-2222-2222-2222-222222222222' OR
+									guid_field <= '11111111111111111111111111111111' OR
+									guid_field <= '3f3e3c3b-3a30-3938-3736-353433a2313e';
+EXPLAIN (COSTS OFF)
+SELECT COUNT(*) FROM guid1 WHERE guid_field = '3f3e3c3b-3a30-3938-3736-353433a2313e' OR
+							guid_field = '11111111111111111111111111111111';
+
 -- should fail
 INSERT INTO guid1(guid_field) VALUES('11111111-1111-1111-1111-111111111111');
 
@@ -75,5 +100,107 @@ INSERT INTO guid2(guid_field) VALUES('3f3e3c3b3a3039383736353433a2313e');
 SELECT COUNT(*) FROM guid1 g1 INNER JOIN guid2 g2 ON g1.guid_field = g2.guid_field;
 SELECT COUNT(*) FROM guid1 g1 LEFT JOIN guid2 g2 ON g1.guid_field = g2.guid_field WHERE g2.guid_field IS NULL;
 
+-- generation test
+TRUNCATE guid1;
+INSERT INTO guid1 (guid_field) VALUES (gen_random_uuid());
+INSERT INTO guid1 (guid_field) VALUES (gen_random_uuid());
+SELECT count(DISTINCT guid_field) FROM guid1;
+
+-- test of uuidv4() alias
+TRUNCATE guid1;
+INSERT INTO guid1 (guid_field) VALUES (uuidv4());
+INSERT INTO guid1 (guid_field) VALUES (uuidv4());
+SELECT count(DISTINCT guid_field) FROM guid1;
+
+-- generation test for v7
+TRUNCATE guid1;
+INSERT INTO guid1 (guid_field) VALUES (uuidv7());
+INSERT INTO guid1 (guid_field) VALUES (uuidv7());
+INSERT INTO guid1 (guid_field) VALUES (uuidv7(INTERVAL '1 day'));
+SELECT count(DISTINCT guid_field) FROM guid1;
+
+-- test sortability of v7
+INSERT INTO guid3 (guid_field) VALUES ('00000000-0000-0000-0000-000000000000'::uuid);
+INSERT INTO guid3 (guid_field) SELECT uuidv7() FROM generate_series(1, 10);
+INSERT INTO guid3 (guid_field) VALUES ('ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid);
+SELECT array_agg(id ORDER BY guid_field) FROM guid3;
+
+-- Test base32hex encoding of UUIDs and its lexicographical sorting property.
+-- COLLATE "C" is required to prevent buildfarm failures in non-C locales
+-- where natural language collations (such as cs_CZ) would break strict
+-- byte-wise ordering.
+SELECT array_agg(id ORDER BY guid_encoded COLLATE "C") FROM guid3;
+
+-- Check the timestamp offsets for v7.
+--
+-- generate UUIDv7 values with timestamps ranging from 1970 (the Unix epoch year)
+-- to 10888 (one year before the maximum possible year), and then verify that
+-- the extracted timestamps from these UUIDv7 values have not overflowed.
+WITH uuidts AS (
+    SELECT y, ts as ts, lag(ts) OVER (ORDER BY y) AS prev_ts
+    FROM (SELECT y, uuid_extract_timestamp(uuidv7((y || ' years')::interval)) AS ts
+        FROM generate_series(1970 - extract(year from now())::int, 10888 - extract(year from now())::int) y)
+)
+SELECT y, ts, prev_ts FROM uuidts WHERE ts < prev_ts;
+
+-- uuidv7: infinite intervals are rejected
+SELECT uuidv7('infinity'::interval);
+SELECT uuidv7('-infinity'::interval);
+
+-- uuidv7: timestamps before Unix epoch are rejected
+SELECT uuidv7('-1000 years'::interval);
+
+-- uuidv7: timestamps beyond 48-bit ms field (~year 10889) are rejected
+SELECT uuidv7('9000 years'::interval);
+
+-- uuidv7: a large but in-range forward shift is accepted
+SELECT uuid_extract_timestamp(uuidv7('1000 years'::interval)) > now() + '999 years'::interval;
+
+-- extract functions
+
+-- version
+SELECT uuid_extract_version('11111111-1111-5111-8111-111111111111');  -- 5
+SELECT uuid_extract_version(gen_random_uuid());  -- 4
+SELECT uuid_extract_version('11111111-1111-1111-1111-111111111111');  -- null
+SELECT uuid_extract_version(uuidv4());  -- 4
+SELECT uuid_extract_version(uuidv7());  -- 7
+
+-- timestamp
+SELECT uuid_extract_timestamp('C232AB00-9414-11EC-B3C8-9F6BDECED846') = 'Tuesday, February 22, 2022 2:22:22.00 PM GMT+05:00';  -- RFC 9562 test vector for v1
+SELECT uuid_extract_timestamp('1EC9414C-232A-6B00-B3C8-9F6BDECED846') = 'Tuesday, February 22, 2022 2:22:22.00 PM GMT+05:00';  -- RFC 9562 test vector for v6
+SELECT uuid_extract_timestamp('017F22E2-79B0-7CC3-98C4-DC0C0C07398F') = 'Tuesday, February 22, 2022 2:22:22.00 PM GMT+05:00';  -- RFC 9562 test vector for v7
+SELECT uuid_extract_timestamp(gen_random_uuid());  -- null
+SELECT uuid_extract_timestamp('11111111-1111-1111-1111-111111111111');  -- null
+
+-- casts
+SELECT '5b35380a-7143-4912-9b55-f322699c6770'::uuid::bytea;
+SELECT '\x019a2f859ced7225b99d9c55044a2563'::bytea::uuid;
+SELECT '\x1234567890abcdef'::bytea::uuid; -- error
+SELECT v = v::bytea::uuid as matched FROM gen_random_uuid() v;
+
+-- Test the UUID shapes for which the parser uses the fast path.
+SELECT '5b35380a-7143-4912-9b55-f322699c6770'::uuid;
+SELECT '{5b35380a-7143-4912-9b55-f322699c6770}'::uuid;
+SELECT '5b35380a714349129b55f322699c6770'::uuid;
+SELECT '{5b35380a714349129b55f322699c6770}'::uuid;
+
+-- Test that the fast path correctly rejects invalid UUID strings.
+SELECT '5b35380a714349129b55f32  99c6770'::uuid;
+SELECT '5b35380a-7143-4912-9b55-f322699c67  '::uuid;
+SELECT '  35380a-7143-4912-9b55-f322699c6770'::uuid;
+SELECT 'AZ35380a-7143-4912-9b55-f322699c6770'::uuid;
+SELECT '{AZ35380a-7143-4912-9b55-f322699c6770}'::uuid;
+SELECT '{AZ35380a714349129b55f322699c6770}'::uuid;
+SELECT '{AZ35380a714349129b55f322699c67  }'::uuid;
+
+-- The parser only measures the input far enough to classify its shape.  If it
+-- stopped measuring at one of the accepted lengths, a longer string that
+-- merely starts with a valid UUID would look like that UUID and be accepted
+-- with the rest silently ignored, so check that trailing data is rejected.
+SELECT '5b35380a714349129b55f322699c6770TRAILING'::uuid;
+SELECT '{5b35380a714349129b55f322699c6770}TRAILING'::uuid;
+SELECT '5b35380a-7143-4912-9b55-f322699c6770TRAILING'::uuid;
+SELECT '{5b35380a-7143-4912-9b55-f322699c6770}TRAILING'::uuid;
+
 -- clean up
-DROP TABLE guid1, guid2 CASCADE;
+DROP TABLE guid1, guid2, guid3 CASCADE;

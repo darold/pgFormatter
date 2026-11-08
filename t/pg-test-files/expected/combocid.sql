@@ -89,7 +89,7 @@ SELECT
 FROM
     combocidtest;
 
--- Test combo cids with portals
+-- Test combo CIDs with portals
 BEGIN;
 INSERT INTO combocidtest
     VALUES (333);

@@ -2,12 +2,16 @@
 -- TRANSACTIONS
 --
 BEGIN;
-SELECT
-    *
-INTO
-    TABLE xacttest
-FROM
-    aggtest;
+CREATE TABLE xacttest (
+    a smallint,
+    b real
+);
+INSERT INTO xacttest
+VALUES
+    (56, 7.8),
+    (100, 99.097),
+    (0, 0.09561),
+    (42, 324.78);
 INSERT INTO xacttest (a, b)
     VALUES (777, 777.777);
 END;
@@ -22,12 +26,12 @@ BEGIN;
 CREATE TABLE disappear (
     a int4
 );
-DELETE FROM aggtest;
+DELETE FROM xacttest;
 -- should be empty
 SELECT
     *
 FROM
-    aggtest;
+    xacttest;
 ABORT;
 -- should not exist
 SELECT
@@ -40,7 +44,40 @@ WHERE
 SELECT
     *
 FROM
-    aggtest;
+    xacttest;
+-- Test that transaction characteristics cannot be reset.
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT
+    COUNT(*)
+FROM
+    xacttest;
+RESET transaction_isolation;
+-- error
+END;
+BEGIN TRANSACTION READ ONLY;
+SELECT
+    COUNT(*)
+FROM
+    xacttest;
+RESET transaction_read_only;
+-- error
+END;
+BEGIN TRANSACTION DEFERRABLE;
+SELECT
+    COUNT(*)
+FROM
+    xacttest;
+RESET transaction_deferrable;
+-- error
+END;
+CREATE FUNCTION errfunc ()
+    RETURNS int
+    LANGUAGE SQL
+    AS '
+    SELECT
+        1;
+' SET transaction_read_only = ON;
+-- error
 -- Read-only tests
 CREATE TABLE writetest (
     a int
@@ -761,18 +798,18 @@ DROP FUNCTION inverse (int);
 -- performed in the aborted subtransaction
 BEGIN;
 SAVEPOINT x;
-CREATE TABLE abc (
+CREATE TABLE trans_abc (
     a int
 );
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (5);
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (10);
 DECLARE foo CURSOR FOR
     SELECT
         *
     FROM
-        abc;
+        trans_abc;
 FETCH FROM foo;
 ROLLBACK TO x;
 
@@ -784,20 +821,20 @@ FROM
 COMMIT;
 
 BEGIN;
-CREATE TABLE abc (
+CREATE TABLE trans_abc (
     a int
 );
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (5);
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (10);
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (15);
 DECLARE foo CURSOR FOR
     SELECT
         *
     FROM
-        abc;
+        trans_abc;
 FETCH FROM foo;
 SAVEPOINT x;
 FETCH FROM foo;
@@ -865,7 +902,7 @@ DROP FUNCTION create_temp_tab ();
 DROP FUNCTION invert (x float8);
 
 -- Tests for AND CHAIN
-CREATE TABLE abc (
+CREATE TABLE trans_abc (
     a int
 );
 
@@ -882,10 +919,10 @@ SHOW transaction_read_only;
 
 SHOW transaction_deferrable;
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (1);
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (2);
 
 COMMIT
@@ -898,10 +935,10 @@ SHOW transaction_read_only;
 
 SHOW transaction_deferrable;
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES ('error');
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (3);
 
 -- check it's really aborted
@@ -915,7 +952,7 @@ SHOW transaction_read_only;
 
 SHOW transaction_deferrable;
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (4);
 
 COMMIT;
@@ -932,7 +969,7 @@ SHOW transaction_deferrable;
 
 SAVEPOINT x;
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES ('error');
 
 COMMIT
@@ -945,8 +982,56 @@ SHOW transaction_read_only;
 
 SHOW transaction_deferrable;
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (5);
+
+COMMIT;
+
+START TRANSACTION ISOLATION LEVEL REPEATABLE READ,
+READ WRITE,
+DEFERRABLE;
+
+SHOW transaction_isolation;
+
+SHOW transaction_read_only;
+
+SHOW transaction_deferrable;
+
+SAVEPOINT x;
+
+COMMIT
+    AND CHAIN;
+
+-- TBLOCK_SUBCOMMIT
+SHOW transaction_isolation;
+
+SHOW transaction_read_only;
+
+SHOW transaction_deferrable;
+
+COMMIT;
+
+START TRANSACTION ISOLATION LEVEL READ COMMITTED,
+READ WRITE,
+DEFERRABLE;
+
+SHOW transaction_isolation;
+
+SHOW transaction_read_only;
+
+SHOW transaction_deferrable;
+
+SAVEPOINT x;
+
+COMMIT
+    AND CHAIN;
+
+-- TBLOCK_SUBCOMMIT
+SHOW transaction_isolation;
+
+SHOW transaction_read_only;
+
+SHOW transaction_deferrable;
 
 COMMIT;
 
@@ -961,7 +1046,7 @@ SHOW transaction_read_only;
 
 SHOW transaction_deferrable;
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES (6);
 
 ROLLBACK
@@ -974,7 +1059,7 @@ SHOW transaction_read_only;
 
 SHOW transaction_deferrable;
 
-INSERT INTO abc
+INSERT INTO trans_abc
     VALUES ('error');
 
 ROLLBACK
@@ -989,16 +1074,25 @@ SHOW transaction_deferrable;
 
 ROLLBACK;
 
+-- not allowed outside a transaction block
+COMMIT
+    AND CHAIN;
+
+-- error
+ROLLBACK
+    AND CHAIN;
+
+-- error
 SELECT
     *
 FROM
-    abc
+    trans_abc
 ORDER BY
     1;
 
 RESET default_transaction_read_only;
 
-DROP TABLE abc;
+DROP TABLE trans_abc;
 
 -- Test assorted behaviors around the implicit transaction block created
 -- when multiple SQL commands are sent in a single Query message.  These
@@ -1008,19 +1102,19 @@ CREATE temp TABLE i_table (
     f1 int
 );
 
--- psql will show only the last result in a multi-statement Query
+-- psql will show all results of a multi-statement Query
 SELECT
-    1;
+    1\;
 
 SELECT
-    2;
+    2\;
 
 SELECT
     3;
 
 -- this implicitly commits:
 INSERT INTO i_table
-    VALUES (1);
+    VALUES (1)\;
 
 SELECT
     *
@@ -1029,12 +1123,12 @@ FROM
 
 -- 1/0 error will cause rolling back the whole implicit transaction
 INSERT INTO i_table
-    VALUES (2);
+    VALUES (2)\;
 
 SELECT
     *
 FROM
-    i_table;
+    i_table\;
 
 SELECT
     1 / 0;
@@ -1048,17 +1142,17 @@ ROLLBACK;
 
 -- we are not in a transaction at this point
 -- can use regular begin/commit/rollback within a single Query
-BEGIN;
+BEGIN\;
 INSERT INTO i_table
-    VALUES (3);
+    VALUES (3)\;
 COMMIT;
 
 ROLLBACK;
 
 -- we are not in a transaction at this point
-BEGIN;
+BEGIN\;
 INSERT INTO i_table
-    VALUES (4);
+    VALUES (4)\;
 ROLLBACK;
 
 ROLLBACK;
@@ -1067,38 +1161,38 @@ ROLLBACK;
 -- begin converts implicit transaction into a regular one that
 -- can extend past the end of the Query
 SELECT
-    1;
+    1\;
 
-BEGIN;
+BEGIN\;
 INSERT INTO i_table
     VALUES (5);
 COMMIT;
 
 SELECT
-    1;
+    1\;
 
-BEGIN;
+BEGIN\;
 INSERT INTO i_table
     VALUES (6);
 ROLLBACK;
 
 -- commit in implicit-transaction state commits but issues a warning.
 INSERT INTO i_table
-    VALUES (7);
+    VALUES (7)\;
 
-COMMIT;
+COMMIT\;
 
 INSERT INTO i_table
-    VALUES (8);
+    VALUES (8)\;
 
 SELECT
     1 / 0;
 
 -- similarly, rollback aborts but issues a warning.
 INSERT INTO i_table
-    VALUES (9);
+    VALUES (9)\;
 
-ROLLBACK;
+ROLLBACK\;
 
 SELECT
     2;
@@ -1113,52 +1207,211 @@ ROLLBACK;
 -- we are not in a transaction at this point
 -- implicit transaction block is still a transaction block, for e.g. VACUUM
 SELECT
-    1;
+    1\;
 
 VACUUM;
 
 SELECT
-    1;
+    1\;
 
-COMMIT;
+COMMIT\;
 
 VACUUM;
 
 -- we disallow savepoint-related commands in implicit-transaction state
 SELECT
-    1;
+    1\;
 
 SAVEPOINT sp;
 
 SELECT
-    1;
+    1\;
 
-COMMIT;
+COMMIT\;
 
 SAVEPOINT sp;
 
-ROLLBACK TO SAVEPOINT sp;
+ROLLBACK TO SAVEPOINT sp\;
 
 SELECT
     2;
 
 SELECT
-    2;
+    2\;
 
-RELEASE SAVEPOINT sp;
+RELEASE SAVEPOINT sp\;
 
 SELECT
     3;
 
 -- but this is OK, because the BEGIN converts it to a regular xact
 SELECT
-    1;
+    1\;
 
-BEGIN;
-SAVEPOINT sp;
-ROLLBACK TO SAVEPOINT sp;
+BEGIN\;
+SAVEPOINT sp\;
+ROLLBACK TO SAVEPOINT sp\;
 
 COMMIT;
+
+-- Tests for AND CHAIN in implicit transaction blocks
+SET TRANSACTION READ ONLY\;
+
+COMMIT
+    AND CHAIN;
+
+-- error
+SHOW transaction_read_only;
+
+SET TRANSACTION READ ONLY\;
+
+ROLLBACK
+    AND CHAIN;
+
+-- error
+SHOW transaction_read_only;
+
+CREATE TABLE trans_abc (
+    a int
+);
+
+-- COMMIT/ROLLBACK + COMMIT/ROLLBACK AND CHAIN
+INSERT INTO trans_abc
+    VALUES (7)\;
+
+COMMIT\;
+
+INSERT INTO trans_abc
+    VALUES (8)\;
+
+COMMIT
+    AND CHAIN;
+
+-- 7 commit, 8 error
+INSERT INTO trans_abc
+    VALUES (9)\;
+
+ROLLBACK\;
+
+INSERT INTO trans_abc
+    VALUES (10)\;
+
+ROLLBACK
+    AND CHAIN;
+
+-- 9 rollback, 10 error
+-- COMMIT/ROLLBACK AND CHAIN + COMMIT/ROLLBACK
+INSERT INTO trans_abc
+    VALUES (11)\;
+
+COMMIT
+    AND CHAIN\;
+
+INSERT INTO trans_abc
+    VALUES (12)\;
+
+COMMIT;
+
+-- 11 error, 12 not reached
+INSERT INTO trans_abc
+    VALUES (13)\;
+
+ROLLBACK
+    AND CHAIN\;
+
+INSERT INTO trans_abc
+    VALUES (14)\;
+
+ROLLBACK;
+
+-- 13 error, 14 not reached
+-- START TRANSACTION + COMMIT/ROLLBACK AND CHAIN
+START TRANSACTION ISOLATION LEVEL REPEATABLE READ\;
+
+INSERT INTO trans_abc
+    VALUES (15)\;
+
+COMMIT
+    AND CHAIN;
+
+-- 15 ok
+SHOW transaction_isolation;
+
+-- transaction is active at this point
+COMMIT;
+
+START TRANSACTION ISOLATION LEVEL REPEATABLE READ\;
+
+INSERT INTO trans_abc
+    VALUES (16)\;
+
+ROLLBACK
+    AND CHAIN;
+
+-- 16 ok
+SHOW transaction_isolation;
+
+-- transaction is active at this point
+ROLLBACK;
+
+SET default_transaction_isolation = 'read committed';
+
+-- START TRANSACTION + COMMIT/ROLLBACK + COMMIT/ROLLBACK AND CHAIN
+START TRANSACTION ISOLATION LEVEL REPEATABLE READ\;
+
+INSERT INTO trans_abc
+    VALUES (17)\;
+
+COMMIT\;
+
+INSERT INTO trans_abc
+    VALUES (18)\;
+
+COMMIT
+    AND CHAIN;
+
+-- 17 commit, 18 error
+SHOW transaction_isolation;
+
+-- out of transaction block
+START TRANSACTION ISOLATION LEVEL REPEATABLE READ\;
+
+INSERT INTO trans_abc
+    VALUES (19)\;
+
+ROLLBACK\;
+
+INSERT INTO trans_abc
+    VALUES (20)\;
+
+ROLLBACK
+    AND CHAIN;
+
+-- 19 rollback, 20 error
+SHOW transaction_isolation;
+
+-- out of transaction block
+RESET default_transaction_isolation;
+
+SELECT
+    *
+FROM
+    trans_abc
+ORDER BY
+    1;
+
+DROP TABLE trans_abc;
+
+-- TRANSACTION SNAPSHOT
+-- Incorrect identifier.
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET TRANSACTION SNAPSHOT 'Incorrect Identifier';
+ROLLBACK;
+
+-- Correct identifier, missing file.
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET TRANSACTION SNAPSHOT 'FFF-FFF-F';
+ROLLBACK;
 
 -- Test for successful cleanup of an aborted transaction at session exit.
 -- THIS MUST BE THE LAST TEST IN THIS FILE.

@@ -79,7 +79,7 @@ FROM
 \d+ test_tablesample_v2
 -- check a sampled query doesn't affect cursor in progress
 BEGIN;
-DECLARE tablesample_cur CURSOR FOR
+DECLARE tablesample_cur SCROLL CURSOR FOR
     SELECT
         id
     FROM
@@ -203,6 +203,45 @@ FROM (
             tenk1 TABLESAMPLE SYSTEM (pct)) ss
 GROUP BY
     pct;
+-- check that a join alias Var in a pulled-up LATERAL subquery's TABLESAMPLE
+-- clause gets flattened
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    pct,
+    count(unique1)
+FROM ((
+        VALUES (0)) v (pct)
+        FULL JOIN (
+            VALUES (100)) w (pct)
+            USING (pct)),
+        LATERAL (
+            SELECT
+                *
+            FROM
+                tenk1 TABLESAMPLE BERNOULLI (pct)) ss
+    GROUP BY
+        pct
+    ORDER BY
+        pct;
+SELECT
+    pct,
+    count(unique1)
+FROM ((
+        VALUES (0)) v (pct)
+        FULL JOIN (
+            VALUES (100)) w (pct)
+            USING (pct)),
+        LATERAL (
+            SELECT
+                *
+            FROM
+                tenk1 TABLESAMPLE BERNOULLI (pct)) ss
+    GROUP BY
+        pct
+    ORDER BY
+        pct;
 -- errors
 SELECT
     id

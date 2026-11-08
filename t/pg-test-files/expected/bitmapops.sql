@@ -12,6 +12,9 @@ CREATE TABLE bmscantest (
     a int,
     b int,
     t text
+)
+WITH (
+    autovacuum_enabled = FALSE
 );
 
 INSERT INTO bmscantest
@@ -35,7 +38,20 @@ SET enable_seqscan = FALSE;
 -- Lower work_mem to trigger use of lossy bitmaps
 SET work_mem = 64;
 
--- Test bitmap-and.
+-- Test bitmap-and without the skip fetch optimization.
+SELECT
+    count(*)
+FROM
+    bmscantest
+WHERE
+    a = 1
+    AND b = 1;
+
+-- Test that we return correct results when using the skip fetch optimization
+-- VACUUM FREEZE will set all the pages in the relation all-visible, enabling
+-- the optimization.
+VACUUM (FREEZE) bmscantest;
+
 SELECT
     count(*)
 FROM

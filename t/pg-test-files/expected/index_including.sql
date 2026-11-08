@@ -250,7 +250,8 @@ SELECT
 FROM
     pg_constraint
 WHERE
-    conrelid = 'tbl'::regclass::oid;
+    conrelid = 'tbl'::regclass::oid
+    AND contype = 'p';
 
 -- ensure that constraint works
 INSERT INTO tbl
@@ -389,7 +390,8 @@ SELECT
 FROM
     pg_constraint
 WHERE
-    conrelid = 'tbl'::regclass::oid;
+    conrelid = 'tbl'::regclass::oid
+    AND contype = 'p';
 
 -- ensure that constraint works
 INSERT INTO tbl
@@ -715,7 +717,7 @@ DROP TABLE tbl;
 
 
 /*
- * 7. Check various AMs. All but btree and gist must fail.
+ * 7. Check various AMs. All but btree, gist and spgist must fail.
  */
 CREATE TABLE tbl (
     c1 int,
@@ -823,5 +825,70 @@ ALTER TABLE tbl
     ALTER c3 TYPE bigint;
 
 \d tbl
+DROP TABLE tbl;
+
+
+/*
+ * 10. Test coverage for names stored as cstrings in indexes
+ */
+CREATE TABLE nametbl (
+    c1 int,
+    c2 name,
+    c3 float
+);
+
+CREATE INDEX nametbl_c1_c2_idx ON nametbl (c2, c1) INCLUDE (c3);
+
+INSERT INTO nametbl
+    VALUES (1, 'two', 3.0);
+
+VACUUM nametbl;
+
+SET enable_seqscan = 0;
+
+-- Ensure we get an index only scan plan
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    c2,
+    c1,
+    c3
+FROM
+    nametbl
+WHERE
+    c2 = 'two'
+    AND c1 = 1;
+
+-- Validate the results look sane
+SELECT
+    c2,
+    c1,
+    c3
+FROM
+    nametbl
+WHERE
+    c2 = 'two'
+    AND c1 = 1;
+
+RESET enable_seqscan;
+
+DROP TABLE nametbl;
+
+
+/*
+ * 11. Expressions are not supported in included columns (yet, anyway).
+ * Verify that we report a "feature not supported" error.
+ */
+CREATE TABLE tbl (
+    c1 int,
+    c2 int,
+    c3 int
+);
+
+CREATE INDEX ON tbl (c1) INCLUDE ((c2 + c3));
+
+CREATE INDEX ON tbl (c1) INCLUDE ((c2));
+
 DROP TABLE tbl;
 

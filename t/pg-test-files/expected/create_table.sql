@@ -1,281 +1,13 @@
 --
 -- CREATE_TABLE
 --
---
--- CLASS DEFINITIONS
---
-CREATE TABLE hobbies_r (
-    name text,
-    person text
-);
-
-CREATE TABLE equipment_r (
-    name text,
-    hobby text
-);
-
-CREATE TABLE onek (
-    unique1 int4,
-    unique2 int4,
-    two int4,
-    four int4,
-    ten int4,
-    twenty int4,
-    hundred int4,
-    thousand int4,
-    twothousand int4,
-    fivethous int4,
-    tenthous int4,
-    odd int4,
-    even int4,
-    stringu1 name,
-    stringu2 name,
-    string4 name
-);
-
-CREATE TABLE tenk1 (
-    unique1 int4,
-    unique2 int4,
-    two int4,
-    four int4,
-    ten int4,
-    twenty int4,
-    hundred int4,
-    thousand int4,
-    twothousand int4,
-    fivethous int4,
-    tenthous int4,
-    odd int4,
-    even int4,
-    stringu1 name,
-    stringu2 name,
-    string4 name
-);
-
-CREATE TABLE tenk2 (
-    unique1 int4,
-    unique2 int4,
-    two int4,
-    four int4,
-    ten int4,
-    twenty int4,
-    hundred int4,
-    thousand int4,
-    twothousand int4,
-    fivethous int4,
-    tenthous int4,
-    odd int4,
-    even int4,
-    stringu1 name,
-    stringu2 name,
-    string4 name
-);
-
-CREATE TABLE person (
-    name text,
-    age int4,
-    location point
-);
-
-CREATE TABLE emp (
-    salary int4,
-    manager name
-)
-INHERITS (
-    person
-);
-
-CREATE TABLE student (
-    gpa float8
-)
-INHERITS (
-    person
-);
-
-CREATE TABLE stud_emp (
-    percent int4
-)
-INHERITS (
-    emp,
-    student
-);
-
-CREATE TABLE city (
-    name name,
-    location box,
-    budget city_budget
-);
-
-CREATE TABLE dept (
-    dname name,
-    mgrname text
-);
-
-CREATE TABLE slow_emp4000 (
-    home_base box
-);
-
-CREATE TABLE fast_emp4000 (
-    home_base box
-);
-
-CREATE TABLE road (
-    name text,
-    thepath path
-);
-
-CREATE TABLE ihighway ()
-INHERITS (
-    road
-);
-
-CREATE TABLE shighway (
-    surface text
-)
-INHERITS (
-    road
-);
-
-CREATE TABLE real_city (
-    pop int4,
-    cname text,
-    outline path
-);
-
---
--- test the "star" operators a bit more thoroughly -- this time,
--- throw in lots of NULL fields...
---
--- a is the type root
--- b and c inherit from a (one-level single inheritance)
--- d inherits from b and c (two-level multiple inheritance)
--- e inherits from c (two-level single inheritance)
--- f inherits from e (three-level single inheritance)
---
-CREATE TABLE a_star (
-    class char,
-    a int4
-);
-
-CREATE TABLE b_star (
-    b text
-)
-INHERITS (
-    a_star
-);
-
-CREATE TABLE c_star (
-    c name
-)
-INHERITS (
-    a_star
-);
-
-CREATE TABLE d_star (
-    d float8
-)
-INHERITS (
-    b_star,
-    c_star
-);
-
-CREATE TABLE e_star (
-    e int2
-)
-INHERITS (
-    c_star
-);
-
-CREATE TABLE f_star (
-    f polygon
-)
-INHERITS (
-    e_star
-);
-
-CREATE TABLE aggtest (
-    a int2,
-    b float4
-);
-
-CREATE TABLE hash_i4_heap (
-    seqno int4,
-    random int4
-);
-
-CREATE TABLE hash_name_heap (
-    seqno int4,
-    random name
-);
-
-CREATE TABLE hash_txt_heap (
-    seqno int4,
-    random text
-);
-
-CREATE TABLE hash_f8_heap (
-    seqno int4,
-    random float8
-);
-
--- don't include the hash_ovfl_heap stuff in the distribution
--- the data set is too large for what it's worth
---
--- CREATE TABLE hash_ovfl_heap (
---	x			int4,
---	y			int4
--- );
-CREATE TABLE bt_i4_heap (
-    seqno int4,
-    random int4
-);
-
-CREATE TABLE bt_name_heap (
-    seqno name,
-    random int4
-);
-
-CREATE TABLE bt_txt_heap (
-    seqno text,
-    random int4
-);
-
-CREATE TABLE bt_f8_heap (
-    seqno float8,
-    random int4
-);
-
-CREATE TABLE array_op_test (
-    seqno int4,
-    i int4[],
-    t text[]
-);
-
-CREATE TABLE array_index_op_test (
-    seqno int4,
-    i int4[],
-    t text[]
-);
-
-CREATE TABLE testjsonb (
-    j jsonb
-);
-
+-- Error cases
 CREATE TABLE unknowntab (
     u unknown -- fail
 );
 
 CREATE TYPE unknown_comptype AS (
     u unknown -- fail
-);
-
-CREATE TABLE IF NOT EXISTS test_tsvector (
-    t text,
-    a tsvector
-);
-
-CREATE TABLE IF NOT EXISTS test_tsvector (
-    t text
 );
 
 -- invalid: non-lowercase quoted reloptions identifiers
@@ -357,6 +89,26 @@ CREATE TEMP TABLE public.temp_to_perm (
 
 -- not OK
 DROP TABLE unlogged1, public.unlogged2;
+
+CREATE UNLOGGED TABLE unlogged1 (
+    a int
+)
+PARTITION BY RANGE (a);
+
+-- fail
+CREATE TABLE unlogged1 (
+    a int
+)
+PARTITION BY RANGE (a);
+
+-- ok
+ALTER TABLE unlogged1 SET LOGGED;
+
+-- fails
+ALTER TABLE unlogged1 SET UNLOGGED;
+
+-- fails
+DROP TABLE unlogged1;
 
 CREATE TABLE as_select1 AS
 SELECT
@@ -454,6 +206,21 @@ WITH (
 
 DROP TABLE withoutoid;
 
+-- temporary tables are ignored by pg_filenode_relation().
+CREATE TEMP TABLE relation_filenode_check (
+    c1 int
+);
+
+SELECT
+    relpersistence,
+    pg_filenode_relation(reltablespace, pg_relation_filenode(oid))
+FROM
+    pg_class
+WHERE
+    relname = 'relation_filenode_check';
+
+DROP TABLE relation_filenode_check;
+
 -- check restriction with default expressions
 -- invalid use of column reference in default expressions
 CREATE TABLE default_expr_column (
@@ -490,6 +257,43 @@ CREATE TABLE default_expr_agg (
     a int DEFAULT (generate_series(1, 3))
 );
 
+-- Verify that subtransaction rollback restores rd_createSubid.
+BEGIN;
+CREATE TABLE remember_create_subid (
+    c int
+);
+SAVEPOINT q;
+DROP TABLE remember_create_subid;
+ROLLBACK TO q;
+
+COMMIT;
+
+DROP TABLE remember_create_subid;
+
+-- Verify that subtransaction rollback restores rd_firstRelfilenodeSubid.
+CREATE TABLE remember_node_subid (
+    c int
+);
+
+BEGIN;
+ALTER TABLE remember_node_subid
+    ALTER c TYPE bigint;
+SAVEPOINT q;
+DROP TABLE remember_node_subid;
+ROLLBACK TO q;
+
+COMMIT;
+
+DROP TABLE remember_node_subid;
+
+-- generated NOT NULL constraint names must not collide with explicitly named constraints
+CREATE TABLE two_not_null_constraints (
+    col integer NOT NULL,
+    CONSTRAINT two_not_null_constraints_col_not_null CHECK (col IS NOT NULL)
+);
+
+DROP TABLE two_not_null_constraints;
+
 --
 -- Partitioned tables
 --
@@ -510,13 +314,6 @@ CREATE TABLE partitioned (
 PARTITION BY LIST (a1, a2);
 
 -- fail
--- unsupported constraint type for partitioned tables
-CREATE TABLE partitioned (
-    a int,
-    EXCLUDE USING gist (a WITH &&)
-)
-PARTITION BY RANGE (a);
-
 -- prevent using prohibited expressions in the key
 CREATE FUNCTION retset (a int)
     RETURNS SETOF int
@@ -555,7 +352,7 @@ SELECT
 CREATE TABLE partitioned (
     a int
 )
-PARTITION BY RANGE (('a'));
+PARTITION BY RANGE ((42));
 
 CREATE FUNCTION const_func ()
     RETURNS int
@@ -591,6 +388,19 @@ CREATE TABLE partitioned (
 )
 PARTITION BY RANGE (xmin);
 
+-- cannot use pseudotypes
+CREATE TABLE partitioned (
+    a int,
+    b int
+)
+PARTITION BY RANGE (((a, b)));
+
+CREATE TABLE partitioned (
+    a int,
+    b int
+)
+PARTITION BY RANGE (a, ('unknown'));
+
 -- functions in key must be immutable
 CREATE FUNCTION immut_func (a int)
     RETURNS int
@@ -606,12 +416,6 @@ CREATE TABLE partitioned (
 PARTITION BY RANGE (immut_func (a));
 
 DROP FUNCTION immut_func (int);
-
--- cannot contain whole-row references
-CREATE TABLE partitioned (
-    a int
-)
-PARTITION BY RANGE ((partitioned));
 
 -- prevent using columns of unsupported types in key (type must have a btree operator class)
 CREATE TABLE partitioned (
@@ -693,6 +497,99 @@ FOR VALUES FROM (-1, 'aaaaa') TO (100, 'ccccc');
 \d+ part2_1
 DROP TABLE partitioned, partitioned2;
 
+-- check reference to partitioned table's rowtype in partition descriptor
+CREATE TABLE partitioned (
+    a int,
+    b int
+)
+PARTITION BY LIST ((ROW (a, b)::partitioned));
+
+CREATE TABLE partitioned1 PARTITION OF partitioned
+FOR VALUES IN ('(1,2)'::partitioned);
+
+CREATE TABLE partitioned2 PARTITION OF partitioned
+FOR VALUES IN ('(2,4)'::partitioned);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    partitioned
+WHERE
+    ROW (a, b)::partitioned = '(1,2)'::partitioned;
+
+DROP TABLE partitioned;
+
+-- whole-row Var in partition key works too
+CREATE TABLE partitioned (
+    a int,
+    b int
+)
+PARTITION BY LIST ((partitioned));
+
+CREATE TABLE partitioned1 PARTITION OF partitioned
+FOR VALUES IN ('(1,2)');
+
+CREATE TABLE partitioned2 PARTITION OF partitioned
+FOR VALUES IN ('(2,4)');
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    partitioned
+WHERE
+    partitioned = '(1,2)'::partitioned;
+
+\d+ partitioned1
+DROP TABLE partitioned;
+
+-- check that dependencies of partition columns are handled correctly
+CREATE DOMAIN intdom1 AS int;
+
+CREATE TABLE partitioned (
+    a intdom1,
+    b text
+)
+PARTITION BY RANGE (a);
+
+ALTER TABLE partitioned
+    DROP COLUMN a;
+
+-- fail
+DROP DOMAIN intdom1;
+
+-- fail, requires cascade
+DROP DOMAIN intdom1 CASCADE;
+
+TABLE partitioned;
+
+-- gone
+-- likewise for columns used in partition expressions
+CREATE DOMAIN intdom1 AS int;
+
+CREATE TABLE partitioned (
+    a intdom1,
+    b text
+)
+PARTITION BY RANGE (plusone (a));
+
+ALTER TABLE partitioned
+    DROP COLUMN a;
+
+-- fail
+DROP DOMAIN intdom1;
+
+-- fail, requires cascade
+DROP DOMAIN intdom1 CASCADE;
+
+TABLE partitioned;
+
+-- gone
 --
 -- Partitions
 --
@@ -741,6 +638,9 @@ FOR VALUES IN ((
 
 CREATE TABLE part_bogus_expr_fail PARTITION OF list_parted
 FOR VALUES IN (generate_series(4, 6));
+
+CREATE TABLE part_bogus_expr_fail PARTITION OF list_parted
+FOR VALUES IN ((1 + 1) COLLATE "POSIX");
 
 -- syntax does not allow empty list of values for list partitions
 CREATE TABLE fail_part PARTITION OF list_parted
@@ -873,13 +773,20 @@ FOR VALUES WITH (MODULUS 50, REMAINDER 1);
 CREATE TABLE hpart_3 PARTITION OF hash_parted
 FOR VALUES WITH (MODULUS 200, REMAINDER 2);
 
--- modulus 25 is factor of modulus of 50 but 10 is not factor of 25.
+CREATE TABLE hpart_4 PARTITION OF hash_parted
+FOR VALUES WITH (MODULUS 10, REMAINDER 3);
+
+-- modulus 25 is factor of modulus of 50 but 10 is not a factor of 25.
 CREATE TABLE fail_part PARTITION OF hash_parted
 FOR VALUES WITH (MODULUS 25, REMAINDER 3);
 
--- previous modulus 50 is factor of 150 but this modulus is not factor of next modulus 200.
+-- previous modulus 50 is factor of 150 but this modulus is not a factor of next modulus 200.
 CREATE TABLE fail_part PARTITION OF hash_parted
 FOR VALUES WITH (MODULUS 150, REMAINDER 3);
+
+-- overlapping remainders
+CREATE TABLE fail_part PARTITION OF hash_parted
+FOR VALUES WITH (MODULUS 100, REMAINDER 3);
 
 -- trying to specify range for the hash partitioned table
 CREATE TABLE fail_part PARTITION OF hash_parted
@@ -965,6 +872,9 @@ FOR VALUES FROM (MINVALUE) TO (2);
 
 CREATE TABLE part1 PARTITION OF range_parted2
 FOR VALUES FROM (1) TO (10);
+
+CREATE TABLE fail_part PARTITION OF range_parted2
+FOR VALUES FROM (-1) TO (1);
 
 CREATE TABLE fail_part PARTITION OF range_parted2
 FOR VALUES FROM (9) TO (MAXVALUE);
@@ -1101,6 +1011,7 @@ FOR VALUES IN ('b');
 
 -- conislocal should be false for any merged constraints, true otherwise
 SELECT
+    conname,
     conislocal,
     coninhcount
 FROM
@@ -1108,20 +1019,24 @@ FROM
 WHERE
     conrelid = 'part_b'::regclass
 ORDER BY
-    conislocal,
-    coninhcount;
+    coninhcount DESC,
+    conname;
 
 -- Once check_b is added to the parent, it should be made non-local for part_b
 ALTER TABLE parted
     ADD CONSTRAINT check_b CHECK (b >= 0);
 
 SELECT
+    conname,
     conislocal,
     coninhcount
 FROM
     pg_constraint
 WHERE
-    conrelid = 'part_b'::regclass;
+    conrelid = 'part_b'::regclass
+ORDER BY
+    coninhcount DESC,
+    conname;
 
 -- Neither check_a nor check_b are droppable from part_b
 ALTER TABLE part_b
@@ -1138,12 +1053,16 @@ ALTER TABLE parted
     DROP CONSTRAINT check_b;
 
 SELECT
+    conname,
     conislocal,
     coninhcount
 FROM
     pg_constraint
 WHERE
-    conrelid = 'part_b'::regclass;
+    conrelid = 'part_b'::regclass
+ORDER BY
+    coninhcount DESC,
+    conname;
 
 -- specify PARTITION BY for a partition
 CREATE TABLE fail_part_col_not_found PARTITION OF parted
@@ -1171,9 +1090,24 @@ FOR VALUES IN (1);
 INSERT INTO parted_notnull_inh_test (b)
     VALUES (NULL);
 
--- note that while b's default is overriden, a's default is preserved
+-- note that while b's default is overridden, a's default is preserved
 \d parted_notnull_inh_test1
 DROP TABLE parted_notnull_inh_test;
+
+-- check that collations are assigned in partition bound expressions
+CREATE TABLE parted_boolean_col (
+    a bool,
+    b text
+)
+PARTITION BY LIST (a);
+
+CREATE TABLE parted_boolean_less PARTITION OF parted_boolean_col
+FOR VALUES IN ('foo' < 'bar');
+
+CREATE TABLE parted_boolean_greater PARTITION OF parted_boolean_col
+FOR VALUES IN ('foo' > 'bar');
+
+DROP TABLE parted_boolean_col;
 
 -- check for a conflicting COLLATE clause
 CREATE TABLE parted_collate_must_match (
@@ -1192,33 +1126,24 @@ FOR VALUES FROM ('m') TO ('z');
 
 DROP TABLE parted_collate_must_match;
 
--- check that specifying incompatible collations for partition bound
--- expressions fails promptly
+-- check that non-matching collations for partition bound
+-- expressions are coerced to the right collation
 CREATE TABLE test_part_coll_posix (
     a text
 )
 PARTITION BY RANGE (a COLLATE "POSIX");
 
--- fail
+-- ok, collation is implicitly coerced
 CREATE TABLE test_part_coll PARTITION OF test_part_coll_posix
 FOR VALUES FROM ('a' COLLATE "C") TO ('g');
-
--- ok
-CREATE TABLE test_part_coll PARTITION OF test_part_coll_posix
-FOR VALUES FROM ('a' COLLATE "POSIX") TO ('g');
 
 -- ok
 CREATE TABLE test_part_coll2 PARTITION OF test_part_coll_posix
 FOR VALUES FROM ('g') TO ('m');
 
--- using a cast expression uses the target type's default collation
--- fail
+-- ok, collation is implicitly coerced
 CREATE TABLE test_part_coll_cast PARTITION OF test_part_coll_posix
 FOR VALUES FROM (name 'm' COLLATE "C") TO ('s');
-
--- ok
-CREATE TABLE test_part_coll_cast PARTITION OF test_part_coll_posix
-FOR VALUES FROM (name 'm' COLLATE "POSIX") TO ('s');
 
 -- ok; partition collation silently overrides the default collation of type 'name'
 CREATE TABLE test_part_coll_cast2 PARTITION OF test_part_coll_posix
@@ -1344,6 +1269,13 @@ SELECT
 \d+ parted_col_comment
 DROP TABLE parted_col_comment;
 
+-- specifying storage parameters for partitioned tables is not supported
+CREATE TABLE parted_col_comment (
+    a int,
+    b text
+)
+PARTITION BY LIST (a) WITH (fillfactor = 100);
+
 -- list partitioning on array type column
 CREATE TABLE arrlp (
     a int[]
@@ -1412,7 +1344,8 @@ END
 $$;
 
 CREATE TRIGGER trig_part_create
-    BEFORE INSERT ON tab_part_create FOR EACH statement
+    BEFORE INSERT ON tab_part_create
+    FOR EACH statement
     EXECUTE PROCEDURE func_part_create ();
 
 INSERT INTO tab_part_create
@@ -1444,4 +1377,79 @@ FROM
     volatile_partbound_test;
 
 DROP TABLE volatile_partbound_test;
+
+-- test the case where a check constraint on default partition allows
+-- to avoid scanning it when adding a new partition
+CREATE TABLE defcheck (
+    a int,
+    b int
+)
+PARTITION BY LIST (b);
+
+CREATE TABLE defcheck_def (
+    a int,
+    c int,
+    b int
+);
+
+ALTER TABLE defcheck_def
+    DROP c;
+
+ALTER TABLE defcheck ATTACH PARTITION defcheck_def DEFAULT;
+
+ALTER TABLE defcheck_def
+    ADD CHECK (b <= 0
+        AND b IS NOT NULL);
+
+CREATE TABLE defcheck_1 PARTITION OF defcheck
+FOR VALUES IN (1, NULL);
+
+-- test that complex default partition constraints are enforced correctly
+INSERT INTO defcheck_def
+    VALUES (0, 0);
+
+CREATE TABLE defcheck_0 PARTITION OF defcheck
+FOR VALUES IN (0);
+
+DROP TABLE defcheck;
+
+-- tests of column drop with partition tables and indexes using
+-- predicates and expressions.
+CREATE TABLE part_column_drop (
+    useless_1 int,
+    id int,
+    useless_2 int,
+    d int,
+    b int,
+    useless_3 int
+)
+PARTITION BY RANGE (id);
+
+ALTER TABLE part_column_drop
+    DROP COLUMN useless_1;
+
+ALTER TABLE part_column_drop
+    DROP COLUMN useless_2;
+
+ALTER TABLE part_column_drop
+    DROP COLUMN useless_3;
+
+CREATE INDEX part_column_drop_b_pred ON part_column_drop (b)
+WHERE
+    b = 1;
+
+CREATE INDEX part_column_drop_b_expr ON part_column_drop ((b = 1));
+
+CREATE INDEX part_column_drop_d_pred ON part_column_drop (d)
+WHERE
+    d = 2;
+
+CREATE INDEX part_column_drop_d_expr ON part_column_drop ((d = 2));
+
+CREATE TABLE part_column_drop_1_10 PARTITION OF part_column_drop
+FOR VALUES FROM (1) TO (10);
+
+\d part_column_drop
+\d part_column_drop_1_10
+DROP TABLE part_column_drop;
 

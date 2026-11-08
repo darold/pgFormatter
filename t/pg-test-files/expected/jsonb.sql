@@ -1,3 +1,15 @@
+-- directory paths are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+
+CREATE TABLE testjsonb (
+    j jsonb
+);
+
+\set filename :abs_srcdir '/data/jsonb.data'
+COPY testjsonb
+FROM
+    :'filename';
+
 -- Strings.
 SELECT
     '""'::jsonb;
@@ -188,18 +200,71 @@ SELECT
     '    '::jsonb;
 
 -- ERROR, no value
+-- Multi-line JSON input to check ERROR reporting
+SELECT
+    '{
+		"one": 1,
+		"two":"two",
+		"three":
+		true}'::jsonb;
+
+-- OK
+SELECT
+    '{
+		"one": 1,
+		"two":,"two",  -- ERROR extraneous comma before field "two"
+		"three":
+		true}'
+::jsonb;
+
+SELECT
+    '{
+		"one": 1,
+		"two":"two",
+		"averyveryveryveryveryveryveryveryveryverylongfieldname":}'::jsonb;
+
+-- ERROR missing value for last field
+-- test non-error-throwing input
+SELECT
+    pg_input_is_valid ('{"a":true}', 'jsonb');
+
+SELECT
+    pg_input_is_valid ('{"a":true', 'jsonb');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('{"a":true', 'jsonb');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('{"a":1e1000000}', 'jsonb');
+
 -- make sure jsonb is passed through json generators without being escaped
 SELECT
     array_to_json(ARRAY[jsonb '{"a":1}', jsonb '{"b":[2,3]}']);
 
 -- anyarray column
+CREATE TEMP TABLE ROWS AS
 SELECT
+    x,
+    'txt' || x AS y
+FROM
+    generate_series(1, 3) AS x;
+
+ANALYZE ROWS;
+
+SELECT
+    attname,
     to_jsonb (histogram_bounds) histogram_bounds
 FROM
     pg_stats
 WHERE
-    attname = 'tmplname'
-    AND tablename = 'pg_pltemplate';
+    tablename = 'rows'
+    AND schemaname = pg_my_temp_schema()::regnamespace::text
+ORDER BY
+    1;
 
 -- to_jsonb, timestamps
 SELECT
@@ -236,13 +301,6 @@ SELECT
     to_jsonb (timestamptz '-Infinity');
 
 --jsonb_agg
-CREATE TEMP TABLE ROWS AS
-SELECT
-    x,
-    'txt' || x AS y
-FROM
-    generate_series(1, 3) AS x;
-
 SELECT
     jsonb_agg(q)
 FROM (
@@ -501,6 +559,9 @@ SELECT
     '"foo"'::jsonb -> 'z';
 
 SELECT
+    '[]'::jsonb -> - 2147483648;
+
+SELECT
     '{"a": [{"b": "c"}, {"b": "cc"}]}'::jsonb ->> NULL::text;
 
 SELECT
@@ -532,6 +593,9 @@ SELECT
 
 SELECT
     '"foo"'::jsonb ->> 'z';
+
+SELECT
+    '[]'::jsonb ->> - 2147483648;
 
 -- equality and inequality
 SELECT
@@ -1068,6 +1132,24 @@ SELECT
 SELECT
     jsonb_object_agg(NULL, '{"a":1}');
 
+SELECT
+    jsonb_object_agg_unique (i, NULL) OVER (ORDER BY i)
+FROM
+    generate_series(1, 10) g (i);
+
+SELECT
+    jsonb_object_agg_unique_strict (i, NULL) OVER (ORDER BY i)
+FROM
+    generate_series(1, 10) g (i);
+
+-- a NULL-valued pair must still count as a duplicate key
+SELECT
+    i,
+    jsonb_object_agg_unique_strict (k, v) OVER (ORDER BY i)
+FROM (
+    VALUES (1, 'a', NULL::int),
+        (2, 'a', 1)) t (i, k, v);
+
 CREATE TEMP TABLE foo (
     serial_num int,
     name text,
@@ -1108,6 +1190,22 @@ SELECT
     jsonb_object_agg(name, type)
 FROM
     foo;
+
+-- the final function runs once per row, but later pairs must still win
+SELECT
+    g,
+    jsonb_object_agg(k, v) OVER (ORDER BY g)
+FROM (
+    VALUES (1, 'a', 1),
+        (1, 'a', 2),
+        (1, 'a', 3),
+        (1, 'b', 5),
+        (2, 'b', 6),
+        (3, 'a', 7)) t (g, k, v);
+
+-- edge case for parser
+SELECT
+    jsonb_object_agg(DISTINCT 'a', 'abc');
 
 -- jsonb_object
 -- empty object, one dimension
@@ -1164,6 +1262,12 @@ SELECT
 -- empty key is allowed
 SELECT
     jsonb_object('{a,b,"","d e f"}', '{1,2,3,"a b c"}');
+
+-- jsonb_object_agg_unique requires unique keys
+SELECT
+    jsonb_object_agg_unique (mod(i, 100), i)
+FROM
+    generate_series(0, 199) i;
 
 -- extract_path, extract_path_as_text
 SELECT
@@ -1810,12 +1914,130 @@ SELECT
 FROM
     jsonb_populate_record(ROW (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ROW ('x', 3, '2012-12-31 15:30:56')::jbpop, NULL)::jsbrec, '{"rec": {"a": "abc", "c": "01.02.2003", "x": 43.2}}') q;
 
+-- Tests to check soft-error support for populate_record_field()
+-- populate_scalar()
+CREATE TYPE jsb_char2 AS (
+    a char(2)
+);
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_char2, '{"a": "aaa"}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_char2, '{"a": "aaa"}') q;
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_char2, '{"a": "aa"}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_char2, '{"a": "aa"}') q;
+
+-- populate_array()
+CREATE TYPE jsb_ia AS (
+    a int[]
+);
+
+CREATE TYPE jsb_ia2 AS (
+    a int[][]
+);
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_ia, '{"a": 43.2}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_ia, '{"a": 43.2}') q;
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_ia, '{"a": [1, 2]}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_ia, '{"a": [1, 2]}') q;
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_ia2, '{"a": [[1], [2, 3]]}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_ia2, '{"a": [[1], [2, 3]]}') q;
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_ia2, '{"a": [[1, 0], [2, 3]]}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_ia2, '{"a": [[1, 0], [2, 3]]}') q;
+
+-- populate_domain()
+CREATE DOMAIN jsb_i_not_null AS int NOT NULL;
+
+CREATE DOMAIN jsb_i_gt_1 AS int CHECK (value > 1);
+
+CREATE TYPE jsb_i_not_null_rec AS (
+    a jsb_i_not_null
+);
+
+CREATE TYPE jsb_i_gt_1_rec AS (
+    a jsb_i_gt_1
+);
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_i_not_null_rec, '{"a": null}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_i_not_null_rec, '{"a": null}') q;
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_i_not_null_rec, '{"a": 1}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_i_not_null_rec, '{"a": 1}') q;
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_i_gt_1_rec, '{"a": 1}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_i_gt_1_rec, '{"a": 1}') q;
+
+SELECT
+    jsonb_populate_record_valid (NULL::jsb_i_gt_1_rec, '{"a": 2}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::jsb_i_gt_1_rec, '{"a": 2}') q;
+
+DROP TYPE jsb_ia, jsb_ia2, jsb_char2, jsb_i_not_null_rec, jsb_i_gt_1_rec;
+
+DROP DOMAIN jsb_i_not_null, jsb_i_gt_1;
+
 -- anonymous record type
 SELECT
     jsonb_populate_record(NULL::record, '{"x": 0, "y": 1}');
 
 SELECT
     jsonb_populate_record(ROW (1, 2), '{"f1": 0, "f2": 1}');
+
+SELECT
+    *
+FROM
+    jsonb_populate_record(NULL::record, '{"x": 776}')
+    AS (x int, y int);
 
 -- composite domain
 SELECT
@@ -1887,6 +2109,12 @@ FROM (
     VALUES (1),
         (2)) v (i);
 
+SELECT
+    *
+FROM
+    jsonb_populate_recordset(NULL::record, '[{"x": 776}]')
+    AS (x int, y int);
+
 -- empty array is a corner case
 SELECT
     jsonb_populate_recordset(NULL::record, '[]');
@@ -1898,6 +2126,12 @@ SELECT
     *
 FROM
     jsonb_populate_recordset(NULL::jbpop, '[]') q;
+
+SELECT
+    *
+FROM
+    jsonb_populate_recordset(NULL::record, '[]')
+    AS (x int, y int);
 
 -- composite domain
 SELECT
@@ -2014,6 +2248,36 @@ SELECT
     *
 FROM
     jsonb_to_record('{"ia2": [[[1], [2], [3]]]}') AS x (ia2 int4[][]);
+
+SELECT
+    *
+FROM
+    jsonb_to_record('{"out": {"key": 1}}') AS x (out json);
+
+SELECT
+    *
+FROM
+    jsonb_to_record('{"out": [{"key": 1}]}') AS x (out json);
+
+SELECT
+    *
+FROM
+    jsonb_to_record('{"out": "{\"key\": 1}"}') AS x (out json);
+
+SELECT
+    *
+FROM
+    jsonb_to_record('{"out": {"key": 1}}') AS x (out jsonb);
+
+SELECT
+    *
+FROM
+    jsonb_to_record('{"out": [{"key": 1}]}') AS x (out jsonb);
+
+SELECT
+    *
+FROM
+    jsonb_to_record('{"out": "{\"key\": 1}"}') AS x (out jsonb);
 
 -- test type info caching in jsonb_populate_record()
 CREATE TEMP TABLE jsbpoptest (
@@ -2153,6 +2417,13 @@ SELECT
 FROM
     testjsonb
 WHERE
+    j @@ '$.age == "25".double()';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
     j @@ 'exists($)';
 
 SELECT
@@ -2238,6 +2509,8 @@ FROM
     testjsonb
 WHERE
     j @? '$.bar';
+
+ALTER TABLE testjsonb SET (parallel_workers = 2);
 
 CREATE INDEX jidx ON testjsonb USING gin (j);
 
@@ -2392,6 +2665,13 @@ SELECT
 FROM
     testjsonb
 WHERE
+    j @@ '$.age == "25".double()';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
     j @@ '$.array[*] == "foo"';
 
 SELECT
@@ -2400,6 +2680,13 @@ FROM
     testjsonb
 WHERE
     j @@ '$.array[*] == "bar"';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
+    j @@ '!(!($.bad == false) && $.coauthors == 98)';
 
 SELECT
     count(*)
@@ -2544,6 +2831,41 @@ FROM
 WHERE
     j @? '$.bar';
 
+-- check indexed lookup of root scalars
+INSERT INTO testjsonb
+    VALUES ('"a scalar"');
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
+    j @@ 'strict $ == "a scalar"';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
+    j @? 'strict $ ? (@ == "a scalar")';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
+    j @@ 'lax $ == "a scalar"';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
+    j @? 'lax $ ? (@ == "a scalar")';
+
+DELETE FROM testjsonb
+WHERE j = '"a scalar"';
+
 -- array exists - array elements should behave as keys (for GIN index scans too)
 CREATE INDEX jidx_array ON testjsonb USING gin ((j -> 'array'));
 
@@ -2623,7 +2945,7 @@ FROM (
 
 SET enable_hashagg = ON;
 
-SET enable_sort = OFF;
+SET enable_groupagg = OFF;
 
 SELECT
     count(*)
@@ -2649,11 +2971,11 @@ FROM (
     VALUES (jsonb '{}' || ''::text),
         ('{}')) v (j);
 
-SET enable_sort = ON;
+SET enable_groupagg = ON;
 
 RESET enable_hashagg;
 
-RESET enable_sort;
+RESET enable_groupagg;
 
 DROP INDEX jidx;
 
@@ -2681,7 +3003,7 @@ WHERE
 --gin path opclass
 DROP INDEX jidx;
 
-CREATE INDEX jidx ON testjsonb USING gin (j jsonb_path_ops);
+CREATE INDEX CONCURRENTLY jidx ON testjsonb USING gin (j jsonb_path_ops);
 
 SET enable_seqscan = OFF;
 
@@ -2782,6 +3104,13 @@ SELECT
 FROM
     testjsonb
 WHERE
+    j @@ '$.age == "25".double()';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
     j @@ '$.array[*] == "foo"';
 
 SELECT
@@ -2790,6 +3119,13 @@ FROM
     testjsonb
 WHERE
     j @@ '$.array[*] == "bar"';
+
+SELECT
+    count(*)
+FROM
+    testjsonb
+WHERE
+    j @@ '!(!($.bad == false) && $.coauthors == 98)';
 
 SELECT
     count(*)
@@ -3202,6 +3538,32 @@ SELECT
 SELECT
     jsonb_strip_nulls ('{"a": {"b": null, "c": null}, "d": {} }');
 
+-- jsonb_strip_nulls (strip_in_arrays=true)
+SELECT
+    jsonb_strip_nulls (NULL, TRUE);
+
+SELECT
+    jsonb_strip_nulls ('1', TRUE);
+
+SELECT
+    jsonb_strip_nulls ('"a string"', TRUE);
+
+SELECT
+    jsonb_strip_nulls ('null', TRUE);
+
+SELECT
+    jsonb_strip_nulls ('[1,2,null,3,4]', TRUE);
+
+SELECT
+    jsonb_strip_nulls ('{"a":1,"b":null,"c":[2,null,3],"d":{"e":4,"f":null}}', TRUE);
+
+SELECT
+    jsonb_strip_nulls ('[1,{"a":1,"b":null,"c":2},3]', TRUE);
+
+-- an empty object is not null and should not be stripped
+SELECT
+    jsonb_strip_nulls ('{"a": {"b": null, "c": null}, "d": {} }', TRUE);
+
 SELECT
     jsonb_pretty('{"a": "test", "b": [1, 2, 3], "c": "test3", "d":{"dd": "test4", "dd2":{"ddd": "test5"}}}');
 
@@ -3264,6 +3626,18 @@ SELECT
 
 SELECT
     '{"a":1}' || '"a"'::jsonb;
+
+SELECT
+    '[3]'::jsonb || '{}'::jsonb;
+
+SELECT
+    '3'::jsonb || '[]'::jsonb;
+
+SELECT
+    '3'::jsonb || '4'::jsonb;
+
+SELECT
+    '3'::jsonb || '{}'::jsonb;
 
 SELECT
     '["a", "b"]'::jsonb || '{"c":1}';
@@ -3392,6 +3766,9 @@ SELECT
     jsonb_delete_path ('{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}', '{d,1,0}');
 
 SELECT
+    jsonb_delete_path ('{"a":[]}', '{"a",-2147483648}');
+
+SELECT
     '{"n":null, "a":1, "b":[1,2], "c":{"1":2}, "d":{"1":[2,3]}}'::jsonb #- '{n}';
 
 SELECT
@@ -3496,6 +3873,63 @@ SELECT
 SELECT
     jsonb_set('{"a": {"b": [1, 2, 3]}}', '{a, b, NULL}', '"new_value"');
 
+-- jsonb_set_lax
+\pset null NULL
+-- pass though non nulls to jsonb_set
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', '5');
+
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{d}', '6', TRUE);
+
+-- using the default treatment
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', NULL);
+
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{d}', NULL, TRUE);
+
+-- errors
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', NULL, TRUE, NULL);
+
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', NULL, TRUE, 'no_such_treatment');
+
+-- explicit treatments
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', NULL, null_value_treatment => 'raise_exception') AS raise_exception;
+
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', NULL, null_value_treatment => 'return_target') AS return_target;
+
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', NULL, null_value_treatment => 'delete_key') AS delete_key;
+
+SELECT
+    jsonb_set_lax ('{"a":1,"b":2}', '{b}', NULL, null_value_treatment => 'use_json_null') AS use_json_null;
+
+-- multi-row cases with a constant NULL new_value
+SELECT
+    jsonb_set_lax (j, '{a}', NULL, TRUE, t)
+FROM (
+    VALUES ('{"a":1}'::jsonb, 'use_json_null'),
+        ('{"a":1}'::jsonb, 'delete_key')) v (j, t);
+
+SELECT
+    jsonb_set_lax (j, '{a}', NULL, TRUE, t)
+FROM (
+    VALUES ('{"a":1}'::jsonb, 'use_json_null'),
+        ('{"a":1}'::jsonb, 'return_target')) v (j, t);
+
+SELECT
+    jsonb_set_lax (j, '{a}', NULL)
+FROM (
+    VALUES ('{"a":1}'::jsonb),
+        ('{"a":2}'::jsonb),
+        ('{"a":3}'::jsonb)) v (j);
+
+\pset null ''
 -- jsonb_insert
 SELECT
     jsonb_insert('{"a": [0,1,2]}', '{a, 1}', '"new_value"');
@@ -3565,6 +3999,552 @@ SELECT
 SELECT
     jsonb_insert('{"a": {"b": "value"}}', '{a, b}', '"new_value"', TRUE);
 
+-- jsonb subscript
+SELECT
+    ('123'::jsonb)['a'];
+
+SELECT
+    ('123'::jsonb)[0];
+
+SELECT
+    ('123'::jsonb)[NULL];
+
+SELECT
+    ('{"a": 1}'::jsonb)['a'];
+
+SELECT
+    ('{"a": 1}'::jsonb)[0];
+
+SELECT
+    ('{"a": 1}'::jsonb)['not_exist'];
+
+SELECT
+    ('{"a": 1}'::jsonb)[NULL];
+
+SELECT
+    ('[1, "2", null]'::jsonb)['a'];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[0];
+
+SELECT
+    ('[1, "2", null]'::jsonb)['1'];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[1.0];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[2];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[3];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[-2];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[1]['a'];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[1][0];
+
+SELECT
+    ('{"a": 1, "b": "c", "d": [1, 2, 3]}'::jsonb)['b'];
+
+SELECT
+    ('{"a": 1, "b": "c", "d": [1, 2, 3]}'::jsonb)['d'];
+
+SELECT
+    ('{"a": 1, "b": "c", "d": [1, 2, 3]}'::jsonb)['d'][1];
+
+SELECT
+    ('{"a": 1, "b": "c", "d": [1, 2, 3]}'::jsonb)['d']['a'];
+
+SELECT
+    ('{"a": {"a1": {"a2": "aaa"}}, "b": "bbb", "c": "ccc"}'::jsonb)['a']['a1'];
+
+SELECT
+    ('{"a": {"a1": {"a2": "aaa"}}, "b": "bbb", "c": "ccc"}'::jsonb)['a']['a1']['a2'];
+
+SELECT
+    ('{"a": {"a1": {"a2": "aaa"}}, "b": "bbb", "c": "ccc"}'::jsonb)['a']['a1']['a2']['a3'];
+
+SELECT
+    ('{"a": ["a1", {"b1": ["aaa", "bbb", "ccc"]}], "b": "bb"}'::jsonb)['a'][1]['b1'];
+
+SELECT
+    ('{"a": ["a1", {"b1": ["aaa", "bbb", "ccc"]}], "b": "bb"}'::jsonb)['a'][1]['b1'][2];
+
+-- slices are not supported
+SELECT
+    ('{"a": 1}'::jsonb)['a' :'b'];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[1:2];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[:2];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[1:];
+
+SELECT
+    ('[1, "2", null]'::jsonb)[:];
+
+CREATE TEMP TABLE test_jsonb_subscript (
+    id int,
+    test_json jsonb
+);
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{}'), -- empty jsonb
+    (2, '{"key": "value"}');
+
+-- jsonb with data
+-- update empty jsonb
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'] = '1'
+WHERE
+    id = 1;
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- update jsonb with some data
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'] = '1'
+WHERE
+    id = 2;
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- replace jsonb
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'] = '"test"';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- replace by object
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'] = '{"b": 1}'::jsonb;
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- replace by array
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'] = '[1, 2, 3]'::jsonb;
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- use jsonb subscription in where clause
+SELECT
+    *
+FROM
+    test_jsonb_subscript
+WHERE
+    test_json['key'] = '"value"';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript
+WHERE
+    test_json['key_doesnt_exists'] = '"value"';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript
+WHERE
+    test_json['key'] = '"wrong_value"';
+
+-- NULL
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[NULL] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['another_key'] = NULL;
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- NULL as jsonb source
+INSERT INTO test_jsonb_subscript
+    VALUES (3, NULL);
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'] = '1'
+WHERE
+    id = 3;
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json = NULL
+WHERE
+    id = 3;
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[0] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- Fill the gaps logic
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '[0]');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[5] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[-4] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[-8] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- keep consistent values position
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '[]');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[5] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- create the whole path
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][0]['b'][0]['c'] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][2]['b'][2]['c'][2] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- create the whole path with already existing keys
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{"b": 1}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][0] = '2';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- the start jsonb is an object, first subscript is treated as a key
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[0]['a'] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- the start jsonb is an array
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '[]');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[0]['a'] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[2]['b'] = '2';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- overwriting an existing path
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a']['b'][1] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a']['b'][10] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '[]');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[0][0][0] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[0][0][1] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a']['b'][10] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][10][10] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- an empty sub element
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{"a": {}}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a']['b']['c'][2] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{"a": []}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][1]['c'][2] = '1';
+
+SELECT
+    *
+FROM
+    test_jsonb_subscript;
+
+-- trying replace assuming a composite object, but it's an element or a value
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, '{"a": 1}');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a']['b'] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a']['b']['c'] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][0] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][0]['c'] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json['a'][0][0] = '1';
+
+-- trying replace assuming a composite object, but it's a raw scalar
+DELETE FROM test_jsonb_subscript;
+
+INSERT INTO test_jsonb_subscript
+    VALUES (1, 'null');
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[0] = '1';
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[0][0] = '1';
+
+-- try some things with short-header and toasted subscript values
+DROP TABLE test_jsonb_subscript;
+
+CREATE temp TABLE test_jsonb_subscript (
+    id text,
+    test_json jsonb
+);
+
+INSERT INTO test_jsonb_subscript
+    VALUES ('foo', '{"foo": "bar"}');
+
+INSERT INTO test_jsonb_subscript
+SELECT
+    s,
+    ('{"' || s || '": "bar"}')::jsonb
+FROM
+    repeat('xyzzy', 500) s;
+
+SELECT
+    length(id),
+    test_json[id]
+FROM
+    test_jsonb_subscript;
+
+UPDATE
+    test_jsonb_subscript
+SET
+    test_json[id] = '"baz"';
+
+SELECT
+    length(id),
+    test_json[id]
+FROM
+    test_jsonb_subscript;
+
+\x
+TABLE test_jsonb_subscript;
+
+\x
 -- jsonb to tsvector
 SELECT
     to_tsvector('{"a": "aaa bbb ddd ccc", "b": ["eee fff ggg"], "c": {"d": "hhh iii"}}'::jsonb);
@@ -3687,22 +4667,61 @@ SELECT
     'true'::jsonb::bool;
 
 SELECT
+    'null'::jsonb::bool;
+
+SELECT
     '[]'::jsonb::bool;
 
 SELECT
     '1.0'::jsonb::float;
 
 SELECT
+    'null'::jsonb::float;
+
+SELECT
     '[1.0]'::jsonb::float;
+
+SELECT
+    '1.0'::jsonb::float4;
+
+SELECT
+    'null'::jsonb::float4;
+
+SELECT
+    '[1.0]'::jsonb::float4;
+
+SELECT
+    '12345'::jsonb::int2;
+
+SELECT
+    'null'::jsonb::int2;
+
+SELECT
+    '"hello"'::jsonb::int2;
 
 SELECT
     '12345'::jsonb::int4;
 
 SELECT
+    'null'::jsonb::int4;
+
+SELECT
     '"hello"'::jsonb::int4;
 
 SELECT
+    '12345'::jsonb::int8;
+
+SELECT
+    'null'::jsonb::int8;
+
+SELECT
+    '"hello"'::jsonb::int8;
+
+SELECT
     '12345'::jsonb::numeric;
+
+SELECT
+    'null'::jsonb::numeric;
 
 SELECT
     '{}'::jsonb::numeric;
@@ -3742,4 +4761,48 @@ SELECT
 
 SELECT
     '12345.0000000000000000000000000000000000000000000005'::jsonb::int8;
+
+-- single argument jsonb functions as jsonb_function(jsonb) and jsonb.jsonb_function
+SELECT
+    jsonb_typeof('{"a":1}'::jsonb);
+
+SELECT
+    ('{"a":1}'::jsonb).jsonb_typeof;
+
+SELECT
+    jsonb_array_length('["a", "b", "c"]'::jsonb);
+
+SELECT
+    ('["a", "b", "c"]'::jsonb).jsonb_array_length;
+
+SELECT
+    jsonb_object_keys('{"a":1, "b":2}'::jsonb);
+
+SELECT
+    ('{"a":1, "b":2}'::jsonb).jsonb_object_keys;
+
+-- cast jsonb to other types as (jsonb)::type and (jsonb).type
+SELECT
+    ('123.45'::jsonb)::numeric;
+
+SELECT
+    ('123.45'::jsonb).numeric;
+
+SELECT
+    ('[{"name": "alice"}, {"name": "bob"}]'::jsonb)::name;
+
+SELECT
+    ('[{"name": "alice"}, {"name": "bob"}]'::jsonb).name;
+
+SELECT
+    ('true'::jsonb)::bool;
+
+SELECT
+    ('true'::jsonb).bool;
+
+SELECT
+    ('{"text": "hello"}'::jsonb)::text;
+
+SELECT
+    ('{"text": "hello"}'::jsonb).text;
 

@@ -449,7 +449,7 @@ SELECT
     5,
     6;
 
--- exercise both hashed and sorted implementations of INTERSECT/EXCEPT
+-- exercise both hashed and sorted implementations of UNION/INTERSECT/EXCEPT
 SET enable_hashagg TO ON;
 
 EXPLAIN (
@@ -462,6 +462,35 @@ FROM (
         unique1
     FROM
         tenk1
+    UNION
+    SELECT
+        fivethous
+    FROM
+        tenk1) ss;
+
+SELECT
+    count(*)
+FROM (
+    SELECT
+        unique1
+    FROM
+        tenk1
+    UNION
+    SELECT
+        fivethous
+    FROM
+        tenk1) ss;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM (
+    SELECT
+        unique1
+    FROM
+        tenk1
     INTERSECT
     SELECT
         fivethous
@@ -480,6 +509,9 @@ FROM (
         fivethous
     FROM
         tenk1) ss;
+
+-- this query will prefer a sorted setop unless we force it.
+SET enable_groupagg TO OFF;
 
 EXPLAIN (
     COSTS OFF
@@ -507,6 +539,54 @@ FROM
     tenk1
 WHERE
     unique2 != 10;
+
+RESET enable_groupagg;
+
+-- the hashed implementation is sensitive to child plans' tuple slot types
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    int8_tbl
+INTERSECT
+SELECT
+    q2,
+    q1
+FROM
+    int8_tbl
+ORDER BY
+    1,
+    2;
+
+SELECT
+    *
+FROM
+    int8_tbl
+INTERSECT
+SELECT
+    q2,
+    q1
+FROM
+    int8_tbl
+ORDER BY
+    1,
+    2;
+
+SELECT
+    q2,
+    q1
+FROM
+    int8_tbl
+INTERSECT
+SELECT
+    *
+FROM
+    int8_tbl
+ORDER BY
+    1,
+    2;
 
 SET enable_hashagg TO OFF;
 
@@ -520,6 +600,35 @@ FROM (
         unique1
     FROM
         tenk1
+    UNION
+    SELECT
+        fivethous
+    FROM
+        tenk1) ss;
+
+SELECT
+    count(*)
+FROM (
+    SELECT
+        unique1
+    FROM
+        tenk1
+    UNION
+    SELECT
+        fivethous
+    FROM
+        tenk1) ss;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM (
+    SELECT
+        unique1
+    FROM
+        tenk1
     INTERSECT
     SELECT
         fivethous
@@ -565,6 +674,472 @@ FROM
     tenk1
 WHERE
     unique2 != 10;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    f1
+FROM
+    int4_tbl
+UNION ALL (
+    SELECT
+        unique1
+    FROM
+        tenk1
+    UNION
+    SELECT
+        unique2
+    FROM
+        tenk1);
+
+RESET enable_hashagg;
+
+-- non-hashable type
+SET enable_hashagg TO ON;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES ('11'::varbit),
+        ('10'::varbit)) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES ('11'::varbit), ('10'::varbit)) _ (x);
+
+SET enable_hashagg TO OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES ('11'::varbit),
+        ('10'::varbit)) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES ('11'::varbit), ('10'::varbit)) _ (x);
+
+RESET enable_hashagg;
+
+-- arrays
+SET enable_hashagg TO ON;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+-- non-hashable type
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ARRAY['10'::varbit]),
+        (ARRAY['11'::varbit])) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ARRAY['10'::varbit]), (ARRAY['01'::varbit])) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ARRAY['10'::varbit]),
+        (ARRAY['11'::varbit])) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ARRAY['10'::varbit]), (ARRAY['01'::varbit])) _ (x);
+
+SET enable_hashagg TO OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]),
+        (ARRAY[1, 3])) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ARRAY[1, 2]), (ARRAY[1, 4])) _ (x);
+
+RESET enable_hashagg;
+
+-- records
+SET enable_hashagg TO ON;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+-- non-hashable type
+-- With an anonymous row type, the typcache does not report that the
+-- type is hashable.  (Otherwise, this would fail at execution time.)
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)),
+        (ROW ('11'::varbit))) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)), (ROW ('01'::varbit))) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)),
+        (ROW ('11'::varbit))) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)), (ROW ('01'::varbit))) _ (x);
+
+-- With a defined row type, the typcache can inspect the type's fields
+-- for hashability.
+CREATE TYPE ct1 AS (
+    f1 varbit
+);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)::ct1),
+        (ROW ('11'::varbit)::ct1)) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)::ct1), (ROW ('01'::varbit)::ct1)) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)::ct1),
+        (ROW ('11'::varbit)::ct1)) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW ('10'::varbit)::ct1), (ROW ('01'::varbit)::ct1)) _ (x);
+
+DROP TYPE ct1;
+
+SET enable_hashagg TO OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+UNION
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+INTERSECT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (1, 3))) _ (x)
+EXCEPT
+SELECT
+    x
+FROM (
+    VALUES (ROW (1, 2)), (ROW (1, 4))) _ (x);
+
+-- non-sortable type
+-- Ensure we get a HashAggregate plan.  Keep enable_hashagg=off to ensure
+-- there's no chance of a sort.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    '123'::xid
+UNION
+SELECT
+    '123'::xid;
 
 RESET enable_hashagg;
 
@@ -781,7 +1356,7 @@ SELECT
 -- check hashed implementation
 SET enable_hashagg = TRUE;
 
-SET enable_sort = FALSE;
+SET enable_groupagg = FALSE;
 
 EXPLAIN (
     COSTS OFF
@@ -856,7 +1431,7 @@ FROM
 -- check sorted implementation
 SET enable_hashagg = FALSE;
 
-SET enable_sort = TRUE;
+SET enable_groupagg = TRUE;
 
 EXPLAIN (
     COSTS OFF
@@ -928,9 +1503,45 @@ SELECT
 FROM
     generate_series(1, 3);
 
+-- Try a variation of the above but with a CTE which contains a column, again
+-- with an empty final select list.
+-- Ensure we get the expected 1 row with 0 columns
+WITH cte AS MATERIALIZED (
+    SELECT
+        s
+    FROM
+        generate_series(
+            1, 5
+) s
+)
+SELECT
+FROM
+    cte
+UNION
+SELECT
+FROM
+    cte;
+
+-- Ensure we get the same result as the above.
+WITH cte AS NOT MATERIALIZED (
+    SELECT
+        s
+    FROM
+        generate_series(
+            1, 5
+) s
+)
+SELECT
+FROM
+    cte
+UNION
+SELECT
+FROM
+    cte;
+
 RESET enable_hashagg;
 
-RESET enable_sort;
+RESET enable_groupagg;
 
 --
 -- Check handling of a case with unknown constants.  We don't guarantee
@@ -992,6 +1603,8 @@ SET enable_seqscan = OFF;
 SET enable_indexscan = ON;
 
 SET enable_bitmapscan = OFF;
+
+SET enable_sort = OFF;
 
 EXPLAIN (
     COSTS OFF
@@ -1108,6 +1721,8 @@ RESET enable_indexscan;
 
 RESET enable_bitmapscan;
 
+RESET enable_sort;
+
 -- This simpler variant of the above test has been observed to fail differently
 CREATE TABLE events (
     event_id int PRIMARY KEY
@@ -1143,6 +1758,297 @@ ORDER BY
 DROP TABLE events_child, events, other_events;
 
 RESET enable_indexonlyscan;
+
+--
+-- Test handling of UNION / EXCEPT / INTERSECT with provably empty inputs
+--
+-- Ensure the empty UNION input is pruned and de-duplication is done for the
+-- remaining relation.
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1
+WHERE
+    1 = 2
+UNION
+SELECT
+    four
+FROM
+    tenk1
+ORDER BY
+    1;
+
+-- Validate that the results of the above are correct
+SELECT
+    two
+FROM
+    tenk1
+WHERE
+    1 = 2
+UNION
+SELECT
+    four
+FROM
+    tenk1
+ORDER BY
+    1;
+
+-- All UNION inputs are proven empty.  Ensure the planner provides a
+-- const-false Result node
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1
+WHERE
+    1 = 2
+UNION
+SELECT
+    four
+FROM
+    tenk1
+WHERE
+    1 = 2
+UNION
+SELECT
+    ten
+FROM
+    tenk1
+WHERE
+    1 = 2
+ORDER BY
+    1;
+
+-- Ensure the planner provides a const-false Result node
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1
+WHERE
+    1 = 2
+INTERSECT
+SELECT
+    four
+FROM
+    tenk1
+ORDER BY
+    1;
+
+-- As above, with the inputs swapped
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    four
+FROM
+    tenk1
+INTERSECT
+SELECT
+    two
+FROM
+    tenk1
+WHERE
+    1 = 2
+ORDER BY
+    1;
+
+-- Try with both inputs dummy
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    four
+FROM
+    tenk1
+WHERE
+    1 = 2
+INTERSECT
+SELECT
+    two
+FROM
+    tenk1
+WHERE
+    1 = 2
+ORDER BY
+    1;
+
+-- Ensure the planner provides a const-false Result node when the left input
+-- is empty
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1
+WHERE
+    1 = 2
+EXCEPT
+SELECT
+    four
+FROM
+    tenk1
+ORDER BY
+    1;
+
+-- Ensure the planner only scans the left input when right input is empty
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1
+EXCEPT ALL
+SELECT
+    four
+FROM
+    tenk1
+WHERE
+    1 = 2
+ORDER BY
+    1;
+
+-- Try mixed setop cases.  Ensure the right-hand UNION child gets removed.
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1 t1
+EXCEPT
+SELECT
+    four
+FROM
+    tenk1 t2
+UNION
+SELECT
+    ten
+FROM
+    tenk1 dummy
+WHERE
+    1 = 2;
+
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1 t1
+WHERE
+    two = 1
+INTERSECT ALL
+SELECT
+    four
+FROM
+    tenk1 t2
+WHERE
+    four = 1
+UNION
+SELECT
+    ten
+FROM
+    tenk1 dummy
+WHERE
+    1 = 2;
+
+-- As above, but with sorting: ensure we do not get confused by child pathkeys
+SET enable_hashagg = OFF;
+
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two
+FROM
+    tenk1 t1
+WHERE
+    two = 1
+INTERSECT ALL
+SELECT
+    four
+FROM
+    tenk1 t2
+WHERE
+    four = 1
+UNION
+SELECT
+    ten
+FROM
+    tenk1 dummy
+WHERE
+    1 = 2;
+
+-- also check case where the upper op is EXCEPT
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+) (
+    SELECT
+        two
+    FROM
+        tenk1 t1
+    WHERE
+        two = 1
+    INTERSECT
+    SELECT
+        four
+    FROM
+        tenk1 t2
+    WHERE
+        four = 1)
+EXCEPT ALL
+SELECT
+    ten
+FROM
+    tenk1 dummy
+WHERE
+    1 = 2;
+
+RESET enable_hashagg;
+
+-- Ensure EXPLAIN can show a dummy set operation whose output is coerced
+-- to another type by the parent set operation.
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    two::numeric
+FROM
+    tenk1 t1
+EXCEPT (
+    SELECT
+        four
+    FROM
+        tenk1 dummy
+    WHERE
+        1 = 2
+    EXCEPT ALL
+    SELECT
+        ten
+    FROM
+        tenk1 t2);
 
 -- Test constraint exclusion of UNION ALL subqueries
 EXPLAIN (
@@ -1265,6 +2171,64 @@ WHERE
 ORDER BY
     x;
 
+-- Test cases where the native ordering of a sub-select has more pathkeys
+-- than the outer query cares about
+EXPLAIN (
+    COSTS OFF
+) SELECT DISTINCT
+    q1
+FROM ( SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i81
+    UNION ALL SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i82) ss
+WHERE
+    q2 = q2;
+
+SELECT DISTINCT
+    q1
+FROM ( SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i81
+    UNION ALL SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i82) ss
+WHERE
+    q2 = q2;
+
+EXPLAIN (
+    COSTS OFF
+) SELECT DISTINCT
+    q1
+FROM ( SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i81
+    UNION ALL SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i82) ss
+WHERE
+    - q1 = q2;
+
+SELECT DISTINCT
+    q1
+FROM ( SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i81
+    UNION ALL SELECT DISTINCT
+        *
+    FROM
+        int8_tbl i82) ss
+WHERE
+    - q1 = q2;
+
 -- Test proper handling of parameterized appendrel paths when the
 -- potential join qual is expensive
 CREATE FUNCTION expensivefunc (int)
@@ -1360,4 +2324,72 @@ FROM (
 WHERE (x = 0)
     OR (q1 >= q2
         AND q1 <= q2);
+
+--
+-- Test the planner's ability to produce cheap startup plans with Append nodes
+--
+-- Ensure we get a Nested Loop join between tenk1 and tenk2
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    t1.unique1
+FROM
+    tenk1 t1
+    INNER JOIN tenk2 t2 ON t1.tenthous = t2.tenthous
+        AND t2.thousand = 0
+    UNION ALL (
+        VALUES (1))
+    LIMIT 1;
+
+-- Ensure there is no problem if cheapest_startup_path is NULL
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1 t1
+    LEFT JOIN LATERAL (
+        SELECT
+            t1.tenthous
+        FROM
+            tenk2 t2
+    UNION ALL (
+        VALUES (1))) ON TRUE
+LIMIT 1;
+
+-- Test handling of Vars with varno 0 in estimate_array_length
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    NULL::int[]
+UNION ALL
+SELECT
+    NULL::int[]
+UNION ALL
+SELECT
+    NULL::bigint[];
+
+-- Estimate a UNION's output rows as the sum of its children's distinct-group
+-- estimates, not the total input size.  Ensure we get an index nested loop
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1 t
+    JOIN (
+        SELECT
+            ten
+        FROM
+            tenk1
+    UNION
+    SELECT
+        ten
+    FROM
+        onek) s ON s.ten = t.unique1;
 

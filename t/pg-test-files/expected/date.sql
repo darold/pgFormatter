@@ -53,20 +53,23 @@ INSERT INTO DATE_TBL
 INSERT INTO DATE_TBL
     VALUES ('2040-04-10');
 
+INSERT INTO DATE_TBL
+    VALUES ('2040-04-10 BC');
+
 SELECT
-    f1 AS "Fifteen"
+    f1
 FROM
     DATE_TBL;
 
 SELECT
-    f1 AS "Nine"
+    f1
 FROM
     DATE_TBL
 WHERE
     f1 < '2000-01-01';
 
 SELECT
-    f1 AS "Three"
+    f1
 FROM
     DATE_TBL
 WHERE
@@ -495,6 +498,26 @@ SELECT
     date '5874898-01-01';
 
 -- out of range
+-- Test non-error-throwing API
+SELECT
+    pg_input_is_valid ('now', 'date');
+
+SELECT
+    pg_input_is_valid ('garbage', 'date');
+
+SELECT
+    pg_input_is_valid ('6874898-01-01', 'date');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('garbage', 'date');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('6874898-01-01', 'date');
+
 RESET datestyle;
 
 --
@@ -532,18 +555,30 @@ SELECT
 --
 -- test extract!
 --
+SELECT
+    f1 AS "date",
+    date_part('year', f1) AS year,
+    date_part('month', f1) AS month,
+    date_part('day', f1) AS day,
+    date_part('quarter', f1) AS quarter,
+    date_part('decade', f1) AS decade,
+    date_part('century', f1) AS century,
+    date_part('millennium', f1) AS millennium,
+    date_part('isoyear', f1) AS isoyear,
+    date_part('week', f1) AS week,
+    date_part('dow', f1) AS dow,
+    date_part('isodow', f1) AS isodow,
+    date_part('doy', f1) AS doy,
+    date_part('julian', f1) AS julian,
+    date_part('epoch', f1) AS epoch
+FROM
+    date_tbl;
+
+--
 -- epoch
 --
 SELECT
     EXTRACT(EPOCH FROM DATE '1970-01-01');
-
---  0
-SELECT
-    EXTRACT(EPOCH FROM TIMESTAMP '1970-01-01');
-
---  0
-SELECT
-    EXTRACT(EPOCH FROM TIMESTAMPTZ '1970-01-01+00');
 
 --  0
 --
@@ -653,34 +688,86 @@ SELECT
 
 --  -2
 --
--- some other types:
+-- all possible fields
 --
--- on a timestamp.
 SELECT
-    EXTRACT(CENTURY FROM NOW()) >= 21 AS True;
+    EXTRACT(MICROSECONDS FROM DATE '2020-08-11');
 
--- true
 SELECT
-    EXTRACT(CENTURY FROM TIMESTAMP '1970-03-20 04:30:00.00000');
+    EXTRACT(MILLISECONDS FROM DATE '2020-08-11');
 
--- 20
--- on an interval
 SELECT
-    EXTRACT(CENTURY FROM INTERVAL '100 y');
+    EXTRACT(SECOND FROM DATE '2020-08-11');
 
--- 1
 SELECT
-    EXTRACT(CENTURY FROM INTERVAL '99 y');
+    EXTRACT(MINUTE FROM DATE '2020-08-11');
 
--- 0
 SELECT
-    EXTRACT(CENTURY FROM INTERVAL '-99 y');
+    EXTRACT(HOUR FROM DATE '2020-08-11');
 
--- 0
 SELECT
-    EXTRACT(CENTURY FROM INTERVAL '-100 y');
+    EXTRACT(DAY FROM DATE '2020-08-11');
 
--- -1
+SELECT
+    EXTRACT(MONTH FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(YEAR FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(YEAR FROM DATE '2020-08-11 BC');
+
+SELECT
+    EXTRACT(DECADE FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(CENTURY FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(MILLENNIUM FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(ISOYEAR FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(ISOYEAR FROM DATE '2020-08-11 BC');
+
+SELECT
+    EXTRACT(QUARTER FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(WEEK FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(DOW FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(DOW FROM DATE '2020-08-16');
+
+SELECT
+    EXTRACT(ISODOW FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(ISODOW FROM DATE '2020-08-16');
+
+SELECT
+    EXTRACT(DOY FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(TIMEZONE FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(TIMEZONE_M FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(TIMEZONE_H FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(EPOCH FROM DATE '2020-08-11');
+
+SELECT
+    EXTRACT(JULIAN FROM DATE '2020-08-11');
+
 --
 -- test trunc function!
 --
@@ -742,54 +829,21 @@ SELECT
     isfinite('-infinity'::date),
     isfinite('today'::date);
 
+SELECT
+    'infinity'::date = '+infinity'::date AS t;
+
 --
--- oscillating fields from non-finite date/timestamptz:
+-- oscillating fields from non-finite date:
 --
 SELECT
-    EXTRACT(HOUR FROM DATE 'infinity');
+    EXTRACT(DAY FROM DATE 'infinity');
 
 -- NULL
 SELECT
-    EXTRACT(HOUR FROM DATE '-infinity');
+    EXTRACT(DAY FROM DATE '-infinity');
 
 -- NULL
-SELECT
-    EXTRACT(HOUR FROM TIMESTAMP 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(HOUR FROM TIMESTAMP '-infinity');
-
--- NULL
-SELECT
-    EXTRACT(HOUR FROM TIMESTAMPTZ 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(HOUR FROM TIMESTAMPTZ '-infinity');
-
--- NULL
--- all possible fields
-SELECT
-    EXTRACT(MICROSECONDS FROM DATE 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(MILLISECONDS FROM DATE 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(SECOND FROM DATE 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(MINUTE FROM DATE 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(HOUR FROM DATE 'infinity');
-
--- NULL
+-- all supported fields
 SELECT
     EXTRACT(DAY FROM DATE 'infinity');
 
@@ -818,20 +872,8 @@ SELECT
     EXTRACT(DOY FROM DATE 'infinity');
 
 -- NULL
-SELECT
-    EXTRACT(TIMEZONE FROM DATE 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(TIMEZONE_M FROM DATE 'infinity');
-
--- NULL
-SELECT
-    EXTRACT(TIMEZONE_H FROM DATE 'infinity');
-
--- NULL
 --
--- monotonic fields from non-finite date/timestamptz:
+-- monotonic fields from non-finite date:
 --
 SELECT
     EXTRACT(EPOCH FROM DATE 'infinity');
@@ -841,23 +883,7 @@ SELECT
     EXTRACT(EPOCH FROM DATE '-infinity');
 
 -- -Infinity
-SELECT
-    EXTRACT(EPOCH FROM TIMESTAMP 'infinity');
-
---  Infinity
-SELECT
-    EXTRACT(EPOCH FROM TIMESTAMP '-infinity');
-
--- -Infinity
-SELECT
-    EXTRACT(EPOCH FROM TIMESTAMPTZ 'infinity');
-
---  Infinity
-SELECT
-    EXTRACT(EPOCH FROM TIMESTAMPTZ '-infinity');
-
--- -Infinity
--- all possible fields
+-- all supported fields
 SELECT
     EXTRACT(YEAR FROM DATE 'infinity');
 
@@ -892,11 +918,7 @@ SELECT
 SELECT
     EXTRACT(MICROSEC FROM DATE 'infinity');
 
--- ERROR:  timestamp units "microsec" not recognized
-SELECT
-    EXTRACT(UNDEFINED FROM DATE 'infinity');
-
--- ERROR:  timestamp units "undefined" not supported
+-- error
 -- test constructors
 SELECT
     make_date(2013, 7, 15);
@@ -909,6 +931,9 @@ SELECT
 
 -- should fail
 SELECT
+    make_date(0, 7, 15);
+
+SELECT
     make_date(2013, 2, 30);
 
 SELECT
@@ -916,6 +941,9 @@ SELECT
 
 SELECT
     make_date(2013, 11, -1);
+
+SELECT
+    make_date(-2147483648, 1, 1);
 
 SELECT
     make_time(10, 55, 100.1);

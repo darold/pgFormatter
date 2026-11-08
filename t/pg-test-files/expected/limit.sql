@@ -180,6 +180,21 @@ FETCH BACKWARD 1 IN c4;
 FETCH BACKWARD ALL IN c4;
 FETCH BACKWARD 1 IN c4;
 FETCH ALL IN c4;
+DECLARE c5 CURSOR FOR
+    SELECT
+        *
+    FROM
+        int8_tbl
+    ORDER BY
+        q1 FETCH FIRST 2 ROWS WITH TIES;
+FETCH ALL IN c5;
+FETCH 1 IN c5;
+FETCH BACKWARD 1 IN c5;
+FETCH BACKWARD 1 IN c5;
+FETCH ALL IN c5;
+FETCH BACKWARD ALL IN c5;
+FETCH ALL IN c5;
+FETCH BACKWARD ALL IN c5;
 ROLLBACK;
 
 -- Stress test for variable LIMIT in conjunction with bounded-heap sorting
@@ -364,3 +379,136 @@ ORDER BY
     thousand
 LIMIT 3;
 
+--
+-- FETCH FIRST
+-- Check the WITH TIES clause
+--
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 5
+ORDER BY
+    thousand FETCH FIRST 2 ROW WITH TIES;
+
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 5
+ORDER BY
+    thousand FETCH FIRST ROWS WITH TIES;
+
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 5
+ORDER BY
+    thousand FETCH FIRST 1 ROW WITH TIES;
+
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 5
+ORDER BY
+    thousand FETCH FIRST 2 ROW ONLY;
+
+-- SKIP LOCKED and WITH TIES are incompatible
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 5
+ORDER BY
+    thousand FETCH FIRST 1 ROW WITH TIES
+FOR UPDATE
+    SKIP LOCKED;
+
+-- should fail
+SELECT
+    ''::text AS two,
+    unique1,
+    unique2,
+    stringu1
+FROM
+    onek
+WHERE
+    unique1 > 50 FETCH FIRST 2 ROW WITH TIES;
+
+-- test ruleutils
+CREATE VIEW limit_thousand_v_1 AS
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 995
+ORDER BY
+    thousand FETCH FIRST 5 ROWS WITH TIES OFFSET 10;
+
+\d+ limit_thousand_v_1
+CREATE VIEW limit_thousand_v_2 AS
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 995
+ORDER BY
+    thousand OFFSET 10 FETCH FIRST 5 ROWS ONLY;
+
+\d+ limit_thousand_v_2
+CREATE VIEW limit_thousand_v_3 AS
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 995
+ORDER BY
+    thousand FETCH FIRST NULL ROWS WITH TIES;
+
+-- fails
+CREATE VIEW limit_thousand_v_3 AS
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 995
+ORDER BY
+    thousand FETCH FIRST (NULL +1)
+    ROWS WITH TIES;
+
+\d+ limit_thousand_v_3
+CREATE VIEW limit_thousand_v_4 AS
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 995
+ORDER BY
+    thousand FETCH FIRST (5::bigint)
+    ROWS WITH TIES;
+
+\d+ limit_thousand_v_4
+CREATE VIEW limit_thousand_v_5 AS
+SELECT
+    thousand
+FROM
+    onek
+WHERE
+    thousand < 995
+ORDER BY
+    thousand FETCH FIRST NULL ROWS ONLY;
+
+\d+ limit_thousand_v_5
+-- leave these views

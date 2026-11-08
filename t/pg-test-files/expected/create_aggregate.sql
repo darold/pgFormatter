@@ -45,6 +45,7 @@ CREATE AGGREGATE oldcnt (
 CREATE AGGREGATE newcnt ("any") (
     SFUNC = int8inc_any,
     STYPE = int8,
+    support = int8inc_support,
     INITCOND = '0'
 );
 
@@ -53,6 +54,19 @@ COMMENT ON AGGREGATE nosuchagg (*) IS 'should fail';
 COMMENT ON AGGREGATE newcnt (*) IS 'an agg(*) comment';
 
 COMMENT ON AGGREGATE newcnt ("any") IS 'an agg(any) comment';
+
+-- verify that newcnt's support function enables run-condition optimization
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM (
+    SELECT
+        newcnt (ten) OVER (RANGE BETWEEN CURRENT ROW AND CURRENT ROW) c
+    FROM tenk1) t
+WHERE
+    c = 1;
 
 -- multi-argument aggregate
 CREATE FUNCTION sum3 (int8, int8, int8)
@@ -108,7 +122,45 @@ CREATE AGGREGATE aggfns (integer, integer, text) (
     INITCOND = '{}'
 );
 
--- variadic aggregate
+-- check error cases that would require run-time type coercion
+CREATE FUNCTION least_accum (int8, int8)
+    RETURNS int8
+    LANGUAGE sql
+    AS '
+    SELECT
+        least ($1, $2);
+';
+
+CREATE AGGREGATE least_agg (int4) (
+    STYPE = int8,
+    SFUNC = least_accum
+);
+
+-- fails
+DROP FUNCTION least_accum (int8, int8);
+
+CREATE FUNCTION least_accum (anycompatible, anycompatible)
+    RETURNS anycompatible
+    LANGUAGE sql
+    AS '
+    SELECT
+        least ($1, $2);
+';
+
+CREATE AGGREGATE least_agg (int4) (
+    STYPE = int8,
+    SFUNC = least_accum
+);
+
+-- fails
+CREATE AGGREGATE least_agg (int8) (
+    STYPE = int8,
+    SFUNC = least_accum
+);
+
+DROP FUNCTION least_accum (anycompatible, anycompatible) CASCADE;
+
+-- variadic aggregates
 CREATE FUNCTION least_accum (anyelement, VARIADIC anyarray)
     RETURNS anyelement
     LANGUAGE sql
@@ -122,6 +174,21 @@ CREATE FUNCTION least_accum (anyelement, VARIADIC anyarray)
 CREATE AGGREGATE least_agg (VARIADIC items anyarray) (
     STYPE = anyelement,
     SFUNC = least_accum
+);
+
+CREATE FUNCTION cleast_accum (anycompatible, VARIADIC anycompatiblearray)
+    RETURNS anycompatible
+    LANGUAGE sql
+    AS '
+    SELECT
+        least ($1, min($2[i]))
+    FROM
+        generate_subscripts($2, 1) g (i);
+';
+
+CREATE AGGREGATE cleast_agg (VARIADIC items anycompatiblearray) (
+    STYPE = anycompatible,
+    SFUNC = cleast_accum
 );
 
 -- test ordered-set aggs using built-in support functions

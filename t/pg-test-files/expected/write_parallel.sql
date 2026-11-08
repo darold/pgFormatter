@@ -1,16 +1,14 @@
 --
 -- PARALLEL
 --
--- Serializable isolation would disable parallel query, so explicitly use an
--- arbitrary other level.
-BEGIN ISOLATION level REPEATABLE read;
+BEGIN;
 -- encourage use of parallel plans
 SET parallel_setup_cost = 0;
 SET parallel_tuple_cost = 0;
 SET min_parallel_table_scan_size = 0;
 SET max_parallel_workers_per_gather = 4;
 --
--- Test write operations that has an underlying query that is eligble
+-- Test write operations that has an underlying query that is eligible
 -- for parallel plans
 --
 EXPLAIN (
@@ -66,6 +64,9 @@ FROM
     tenk1
 GROUP BY
     length(stringu1);
+CREATE UNIQUE INDEX ON parallel_mat_view (length);
+REFRESH MATERIALIZED VIEW parallel_mat_view;
+REFRESH MATERIALIZED VIEW CONCURRENTLY parallel_mat_view;
 DROP MATERIALIZED VIEW parallel_mat_view;
 PREPARE prep_stmt AS
 SELECT

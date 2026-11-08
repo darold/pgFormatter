@@ -209,6 +209,50 @@ FROM
 WHERE
     b <@ box(point(5, 5), point(6, 6));
 
+-- Also test an index-only knn-search
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    b
+FROM
+    gist_tbl
+WHERE
+    b <@ box(point(5, 5), point(6, 6))
+ORDER BY
+    b <-> point(5.2, 5.91);
+
+SELECT
+    b
+FROM
+    gist_tbl
+WHERE
+    b <@ box(point(5, 5), point(6, 6))
+ORDER BY
+    b <-> point(5.2, 5.91);
+
+-- Check commuted case as well
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    b
+FROM
+    gist_tbl
+WHERE
+    b <@ box(point(5, 5), point(6, 6))
+ORDER BY
+    point(5.2, 5.91) <-> b;
+
+SELECT
+    b
+FROM
+    gist_tbl
+WHERE
+    b <@ box(point(5, 5), point(6, 6))
+ORDER BY
+    point(5.2, 5.91) <-> b;
+
 DROP INDEX gist_tbl_box_index;
 
 -- Test that an index-only scan is not chosen, when the query involves the
@@ -238,12 +282,206 @@ WHERE
 
 DROP INDEX gist_tbl_multi_index;
 
+-- Test that we don't try to return the value of a non-returnable
+-- column in an index-only scan.  (This isn't GIST-specific, but
+-- it only applies to index AMs that can return some columns and not
+-- others, so GIST with appropriate opclasses is a convenient test case.)
+CREATE INDEX gist_tbl_multi_index ON gist_tbl USING gist (circle(p, 1), p);
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    circle(p, 1)
+FROM
+    gist_tbl
+WHERE
+    p <@ box(point(5, 5), point(5.3, 5.3));
+
+SELECT
+    circle(p, 1)
+FROM
+    gist_tbl
+WHERE
+    p <@ box(point(5, 5), point(5.3, 5.3));
+
+-- Similarly, test that index rechecks involving a non-returnable column
+-- are done correctly.
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    p
+FROM
+    gist_tbl
+WHERE
+    circle(p, 1) @> circle(point(0, 0), 0.95);
+
+SELECT
+    p
+FROM
+    gist_tbl
+WHERE
+    circle(p, 1) @> circle(point(0, 0), 0.95);
+
+-- Also check that use_physical_tlist doesn't trigger in such cases.
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    gist_tbl;
+
+SELECT
+    count(*)
+FROM
+    gist_tbl;
+
+-- This case isn't supported, but it should at least EXPLAIN correctly.
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    p
+FROM
+    gist_tbl
+ORDER BY
+    circle(p, 1) <-> point(0, 0)
+LIMIT 1;
+
+SELECT
+    p
+FROM
+    gist_tbl
+ORDER BY
+    circle(p, 1) <-> point(0, 0)
+LIMIT 1;
+
+-- Test that an index-only scan deforms the tuple it reconstructs with the
+-- descriptor the AM formed it with, not the scan slot's descriptor.
+CREATE temp TABLE gist_ios_tupdesc (
+    a inet,
+    r numrange
+);
+
+-- range_ops forms its tuples using the opclass input type, the polymorphic
+-- anyrange (alignment 'd'), while the scan slot uses the actual range type
+-- numrange (alignment 'i').  A buggy implementation will incorrectly access
+-- the r/numrange column at the wrong offset.
+--
+-- The range bounds are made long so the value needs a four-byte varlena
+-- header; shorter values get a one-byte header and are stored without
+-- alignment padding, which would mask the problem.
+INSERT INTO gist_ios_tupdesc
+    VALUES ('::1', -- shifts "r" datum value to differing offset
+        numrange(repeat('7', 200)::numeric, repeat('8', 200)::numeric));
+
+CREATE INDEX ON gist_ios_tupdesc USING gist (a inet_ops, r);
+
+VACUUM ANALYZE gist_ios_tupdesc;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    lower(r) = repeat('7', 200)::numeric AS lower_ok,
+    upper(r) = repeat('8', 200)::numeric AS upper_ok
+FROM
+    gist_ios_tupdesc
+WHERE
+    r && numrange(NULL, NULL);
+
+SELECT
+    lower(r) = repeat('7', 200)::numeric AS lower_ok,
+    upper(r) = repeat('8', 200)::numeric AS upper_ok
+FROM
+    gist_ios_tupdesc
+WHERE
+    r && numrange(NULL, NULL);
+
+DROP TABLE gist_ios_tupdesc;
+
+-- test deletion of LP_DEAD-marked index tuples
+CREATE TABLE gist_prune_tbl (
+    k int,
+    p point
+);
+
+CREATE INDEX gist_prune_tbl_p_index ON gist_prune_tbl USING gist (p);
+
+BEGIN;
+INSERT INTO gist_prune_tbl
+SELECT
+    i,
+    point(1, i)
+FROM
+    generate_series(1, 600) i;
+ROLLBACK;
+
+SET enable_bitmapscan = OFF;
+
+SET enable_indexonlyscan = OFF;
+
+SET enable_seqscan = OFF;
+
+SELECT
+    count(*)
+FROM
+    gist_prune_tbl
+WHERE
+    p <@ box(point(0, 0), point(2, 1000));
+
+INSERT INTO gist_prune_tbl
+SELECT
+    i,
+    point(1, i)
+FROM
+    generate_series(1, 600) i;
+
+SELECT
+    count(*)
+FROM
+    gist_prune_tbl
+WHERE
+    p <@ box(point(0, 0), point(2, 1000));
+
+RESET enable_bitmapscan;
+
+RESET enable_indexonlyscan;
+
+RESET enable_seqscan;
+
+DROP TABLE gist_prune_tbl;
+
+-- Force an index build using buffering.
+CREATE INDEX gist_tbl_box_index_forcing_buffering ON gist_tbl USING gist (p) WITH (buffering = ON, fillfactor = 50);
+
 -- Clean up
 RESET enable_seqscan;
 
 RESET enable_bitmapscan;
 
 RESET enable_indexonlyscan;
+
+DROP TABLE gist_tbl;
+
+-- test an unlogged table, mostly to get coverage of gistbuildempty
+CREATE UNLOGGED TABLE gist_tbl (
+    b box
+);
+
+CREATE INDEX gist_tbl_box_index ON gist_tbl USING gist (b);
+
+INSERT INTO gist_tbl
+SELECT
+    box(point(0.05 * i, 0.05 * i))
+FROM
+    generate_series(0, 10) AS i;
 
 DROP TABLE gist_tbl;
 

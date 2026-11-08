@@ -2,6 +2,9 @@
 -- PARTITION_AGGREGATE
 -- Test partitionwise aggregation on partitioned tables
 --
+-- Note: to ensure plan stability, it's a good idea to make the partitions of
+-- any one partitioned table in this test all have different numbers of rows.
+--
 -- Enable partitionwise aggregate, which by default is disabled.
 SET enable_partitionwise_aggregate TO TRUE;
 
@@ -10,6 +13,12 @@ SET enable_partitionwise_join TO TRUE;
 
 -- Disable parallel plans.
 SET max_parallel_workers_per_gather TO 0;
+
+-- Disable incremental sort, which can influence selected plans due to fuzz factor.
+SET enable_incremental_sort TO OFF;
+
+-- Disable eager aggregation, which can interfere with the generation of partitionwise aggregation.
+SET enable_eager_aggregate TO OFF;
 
 --
 -- Tests for list partitioned tables.
@@ -23,13 +32,13 @@ CREATE TABLE pagg_tab (
 PARTITION BY LIST (c);
 
 CREATE TABLE pagg_tab_p1 PARTITION OF pagg_tab
-FOR VALUES IN ('0000', '0001', '0002', '0003');
+FOR VALUES IN ('0000', '0001', '0002', '0003', '0004');
 
 CREATE TABLE pagg_tab_p2 PARTITION OF pagg_tab
-FOR VALUES IN ('0004', '0005', '0006', '0007');
+FOR VALUES IN ('0005', '0006', '0007', '0008');
 
 CREATE TABLE pagg_tab_p3 PARTITION OF pagg_tab
-FOR VALUES IN ('0008', '0009', '0010', '0011');
+FOR VALUES IN ('0009', '0010', '0011');
 
 INSERT INTO pagg_tab
 SELECT
@@ -332,6 +341,30 @@ GROUP BY
     a
 ORDER BY
     1;
+
+-- Test partitionwise aggregation with ordered append path built from fractional paths
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    pagg_tab
+GROUP BY
+    c
+ORDER BY
+    c
+LIMIT 1;
+
+SELECT
+    count(*)
+FROM
+    pagg_tab
+GROUP BY
+    c
+ORDER BY
+    c
+LIMIT 1;
 
 RESET enable_hashagg;
 
@@ -833,13 +866,13 @@ CREATE TABLE pagg_tab_m (
 PARTITION BY RANGE (a, ((a + b) / 2));
 
 CREATE TABLE pagg_tab_m_p1 PARTITION OF pagg_tab_m
-FOR VALUES FROM (0, 0) TO (10, 10);
+FOR VALUES FROM (0, 0) TO (12, 12);
 
 CREATE TABLE pagg_tab_m_p2 PARTITION OF pagg_tab_m
-FOR VALUES FROM (10, 10) TO (20, 20);
+FOR VALUES FROM (12, 12) TO (22, 22);
 
 CREATE TABLE pagg_tab_m_p3 PARTITION OF pagg_tab_m
-FOR VALUES FROM (20, 20) TO (30, 30);
+FOR VALUES FROM (22, 22) TO (30, 30);
 
 INSERT INTO pagg_tab_m
 SELECT
@@ -978,17 +1011,17 @@ CREATE TABLE pagg_tab_ml (
 PARTITION BY RANGE (a);
 
 CREATE TABLE pagg_tab_ml_p1 PARTITION OF pagg_tab_ml
-FOR VALUES FROM (0) TO (10);
+FOR VALUES FROM (0) TO (12);
 
 CREATE TABLE pagg_tab_ml_p2 PARTITION OF pagg_tab_ml
-FOR VALUES FROM (10) TO (20)
+FOR VALUES FROM (12) TO (20)
 PARTITION BY LIST (c);
 
 CREATE TABLE pagg_tab_ml_p2_s1 PARTITION OF pagg_tab_ml_p2
-FOR VALUES IN ('0000', '0001');
+FOR VALUES IN ('0000', '0001', '0002');
 
 CREATE TABLE pagg_tab_ml_p2_s2 PARTITION OF pagg_tab_ml_p2
-FOR VALUES IN ('0002', '0003');
+FOR VALUES IN ('0003');
 
 -- This level of partitioning has different column positions than the parent
 CREATE TABLE pagg_tab_ml_p3 (
@@ -1005,10 +1038,10 @@ CREATE TABLE pagg_tab_ml_p3_s1 (
 );
 
 CREATE TABLE pagg_tab_ml_p3_s2 PARTITION OF pagg_tab_ml_p3
-FOR VALUES FROM (5) TO (10);
+FOR VALUES FROM (7) TO (10);
 
 ALTER TABLE pagg_tab_ml_p3 ATTACH PARTITION pagg_tab_ml_p3_s1
-FOR VALUES FROM (0) TO (5);
+FOR VALUES FROM (0) TO (7);
 
 ALTER TABLE pagg_tab_ml ATTACH PARTITION pagg_tab_ml_p3
 FOR VALUES FROM (20) TO (30);
@@ -1026,10 +1059,12 @@ ANALYZE pagg_tab_ml;
 -- For Parallel Append
 SET max_parallel_workers_per_gather TO 2;
 
+SET parallel_setup_cost = 0;
+
 -- Full aggregation at level 1 as GROUP BY clause matches with PARTITION KEY
 -- for level 1 only. For subpartitions, GROUP BY clause does not match with
--- PARTITION KEY, but still we do not see a partial aggregation as array_agg()
--- is not partial agg safe.
+-- PARTITION KEY, but still we do not see a partial aggregation as
+-- array_agg(distinct) is not partial agg safe.
 EXPLAIN (
     COSTS OFF
 )
@@ -1081,6 +1116,8 @@ GROUP BY
 HAVING
     avg(b) < 3;
 
+RESET parallel_setup_cost;
+
 -- Full aggregation at level 1 as GROUP BY clause matches with PARTITION KEY
 -- for level 1 only. For subpartitions, GROUP BY clause does not match with
 -- PARTITION KEY, thus we will have a partial aggregation for them.
@@ -1130,6 +1167,8 @@ FROM
     pagg_tab_ml
 GROUP BY
     b
+HAVING
+    avg(a) < 15
 ORDER BY
     1,
     2,
@@ -1242,6 +1281,8 @@ FROM
     pagg_tab_ml
 GROUP BY
     b
+HAVING
+    avg(a) < 15
 ORDER BY
     1,
     2,
@@ -1317,13 +1358,13 @@ CREATE TABLE pagg_tab_para (
 PARTITION BY RANGE (x);
 
 CREATE TABLE pagg_tab_para_p1 PARTITION OF pagg_tab_para
-FOR VALUES FROM (0) TO (10);
+FOR VALUES FROM (0) TO (12);
 
 CREATE TABLE pagg_tab_para_p2 PARTITION OF pagg_tab_para
-FOR VALUES FROM (10) TO (20);
+FOR VALUES FROM (12) TO (22);
 
 CREATE TABLE pagg_tab_para_p3 PARTITION OF pagg_tab_para
-FOR VALUES FROM (20) TO (30);
+FOR VALUES FROM (22) TO (30);
 
 INSERT INTO pagg_tab_para
 SELECT
@@ -1407,6 +1448,7 @@ ORDER BY
     3;
 
 -- Test when parent can produce parallel paths but not any (or some) of its children
+-- (Use one more aggregate to tilt the cost estimates for the plan we want)
 ALTER TABLE pagg_tab_para_p1 SET (parallel_workers = 0);
 
 ALTER TABLE pagg_tab_para_p3 SET (parallel_workers = 0);
@@ -1420,6 +1462,7 @@ SELECT
     x,
     sum(y),
     avg(y),
+    sum(x + y),
     count(*)
 FROM
     pagg_tab_para
@@ -1436,6 +1479,7 @@ SELECT
     x,
     sum(y),
     avg(y),
+    sum(x + y),
     count(*)
 FROM
     pagg_tab_para
@@ -1459,6 +1503,7 @@ SELECT
     x,
     sum(y),
     avg(y),
+    sum(x + y),
     count(*)
 FROM
     pagg_tab_para
@@ -1475,6 +1520,7 @@ SELECT
     x,
     sum(y),
     avg(y),
+    sum(x + y),
     count(*)
 FROM
     pagg_tab_para

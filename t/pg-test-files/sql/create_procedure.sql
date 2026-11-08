@@ -28,6 +28,28 @@ CALL ptest1(substring(random()::numeric(20,15)::text, 1, 1));  -- ok, volatile a
 SELECT * FROM cp_test ORDER BY b COLLATE "C";
 
 
+-- SQL-standard body
+CREATE PROCEDURE ptest1s(x text)
+LANGUAGE SQL
+BEGIN ATOMIC
+  INSERT INTO cp_test VALUES (1, x);
+END;
+
+\df ptest1s
+SELECT pg_get_functiondef('ptest1s'::regproc);
+
+CALL ptest1s('b');
+
+SELECT * FROM cp_test ORDER BY b COLLATE "C";
+
+-- utility functions currently not supported here
+CREATE PROCEDURE ptestx()
+LANGUAGE SQL
+BEGIN ATOMIC
+  CREATE TABLE x (a int);
+END;
+
+
 CREATE PROCEDURE ptest2()
 LANGUAGE SQL
 AS $$
@@ -68,7 +90,16 @@ AS $$
 CALL ptest4a(a, b);  -- error, not supported
 $$;
 
-DROP PROCEDURE ptest4a;
+-- we used to get confused by a single output argument that is composite
+CREATE PROCEDURE ptest4c(INOUT comp int8_tbl)
+LANGUAGE SQL
+AS $$
+SELECT ROW(1, 2);
+$$;
+
+CALL ptest4c(NULL);
+
+DROP PROCEDURE ptest4a, ptest4c;
 
 
 -- named and default parameters
@@ -100,6 +131,33 @@ $$;
 
 CALL ptest6(1, 2);
 
+CREATE PROCEDURE ptest6a(inout a anyelement, out b anyelement)
+LANGUAGE SQL
+AS $$
+SELECT $1, $1;
+$$;
+
+CALL ptest6a(1, null);
+CALL ptest6a(1.1, null);
+
+CREATE PROCEDURE ptest6b(a anyelement, out b anyelement, out c anyarray)
+LANGUAGE SQL
+AS $$
+SELECT $1, array[$1];
+$$;
+
+CALL ptest6b(1, null, null);
+CALL ptest6b(1.1, null, null);
+
+CREATE PROCEDURE ptest6c(inout a anyelement, inout b anyelement)
+LANGUAGE SQL
+AS $$
+SELECT $1, 1;
+$$;
+
+CALL ptest6c(1, null);
+CALL ptest6c(1.1, null);  -- fails before v13
+
 
 -- collation assignment
 
@@ -112,6 +170,67 @@ $$;
 CALL ptest7(least('a', 'b'), 'a');
 
 
+-- empty body
+CREATE PROCEDURE ptest8(x text)
+BEGIN ATOMIC
+END;
+
+\df ptest8
+SELECT pg_get_functiondef('ptest8'::regproc);
+CALL ptest8('');
+
+
+-- OUT parameters
+
+CREATE PROCEDURE ptest9(OUT a int)
+LANGUAGE SQL
+AS $$
+INSERT INTO cp_test VALUES (1, 'a');
+SELECT 1;
+$$;
+
+-- standard way to do a call:
+CALL ptest9(NULL);
+-- you can write an expression, but it's not evaluated
+CALL ptest9(1/0);  -- no error
+-- ... and it had better match the type of the parameter
+CALL ptest9(1./0.);  -- error
+
+-- check named-parameter matching
+CREATE PROCEDURE ptest10(OUT a int, IN b int, IN c int)
+LANGUAGE SQL AS $$ SELECT b - c $$;
+
+CALL ptest10(null, 7, 4);
+CALL ptest10(a => null, b => 8, c => 2);
+CALL ptest10(null, 7, c => 2);
+CALL ptest10(null, c => 4, b => 11);
+CALL ptest10(b => 8, c => 2, a => 0);
+
+CREATE PROCEDURE ptest11(a OUT int, VARIADIC b int[]) LANGUAGE SQL
+  AS $$ SELECT b[1] + b[2] $$;
+
+CALL ptest11(null, 11, 12, 13);
+
+-- check resolution of ambiguous DROP commands
+
+CREATE PROCEDURE ptest10(IN a int, IN b int, IN c int)
+LANGUAGE SQL AS $$ SELECT a + b - c $$;
+
+\df ptest10
+
+drop procedure ptest10;  -- fail
+drop procedure ptest10(int, int, int);  -- fail
+begin;
+drop procedure ptest10(out int, int, int);
+\df ptest10
+drop procedure ptest10(int, int, int);  -- now this would work
+rollback;
+begin;
+drop procedure ptest10(in int, int, int);
+\df ptest10
+drop procedure ptest10(int, int, int);  -- now this would work
+rollback;
+
 -- various error cases
 
 CALL version();  -- error: not a procedure
@@ -119,7 +238,10 @@ CALL sum(1);  -- error: not a procedure
 
 CREATE PROCEDURE ptestx() LANGUAGE SQL WINDOW AS $$ INSERT INTO cp_test VALUES (1, 'a') $$;
 CREATE PROCEDURE ptestx() LANGUAGE SQL STRICT AS $$ INSERT INTO cp_test VALUES (1, 'a') $$;
-CREATE PROCEDURE ptestx(OUT a int) LANGUAGE SQL AS $$ INSERT INTO cp_test VALUES (1, 'a') $$;
+CREATE PROCEDURE ptestx(a VARIADIC int[], b OUT int) LANGUAGE SQL
+  AS $$ SELECT a[1] $$;
+CREATE PROCEDURE ptestx(a int DEFAULT 42, b OUT int) LANGUAGE SQL
+  AS $$ SELECT a $$;
 
 ALTER PROCEDURE ptest1(text) STRICT;
 ALTER FUNCTION ptest1(text) VOLATILE;  -- error: not a function
@@ -159,6 +281,7 @@ DROP ROUTINE cp_testfunc1(int);
 -- cleanup
 
 DROP PROCEDURE ptest1;
+DROP PROCEDURE ptest1s;
 DROP PROCEDURE ptest2;
 
 DROP TABLE cp_test;

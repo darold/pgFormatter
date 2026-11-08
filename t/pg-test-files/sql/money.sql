@@ -1,6 +1,8 @@
 --
 -- MONEY
 --
+-- Note that we assume lc_monetary has been set to C.
+--
 
 CREATE TABLE money_data (m money);
 
@@ -86,6 +88,12 @@ SELECT '-9223372036854775808'::money;
 SELECT '(1)'::money;
 SELECT '($123,456.78)'::money;
 
+-- test non-error-throwing API
+SELECT pg_input_is_valid('\x0001', 'money');
+SELECT * FROM pg_input_error_info('\x0001', 'money');
+SELECT pg_input_is_valid('192233720368547758.07', 'money');
+SELECT * FROM pg_input_error_info('192233720368547758.07', 'money');
+
 -- documented minimums and maximums
 SELECT '-92233720368547758.08'::money;
 SELECT '92233720368547758.07'::money;
@@ -122,6 +130,23 @@ SELECT (-1234567890)::int4::money;
 SELECT (-12345678901234567)::int8::money;
 SELECT (-12345678901234567)::numeric::money;
 
--- Cast from money
+-- Cast from money to numeric
 SELECT '12345678901234567'::money::numeric;
 SELECT '-12345678901234567'::money::numeric;
+SELECT '92233720368547758.07'::money::numeric;
+SELECT '-92233720368547758.08'::money::numeric;
+
+-- overflow checks
+SELECT '92233720368547758.07'::money + '0.01'::money;
+SELECT '-92233720368547758.08'::money - '0.01'::money;
+SELECT '92233720368547758.07'::money * 2::float8;
+SELECT '-1'::money / 1.175494e-38::float4;
+SELECT '92233720368547758.07'::money * 2::int4;
+SELECT '-92233720368547758.08'::money * -1::int8;
+SELECT '-92233720368547758.08'::money / -1::int8;
+SELECT '-92233720368547758.08'::money / -1::int4;
+SELECT '-92233720368547758.08'::money / -1::int2;
+SELECT '1'::money / 0::int2;
+SELECT '42'::money * 'inf'::float8;
+SELECT '42'::money * '-inf'::float8;
+SELECT '42'::money * 'nan'::float4;

@@ -222,6 +222,43 @@ SELECT
 SELECT
     ts_lexize('hunspell_num', 'footballyklubber');
 
+-- Test suitability of affix and dict files
+CREATE TEXT SEARCH DICTIONARY hunspell_err (
+    TEMPLATE = ispell,
+    DictFile = ispell_sample,
+    AffFile = hunspell_sample_long
+);
+
+CREATE TEXT SEARCH DICTIONARY hunspell_err (
+    TEMPLATE = ispell,
+    DictFile = ispell_sample,
+    AffFile = hunspell_sample_num
+);
+
+CREATE TEXT SEARCH DICTIONARY hunspell_invalid_1 (
+    TEMPLATE = ispell,
+    DictFile = hunspell_sample_long,
+    AffFile = ispell_sample
+);
+
+CREATE TEXT SEARCH DICTIONARY hunspell_invalid_2 (
+    TEMPLATE = ispell,
+    DictFile = hunspell_sample_long,
+    AffFile = hunspell_sample_num
+);
+
+CREATE TEXT SEARCH DICTIONARY hunspell_invalid_3 (
+    TEMPLATE = ispell,
+    DictFile = hunspell_sample_num,
+    AffFile = ispell_sample
+);
+
+CREATE TEXT SEARCH DICTIONARY hunspell_err (
+    TEMPLATE = ispell,
+    DictFile = hunspell_sample_num,
+    AffFile = hunspell_sample_long
+);
+
 -- Synonym dictionary
 CREATE TEXT SEARCH DICTIONARY synonym (
     TEMPLATE = synonym,
@@ -236,6 +273,41 @@ SELECT
 
 SELECT
     ts_lexize('synonym', 'indices');
+
+-- test altering boolean parameters
+SELECT
+    dictinitoption
+FROM
+    pg_ts_dict
+WHERE
+    dictname = 'synonym';
+
+ALTER TEXT SEARCH DICTIONARY synonym (CaseSensitive = 1);
+
+SELECT
+    ts_lexize('synonym', 'PoStGrEs');
+
+SELECT
+    dictinitoption
+FROM
+    pg_ts_dict
+WHERE
+    dictname = 'synonym';
+
+ALTER TEXT SEARCH DICTIONARY synonym (CaseSensitive = 2);
+
+-- fail
+ALTER TEXT SEARCH DICTIONARY synonym (CaseSensitive = OFF);
+
+SELECT
+    ts_lexize('synonym', 'PoStGrEs');
+
+SELECT
+    dictinitoption
+FROM
+    pg_ts_dict
+WHERE
+    dictname = 'synonym';
 
 -- Create and simple test thesaurus dictionary
 -- More tests in configuration checks because ts_lexize()
@@ -363,4 +435,45 @@ CREATE TEXT SEARCH DICTIONARY tsdict_case (
     "DictFile" = ispell_sample,
     "AffFile" = ispell_sample
 );
+
+-- Test grammar for configurations
+CREATE TEXT SEARCH CONFIGURATION dummy_tst (
+    COPY = english
+);
+
+-- Overridden mapping change with duplicated tokens.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    ALTER MAPPING FOR word, word WITH ispell;
+
+-- Not a token supported by the configuration's parser, fails.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    DROP MAPPING FOR not_a_token, not_a_token;
+
+-- Not a token supported by the configuration's parser, fails even
+-- with IF EXISTS.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    DROP MAPPING IF EXISTS FOR not_a_token, not_a_token;
+
+-- Token supported by the configuration's parser, succeeds.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    DROP MAPPING FOR word, word;
+
+-- No mapping for token supported by the configuration's parser, fails.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    DROP MAPPING FOR word;
+
+-- Token supported by the configuration's parser, cannot be found,
+-- succeeds with IF EXISTS.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    DROP MAPPING IF EXISTS FOR word, word;
+
+-- Re-add mapping, with duplicated tokens supported by the parser.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    ADD MAPPING FOR word, word WITH ispell;
+
+-- Not a token supported by the configuration's parser, fails.
+ALTER TEXT SEARCH CONFIGURATION dummy_tst
+    ADD MAPPING FOR not_a_token WITH ispell;
+
+DROP TEXT SEARCH CONFIGURATION dummy_tst;
 

@@ -1,5 +1,5 @@
 --
--- Tests for password verifiers
+-- Tests for password types
 --
 -- Tests for GUC password_encryption
 SET password_encryption = 'novalue';
@@ -7,7 +7,7 @@ SET password_encryption = 'novalue';
 -- error
 SET password_encryption = TRUE;
 
--- ok
+-- error
 SET password_encryption = 'md5';
 
 -- ok
@@ -17,11 +17,13 @@ SET password_encryption = 'scram-sha-256';
 -- consistency of password entries
 SET password_encryption = 'md5';
 
-CREATE ROLE regress_passwd1 PASSWORD 'role_pwd1';
+CREATE ROLE regress_passwd1;
 
-SET password_encryption = 'on';
+ALTER ROLE regress_passwd1 PASSWORD 'role_pwd1';
 
-CREATE ROLE regress_passwd2 PASSWORD 'role_pwd2';
+CREATE ROLE regress_passwd2;
+
+ALTER ROLE regress_passwd2 PASSWORD 'role_pwd2';
 
 SET password_encryption = 'scram-sha-256';
 
@@ -31,7 +33,7 @@ CREATE ROLE regress_passwd4 PASSWORD NULL;
 
 -- check list of created entries
 --
--- The scram verifier will look something like:
+-- The scram secret will look something like:
 -- SCRAM-SHA-256$4096:E4HxLGtnRzsYwg==$6YtlR4t69SguDiwFvbVgVZtuz6gpJQQqUMZ7IQJK5yI=:ps75jrHeYU4lXCcXI4O8oIdJ3eO8o2jirjruw9phBTo=
 --
 -- Since the salt is random, the exact value stored will be different on every test
@@ -78,23 +80,28 @@ ALTER ROLE regress_passwd3 PASSWORD 'SCRAM-SHA-256$4096:VLK4RMaQLCvNtQ==$6YtlR4t
 
 SET password_encryption = 'scram-sha-256';
 
--- create SCRAM verifier
+-- create SCRAM secret
 ALTER ROLE regress_passwd4 PASSWORD 'foo';
 
 -- already encrypted with MD5, use as it is
 CREATE ROLE regress_passwd5 PASSWORD 'md5e73a4b11df52a6068f8b39f90be36023';
 
--- This looks like a valid SCRAM-SHA-256 verifier, but it is not
+-- This looks like a valid SCRAM-SHA-256 secret, but it is not
 -- so it should be hashed with SCRAM-SHA-256.
 CREATE ROLE regress_passwd6 PASSWORD 'SCRAM-SHA-256$1234';
 
--- These may look like valid MD5 verifiers, but they are not, so they
+-- These may look like valid MD5 secrets, but they are not, so they
 -- should be hashed with SCRAM-SHA-256.
 -- trailing garbage at the end
 CREATE ROLE regress_passwd7 PASSWORD 'md5012345678901234567890123456789zz';
 
 -- invalid length
 CREATE ROLE regress_passwd8 PASSWORD 'md501234567890123456789012345678901zz';
+
+-- Changing the SCRAM iteration count
+SET scram_iterations = 1024;
+
+CREATE ROLE regress_passwd9 PASSWORD 'alterediterationcount';
 
 SELECT
     rolname,
@@ -121,6 +128,33 @@ FROM
 WHERE
     rolname = 'regress_passwd_empty';
 
+-- Test with invalid stored and server keys.
+--
+-- The first is valid, to act as a control. The others have too long
+-- stored/server keys. They will be re-hashed.
+CREATE ROLE regress_passwd_sha_len0 PASSWORD 'SCRAM-SHA-256$4096:A6xHKoH/494E941doaPOYg==$Ky+A30sewHIH3VHQLRN9vYsuzlgNyGNKCh37dy96Rqw=:COPdlNiIkrsacU5QoxydEuOH6e/KfiipeETb/bPw8ZI=';
+
+CREATE ROLE regress_passwd_sha_len1 PASSWORD 'SCRAM-SHA-256$4096:A6xHKoH/494E941doaPOYg==$Ky+A30sewHIH3VHQLRN9vYsuzlgNyGNKCh37dy96RqwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=:COPdlNiIkrsacU5QoxydEuOH6e/KfiipeETb/bPw8ZI=';
+
+CREATE ROLE regress_passwd_sha_len2 PASSWORD 'SCRAM-SHA-256$4096:A6xHKoH/494E941doaPOYg==$Ky+A30sewHIH3VHQLRN9vYsuzlgNyGNKCh37dy96Rqw=:COPdlNiIkrsacU5QoxydEuOH6e/KfiipeETb/bPw8ZIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+
+-- Check that the invalid secrets were re-hashed. A re-hashed secret
+-- should not contain the original salt.
+SELECT
+    rolname,
+    rolpassword NOT LIKE '%A6xHKoH/494E941doaPOYg==%' AS is_rolpassword_rehashed
+FROM
+    pg_authid
+WHERE
+    rolname LIKE 'regress_passwd_sha_len%'
+ORDER BY
+    rolname;
+
+-- Test that valid hashes that are too long are rejected
+CREATE ROLE regress_passwd10 PASSWORD 'SCRAM-SHA-256$000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004096:wNFxNSk1hAXBkgub8py3bg==$65zC6E+R0U7tiYTC9+Wtq4Thw6gUDj3eDCINij8TflU=:rC1I7tcVugrHEY2DT0iPjGyjM4aJxkMM9n8WBxtUtHU=';
+
+ALTER ROLE regress_passwd9 PASSWORD 'SCRAM-SHA-256$000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004096:wNFxNSk1hAXBkgub8py3bg==$65zC6E+R0U7tiYTC9+Wtq4Thw6gUDj3eDCINij8TflU=:rC1I7tcVugrHEY2DT0iPjGyjM4aJxkMM9n8WBxtUtHU=';
+
 DROP ROLE regress_passwd1;
 
 DROP ROLE regress_passwd2;
@@ -137,7 +171,15 @@ DROP ROLE regress_passwd7;
 
 DROP ROLE regress_passwd8;
 
+DROP ROLE regress_passwd9;
+
 DROP ROLE regress_passwd_empty;
+
+DROP ROLE regress_passwd_sha_len0;
+
+DROP ROLE regress_passwd_sha_len1;
+
+DROP ROLE regress_passwd_sha_len2;
 
 -- all entries should have been removed
 SELECT

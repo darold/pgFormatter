@@ -59,11 +59,24 @@ SELECT
 FROM
     VARBIT_TABLE;
 
+-- Literals with syntax errors
+SELECT
+    b' 0';
+
+SELECT
+    b'0 ';
+
+SELECT
+    x' 0';
+
+SELECT
+    x'0 ';
+
 -- Concatenation
 SELECT
     v,
     b,
-    (v || b) AS ||
+    (v || b) AS concat
 FROM
     BIT_TABLE,
     VARBIT_TABLE
@@ -100,6 +113,28 @@ SELECT
 FROM
     VARBIT_TABLE;
 
+-- test overflow cases
+SELECT
+    SUBSTRING('01010101'::bit(8)
+        FROM 2 FOR 2147483646) AS "1010101";
+
+SELECT
+    SUBSTRING('01010101'::bit(8)
+        FROM -10 FOR 2147483646) AS "01010101";
+
+SELECT
+    SUBSTRING('01010101'::bit(8)
+        FROM -10 FOR -2147483646) AS "error";
+
+SELECT
+    SUBSTRING('01010101'::varbit FROM 2 FOR 2147483646) AS "1010101";
+
+SELECT
+    SUBSTRING('01010101'::varbit FROM -10 FOR 2147483646) AS "01010101";
+
+SELECT
+    SUBSTRING('01010101'::varbit FROM -10 FOR -2147483646) AS "error";
+
 --- Bit operations
 DROP TABLE varbit_table;
 
@@ -108,6 +143,18 @@ CREATE TABLE varbit_table (
     b bit varying(16)
 );
 
+COPY varbit_table FROM stdin;
+X0F	X10
+X1F	X11
+X2F	X12
+X3F	X13
+X8F	X04
+X000F	X0010
+X0123	XFFFF
+X2468	X2468
+XFA50	X05AF
+X1234	XFFF5
+\.
 SELECT
     a,
     b,
@@ -148,6 +195,18 @@ CREATE TABLE bit_table (
     b bit(16)
 );
 
+COPY bit_table FROM stdin;
+X0F00	X1000
+X1F00	X1100
+X2F00	X1200
+X3F00	X1300
+X8F00	X0400
+X000F	X0010
+X0123	XFFFF
+X2468	X2468
+XFA50	X05AF
+X1234	XFFF5
+\.
 SELECT
     a,
     b,
@@ -382,6 +441,34 @@ SELECT
 FROM
     BIT_SHIFT_TABLE;
 
+SELECT
+    b,
+    b >> 1 AS bsr,
+    b << 1 AS bsl
+FROM
+    BIT_SHIFT_TABLE;
+
+SELECT
+    b,
+    b >> 8 AS bsr8,
+    b << 8 AS bsl8
+FROM
+    BIT_SHIFT_TABLE;
+
+SELECT
+    b::bit(15),
+    b::bit(15) >> 1 AS bsr,
+    b::bit(15) << 1 AS bsl
+FROM
+    BIT_SHIFT_TABLE;
+
+SELECT
+    b::bit(15),
+    b::bit(15) >> 8 AS bsr8,
+    b::bit(15) << 8 AS bsl8
+FROM
+    BIT_SHIFT_TABLE;
+
 CREATE TABLE VARBIT_SHIFT_TABLE (
     v bit varying(20)
 );
@@ -420,6 +507,20 @@ SELECT
 FROM
     VARBIT_SHIFT_TABLE;
 
+SELECT
+    v,
+    v >> 1 AS vsr,
+    v << 1 AS vsl
+FROM
+    VARBIT_SHIFT_TABLE;
+
+SELECT
+    v,
+    v >> 8 AS vsr8,
+    v << 8 AS vsl8
+FROM
+    VARBIT_SHIFT_TABLE;
+
 DROP TABLE BIT_SHIFT_TABLE;
 
 DROP TABLE VARBIT_SHIFT_TABLE;
@@ -448,6 +549,25 @@ SELECT
 SELECT
     overlay(B'0101011100' PLACING '001' FROM 20);
 
+-- bit_count
+SELECT
+    bit_count (B'0101011100'::bit(10));
+
+SELECT
+    bit_count (B'1111111111'::bit(10));
+
+SELECT
+    bit_count (repeat('0', 100)::bit(100));
+
+SELECT
+    bit_count (repeat('1', 100)::bit(100));
+
+SELECT
+    bit_count (repeat('01', 500)::bit(1000));
+
+SELECT
+    bit_count (repeat('10101', 200)::bit(1000));
+
 -- This table is intentionally left around to exercise pg_dump/pg_upgrade
 CREATE TABLE bit_defaults (
     b1 bit(4) DEFAULT '1001',
@@ -458,4 +578,45 @@ CREATE TABLE bit_defaults (
 
 \d bit_defaults
 INSERT INTO bit_defaults DEFAULT VALUES; TABLE bit_defaults;
+
+-- test non-error-throwing API for some core types
+SELECT
+    pg_input_is_valid ('01010001', 'bit(10)');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('01010001', 'bit(10)');
+
+SELECT
+    pg_input_is_valid ('01010Z01', 'bit(8)');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('01010Z01', 'bit(8)');
+
+SELECT
+    pg_input_is_valid ('x01010Z01', 'bit(32)');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('x01010Z01', 'bit(32)');
+
+SELECT
+    pg_input_is_valid ('01010Z01', 'varbit');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('01010Z01', 'varbit');
+
+SELECT
+    pg_input_is_valid ('x01010Z01', 'varbit');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('x01010Z01', 'varbit');
 

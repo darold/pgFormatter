@@ -75,6 +75,24 @@ SELECT
 FROM
     t;
 
+-- UNION DISTINCT requires hashable type
+WITH RECURSIVE t (
+    n
+) AS (
+    VALUES ('01'::varbit)
+    UNION
+    SELECT
+        n || '10'::varbit
+    FROM
+        t
+    WHERE
+        n < '100'::varbit
+)
+SELECT
+    n
+FROM
+    t;
+
 -- recursive view
 CREATE RECURSIVE VIEW nums (n) AS
 VALUES (1)
@@ -165,7 +183,7 @@ WITH q AS (
 )
 SELECT
     x,
-    x IS OF (text) AS is_text
+    pg_typeof(x)
 FROM
     q;
 
@@ -184,7 +202,7 @@ WITH RECURSIVE t (
 )
 SELECT
     n,
-    n IS OF (text) AS is_text
+    pg_typeof(n)
 FROM
     t;
 
@@ -205,9 +223,140 @@ WITH RECURSIVE t (
 )
 SELECT
     n,
-    n IS OF (int) AS is_int
+    pg_typeof(n)
 FROM
     t;
+
+-- Deeply nested WITH caused a list-munging problem in v13
+-- Detection of cross-references and self-references
+WITH RECURSIVE w1 (
+    c1
+) AS (
+    WITH w2 (
+        c2
+    ) AS (
+        WITH w3 (
+            c3
+        ) AS (
+            WITH w4 (
+                c4
+            ) AS (
+                WITH w5 (
+                    c5
+                ) AS (
+                    WITH RECURSIVE w6 (
+                        c6
+                    ) AS (
+                        WITH w6 (
+                            c6
+                        ) AS (
+                            WITH w8 (
+                                c8
+                            ) AS (
+                                SELECT
+                                    1
+                                )
+                                SELECT
+                                    *
+                                FROM
+                                    w8
+                                )
+                                SELECT
+                                    *
+                                FROM
+                                    w6
+                                )
+                                SELECT
+                                    *
+                                FROM
+                                    w6
+                                )
+                                SELECT
+                                    *
+                                FROM
+                                    w5
+                                )
+                                SELECT
+                                    *
+                                FROM
+                                    w4
+                                )
+                                SELECT
+                                    *
+                                FROM
+                                    w3
+                                )
+                                SELECT
+                                    *
+                                FROM
+                                    w2
+)
+SELECT
+    *
+FROM
+    w1;
+
+-- Detection of invalid self-references
+WITH RECURSIVE outermost (
+    x
+) AS (
+    SELECT
+        1
+    UNION ( WITH innermost1 AS (
+            SELECT
+                2
+            UNION ( WITH innermost2 AS (
+                    SELECT
+                        3
+                    UNION ( WITH innermost3 AS (
+                            SELECT
+                                4
+                            UNION ( WITH innermost4 AS (
+                                    SELECT
+                                        5
+                                    UNION ( WITH innermost5 AS (
+                                            SELECT
+                                                6
+                                            UNION ( WITH innermost6 AS (
+                                                    SELECT
+                                                        7
+                                                    )
+                                                    SELECT
+                                                        *
+                                                    FROM
+                                                        innermost6))
+                                                SELECT
+                                                    *
+                                                FROM
+                                                    innermost5))
+                                            SELECT
+                                                *
+                                            FROM
+                                                innermost4))
+                                        SELECT
+                                            *
+                                        FROM
+                                            innermost3))
+                                    SELECT
+                                        *
+                                    FROM
+                                        innermost2))
+                                SELECT
+                                    *
+                                FROM
+                                    outermost
+                                UNION
+                                SELECT
+                                    *
+                                FROM
+                                    innermost1)
+)
+SELECT
+    *
+FROM
+    outermost
+ORDER BY
+    1;
 
 --
 -- Some examples with a tree
@@ -354,6 +503,34 @@ WITH RECURSIVE subdepartment AS (
         department
     WHERE
         name = 'A'
+)
+SELECT
+    *
+FROM
+    subdepartment
+ORDER BY
+    name;
+
+-- exercise the deduplication code of a UNION with mixed input slot types
+WITH RECURSIVE subdepartment AS (
+    -- select all columns to prevent projection
+    SELECT
+        id,
+        parent_department,
+        name
+    FROM
+        department
+    WHERE
+        name = 'A'
+    UNION
+    -- joins do projection
+    SELECT
+        d.id,
+        d.parent_department,
+        d.name
+    FROM
+        department AS d
+        INNER JOIN subdepartment AS sd ON d.parent_department = sd.id
 )
 SELECT
     *
@@ -668,6 +845,499 @@ FROM
     t AS t1
     JOIN t AS t2 ON (t1.id = t2.id);
 
+CREATE TEMP TABLE duplicates (
+    a int NOT NULL
+);
+
+INSERT INTO duplicates
+VALUES
+    (1),
+    (1);
+
+-- Try out a recursive UNION case where the non-recursive part's table slot
+-- uses TTSOpsBufferHeapTuple and contains duplicate rows.
+WITH RECURSIVE cte (
+    a
+) AS (
+    SELECT
+        a
+    FROM
+        duplicates
+    UNION
+    SELECT
+        a
+    FROM
+        cte
+)
+SELECT
+    a
+FROM
+    cte;
+
+-- test that column statistics from a materialized CTE are available
+-- to upper planner (otherwise, we'd get a stupider plan)
+EXPLAIN (
+    COSTS OFF
+) WITH x AS MATERIALIZED (
+    SELECT
+        unique1
+    FROM
+        tenk1 b
+)
+SELECT
+    count(*)
+FROM
+    tenk1 a
+WHERE
+    unique1 IN (
+        SELECT
+            *
+        FROM
+            x);
+
+EXPLAIN (
+    COSTS OFF
+) WITH x AS MATERIALIZED (INSERT INTO tenk1 DEFAULT
+        VALUES
+        RETURNING
+            unique1)
+        SELECT
+            count(*)
+        FROM
+            tenk1 a
+        WHERE
+            unique1 IN (
+                SELECT
+                    *
+                FROM
+                    x);
+
+-- test that pathkeys from a materialized CTE are propagated up to the
+-- outer query
+EXPLAIN (
+    COSTS OFF
+) WITH x AS MATERIALIZED (
+    SELECT
+        unique1
+    FROM
+        tenk1 b
+    ORDER BY
+        unique1
+)
+SELECT
+    count(*)
+FROM
+    tenk1 a
+WHERE
+    unique1 IN (
+        SELECT
+            *
+        FROM
+            x);
+
+-- SEARCH clause
+CREATE temp TABLE graph0 (
+    f int,
+    t int,
+    label text
+);
+
+INSERT INTO graph0
+VALUES
+    (1, 2, 'arc 1 -> 2'),
+    (1, 3, 'arc 1 -> 3'),
+    (2, 3, 'arc 2 -> 3'),
+    (1, 4, 'arc 1 -> 4'),
+    (4, 5, 'arc 4 -> 5');
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH RECURSIVE search_graph (f,
+    t,
+    label)
+AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            * FROM search_graph
+        ORDER BY
+            seq;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            * FROM search_graph
+        ORDER BY
+            seq;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION
+    DISTINCT
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            * FROM search_graph
+        ORDER BY
+            seq;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH RECURSIVE search_graph (f,
+    t,
+    label)
+AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search breadth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            * FROM search_graph
+        ORDER BY
+            seq;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search breadth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            * FROM search_graph
+        ORDER BY
+            seq;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION
+    DISTINCT
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search breadth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            * FROM search_graph
+        ORDER BY
+            seq;
+
+-- a constant initial value causes issues for EXPLAIN
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH RECURSIVE test AS (
+    SELECT
+        1 AS x
+    UNION ALL
+    SELECT
+        x + 1
+    FROM
+        test) search depth FIRST BY
+        x SET y
+        SELECT
+            * FROM test
+        LIMIT 5;
+
+WITH RECURSIVE test AS (
+    SELECT
+        1 AS x
+    UNION ALL
+    SELECT
+        x + 1
+    FROM
+        test) search depth FIRST BY
+        x SET y
+        SELECT
+            * FROM test
+        LIMIT 5;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH RECURSIVE test AS (
+    SELECT
+        1 AS x
+    UNION ALL
+    SELECT
+        x + 1
+    FROM
+        test) search breadth FIRST BY
+        x SET y
+        SELECT
+            * FROM test
+        LIMIT 5;
+
+WITH RECURSIVE test AS (
+    SELECT
+        1 AS x
+    UNION ALL
+    SELECT
+        x + 1
+    FROM
+        test) search breadth FIRST BY
+        x SET y
+        SELECT
+            * FROM test
+        LIMIT 5;
+
+-- various syntax errors
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        foo,
+        tar SET seq
+        SELECT
+            * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET label
+        SELECT
+            * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t,
+        f SET seq
+        SELECT
+            * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            * FROM search_graph
+        ORDER BY
+            seq;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL (
+        SELECT
+            *
+        FROM
+            graph0 g
+        UNION ALL
+        SELECT
+            g.*
+        FROM
+            graph0 g,
+            search_graph sg
+        WHERE
+            g.f = sg.t)) search depth FIRST BY
+    f,
+    t SET seq
+    SELECT
+        * FROM search_graph
+    ORDER BY
+        seq;
+
+-- check that we distinguish same CTE name used at different levels
+-- (this case could be supported, perhaps, but it isn't today)
+WITH RECURSIVE x (
+    col
+) AS (
+    SELECT
+        1
+    UNION ( WITH x AS (
+            SELECT
+                *
+            FROM
+                x
+            )
+            SELECT
+                *
+            FROM
+                x)) search depth FIRST BY
+        col SET seq
+        SELECT
+            * FROM x;
+
+-- test ruleutils and view expansion
+CREATE temp VIEW v_search AS
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph0 g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph0 g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET seq
+        SELECT
+            f, t, label FROM search_graph;
+
+SELECT
+    pg_get_viewdef('v_search');
+
+SELECT
+    *
+FROM
+    v_search;
+
 --
 -- test cycle detection
 --
@@ -690,29 +1360,64 @@ WITH RECURSIVE search_graph (
     f,
     t,
     label,
-    path,
-    CYCLE
+    is_cycle,
+    path
 ) AS (
     SELECT
         *,
+        FALSE,
         ARRAY[ROW (g.f,
-            g.t)],
-        FALSE
+            g.t)]
     FROM
         graph g
     UNION ALL
     SELECT
         g.*,
-        path || ROW (g.f,
-            g.t),
         ROW (g.f,
-            g.t) = ANY (path)
+            g.t) = ANY (path),
+        path || ROW (g.f,
+            g.t)
     FROM
         graph g,
         search_graph sg
     WHERE
         g.f = sg.t
-        AND NOT CYCLE
+        AND NOT is_cycle
+)
+SELECT
+    *
+FROM
+    search_graph;
+
+-- UNION DISTINCT exercises row type hashing support
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label,
+    is_cycle,
+    path
+) AS (
+    SELECT
+        *,
+        FALSE,
+        ARRAY[ROW (g.f,
+            g.t)]
+    FROM
+        graph g
+    UNION
+    DISTINCT
+    SELECT
+        g.*,
+        ROW (g.f,
+            g.t) = ANY (path),
+        path || ROW (g.f,
+            g.t)
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t
+        AND NOT is_cycle
 )
 SELECT
     *
@@ -724,29 +1429,29 @@ WITH RECURSIVE search_graph (
     f,
     t,
     label,
-    path,
-    CYCLE
+    is_cycle,
+    path
 ) AS (
     SELECT
         *,
+        FALSE,
         ARRAY[ROW (g.f,
-            g.t)],
-        FALSE
+            g.t)]
     FROM
         graph g
     UNION ALL
     SELECT
         g.*,
-        path || ROW (g.f,
-            g.t),
         ROW (g.f,
-            g.t) = ANY (path)
+            g.t) = ANY (path),
+        path || ROW (g.f,
+            g.t)
     FROM
         graph g,
         search_graph sg
     WHERE
         g.f = sg.t
-        AND NOT CYCLE
+        AND NOT is_cycle
 )
 SELECT
     *
@@ -754,6 +1459,471 @@ FROM
     search_graph
 ORDER BY
     path;
+
+-- CYCLE clause
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH RECURSIVE search_graph (f,
+    t,
+    label)
+AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle USING path
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle USING path
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION
+    DISTINCT
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle TO 'Y' DEFAULT 'N' USING path
+    SELECT
+        * FROM search_graph;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH RECURSIVE test AS (
+    SELECT
+        0 AS x
+    UNION ALL
+    SELECT
+        (x + 1) % 10
+    FROM
+        test)
+    CYCLE x SET is_cycle USING path
+SELECT
+    * FROM test;
+
+WITH RECURSIVE test AS (
+    SELECT
+        0 AS x
+    UNION ALL
+    SELECT
+        (x + 1) % 10
+    FROM
+        test)
+    CYCLE x SET is_cycle USING path
+    SELECT
+        * FROM test;
+
+WITH RECURSIVE test AS (
+    SELECT
+        0 AS x
+    UNION ALL
+    SELECT
+        (x + 1) % 10
+    FROM
+        test
+    WHERE
+        NOT is_cycle -- redundant, but legal
+)
+    CYCLE x SET is_cycle USING path
+    SELECT
+        * FROM test;
+
+-- multiple CTEs
+WITH RECURSIVE graph (
+    f,
+    t,
+    label
+) AS (
+    VALUES (1, 2, 'arc 1 -> 2'),
+        (1, 3, 'arc 1 -> 3'),
+        (2, 3, 'arc 2 -> 3'),
+        (1, 4, 'arc 1 -> 4'),
+        (4, 5, 'arc 4 -> 5'),
+        (5, 1, 'arc 5 -> 1')
+),
+search_graph (
+    f, t, label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g, search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle TO TRUE DEFAULT FALSE USING path
+    SELECT
+        f, t, label FROM search_graph;
+
+-- star expansion
+WITH RECURSIVE a AS (
+    SELECT
+        1 AS b
+    UNION ALL
+    SELECT
+        *
+    FROM
+        a)
+    CYCLE b SET c USING p
+    SELECT
+        * FROM a;
+
+-- search+cycle
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET seq CYCLE f, t SET is_cycle USING path
+        SELECT
+            * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search breadth FIRST BY
+        f,
+        t SET seq CYCLE f, t SET is_cycle USING path
+        SELECT
+            * FROM search_graph;
+
+-- various syntax errors
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE foo,
+    tar SET is_cycle USING path
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle TO TRUE DEFAULT 55 USING path
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle TO point '(1,1)' DEFAULT point '(0,0)' USING path
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET label TO TRUE DEFAULT FALSE USING path
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle TO TRUE DEFAULT FALSE USING label
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET foo TO TRUE DEFAULT FALSE USING foo
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t,
+    f SET is_cycle TO TRUE DEFAULT FALSE USING path
+    SELECT
+        * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET foo CYCLE f, t SET foo TO TRUE DEFAULT FALSE USING path
+        SELECT
+            * FROM search_graph;
+
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t) search depth FIRST BY
+        f,
+        t SET foo CYCLE f, t SET is_cycle TO TRUE DEFAULT FALSE USING foo
+        SELECT
+            * FROM search_graph;
+
+-- test ruleutils and view expansion
+CREATE temp VIEW v_cycle1 AS
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle USING path
+    SELECT
+        f, t, label FROM search_graph;
+
+CREATE temp VIEW v_cycle2 AS
+WITH RECURSIVE search_graph (
+    f,
+    t,
+    label
+) AS (
+    SELECT
+        *
+    FROM
+        graph g
+    UNION ALL
+    SELECT
+        g.*
+    FROM
+        graph g,
+        search_graph sg
+    WHERE
+        g.f = sg.t)
+    CYCLE f,
+    t SET is_cycle TO 'Y' DEFAULT 'N' USING path
+    SELECT
+        f, t, label FROM search_graph;
+
+SELECT
+    pg_get_viewdef('v_cycle1');
+
+SELECT
+    pg_get_viewdef('v_cycle2');
+
+SELECT
+    *
+FROM
+    v_cycle1;
+
+SELECT
+    *
+FROM
+    v_cycle2;
 
 --
 -- test multiple WITH queries
@@ -1044,6 +2214,18 @@ DROP TABLE y;
 --
 -- error cases
 --
+WITH x (
+    n,
+    b
+) AS (
+    SELECT
+        1
+)
+SELECT
+    *
+FROM
+    x;
+
 -- INTERSECT
 WITH RECURSIVE x (
     n
@@ -1135,6 +2317,111 @@ WITH RECURSIVE x (
     UNION ALL
     SELECT
         1
+)
+SELECT
+    *
+FROM
+    x;
+
+-- allow this, because we historically have
+WITH RECURSIVE x (
+    n
+) AS (
+    WITH x1 AS (
+        SELECT
+            1 AS n
+        )
+        SELECT
+            0
+        UNION
+        SELECT
+            *
+        FROM
+            x1
+)
+SELECT
+    *
+FROM
+    x;
+
+-- but this should be rejected
+WITH RECURSIVE x (
+    n
+) AS (
+    WITH x1 AS (
+        SELECT
+            1
+        FROM
+            x
+        )
+        SELECT
+            0
+        UNION
+        SELECT
+            *
+        FROM
+            x1
+)
+SELECT
+    *
+FROM
+    x;
+
+-- and this too
+WITH RECURSIVE x (
+    n
+) AS (( WITH x1 AS (
+            SELECT
+                1
+            FROM
+                x
+            )
+            SELECT
+                *
+            FROM
+                x1)
+        UNION
+        SELECT
+            0
+)
+SELECT
+    *
+FROM
+    x;
+
+-- and this
+WITH RECURSIVE x (
+    n
+) AS (
+    SELECT
+        0
+    UNION
+    SELECT
+        1
+    ORDER BY
+        (
+            SELECT
+                n
+            FROM
+                x)
+)
+SELECT
+    *
+FROM
+    x;
+
+-- and this
+WITH RECURSIVE x (
+    n
+) AS (
+    WITH sub_cte AS (
+        SELECT
+            *
+        FROM
+            x)
+        DELETE FROM graph
+    RETURNING
+        f
 )
 SELECT
     *
@@ -1605,6 +2892,75 @@ FROM
     int4_tbl;
 
 --
+-- test for bug #19055: interaction of WITH with aggregates
+--
+-- For now, we just throw an error if there's a use of a CTE below the
+-- semantic level that the SQL standard assigns to the aggregate.
+-- It's not entirely clear what we could do instead that doesn't risk
+-- breaking more things than it fixes.
+SELECT
+    f1,
+    ( WITH cte1 (
+            x,
+            y
+        ) AS (
+            SELECT
+                1,
+                2
+        )
+        SELECT
+            count((
+                SELECT
+                    i4.f1
+                FROM cte1))) AS ss
+FROM
+    int4_tbl i4;
+
+--
+-- test for bug #19106: interaction of WITH with aggregates
+--
+-- the initial fix for #19055 was too aggressive and broke this case
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH a AS (
+    SELECT
+        id
+    FROM (
+        VALUES (1),
+            (2)) AS v (id)),
+b AS (
+    SELECT
+        max((
+            SELECT
+                sum(id)
+            FROM a)) AS agg
+)
+SELECT
+    agg
+FROM
+    b;
+
+WITH a AS (
+    SELECT
+        id
+    FROM (
+        VALUES (1),
+            (2)) AS v (id)
+),
+b AS (
+    SELECT
+        max((
+            SELECT
+                sum(id)
+            FROM a)) AS agg
+)
+SELECT
+    agg
+FROM
+    b;
+
+--
 -- test for nested-recursive-WITH bug
 --
 WITH RECURSIVE t (
@@ -2061,9 +3417,7 @@ CREATE TEMP TABLE bug6051_2 (
 
 CREATE RULE bug6051_ins AS ON INSERT TO bug6051
     DO INSTEAD
-    INSERT INTO bug6051_2
-    SELECT
-        NEW.i;
+    INSERT INTO bug6051_2 VALUES (NEW.i);
 
 WITH t1 AS (
     DELETE FROM bug6051
@@ -2085,6 +3439,218 @@ SELECT
     *
 FROM
     bug6051_2;
+
+-- check INSERT ... SELECT rule actions are disallowed on commands
+-- that have modifyingCTEs
+CREATE OR REPLACE RULE bug6051_ins AS ON INSERT TO bug6051
+    DO INSTEAD
+    INSERT INTO bug6051_2
+    SELECT
+        NEW.i;
+
+WITH t1 AS (
+    DELETE FROM bug6051
+RETURNING
+    *
+)
+INSERT INTO bug6051
+SELECT
+    *
+FROM
+    t1;
+
+-- silly example to verify that hasModifyingCTE flag is propagated
+CREATE TEMP TABLE bug6051_3 AS
+SELECT
+    a
+FROM
+    generate_series(11, 13) AS a;
+
+CREATE RULE bug6051_3_ins AS ON INSERT TO bug6051_3
+    DO INSTEAD
+    SELECT
+        i FROM
+        bug6051_2;
+
+BEGIN;
+SET LOCAL debug_parallel_query = ON;
+WITH t1 AS (
+    DELETE FROM bug6051_3
+RETURNING
+    *
+)
+INSERT INTO bug6051_3
+SELECT
+    *
+FROM
+    t1;
+COMMIT;
+
+SELECT
+    *
+FROM
+    bug6051_3;
+
+-- check that recursive CTE processing doesn't rewrite a CTE more than once
+-- (must not try to expand GENERATED ALWAYS IDENTITY columns more than once)
+CREATE TEMP TABLE id_alw1 (
+    i int GENERATED ALWAYS AS IDENTITY
+);
+
+CREATE TEMP TABLE id_alw2 (
+    i int GENERATED ALWAYS AS IDENTITY
+);
+
+CREATE TEMP VIEW id_alw2_view AS
+SELECT
+    *
+FROM
+    id_alw2;
+
+CREATE TEMP TABLE id_alw3 (
+    i int GENERATED ALWAYS AS IDENTITY
+);
+
+CREATE RULE id_alw3_ins AS ON INSERT TO id_alw3
+    DO INSTEAD
+    WITH t1 AS (
+        INSERT INTO id_alw1 DEFAULT VALUES
+        RETURNING
+            i
+    )
+    INSERT INTO id_alw2_view DEFAULT VALUES
+    RETURNING
+        i;
+
+CREATE TEMP VIEW id_alw3_view AS
+SELECT
+    *
+FROM
+    id_alw3;
+
+CREATE TEMP TABLE id_alw4 (
+    i int GENERATED ALWAYS AS IDENTITY
+);
+
+WITH t4 AS (
+    INSERT INTO id_alw4 DEFAULT
+        VALUES
+        RETURNING
+            i
+)
+INSERT INTO id_alw3_view DEFAULT
+    VALUES
+    RETURNING
+        i;
+
+SELECT
+    *
+FROM
+    id_alw1;
+
+SELECT
+    *
+FROM
+    id_alw2;
+
+SELECT
+    *
+FROM
+    id_alw3;
+
+SELECT
+    *
+FROM
+    id_alw4;
+
+-- check case where CTE reference is removed due to optimization
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    q1
+FROM ( WITH t_cte AS (
+        SELECT
+            *
+        FROM
+            int8_tbl t
+    )
+    SELECT
+        q1,
+        (
+            SELECT
+                q2
+            FROM
+                t_cte
+            WHERE
+                t_cte.q1 = i8.q1) AS t_sub
+        FROM
+            int8_tbl i8) ss;
+
+SELECT
+    q1
+FROM ( WITH t_cte AS (
+        SELECT
+            *
+        FROM
+            int8_tbl t
+    )
+    SELECT
+        q1,
+        (
+            SELECT
+                q2
+            FROM
+                t_cte
+            WHERE
+                t_cte.q1 = i8.q1) AS t_sub
+        FROM
+            int8_tbl i8) ss;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    q1
+FROM ( WITH t_cte AS MATERIALIZED (
+        SELECT
+            *
+        FROM
+            int8_tbl t
+        )
+        SELECT
+            q1,
+            (
+                SELECT
+                    q2
+                FROM
+                    t_cte
+                WHERE
+                    t_cte.q1 = i8.q1) AS t_sub
+            FROM
+                int8_tbl i8) ss;
+
+SELECT
+    q1
+FROM ( WITH t_cte AS MATERIALIZED (
+        SELECT
+            *
+        FROM
+            int8_tbl t
+        )
+        SELECT
+            q1,
+            (
+                SELECT
+                    q2
+                FROM
+                    t_cte
+                WHERE
+                    t_cte.q1 = i8.q1) AS t_sub
+            FROM
+                int8_tbl i8) ss;
 
 -- a truly recursive CTE in the same list
 WITH RECURSIVE t (
@@ -2364,6 +3930,178 @@ ON CONFLICT (k)
         v;
 
 DROP TABLE withz;
+
+-- WITH referenced by MERGE statement
+CREATE TABLE m AS
+SELECT
+    i AS k,
+    (i || ' v')::text v
+FROM
+    generate_series(1, 16, 3) i;
+
+ALTER TABLE m
+    ADD UNIQUE (k);
+
+WITH RECURSIVE cte_basic AS (
+    SELECT
+        1 a,
+        'cte_basic val' b
+)
+MERGE INTO m
+    USING (
+        SELECT
+            0 k, 'merge source SubPlan' v) o ON m.k = o.k
+    WHEN MATCHED THEN
+        UPDATE SET v = (
+                SELECT
+                    b || ' merge update' FROM cte_basic WHERE
+                    cte_basic.a = m.k
+                LIMIT 1)
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (o.k, o.v);
+
+-- Basic:
+WITH cte_basic AS MATERIALIZED (
+    SELECT
+        1 a,
+        'cte_basic val' b) MERGE INTO m
+    USING (
+        SELECT
+            0 k, 'merge source SubPlan' v OFFSET 0) o ON m.k = o.k
+    WHEN MATCHED THEN
+        UPDATE SET v = (
+                SELECT
+                    b || ' merge update' FROM cte_basic WHERE
+                    cte_basic.a = m.k
+                LIMIT 1)
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (o.k, o.v);
+
+-- Examine
+SELECT
+    *
+FROM
+    m
+WHERE
+    k = 0;
+
+-- See EXPLAIN output for same query:
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH cte_basic AS MATERIALIZED (
+    SELECT
+        1 a,
+        'cte_basic val' b) MERGE INTO m
+    USING (
+        SELECT
+            0 k, 'merge source SubPlan' v OFFSET 0) o ON m.k = o.k
+    WHEN MATCHED THEN
+        UPDATE SET v = (
+                SELECT
+                    b || ' merge update' FROM cte_basic WHERE
+                    cte_basic.a = m.k
+                LIMIT 1)
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (o.k, o.v);
+
+-- InitPlan
+WITH cte_init AS MATERIALIZED (
+    SELECT
+        1 a,
+        'cte_init val' b) MERGE INTO m
+    USING (
+        SELECT
+            1 k, 'merge source InitPlan' v OFFSET 0) o ON m.k = o.k
+    WHEN MATCHED THEN
+        UPDATE SET v = (
+                SELECT
+                    b || ' merge update' FROM cte_init WHERE
+                    a = 1
+                LIMIT 1)
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (o.k, o.v);
+
+-- Examine
+SELECT
+    *
+FROM
+    m
+WHERE
+    k = 1;
+
+-- See EXPLAIN output for same query:
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH cte_init AS MATERIALIZED (
+    SELECT
+        1 a,
+        'cte_init val' b) MERGE INTO m
+    USING (
+        SELECT
+            1 k, 'merge source InitPlan' v OFFSET 0) o ON m.k = o.k
+    WHEN MATCHED THEN
+        UPDATE SET v = (
+                SELECT
+                    b || ' merge update' FROM cte_init WHERE
+                    a = 1
+                LIMIT 1)
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (o.k, o.v);
+
+-- MERGE source comes from CTE:
+WITH merge_source_cte AS MATERIALIZED (
+    SELECT
+        15 a,
+        'merge_source_cte val' b) MERGE INTO m
+    USING (
+        SELECT
+            * FROM
+            merge_source_cte) o ON m.k = o.a
+    WHEN MATCHED THEN
+        UPDATE SET v = (
+                SELECT
+                    b || merge_source_cte.*::text || ' merge update' FROM merge_source_cte WHERE
+                    a = 15)
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (o.a, o.b || (
+            SELECT
+                merge_source_cte.*::text || ' merge insert' FROM
+                merge_source_cte));
+
+-- Examine
+SELECT
+    *
+FROM
+    m
+WHERE
+    k = 15;
+
+-- See EXPLAIN output for same query:
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH merge_source_cte AS MATERIALIZED (
+    SELECT
+        15 a,
+        'merge_source_cte val' b) MERGE INTO m
+    USING (
+        SELECT
+            * FROM
+            merge_source_cte) o ON m.k = o.a
+    WHEN MATCHED THEN
+        UPDATE SET v = (
+                SELECT
+                    b || merge_source_cte.*::text || ' merge update' FROM merge_source_cte WHERE
+                    a = 15)
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (o.a, o.b || (
+            SELECT
+                merge_source_cte.*::text || ' merge insert' FROM
+                merge_source_cte));
+
+DROP TABLE m;
 
 -- check that run to completion happens in proper ordering
 TRUNCATE TABLE y;
@@ -2646,7 +4384,7 @@ INSERT INTO int8_tbl
         VALUES (42, 47)
     RETURNING
         q2)
-    DELETE FROM a USING wcte
+    DELETE FROM a_star USING wcte
         WHERE aa = q2;
 
 -- error cases
@@ -2663,6 +4401,25 @@ VALUES (FALSE);
 WITH t AS (
     INSERT INTO y
         VALUES (0)
+)
+SELECT
+    *
+FROM
+    t;
+
+-- RETURNING tries to return its own output
+WITH RECURSIVE t (
+    action,
+    a
+) AS (
+    MERGE INTO y
+        USING ( VALUES (11)) v (a) ON y.a = v.a
+        WHEN NOT MATCHED THEN
+            INSERT VALUES (v.a) RETURNING
+        merge_action (), (
+            SELECT
+                a FROM
+                t)
 )
 SELECT
     *
@@ -2696,6 +4453,45 @@ WITH t AS (
         VALUES (0))
         VALUES (FALSE);
 
+CREATE OR REPLACE RULE y_rule AS ON INSERT TO y
+    DO INSTEAD
+    NOTHING;
+
+WITH t AS (
+    INSERT INTO y
+        VALUES (0))
+        VALUES (FALSE);
+
+CREATE OR REPLACE RULE y_rule AS ON INSERT TO y
+    DO INSTEAD
+    NOTIFY foo;
+
+WITH t AS (
+    INSERT INTO y
+        VALUES (0))
+        VALUES (FALSE);
+
+CREATE OR REPLACE RULE y_rule AS ON INSERT TO y
+    DO ALSO
+    NOTIFY foo;
+
+WITH t AS (
+    INSERT INTO y
+        VALUES (0))
+        VALUES (FALSE);
+
+CREATE OR REPLACE RULE y_rule AS ON INSERT TO y
+    DO INSTEAD
+    (
+        NOTIFY foo;
+
+NOTIFY bar);
+
+WITH t AS (
+    INSERT INTO y
+        VALUES (0))
+        VALUES (FALSE);
+
 DROP RULE y_rule ON y;
 
 -- check that parser lookahead for WITH doesn't cause any odd behavior
@@ -2719,34 +4515,138 @@ FROM
     ORDINALITY;
 
 -- check sane response to attempt to modify CTE relation
-WITH test AS (
+WITH with_test AS (
     SELECT
         42
 )
-INSERT INTO test
+INSERT INTO with_test
     VALUES (1);
 
 -- check response to attempt to modify table with same name as a CTE (perhaps
 -- surprisingly it works, because CTEs don't hide tables from data-modifying
 -- statements)
-CREATE temp TABLE test (
+CREATE temp TABLE with_test (
     i int
 );
 
-WITH test AS (
+WITH with_test AS (
     SELECT
         42
 )
-INSERT INTO test
+INSERT INTO with_test
 SELECT
     *
 FROM
-    test;
+    with_test;
 
 SELECT
     *
 FROM
-    test;
+    with_test;
 
-DROP TABLE test;
+DROP TABLE with_test;
+
+--
+-- Test selectivity estimates for GROUP BY and DISTINCT subqueries/CTEs.
+--
+-- When a subquery or CTE has GROUP BY or DISTINCT, the planner should use
+-- stadistinct from the base table for key columns, rather than falling back
+-- to DEFAULT_NUM_DISTINCT.  With correct estimates, the planner picks Hash
+-- Join; with the old default estimates it would pick Nested Loop.
+--
+-- Subquery with GROUP BY (OFFSET 0 prevents qual pushdown)
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM (
+    SELECT
+        two,
+        thousand,
+        avg(ten) AS avg
+    FROM
+        tenk1
+    GROUP BY
+        two,
+        thousand OFFSET 0) t1,
+    (
+        SELECT
+            two,
+            thousand,
+            avg(ten) AS avg
+        FROM
+            tenk1
+        GROUP BY
+            two,
+            thousand OFFSET 0) t2
+WHERE
+    t1.two = 0
+    AND t2.two = 0
+    AND t1.avg = t2.avg;
+
+-- Subquery with DISTINCT (OFFSET 0 prevents qual pushdown)
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM ( SELECT DISTINCT
+        two,
+        thousand
+    FROM
+        tenk1 OFFSET 0) t1,
+    ( SELECT DISTINCT
+            two,
+            thousand
+        FROM
+            tenk1 OFFSET 0) t2
+WHERE
+    t1.two = 0
+    AND t2.two = 0
+    AND t1.thousand = t2.thousand;
+
+-- CTE with GROUP BY
+EXPLAIN (
+    COSTS OFF
+) WITH cte AS (
+    SELECT
+        two,
+        thousand,
+        avg(ten) AS avg
+    FROM
+        tenk1
+    GROUP BY
+        two,
+        thousand
+)
+SELECT
+    *
+FROM
+    cte t1,
+    cte t2
+WHERE
+    t1.two = 0
+    AND t2.two = 0
+    AND t1.avg = t2.avg;
+
+-- CTE with DISTINCT
+EXPLAIN (
+    COSTS OFF
+) WITH cte AS (
+    SELECT DISTINCT
+        two,
+        thousand
+    FROM
+        tenk1
+)
+SELECT
+    *
+FROM
+    cte t1,
+    cte t2
+WHERE
+    t1.two = 0
+    AND t2.two = 0
+    AND t1.thousand = t2.thousand;
 

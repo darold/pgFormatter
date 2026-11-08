@@ -62,13 +62,51 @@ INSERT INTO OID_TBL (f1)
     VALUES ('-23582358720398502385');
 
 SELECT
-    '' AS six,
     *
 FROM
     OID_TBL;
 
+-- Also try it with non-error-throwing API
 SELECT
-    '' AS one,
+    pg_input_is_valid ('1234', 'oid');
+
+SELECT
+    pg_input_is_valid ('01XYZ', 'oid');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('01XYZ', 'oid');
+
+SELECT
+    pg_input_is_valid ('9999999999', 'oid');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('9999999999', 'oid');
+
+-- While we're here, check oidvector as well
+SELECT
+    pg_input_is_valid (' 1 2  4 ', 'oidvector');
+
+SELECT
+    pg_input_is_valid ('01 01XYZ', 'oidvector');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('01 01XYZ', 'oidvector');
+
+SELECT
+    pg_input_is_valid ('01 9999999999', 'oidvector');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('01 9999999999', 'oidvector');
+
+SELECT
     o.*
 FROM
     OID_TBL o
@@ -76,7 +114,6 @@ WHERE
     o.f1 = 1234;
 
 SELECT
-    '' AS five,
     o.*
 FROM
     OID_TBL o
@@ -84,7 +121,6 @@ WHERE
     o.f1 <> '1234';
 
 SELECT
-    '' AS three,
     o.*
 FROM
     OID_TBL o
@@ -92,7 +128,6 @@ WHERE
     o.f1 <= '1234';
 
 SELECT
-    '' AS two,
     o.*
 FROM
     OID_TBL o
@@ -100,7 +135,6 @@ WHERE
     o.f1 < '1234';
 
 SELECT
-    '' AS four,
     o.*
 FROM
     OID_TBL o
@@ -108,12 +142,25 @@ WHERE
     o.f1 >= '1234';
 
 SELECT
-    '' AS three,
     o.*
 FROM
     OID_TBL o
 WHERE
     o.f1 > '1234';
+
+-- sort support must order oids above 2^31 the way btoidcmp does
+SELECT
+    f1
+FROM (
+    SELECT
+        f1
+    FROM
+        OID_TBL
+    UNION ALL
+    SELECT
+        '4294967000'::oid) ss
+ORDER BY
+    f1;
 
 DROP TABLE OID_TBL;
 

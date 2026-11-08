@@ -90,11 +90,6 @@ RESET enable_seqscan;
 RESET enable_bitmapscan;
 RESET enable_sort;
 
-
-SELECT two, stringu1, ten, string4
-   INTO TABLE tmp
-   FROM onek;
-
 --
 -- awk '{print $1,$2;}' person.data |
 -- awk '{if(NF!=2){print $3,$2;}else{print;}}' - emp.data |
@@ -148,6 +143,11 @@ SELECT 2+2, 57
 UNION ALL
 TABLE int8_tbl;
 
+-- corner case: VALUES with no columns
+CREATE TEMP TABLE nocols();
+INSERT INTO nocols DEFAULT VALUES;
+SELECT * FROM nocols n, LATERAL (VALUES(n.*)) v;
+
 --
 -- Test ORDER BY options
 --
@@ -196,7 +196,7 @@ explain (costs off)
 select * from onek2 where unique2 = 11 and stringu1 = 'ATAAAA';
 select * from onek2 where unique2 = 11 and stringu1 = 'ATAAAA';
 -- actually run the query with an analyze to use the partial index
-explain (costs off, analyze on, timing off, summary off)
+explain (costs off, analyze on, timing off, summary off, buffers off)
 select * from onek2 where unique2 = 11 and stringu1 = 'ATAAAA';
 explain (costs off)
 select unique2 from onek2 where unique2 = 11 and stringu1 = 'ATAAAA';
@@ -221,7 +221,6 @@ SET enable_indexscan TO off;
 explain (costs off)
 select unique2 from onek2 where unique2 = 11 and stringu1 < 'B';
 select unique2 from onek2 where unique2 = 11 and stringu1 < 'B';
-RESET enable_indexscan;
 -- check multi-index cases too
 explain (costs off)
 select unique1, unique2 from onek2
@@ -233,6 +232,16 @@ select unique1, unique2 from onek2
   where (unique2 = 11 and stringu1 < 'B') or unique1 = 0;
 select unique1, unique2 from onek2
   where (unique2 = 11 and stringu1 < 'B') or unique1 = 0;
+RESET enable_indexscan;
+
+-- onek2_u2_prtl should be preferred over this index, but we have to
+-- discount the metapage to arrive at that answer
+begin;
+create index onek2_index_full on onek2 (stringu1, unique2);
+explain (costs off)
+select unique2 from onek2
+  where stringu1 < 'B'::name;
+rollback;
 
 --
 -- Test some corner cases that have been known to confuse the planner

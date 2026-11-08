@@ -10,6 +10,9 @@ BEGIN
 END
 $$ language plpgsql;
 
+-- should fail, can't call it as a plain function
+SELECT test_event_trigger();
+
 -- should fail, event triggers cannot have declared arguments
 create function test_event_trigger_arg(name text)
 returns event_trigger as $$ BEGIN RETURN 1; END $$ language plpgsql;
@@ -199,9 +202,15 @@ INSERT INTO undroppable_objs VALUES
 ('table', 'audit_tbls.schema_two_table_three');
 
 CREATE TABLE dropped_objects (
-	type text,
-	schema text,
-	object text
+	object_type text,
+	schema_name text,
+	object_name text,
+	object_identity text,
+	address_names text[],
+	address_args text[],
+	is_temporary bool,
+	original bool,
+	normal bool
 );
 
 -- This tests errors raised within event triggers; the one in audit_tbls
@@ -242,8 +251,12 @@ BEGIN
         END IF;
 
 	INSERT INTO dropped_objects
-		(type, schema, object) VALUES
-		(obj.object_type, obj.schema_name, obj.object_identity);
+		(object_type, schema_name, object_name,
+		 object_identity, address_names, address_args,
+		 is_temporary, original, normal) VALUES
+		(obj.object_type, obj.schema_name, obj.object_name,
+		 obj.object_identity, obj.address_names, obj.address_args,
+		 obj.is_temporary, obj.original, obj.normal);
     END LOOP;
 END
 $$;
@@ -260,16 +273,19 @@ DROP SCHEMA schema_one, schema_two CASCADE;
 DELETE FROM undroppable_objs WHERE object_identity = 'schema_one.table_three';
 DROP SCHEMA schema_one, schema_two CASCADE;
 
-SELECT * FROM dropped_objects WHERE schema IS NULL OR schema <> 'pg_toast';
+-- exclude TOAST objects because they have unstable names
+SELECT * FROM dropped_objects
+  WHERE schema_name IS NULL OR schema_name <> 'pg_toast';
 
 DROP OWNED BY regress_evt_user;
-SELECT * FROM dropped_objects WHERE type = 'schema';
+SELECT * FROM dropped_objects WHERE object_type = 'schema';
 
 DROP ROLE regress_evt_user;
 
 DROP EVENT TRIGGER regress_event_trigger_drop_objects;
 DROP EVENT TRIGGER undroppable;
 
+-- Event triggers on relations.
 CREATE OR REPLACE FUNCTION event_trigger_report_dropped()
  RETURNS event_trigger
  LANGUAGE plpgsql
@@ -281,17 +297,39 @@ BEGIN
     IF NOT r.normal AND NOT r.original THEN
         CONTINUE;
     END IF;
-    RAISE NOTICE 'NORMAL: orig=% normal=% istemp=% type=% identity=% name=% args=%',
+    RAISE NOTICE 'NORMAL: orig=% normal=% istemp=% type=% identity=% schema=% name=% addr=% args=%',
         r.original, r.normal, r.is_temporary, r.object_type,
-        r.object_identity, r.address_names, r.address_args;
+        r.object_identity, r.schema_name, r.object_name,
+        r.address_names, r.address_args;
     END LOOP;
 END; $$;
 CREATE EVENT TRIGGER regress_event_trigger_report_dropped ON sql_drop
     EXECUTE PROCEDURE event_trigger_report_dropped();
+CREATE OR REPLACE FUNCTION event_trigger_report_end()
+ RETURNS event_trigger
+ LANGUAGE plpgsql
+AS $$
+DECLARE r RECORD;
+BEGIN
+    FOR r IN SELECT * FROM pg_event_trigger_ddl_commands()
+    LOOP
+        RAISE NOTICE 'END: command_tag=% type=% identity=%',
+            r.command_tag, r.object_type, r.object_identity;
+    END LOOP;
+END; $$;
+CREATE EVENT TRIGGER regress_event_trigger_report_end ON ddl_command_end
+  EXECUTE PROCEDURE event_trigger_report_end();
+
 CREATE SCHEMA evttrig
-	CREATE TABLE one (col_a SERIAL PRIMARY KEY, col_b text DEFAULT 'forty two')
+	CREATE TABLE one (col_a SERIAL PRIMARY KEY, col_b text DEFAULT 'forty two', col_c SERIAL)
 	CREATE INDEX one_idx ON one (col_b)
-	CREATE TABLE two (col_c INTEGER CHECK (col_c > 0) REFERENCES one DEFAULT 42);
+	CREATE TABLE two (col_c INTEGER CHECK (col_c > 0) REFERENCES one DEFAULT 42)
+	CREATE TABLE id (col_d int NOT NULL GENERATED ALWAYS AS IDENTITY)
+	CREATE VIEW one_view AS SELECT * FROM two;
+
+-- View with column additions
+CREATE OR REPLACE VIEW evttrig.one_view AS SELECT * FROM evttrig.two, evttrig.id;
+DROP VIEW evttrig.one_view;
 
 -- Partitioned tables with a partitioned index
 CREATE TABLE evttrig.parted (
@@ -309,11 +347,60 @@ CREATE TABLE evttrig.part_15_20 PARTITION OF evttrig.part_10_20 (id)
 ALTER TABLE evttrig.two DROP COLUMN col_c;
 ALTER TABLE evttrig.one ALTER COLUMN col_b DROP DEFAULT;
 ALTER TABLE evttrig.one DROP CONSTRAINT one_pkey;
+ALTER TABLE evttrig.one DROP COLUMN col_c;
+ALTER TABLE evttrig.id ALTER COLUMN col_d SET DATA TYPE bigint;
+ALTER TABLE evttrig.id ALTER COLUMN col_d DROP IDENTITY,
+  ALTER COLUMN col_d SET DATA TYPE int;
 DROP INDEX evttrig.one_idx;
 DROP SCHEMA evttrig CASCADE;
 DROP TABLE a_temp_tbl;
 
+-- check unfiltered results, too
+CREATE OR REPLACE FUNCTION event_trigger_report_dropped()
+ RETURNS event_trigger
+ LANGUAGE plpgsql
+AS $$
+DECLARE r record;
+BEGIN
+    FOR r IN SELECT * from pg_event_trigger_dropped_objects()
+    LOOP
+    RAISE NOTICE 'DROP: orig=% normal=% istemp=% type=% identity=% schema=% name=% addr=% args=%',
+        r.original, r.normal, r.is_temporary, r.object_type,
+        r.object_identity, r.schema_name, r.object_name,
+        r.address_names, r.address_args;
+    END LOOP;
+END; $$;
+
+CREATE FUNCTION event_trigger_dummy_trigger()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN new;
+END; $$;
+
+CREATE TABLE evtrg_nontemp_table (f1 int primary key, f2 int default 42);
+CREATE TRIGGER evtrg_nontemp_trig
+  BEFORE INSERT ON evtrg_nontemp_table
+  EXECUTE FUNCTION event_trigger_dummy_trigger();
+CREATE POLICY evtrg_nontemp_pol ON evtrg_nontemp_table USING (f2 > 0);
+DROP TABLE evtrg_nontemp_table;
+
+CREATE TEMP TABLE a_temp_tbl (f1 int primary key, f2 int default 42);
+CREATE TRIGGER a_temp_trig
+  BEFORE INSERT ON a_temp_tbl
+  EXECUTE FUNCTION event_trigger_dummy_trigger();
+CREATE POLICY a_temp_pol ON a_temp_tbl USING (f2 > 0);
+DROP TABLE a_temp_tbl;
+
+DROP FUNCTION event_trigger_dummy_trigger();
+
+-- CREATE OPERATOR CLASS without FAMILY clause should report
+-- both CREATE OPERATOR FAMILY and CREATE OPERATOR CLASS
+CREATE OPERATOR CLASS evttrigopclass FOR TYPE int USING btree AS STORAGE int;
+
 DROP EVENT TRIGGER regress_event_trigger_report_dropped;
+DROP EVENT TRIGGER regress_event_trigger_report_end;
 
 -- only allowed from within an event trigger function, should fail
 select pg_event_trigger_table_rewrite_oid();
@@ -350,6 +437,11 @@ alter table rewriteme
  add column another int default -1,
  alter column foo type numeric(10,4);
 
+-- matview rewrite when changing access method
+CREATE MATERIALIZED VIEW heapmv USING heap AS SELECT 1 AS a;
+ALTER MATERIALIZED VIEW heapmv SET ACCESS METHOD heap2;
+DROP MATERIALIZED VIEW heapmv;
+
 -- shouldn't trigger a table_rewrite event
 alter table rewriteme alter column foo type numeric(12,4);
 begin;
@@ -383,6 +475,96 @@ alter type rewritetype alter attribute a type varchar cascade;
 drop table rewriteme;
 drop event trigger no_rewrite_allowed;
 drop function test_evtrig_no_rewrite();
+
+-- Tests for REINDEX
+CREATE OR REPLACE FUNCTION reindex_start_command()
+RETURNS event_trigger AS $$
+BEGIN
+    RAISE NOTICE 'REINDEX START: % %', tg_event, tg_tag;
+END;
+$$ LANGUAGE plpgsql;
+CREATE EVENT TRIGGER regress_reindex_start ON ddl_command_start
+    WHEN TAG IN ('REINDEX')
+    EXECUTE PROCEDURE reindex_start_command();
+CREATE FUNCTION reindex_end_command()
+RETURNS event_trigger AS $$
+DECLARE
+    obj record;
+BEGIN
+    FOR obj IN SELECT * FROM pg_event_trigger_ddl_commands()
+    LOOP
+        RAISE NOTICE 'REINDEX END: command_tag=% type=% identity=%',
+	    obj.command_tag, obj.object_type, obj.object_identity;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+CREATE EVENT TRIGGER regress_reindex_end ON ddl_command_end
+    WHEN TAG IN ('REINDEX')
+    EXECUTE PROCEDURE reindex_end_command();
+-- Extra event to force the use of a snapshot.
+CREATE FUNCTION reindex_end_command_snap() RETURNS EVENT_TRIGGER
+    AS $$ BEGIN PERFORM 1; END $$ LANGUAGE plpgsql;
+CREATE EVENT TRIGGER regress_reindex_end_snap ON ddl_command_end
+    EXECUTE FUNCTION reindex_end_command_snap();
+
+-- With simple relation
+CREATE TABLE concur_reindex_tab (c1 int);
+CREATE INDEX concur_reindex_ind ON concur_reindex_tab (c1);
+-- Both start and end triggers enabled.
+REINDEX INDEX concur_reindex_ind;
+REINDEX TABLE concur_reindex_tab;
+REINDEX INDEX CONCURRENTLY concur_reindex_ind;
+REINDEX TABLE CONCURRENTLY concur_reindex_tab;
+-- with start trigger disabled.
+ALTER EVENT TRIGGER regress_reindex_start DISABLE;
+REINDEX INDEX concur_reindex_ind;
+REINDEX INDEX CONCURRENTLY concur_reindex_ind;
+-- without an index
+DROP INDEX concur_reindex_ind;
+REINDEX TABLE concur_reindex_tab;
+REINDEX TABLE CONCURRENTLY concur_reindex_tab;
+
+-- With a Schema
+CREATE SCHEMA concur_reindex_schema;
+-- No indexes
+REINDEX SCHEMA concur_reindex_schema;
+REINDEX SCHEMA CONCURRENTLY concur_reindex_schema;
+CREATE TABLE concur_reindex_schema.tab (a int);
+CREATE INDEX ind ON concur_reindex_schema.tab (a);
+-- One index reported
+REINDEX SCHEMA concur_reindex_schema;
+REINDEX SCHEMA CONCURRENTLY concur_reindex_schema;
+-- One table on schema but no indexes
+DROP INDEX concur_reindex_schema.ind;
+REINDEX SCHEMA concur_reindex_schema;
+REINDEX SCHEMA CONCURRENTLY concur_reindex_schema;
+DROP SCHEMA concur_reindex_schema CASCADE;
+
+-- With a partitioned table, and nothing else.
+CREATE TABLE concur_reindex_part (id int) PARTITION BY RANGE (id);
+REINDEX TABLE concur_reindex_part;
+REINDEX TABLE CONCURRENTLY concur_reindex_part;
+-- Partition that would be reindexed, still nothing.
+CREATE TABLE concur_reindex_child PARTITION OF concur_reindex_part
+  FOR VALUES FROM (0) TO (10);
+REINDEX TABLE concur_reindex_part;
+REINDEX TABLE CONCURRENTLY concur_reindex_part;
+-- Now add some indexes.
+CREATE INDEX concur_reindex_partidx ON concur_reindex_part (id);
+REINDEX INDEX concur_reindex_partidx;
+REINDEX INDEX CONCURRENTLY concur_reindex_partidx;
+REINDEX TABLE concur_reindex_part;
+REINDEX TABLE CONCURRENTLY concur_reindex_part;
+DROP TABLE concur_reindex_part;
+
+-- Clean up
+DROP EVENT TRIGGER regress_reindex_start;
+DROP EVENT TRIGGER regress_reindex_end;
+DROP EVENT TRIGGER regress_reindex_end_snap;
+DROP FUNCTION reindex_end_command();
+DROP FUNCTION reindex_end_command_snap();
+DROP FUNCTION reindex_start_command();
+DROP TABLE concur_reindex_tab;
 
 -- test Row Security Event Trigger
 RESET SESSION AUTHORIZATION;
@@ -423,6 +605,41 @@ ALTER POLICY p1 ON event_trigger_test USING (TRUE);
 ALTER POLICY p1 ON event_trigger_test RENAME TO p2;
 DROP POLICY p2 ON event_trigger_test;
 
+-- Check the object addresses of all the event triggers.
+SELECT
+    e.evtname,
+    pg_describe_object('pg_event_trigger'::regclass, e.oid, 0) as descr,
+    b.type, b.object_names, b.object_args,
+    pg_identify_object(a.classid, a.objid, a.objsubid) as ident
+  FROM pg_event_trigger as e,
+    LATERAL pg_identify_object_as_address('pg_event_trigger'::regclass, e.oid, 0) as b,
+    LATERAL pg_get_object_address(b.type, b.object_names, b.object_args) as a
+  ORDER BY e.evtname;
+
 DROP EVENT TRIGGER start_rls_command;
 DROP EVENT TRIGGER end_rls_command;
 DROP EVENT TRIGGER sql_drop_command;
+
+-- Check the GUC for disabling event triggers
+CREATE FUNCTION test_event_trigger_guc() RETURNS event_trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+	obj record;
+BEGIN
+	FOR obj IN SELECT * FROM pg_event_trigger_dropped_objects()
+	LOOP
+		RAISE NOTICE '% dropped %', tg_tag, obj.object_type;
+	END LOOP;
+END;
+$$;
+CREATE EVENT TRIGGER test_event_trigger_guc
+	ON sql_drop
+	WHEN TAG IN ('DROP POLICY') EXECUTE FUNCTION test_event_trigger_guc();
+
+SET event_triggers = 'on';
+CREATE POLICY pguc ON event_trigger_test USING (FALSE);
+DROP POLICY pguc ON event_trigger_test;
+
+CREATE POLICY pguc ON event_trigger_test USING (FALSE);
+SET event_triggers = 'off';
+DROP POLICY pguc ON event_trigger_test;

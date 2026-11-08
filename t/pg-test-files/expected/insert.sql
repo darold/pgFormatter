@@ -85,6 +85,50 @@ FROM
 DROP TABLE inserttest;
 
 --
+-- tuple larger than fillfactor
+--
+CREATE TABLE large_tuple_test (
+    a int,
+    b text
+)
+WITH (
+    fillfactor = 10
+);
+
+ALTER TABLE large_tuple_test
+    ALTER COLUMN b SET STORAGE plain;
+
+-- create page w/ free space in range [nearlyEmptyFreeSpace, MaxHeapTupleSize)
+INSERT INTO large_tuple_test (
+    SELECT
+        1,
+        NULL);
+
+-- should still fit on the page
+INSERT INTO large_tuple_test (
+    SELECT
+        2,
+        repeat('a', 1000));
+
+SELECT
+    pg_size_pretty(pg_relation_size('large_tuple_test'::regclass, 'main'));
+
+-- add small record to the second page
+INSERT INTO large_tuple_test (
+    SELECT
+        3,
+        NULL);
+
+-- now this tuple won't fit on the second page, but the insert should
+-- still succeed by extending the relation
+INSERT INTO large_tuple_test (
+    SELECT
+        4,
+        repeat('a', 8126));
+
+DROP TABLE large_tuple_test;
+
+--
 -- check indirection (field/array assignment), cf bug #14265
 --
 -- these tests are aware that transformInsertStmt has 3 separate code paths
@@ -118,6 +162,20 @@ INSERT INTO inserttest (f2[1], f2[2])
     VALUES (1, DEFAULT);
 
 -- not supported
+-- subscripts are transformed again for each VALUES row
+BEGIN;
+INSERT INTO inserttest (f2[(
+        SELECT
+            1)],
+        f2[(1 IS NOT NULL)::int + 1])
+VALUES (9,
+    10),
+(11,
+    12)
+RETURNING
+    f2;
+ROLLBACK;
+
 INSERT INTO inserttest (f3.if1, f3.if2)
     VALUES (1, ARRAY['foo']);
 
@@ -196,7 +254,192 @@ DROP TABLE inserttest2;
 
 DROP TABLE inserttest;
 
-DROP TYPE insert_test_type;
+-- Make the same tests with domains over the array and composite fields
+CREATE DOMAIN insert_pos_ints AS int[] CHECK (value[1] > 0);
+
+CREATE DOMAIN insert_test_domain AS insert_test_type CHECK ((value).if2[1] IS NOT NULL);
+
+CREATE TABLE inserttesta (
+    f1 int,
+    f2 insert_pos_ints
+);
+
+CREATE TABLE inserttestb (
+    f3 insert_test_domain,
+    f4 insert_test_domain[]
+);
+
+INSERT INTO inserttesta (f2[1], f2[2])
+    VALUES (1, 2);
+
+INSERT INTO inserttesta (f2[1], f2[2])
+VALUES
+    (3, 4),
+    (5, 6);
+
+INSERT INTO inserttesta (f2[1], f2[2])
+SELECT
+    7,
+    8;
+
+INSERT INTO inserttesta (f2[1], f2[2])
+    VALUES (1, DEFAULT);
+
+-- not supported
+INSERT INTO inserttesta (f2[1], f2[2])
+    VALUES (0, 2);
+
+INSERT INTO inserttesta (f2[1], f2[2])
+VALUES
+    (3, 4),
+    (0, 6);
+
+INSERT INTO inserttesta (f2[1], f2[2])
+SELECT
+    0,
+    8;
+
+INSERT INTO inserttestb (f3.if1, f3.if2)
+    VALUES (1, ARRAY['foo']);
+
+INSERT INTO inserttestb (f3.if1, f3.if2)
+VALUES
+    (1, '{foo}'),
+    (2, '{bar}');
+
+INSERT INTO inserttestb (f3.if1, f3.if2)
+SELECT
+    3,
+    '{baz,quux}';
+
+INSERT INTO inserttestb (f3.if1, f3.if2)
+    VALUES (1, DEFAULT);
+
+-- not supported
+INSERT INTO inserttestb (f3.if1, f3.if2)
+    VALUES (1, ARRAY[NULL]);
+
+INSERT INTO inserttestb (f3.if1, f3.if2)
+VALUES
+    (1, '{null}'),
+    (2, '{bar}');
+
+INSERT INTO inserttestb (f3.if1, f3.if2)
+SELECT
+    3,
+    '{null,quux}';
+
+INSERT INTO inserttestb (f3.if2[1], f3.if2[2])
+    VALUES ('foo', 'bar');
+
+INSERT INTO inserttestb (f3.if2[1], f3.if2[2])
+VALUES
+    ('foo', 'bar'),
+    ('baz', 'quux');
+
+INSERT INTO inserttestb (f3.if2[1], f3.if2[2])
+SELECT
+    'bear',
+    'beer';
+
+INSERT INTO inserttestb (f3, f4[1].if2[1], f4[1].if2[2])
+    VALUES (ROW (1, '{x}'), 'foo', 'bar');
+
+INSERT INTO inserttestb (f3, f4[1].if2[1], f4[1].if2[2])
+VALUES
+    (ROW (1, '{x}'), 'foo', 'bar'),
+    (ROW (2, '{y}'), 'baz', 'quux');
+
+INSERT INTO inserttestb (f3, f4[1].if2[1], f4[1].if2[2])
+SELECT
+    ROW (1,
+        '{x}')::insert_test_domain,
+    'bear',
+    'beer';
+
+SELECT
+    *
+FROM
+    inserttesta;
+
+SELECT
+    *
+FROM
+    inserttestb;
+
+-- also check reverse-listing
+CREATE TABLE inserttest2 (
+    f1 bigint,
+    f2 text
+);
+
+CREATE RULE irule1 AS ON INSERT TO inserttest2
+    DO ALSO
+    INSERT INTO inserttestb (f3.if2[1], f3.if2[2])
+    VALUES (NEW.f1, NEW.f2);
+
+CREATE RULE irule2 AS ON INSERT TO inserttest2
+    DO ALSO
+    INSERT INTO inserttestb (f4[1].if1, f4[1].if2[2])
+    VALUES
+        (1, 'fool'),
+        (NEW.f1, NEW.f2);
+
+CREATE RULE irule3 AS ON INSERT TO inserttest2
+    DO ALSO
+    INSERT INTO inserttestb (f4[1].if1, f4[1].if2[2])
+    SELECT
+        NEW.f1,
+        NEW.f2;
+
+\d+ inserttest2
+DROP TABLE inserttest2;
+
+DROP TABLE inserttesta;
+
+DROP TABLE inserttestb;
+
+DROP DOMAIN insert_pos_ints;
+
+DROP DOMAIN insert_test_domain;
+
+-- Verify that multiple inserts to subfields of a domain-over-container
+-- check the domain constraints only on the finished value
+CREATE DOMAIN insert_nnarray AS int[] CHECK (value[1] IS NOT NULL
+    AND value[2] IS NOT NULL);
+
+CREATE DOMAIN insert_test_domain AS insert_test_type CHECK ((value).if1 IS NOT NULL
+    AND (value).if2 IS NOT NULL);
+
+CREATE TABLE inserttesta (
+    f1 insert_nnarray
+);
+
+INSERT INTO inserttesta (f1[1])
+    VALUES (1);
+
+-- fail
+INSERT INTO inserttesta (f1[1], f1[2])
+    VALUES (1, 2);
+
+CREATE TABLE inserttestb (
+    f1 insert_test_domain
+);
+
+INSERT INTO inserttestb (f1.if1)
+    VALUES (1);
+
+-- fail
+INSERT INTO inserttestb (f1.if1, f1.if2)
+    VALUES (1, '{foo}');
+
+DROP TABLE inserttesta;
+
+DROP TABLE inserttestb;
+
+DROP DOMAIN insert_nnarray;
+
+DROP TYPE insert_test_type CASCADE;
 
 -- direct partition inserts should check partition bound constraint
 CREATE TABLE range_parted (
@@ -521,40 +764,6 @@ ORDER BY
     1;
 
 -- direct partition inserts should check hash partition bound constraint
--- Use hand-rolled hash functions and operator classes to get predictable
--- result on different matchines.  The hash function for int4 simply returns
--- the sum of the values passed to it and the one for text returns the length
--- of the non-empty string value passed to it or 0.
-CREATE OR REPLACE FUNCTION part_hashint4_noop (value int4, seed int8)
-    RETURNS int8
-    AS $$
-    SELECT
-        value + seed;
-$$
-LANGUAGE sql
-IMMUTABLE;
-
-CREATE OPERATOR class part_test_int4_ops FOR TYPE int4
-    USING HASH AS
-    OPERATOR 1 =,
-    FUNCTION 2 part_hashint4_noop (int4, int8
-);
-
-CREATE OR REPLACE FUNCTION part_hashtext_length (value text, seed int8)
-    RETURNS int8
-    AS $$
-    SELECT
-        length(coalesce(value, ''))::int8
-$$
-LANGUAGE sql
-IMMUTABLE;
-
-CREATE OPERATOR class part_test_text_ops FOR TYPE text
-    USING HASH AS
-    OPERATOR 1 =,
-    FUNCTION 2 part_hashtext_length (text, int8
-);
-
 CREATE TABLE hash_parted (
     a int
 )
@@ -716,7 +925,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER mlparted11_trig
-    BEFORE INSERT ON mlparted11 FOR EACH ROW
+    BEFORE INSERT ON mlparted11
+    FOR EACH ROW
     EXECUTE PROCEDURE mlparted11_trig_fn ();
 
 -- check that the correct row is shown when constraint check_b fails after
@@ -848,7 +1058,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER mlparted5abrtrig
-    BEFORE INSERT ON mlparted5a FOR EACH ROW
+    BEFORE INSERT ON mlparted5a
+    FOR EACH ROW
     EXECUTE PROCEDURE mlparted5abrtrig_func ();
 
 INSERT INTO mlparted5 (a, b, c)
@@ -916,6 +1127,11 @@ CREATE TABLE mlparted5_ab PARTITION OF mlparted5
 FOR VALUES FROM ('a') TO ('c')
 PARTITION BY LIST (c);
 
+-- This partitioned table should remain with no partitions.
+CREATE TABLE mlparted5_cd PARTITION OF mlparted5
+FOR VALUES FROM ('c') TO ('e')
+PARTITION BY LIST (c);
+
 CREATE TABLE mlparted5_a PARTITION OF mlparted5_ab
 FOR VALUES IN ('a');
 
@@ -942,6 +1158,14 @@ INSERT INTO mlparted
     VALUES (1, 45, 'b', 1);
 
 -- goes to mlparted5_b
+INSERT INTO mlparted
+    VALUES (1, 45, 'c', 1);
+
+-- goes to mlparted5_cd, fails
+INSERT INTO mlparted
+    VALUES (1, 45, 'f', 1);
+
+-- goes to mlparted5, fails
 SELECT
     tableoid::regclass,
     *
@@ -977,6 +1201,14 @@ INSERT INTO mlparted
     VALUES (1, 45, 'b', 1);
 
 -- goes to mlparted5_b
+INSERT INTO mlparted
+    VALUES (1, 45, 'c', 1);
+
+-- goes to mlparted5_cd, fails
+INSERT INTO mlparted
+    VALUES (1, 45, 'f', 1);
+
+-- goes to mlparted5, fails
 SELECT
     tableoid::regclass,
     *
@@ -1192,7 +1424,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER brtrigpartcon1trig
-    BEFORE INSERT ON brtrigpartcon1 FOR EACH ROW
+    BEFORE INSERT ON brtrigpartcon1
+    FOR EACH ROW
     EXECUTE PROCEDURE brtrigpartcon1trigf ();
 
 INSERT INTO brtrigpartcon
@@ -1246,9 +1479,7 @@ DROP TABLE brtrigpartcon;
 
 DROP FUNCTION brtrigpartcon1trigf ();
 
--- check that "do nothing" BR triggers work with tuple-routing (this checks
--- that estate->es_result_relation_info is appropriately set/reset for each
--- routed tuple)
+-- check that "do nothing" BR triggers work with tuple-routing
 CREATE TABLE donothingbrtrig_test (
     a int,
     b text
@@ -1280,11 +1511,13 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER donothingbrtrig1
-    BEFORE INSERT ON donothingbrtrig_test1 FOR EACH ROW
+    BEFORE INSERT ON donothingbrtrig_test1
+    FOR EACH ROW
     EXECUTE PROCEDURE donothingbrtrig_func ();
 
 CREATE TRIGGER donothingbrtrig2
-    BEFORE INSERT ON donothingbrtrig_test2 FOR EACH ROW
+    BEFORE INSERT ON donothingbrtrig_test2
+    FOR EACH ROW
     EXECUTE PROCEDURE donothingbrtrig_func ();
 
 ALTER TABLE donothingbrtrig_test ATTACH PARTITION donothingbrtrig_test1
@@ -1298,6 +1531,10 @@ VALUES
     (1, 'foo'),
     (2, 'bar');
 
+copy donothingbrtrig_test from stdout;
+1	baz
+2	qux
+\.
 SELECT
     tableoid::regclass,
     *

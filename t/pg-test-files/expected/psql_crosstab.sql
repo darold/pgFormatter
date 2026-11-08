@@ -192,6 +192,42 @@ ORDER BY
     v \crosstabview v h i
 
 \pset null ''
+-- boolean display
+\pset display_true 'Aye'
+\pset display_false 'Nay'
+\pset null 'Wut'
+WITH ROWS (
+    display_bools,
+    col_key,
+    val
+) AS (
+    VALUES (FALSE, FALSE, FALSE),
+        (TRUE, TRUE, TRUE),
+        (NULL, NULL, NULL),
+        (NULL, TRUE, FALSE),
+        (NULL, FALSE, TRUE),
+        (TRUE, NULL, FALSE),
+        (FALSE, NULL, TRUE))
+SELECT
+    *
+FROM
+    ROWS \crosstabview display_bools col_key val
+
+WITH ROWS (
+    tst,
+    col,
+    val
+) AS (
+    VALUES (TRUE, NULL, 42),
+        (TRUE, NULL, 142857))
+SELECT
+    *
+FROM
+    ROWS \crosstabview tst col
+
+\pset display_true 't'
+\pset display_false 'f'
+\pset null ''
 -- refer to columns by position
 SELECT
     v,

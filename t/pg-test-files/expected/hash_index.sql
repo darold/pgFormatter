@@ -1,5 +1,87 @@
 --
 -- HASH_INDEX
+--
+-- directory paths are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+
+CREATE TABLE hash_i4_heap (
+    seqno int4,
+    random int4
+);
+
+CREATE TABLE hash_name_heap (
+    seqno int4,
+    random name
+);
+
+CREATE TABLE hash_txt_heap (
+    seqno int4,
+    random text
+);
+
+CREATE TABLE hash_f8_heap (
+    seqno int4,
+    random float8
+);
+
+\set filename :abs_srcdir '/data/hash.data'
+COPY hash_i4_heap
+FROM
+    :'filename';
+
+COPY hash_name_heap
+FROM
+    :'filename';
+
+COPY hash_txt_heap
+FROM
+    :'filename';
+
+COPY hash_f8_heap
+FROM
+    :'filename';
+
+-- the data in this file has a lot of duplicates in the index key
+-- fields, leading to long bucket chains and lots of table expansion.
+-- this is therefore a stress test of the bucket overflow code (unlike
+-- the data in hash.data, which has unique index keys).
+--
+-- \set filename :abs_srcdir '/data/hashovfl.data'
+-- COPY hash_ovfl_heap FROM :'filename';
+ANALYZE hash_i4_heap;
+
+ANALYZE hash_name_heap;
+
+ANALYZE hash_txt_heap;
+
+ANALYZE hash_f8_heap;
+
+CREATE INDEX hash_i4_index ON hash_i4_heap USING HASH (random int4_ops);
+
+CREATE INDEX hash_name_index ON hash_name_heap USING HASH (random name_ops);
+
+CREATE INDEX hash_txt_index ON hash_txt_heap USING HASH (random text_ops);
+
+CREATE INDEX hash_f8_index ON hash_f8_heap USING HASH (random float8_ops) WITH (fillfactor = 60);
+
+CREATE INDEX hash_i4_partial_index ON hash_i4_heap USING HASH (seqno)
+WHERE
+    seqno = 9999;
+
+--
+-- Also try building functional, expressional, and partial indexes on
+-- tables that already contain data.
+--
+CREATE UNIQUE INDEX hash_f8_index_1 ON hash_f8_heap (abs(random));
+
+CREATE UNIQUE INDEX hash_f8_index_2 ON hash_f8_heap ((seqno + 1), random);
+
+CREATE UNIQUE INDEX hash_f8_index_3 ON hash_f8_heap (random)
+WHERE
+    seqno > 1000;
+
+--
+-- hash index
 -- grep 843938989 hash.data
 --
 SELECT
@@ -85,6 +167,26 @@ FROM
     hash_f8_heap
 WHERE
     hash_f8_heap.random = '88888888'::float8;
+
+--
+-- partial hash index
+--
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    hash_i4_heap
+WHERE
+    seqno = 9999;
+
+SELECT
+    *
+FROM
+    hash_i4_heap
+WHERE
+    seqno = 9999;
 
 --
 -- hash index
@@ -280,24 +382,169 @@ ALTER INDEX hash_split_index SET (fillfactor = 10);
 REINDEX INDEX hash_split_index;
 -- Clean up.
 DROP TABLE hash_split_heap;
+-- Testcases for removing overflow pages.
+CREATE TABLE hash_cleanup_heap (
+    keycol int
+);
+CREATE INDEX hash_cleanup_index ON hash_cleanup_heap USING HASH (keycol);
+-- Insert tuples to both the primary bucket page and overflow pages.
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 500) AS i;
+-- Fill overflow pages by "dead" tuples.
+BEGIN;
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 1000) AS i;
+ROLLBACK;
+
+-- Checkpoint will ensure that all hash buffers are cleaned before we try
+-- to remove overflow pages.
+CHECKPOINT;
+
+-- This will squeeze the bucket and remove overflow pages.
+VACUUM hash_cleanup_heap;
+
+TRUNCATE hash_cleanup_heap;
+
+-- Insert a few tuples so that the primary bucket page doesn't get full and
+-- tuples can be moved to it.
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 50) AS i;
+
+-- Fill overflow pages by "dead" tuples.
+BEGIN;
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 1500) AS i;
+ROLLBACK;
+
+-- And insert some tuples again. During squeeze operation, these will be moved
+-- to the primary bucket allowing to test freeing intermediate overflow pages.
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 500) AS i;
+
+CHECKPOINT;
+
+VACUUM hash_cleanup_heap;
+
+TRUNCATE hash_cleanup_heap;
+
+-- Insert tuples to both the primary bucket page and overflow pages.
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 500) AS i;
+
+-- Fill overflow pages by "dead" tuples.
+BEGIN;
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 1500) AS i;
+ROLLBACK;
+
+-- And insert some tuples again. During squeeze operation, these will be moved
+-- to other overflow pages and also allow overflow pages filled by dead tuples
+-- to be freed. Note the main purpose of this test is to test the case where
+-- we don't need to move any tuple from the overflow page being freed.
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 50) AS i;
+
+CHECKPOINT;
+
+VACUUM hash_cleanup_heap;
+
+-- Test cleanup of dead index tuples on single page with INSERT.
+TRUNCATE hash_cleanup_heap;
+
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 1000) AS i;
+
+-- This relies on a rollbacked INSERT instead of a DELETE to make the creation
+-- of the dead tuples concurrent-safe.
+BEGIN;
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 500) AS i;
+ROLLBACK;
+
+SET enable_seqscan = OFF;
+
+SET enable_bitmapscan = OFF;
+
+SELECT
+    count(*)
+FROM
+    hash_cleanup_heap
+WHERE
+    keycol = 1;
+
+-- This query checks the hash index pages for dead tuples where the data
+-- is inserted, and performs a local VACUUM on a single page.
+INSERT INTO hash_cleanup_heap
+SELECT
+    1
+FROM
+    generate_series(1, 200) AS i;
+
+RESET enable_seqscan;
+
+RESET enable_bitmapscan;
+
+-- Clean up.
+DROP TABLE hash_cleanup_heap;
+
 -- Index on temp table.
 CREATE TEMP TABLE hash_temp_heap (
     x int,
     y int
 );
+
 INSERT INTO hash_temp_heap
     VALUES (1, 1);
+
 CREATE INDEX hash_idx ON hash_temp_heap USING HASH (x);
+
 DROP TABLE hash_temp_heap CASCADE;
+
 -- Float4 type.
 CREATE TABLE hash_heap_float4 (
     x float4,
     y int
 );
+
 INSERT INTO hash_heap_float4
     VALUES (1.1, 1);
+
 CREATE INDEX hash_idx ON hash_heap_float4 USING HASH (x);
+
 DROP TABLE hash_heap_float4 CASCADE;
+
 -- Test out-of-range fillfactor values
 CREATE INDEX hash_f8_index2 ON hash_f8_heap USING HASH (random float8_ops) WITH (fillfactor = 9);
+
 CREATE INDEX hash_f8_index2 ON hash_f8_heap USING HASH (random float8_ops) WITH (fillfactor = 101);
+

@@ -236,6 +236,22 @@ FETCH 1 FROM foo24;
 FETCH BACKWARD 1 FROM foo24;
 -- should fail
 END;
+BEGIN;
+DECLARE foo24 NO SCROLL CURSOR FOR
+    SELECT
+        *
+    FROM
+        tenk1
+    ORDER BY
+        unique2;
+FETCH 1 FROM foo24;
+FETCH ABSOLUTE 2 FROM foo24;
+-- allowed
+FETCH ABSOLUTE 1
+FROM
+    foo24;
+-- should fail
+END;
 --
 -- Cursors outside transaction blocks
 --
@@ -273,6 +289,34 @@ FROM
     pg_cursors;
 
 CLOSE foo25;
+
+BEGIN;
+DECLARE foo25ns NO SCROLL CURSOR WITH HOLD FOR
+    SELECT
+        *
+    FROM
+        tenk2;
+FETCH FROM foo25ns;
+FETCH FROM foo25ns;
+COMMIT;
+
+FETCH FROM foo25ns;
+
+FETCH ABSOLUTE 4 FROM foo25ns;
+
+FETCH ABSOLUTE 4 FROM foo25ns;
+
+-- fail
+SELECT
+    name,
+    statement,
+    is_holdable,
+    is_binary,
+    is_scrollable
+FROM
+    pg_cursors;
+
+CLOSE foo25ns;
 
 --
 -- ROLLBACK should close holdable cursors
@@ -648,7 +692,7 @@ SELECT
     *
 FROM
     uctest;
---- sensitive cursors can't currently scroll back, so this is an error:
+--- FOR UPDATE cursors can't currently scroll back, so this is an error:
 FETCH RELATIVE 0
 FROM
     c1;
@@ -659,6 +703,34 @@ SELECT
 FROM
     uctest;
 
+-- Check insensitive cursor with INSERT
+-- (The above tests don't test the SQL notion of an insensitive cursor
+-- correctly, because per SQL standard, changes from WHERE CURRENT OF
+-- commands should be visible in the cursor.  So here we make the
+-- changes with a command that is independent of the cursor.)
+BEGIN;
+DECLARE c1 INSENSITIVE CURSOR FOR
+    SELECT
+        *
+    FROM
+        uctest;
+INSERT INTO uctest
+    VALUES (10, 'ten');
+FETCH NEXT FROM c1;
+FETCH NEXT FROM c1;
+FETCH NEXT FROM c1;
+-- insert not visible
+COMMIT;
+
+SELECT
+    *
+FROM
+    uctest;
+
+DELETE FROM uctest
+WHERE f1 = 10;
+
+-- restore test table state
 -- Check inheritance cases
 CREATE TEMP TABLE ucchild ()
 INHERITS (
@@ -879,6 +951,22 @@ WHERE CURRENT OF c1;
 -- fail, views not supported
 ROLLBACK;
 
+BEGIN;
+DECLARE c1 CURSOR FOR
+    SELECT
+        *
+    FROM
+        ucview;
+FETCH FROM c1;
+UPDATE
+    ucview
+SET
+    f1 = f1 + 10
+WHERE
+    CURRENT OF c1;
+-- fail, views not supported
+ROLLBACK;
+
 -- Check WHERE CURRENT OF with an index-only scan
 BEGIN;
 EXPLAIN (
@@ -1053,4 +1141,36 @@ DECLARE c2 SCROLL CURSOR FOR
 FETCH ALL IN c2;
 FETCH BACKWARD ALL IN c2;
 ROLLBACK;
+
+-- Check fetching of toasted datums via cursors.
+BEGIN;
+-- Other compression algorithms may cause the compressed data to be stored
+-- inline.  Use pglz to ensure consistent results.
+SET default_toast_compression = 'pglz';
+CREATE TABLE toasted_data (
+    f1 int[]
+);
+INSERT INTO toasted_data
+SELECT
+    array_agg(i)
+FROM
+    generate_series(12345678, 12345678 + 1000) i;
+DECLARE local_portal CURSOR FOR
+    SELECT
+        *
+    FROM
+        toasted_data;
+FETCH ALL IN local_portal;
+DECLARE held_portal CURSOR WITH hold FOR
+    SELECT
+        *
+    FROM
+        toasted_data;
+COMMIT;
+
+DROP TABLE toasted_data;
+
+FETCH ALL IN held_portal;
+
+RESET default_toast_compression;
 

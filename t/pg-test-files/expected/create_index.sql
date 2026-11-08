@@ -2,6 +2,9 @@
 -- CREATE_INDEX
 -- Create ancillary data structures (i.e. indices)
 --
+-- directory paths are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+
 --
 -- BTREE
 --
@@ -44,21 +47,16 @@ COMMENT ON INDEX six IS 'good index';
 
 COMMENT ON INDEX six IS NULL;
 
---
--- BTREE ascending/descending cases
---
--- we load int4/text from pure descending data (each key is a new
--- low key) and name/f8 from pure ascending data (each key is a new
--- high key).  we had a bug where new low keys would sometimes be
--- "lost".
---
-CREATE INDEX bt_i4_index ON bt_i4_heap USING btree (seqno int4_ops);
+SELECT
+    obj_description('six'::regclass, 'pg_class') IS NULL AS six_comment_is_null;
 
-CREATE INDEX bt_name_index ON bt_name_heap USING btree (seqno name_ops);
+COMMENT ON INDEX six IS 'add the comment back';
 
-CREATE INDEX bt_txt_index ON bt_txt_heap USING btree (seqno text_ops);
+COMMENT ON INDEX six IS '';
 
-CREATE INDEX bt_f8_index ON bt_f8_heap USING btree (seqno float8_ops);
+-- empty string removes the comment, same as NULL
+SELECT
+    obj_description('six'::regclass, 'pg_class') IS NULL AS six_comment_is_null;
 
 --
 -- BTREE partial indices
@@ -78,11 +76,37 @@ WHERE
 --
 -- GiST (rtree-equivalent opclasses only)
 --
+CREATE TABLE slow_emp4000 (
+    home_base box
+);
+
+CREATE TABLE fast_emp4000 (
+    home_base box
+);
+
+\set filename :abs_srcdir '/data/rect.data'
+COPY slow_emp4000
+FROM
+    :'filename';
+
+INSERT INTO fast_emp4000
+SELECT
+    *
+FROM
+    slow_emp4000;
+
+ANALYZE slow_emp4000;
+
+ANALYZE fast_emp4000;
+
 CREATE INDEX grect2ind ON fast_emp4000 USING gist (home_base);
 
-CREATE INDEX gpolygonind ON polygon_tbl USING gist (f1);
-
-CREATE INDEX gcircleind ON circle_tbl USING gist (f1);
+-- we want to work with a point_tbl that includes a null
+CREATE TEMP TABLE point_tbl AS
+SELECT
+    *
+FROM
+    public.point_tbl;
 
 INSERT INTO POINT_TBL (f1)
     VALUES (NULL);
@@ -126,7 +150,7 @@ SELECT
 FROM
     fast_emp4000
 WHERE
-    home_base @ '(200,200),(2000,1000)'::box
+    home_base <@ '(200,200),(2000,1000)'::box
 ORDER BY
     (home_base[0])[0];
 
@@ -143,24 +167,6 @@ FROM
     fast_emp4000
 WHERE
     home_base IS NULL;
-
-SELECT
-    *
-FROM
-    polygon_tbl
-WHERE
-    f1 ~ '((1,1),(2,2),(2,1))'::polygon
-ORDER BY
-    (poly_center(f1))[0];
-
-SELECT
-    *
-FROM
-    circle_tbl
-WHERE
-    f1 && circle(point(1, -2), 1)
-ORDER BY
-    area(f1);
 
 SELECT
     count(*)
@@ -223,14 +229,14 @@ SELECT
 FROM
     point_tbl p
 WHERE
-    p.f1 <^ '(0.0, 0.0)';
+    p.f1 <<| '(0.0, 0.0)';
 
 SELECT
     count(*)
 FROM
     point_tbl p
 WHERE
-    p.f1 >^ '(0.0, 0.0)';
+    p.f1 |>> '(0.0, 0.0)';
 
 SELECT
     count(*)
@@ -303,7 +309,7 @@ SELECT
 FROM
     fast_emp4000
 WHERE
-    home_base @ '(200,200),(2000,1000)'::box
+    home_base <@ '(200,200),(2000,1000)'::box
 ORDER BY
     (home_base[0])[0];
 
@@ -312,7 +318,7 @@ SELECT
 FROM
     fast_emp4000
 WHERE
-    home_base @ '(200,200),(2000,1000)'::box
+    home_base <@ '(200,200),(2000,1000)'::box
 ORDER BY
     (home_base[0])[0];
 
@@ -349,48 +355,6 @@ FROM
     fast_emp4000
 WHERE
     home_base IS NULL;
-
-EXPLAIN (
-    COSTS OFF
-)
-SELECT
-    *
-FROM
-    polygon_tbl
-WHERE
-    f1 ~ '((1,1),(2,2),(2,1))'::polygon
-ORDER BY
-    (poly_center(f1))[0];
-
-SELECT
-    *
-FROM
-    polygon_tbl
-WHERE
-    f1 ~ '((1,1),(2,2),(2,1))'::polygon
-ORDER BY
-    (poly_center(f1))[0];
-
-EXPLAIN (
-    COSTS OFF
-)
-SELECT
-    *
-FROM
-    circle_tbl
-WHERE
-    f1 && circle(point(1, -2), 1)
-ORDER BY
-    area(f1);
-
-SELECT
-    *
-FROM
-    circle_tbl
-WHERE
-    f1 && circle(point(1, -2), 1)
-ORDER BY
-    area(f1);
 
 EXPLAIN (
     COSTS OFF
@@ -536,14 +500,14 @@ SELECT
 FROM
     point_tbl p
 WHERE
-    p.f1 <^ '(0.0, 0.0)';
+    p.f1 <<| '(0.0, 0.0)';
 
 SELECT
     count(*)
 FROM
     point_tbl p
 WHERE
-    p.f1 <^ '(0.0, 0.0)';
+    p.f1 <<| '(0.0, 0.0)';
 
 EXPLAIN (
     COSTS OFF
@@ -553,14 +517,14 @@ SELECT
 FROM
     point_tbl p
 WHERE
-    p.f1 >^ '(0.0, 0.0)';
+    p.f1 |>> '(0.0, 0.0)';
 
 SELECT
     count(*)
 FROM
     point_tbl p
 WHERE
-    p.f1 >^ '(0.0, 0.0)';
+    p.f1 |>> '(0.0, 0.0)';
 
 EXPLAIN (
     COSTS OFF
@@ -694,6 +658,35 @@ FROM
 ORDER BY
     f1 <-> '(200,300)'::point
 LIMIT 10;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    point(x, x),
+    (
+        SELECT
+            f1
+        FROM
+            gpolygon_tbl
+        ORDER BY
+            f1 <-> point(x, x)
+        LIMIT 1) AS c
+FROM
+    generate_series(0, 10, 1) x;
+
+SELECT
+    point(x, x),
+    (
+        SELECT
+            f1
+        FROM
+            gpolygon_tbl
+        ORDER BY
+            f1 <-> point(x, x)
+        LIMIT 1) AS c
+FROM
+    generate_series(0, 10, 1) x;
 
 -- Now check the results from bitmap indexscan
 SET enable_seqscan = OFF;
@@ -734,6 +727,55 @@ RESET enable_bitmapscan;
 --
 -- Note: GIN currently supports only bitmap scans, not plain indexscans
 --
+CREATE TABLE array_index_op_test (
+    seqno int4,
+    i int4[],
+    t text[]
+);
+
+\set filename :abs_srcdir '/data/array.data'
+COPY array_index_op_test
+FROM
+    :'filename';
+
+ANALYZE array_index_op_test;
+
+SELECT
+    *
+FROM
+    array_index_op_test
+WHERE
+    i = '{NULL}'
+ORDER BY
+    seqno;
+
+SELECT
+    *
+FROM
+    array_index_op_test
+WHERE
+    i @> '{NULL}'
+ORDER BY
+    seqno;
+
+SELECT
+    *
+FROM
+    array_index_op_test
+WHERE
+    i && '{NULL}'
+ORDER BY
+    seqno;
+
+SELECT
+    *
+FROM
+    array_index_op_test
+WHERE
+    i <@ '{NULL}'
+ORDER BY
+    seqno;
+
 SET enable_seqscan = OFF;
 
 SET enable_indexscan = OFF;
@@ -859,42 +901,6 @@ FROM
     array_index_op_test
 WHERE
     i <@ '{}'
-ORDER BY
-    seqno;
-
-SELECT
-    *
-FROM
-    array_op_test
-WHERE
-    i = '{NULL}'
-ORDER BY
-    seqno;
-
-SELECT
-    *
-FROM
-    array_op_test
-WHERE
-    i @> '{NULL}'
-ORDER BY
-    seqno;
-
-SELECT
-    *
-FROM
-    array_op_test
-WHERE
-    i && '{NULL}'
-ORDER BY
-    seqno;
-
-SELECT
-    *
-FROM
-    array_op_test
-WHERE
-    i <@ '{NULL}'
 ORDER BY
     seqno;
 
@@ -1090,24 +1096,6 @@ WHERE
 ORDER BY
     seqno;
 
-SELECT
-    *
-FROM
-    array_op_test
-WHERE
-    i = '{NULL}'
-ORDER BY
-    seqno;
-
-SELECT
-    *
-FROM
-    array_op_test
-WHERE
-    i <@ '{NULL}'
-ORDER BY
-    seqno;
-
 RESET enable_seqscan;
 
 RESET enable_indexscan;
@@ -1148,14 +1136,6 @@ CREATE INDEX gin_relopts_test ON array_index_op_test USING gin (i) WITH (FASTUPD
 --
 -- HASH
 --
-CREATE INDEX hash_i4_index ON hash_i4_heap USING HASH (random int4_ops);
-
-CREATE INDEX hash_name_index ON hash_name_heap USING HASH (random name_ops);
-
-CREATE INDEX hash_txt_index ON hash_txt_heap USING HASH (random text_ops);
-
-CREATE INDEX hash_f8_index ON hash_f8_heap USING HASH (random float8_ops) WITH (fillfactor = 60);
-
 CREATE UNLOGGED TABLE unlogged_hash_table (
     id int4
 );
@@ -1188,9 +1168,89 @@ FROM
 WHERE
     stringu1 = 'TVAAAA';
 
+-- OR-clauses shouldn't be transformed into SAOP because hash indexes don't
+-- support SAOP scans.
+SET enable_seqscan = OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    COUNT(*)
+FROM
+    tenk1
+WHERE
+    stringu1 = 'TVAAAA'
+    OR stringu1 = 'TVAAAB';
+
+RESET enable_seqscan;
+
 DROP INDEX hash_tuplesort_idx;
 
 RESET maintenance_work_mem;
+
+--
+-- Test unique null behavior
+--
+CREATE TABLE unique_tbl (
+    i int,
+    t text
+);
+
+CREATE UNIQUE INDEX unique_idx1 ON unique_tbl (i) NULLS DISTINCT;
+
+CREATE UNIQUE INDEX unique_idx2 ON unique_tbl (i) NULLS NOT DISTINCT;
+
+INSERT INTO unique_tbl
+    VALUES (1, 'one');
+
+INSERT INTO unique_tbl
+    VALUES (2, 'two');
+
+INSERT INTO unique_tbl
+    VALUES (3, 'three');
+
+INSERT INTO unique_tbl
+    VALUES (4, 'four');
+
+INSERT INTO unique_tbl
+    VALUES (5, 'one');
+
+INSERT INTO unique_tbl (t)
+    VALUES ('six');
+
+INSERT INTO unique_tbl (t)
+    VALUES ('seven');
+
+-- error from unique_idx2
+DROP INDEX unique_idx1, unique_idx2;
+
+INSERT INTO unique_tbl (t)
+    VALUES ('seven');
+
+-- build indexes on filled table
+CREATE UNIQUE INDEX unique_idx3 ON unique_tbl (i) NULLS DISTINCT;
+
+-- ok
+CREATE UNIQUE INDEX unique_idx4 ON unique_tbl (i) NULLS NOT DISTINCT;
+
+-- error
+DELETE FROM unique_tbl
+WHERE t = 'seven';
+
+CREATE UNIQUE INDEX unique_idx4 ON unique_tbl (i) NULLS NOT DISTINCT;
+
+-- ok now
+\d unique_tbl
+\d unique_idx3
+\d unique_idx4
+SELECT
+    pg_get_indexdef('unique_idx3'::regclass);
+
+SELECT
+    pg_get_indexdef('unique_idx4'::regclass);
+
+DROP TABLE unique_tbl;
 
 --
 -- Test functional index
@@ -1219,6 +1279,9 @@ INSERT INTO func_index_heap
 INSERT INTO func_index_heap
     VALUES ('QWERTY');
 
+-- while we're here, see that the metadata looks sane
+\d func_index_heap
+\d func_index_index
 --
 -- Same test, expressional index
 --
@@ -1248,6 +1311,16 @@ INSERT INTO func_index_heap
 INSERT INTO func_index_heap
     VALUES ('QWERTY');
 
+-- this should fail because of unsafe column type (anonymous record)
+CREATE INDEX ON func_index_heap ((f1 || f2), (ROW (f1, f2)));
+
+-- but this is allowed:
+CREATE INDEX ON func_index_heap ((func_index_heap.*));
+
+-- while we're here, see that the metadata looks sane
+\d func_index_heap
+\d func_index_index
+\d func_index_heap_func_index_heap_idx
 --
 -- Test unique index with included columns
 --
@@ -1281,18 +1354,6 @@ ALTER TABLE covering_index_heap
     ADD CONSTRAINT covering_pkey PRIMARY KEY USING INDEX covering_pkey;
 
 DROP TABLE covering_index_heap;
-
---
--- Also try building functional, expressional, and partial indexes on
--- tables that already contain data.
---
-CREATE UNIQUE INDEX hash_f8_index_1 ON hash_f8_heap (abs(random));
-
-CREATE UNIQUE INDEX hash_f8_index_2 ON hash_f8_heap ((seqno + 1), random);
-
-CREATE UNIQUE INDEX hash_f8_index_3 ON hash_f8_heap (random)
-WHERE
-    seqno > 1000;
 
 --
 -- Try some concurrent index builds
@@ -1344,6 +1405,26 @@ BEGIN;
 CREATE INDEX CONCURRENTLY concur_index7 ON concur_heap (f1);
 COMMIT;
 
+-- test where predicate is able to do a transactional update during
+-- a concurrent build before switching pg_index state flags.
+CREATE FUNCTION predicate_stable ()
+    RETURNS bool IMMUTABLE
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    EXECUTE 'SELECT txid_current()';
+    RETURN TRUE;
+END;
+$$;
+
+CREATE INDEX CONCURRENTLY concur_index8 ON concur_heap (f1)
+WHERE
+    predicate_stable ();
+
+DROP INDEX concur_index8;
+
+DROP FUNCTION predicate_stable ();
+
 -- But you can do a regular index build in a transaction
 BEGIN;
 CREATE INDEX std_index ON concur_heap (f2);
@@ -1365,6 +1446,56 @@ VACUUM
 REINDEX TABLE concur_heap;
 
 \d concur_heap
+-- Temporary tables with concurrent builds and on-commit actions
+-- CONCURRENTLY used with CREATE INDEX and DROP INDEX is ignored.
+-- PRESERVE ROWS, the default.
+CREATE TEMP TABLE concur_temp (
+    f1 int,
+    f2 text
+) ON COMMIT PRESERVE ROWS;
+
+INSERT INTO concur_temp
+VALUES
+    (1, 'foo'),
+    (2, 'bar');
+
+CREATE INDEX CONCURRENTLY concur_temp_ind ON concur_temp (f1);
+
+DROP INDEX CONCURRENTLY concur_temp_ind;
+
+DROP TABLE concur_temp;
+
+-- ON COMMIT DROP
+BEGIN;
+CREATE TEMP TABLE concur_temp (
+    f1 int,
+    f2 text
+) ON COMMIT DROP;
+INSERT INTO concur_temp
+VALUES
+    (1, 'foo'),
+    (2, 'bar');
+-- Fails when running in a transaction.
+CREATE INDEX CONCURRENTLY concur_temp_ind ON concur_temp (f1);
+COMMIT;
+
+-- ON COMMIT DELETE ROWS
+CREATE TEMP TABLE concur_temp (
+    f1 int,
+    f2 text
+) ON COMMIT DELETE ROWS;
+
+INSERT INTO concur_temp
+VALUES
+    (1, 'foo'),
+    (2, 'bar');
+
+CREATE INDEX CONCURRENTLY concur_temp_ind ON concur_temp (f1);
+
+DROP INDEX CONCURRENTLY concur_temp_ind;
+
+DROP TABLE concur_temp;
+
 --
 -- Try some concurrent index drops
 --
@@ -1390,7 +1521,7 @@ DROP INDEX CONCURRENTLY "concur_index5";
 
 DROP INDEX CONCURRENTLY "concur_index1";
 
-DROP INDEX CONCURRENTLY "concur_heap_expr_idx";
+DROP INDEX CONCURRENTLY "concur_heap_f2_f1_idx";
 
 \d concur_heap
 DROP TABLE concur_heap;
@@ -1429,6 +1560,21 @@ ALTER TABLE cwi_test
 DROP INDEX cwi_replaced_pkey;
 
 -- Should fail; a constraint depends on it
+-- Check that non-default index options are rejected
+CREATE UNIQUE INDEX cwi_uniq3_idx ON cwi_test (a DESC);
+
+ALTER TABLE cwi_test
+    ADD UNIQUE
+    USING INDEX cwi_uniq3_idx;
+
+-- fail
+CREATE UNIQUE INDEX cwi_uniq4_idx ON cwi_test (b COLLATE "POSIX");
+
+ALTER TABLE cwi_test
+    ADD UNIQUE
+    USING INDEX cwi_uniq4_idx;
+
+-- fail
 DROP TABLE cwi_test;
 
 -- ADD CONSTRAINT USING INDEX is forbidden on partitioned tables
@@ -1444,6 +1590,19 @@ ALTER TABLE cwi_test
 
 DROP TABLE cwi_test;
 
+-- PRIMARY KEY constraint cannot be backed by a NULLS NOT DISTINCT index
+CREATE TABLE cwi_test (
+    a int,
+    b int
+);
+
+CREATE UNIQUE INDEX cwi_a_nnd ON cwi_test (a) NULLS NOT DISTINCT;
+
+ALTER TABLE cwi_test
+    ADD PRIMARY KEY USING INDEX cwi_a_nnd;
+
+DROP TABLE cwi_test;
+
 --
 -- Check handling of indexes on system columns
 --
@@ -1452,7 +1611,7 @@ CREATE TABLE syscol_table (
 );
 
 -- System columns cannot be indexed
-CREATE INDEX ON syscolcol_table (ctid);
+CREATE INDEX ON syscol_table (ctid);
 
 -- nor used in expressions
 CREATE INDEX ON syscol_table ((ctid >= '(1000,0)'));
@@ -1467,18 +1626,20 @@ DROP TABLE syscol_table;
 --
 -- Tests for IS NULL/IS NOT NULL with b-tree indexes
 --
+CREATE TABLE onek_with_null AS
 SELECT
     unique1,
     unique2
-INTO
-    onek_with_null
 FROM
     onek;
 
 INSERT INTO onek_with_null (unique1, unique2)
 VALUES
     (NULL, -1),
-    (NULL, NULL);
+    (NULL, 2_147_483_647),
+    (NULL, NULL),
+    (100, NULL),
+    (500, NULL);
 
 CREATE UNIQUE INDEX onek_nulltest ON onek_with_null (unique2, unique1);
 
@@ -1534,6 +1695,18 @@ WHERE
     unique1 IS NULL
     AND unique1 > 500;
 
+SELECT
+    unique1,
+    unique2
+FROM
+    onek_with_null
+WHERE
+    unique1 = 500
+ORDER BY
+    unique2 DESC,
+    unique1 DESC
+LIMIT 1;
+
 DROP INDEX onek_nulltest;
 
 CREATE UNIQUE INDEX onek_nulltest ON onek_with_null (unique2 DESC, unique1);
@@ -1583,6 +1756,26 @@ FROM
 WHERE
     unique1 IS NULL
     AND unique1 > 500;
+
+SELECT
+    count(*)
+FROM
+    onek_with_null
+WHERE
+    unique1 IS NULL
+    AND unique2 IN (-1, 0, 1);
+
+SELECT
+    unique1,
+    unique2
+FROM
+    onek_with_null
+WHERE
+    unique1 = 500
+ORDER BY
+    unique2 DESC,
+    unique1 DESC
+LIMIT 1;
 
 DROP INDEX onek_nulltest;
 
@@ -1634,6 +1827,18 @@ WHERE
     unique1 IS NULL
     AND unique1 > 500;
 
+SELECT
+    unique1,
+    unique2
+FROM
+    onek_with_null
+WHERE
+    unique1 = 500
+ORDER BY
+    unique2 DESC,
+    unique1 DESC
+LIMIT 1;
+
 DROP INDEX onek_nulltest;
 
 CREATE UNIQUE INDEX onek_nulltest ON onek_with_null (unique2 nulls FIRST, unique1);
@@ -1684,6 +1889,18 @@ WHERE
     unique1 IS NULL
     AND unique1 > 500;
 
+SELECT
+    unique1,
+    unique2
+FROM
+    onek_with_null
+WHERE
+    unique1 = 500
+ORDER BY
+    unique2 DESC,
+    unique1 DESC
+LIMIT 1;
+
 DROP INDEX onek_nulltest;
 
 -- Check initial-positioning logic too
@@ -1733,7 +1950,7 @@ FROM
     onek_with_null
 ORDER BY
     unique2 DESC
-LIMIT 2;
+LIMIT 5;
 
 SELECT
     unique1,
@@ -1744,7 +1961,7 @@ WHERE
     unique2 >= -1
 ORDER BY
     unique2 DESC
-LIMIT 2;
+LIMIT 3;
 
 SELECT
     unique1,
@@ -1779,7 +1996,8 @@ WHERE
     thousand = 42
     AND (tenthous = 1
         OR tenthous = 3
-        OR tenthous = 42);
+        OR tenthous = 42
+        OR tenthous = 0);
 
 SELECT
     *
@@ -1789,7 +2007,88 @@ WHERE
     thousand = 42
     AND (tenthous = 1
         OR tenthous = 3
+        OR tenthous = 42
+        OR tenthous = 0);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1
+        OR tenthous = (
+            SELECT
+                1 + 2)
         OR tenthous = 42);
+
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1
+        OR tenthous = (
+            SELECT
+                1 + 2)
+        OR tenthous = 42);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1
+        OR tenthous = 3
+        OR tenthous = 42
+        OR tenthous IS NULL);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1::int2
+        OR tenthous::int2 = 3::int8
+        OR tenthous = 42::int8);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1::int2
+        OR tenthous::int2 = 3::int8
+        OR tenthous::int2 = 42::int8);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1::int2
+        OR tenthous = 3::int8
+        OR tenthous = 42::int8);
 
 EXPLAIN (
     COSTS OFF
@@ -1811,6 +2110,262 @@ WHERE
     hundred = 42
     AND (thousand = 42
         OR thousand = 99);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1
+        OR tenthous = 3
+        OR tenthous = 42);
+
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1
+        OR tenthous = 3
+        OR tenthous = 42);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1::numeric
+        OR tenthous = 3::int4
+        OR tenthous = 42::numeric);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    tenthous = 1::numeric
+    OR tenthous = 3::int4
+    OR tenthous = 42::numeric;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1 t1
+WHERE
+    t1.thousand = 42
+    OR t1.thousand = (
+        SELECT
+            t2.tenthous
+        FROM
+            tenk1 t2
+        WHERE
+            t2.thousand = t1.tenthous + 1
+        LIMIT 1);
+
+SELECT
+    count(*)
+FROM
+    tenk1 t1
+WHERE
+    t1.thousand = 42
+    OR t1.thousand = (
+        SELECT
+            t2.tenthous
+        FROM
+            tenk1 t2
+        WHERE
+            t2.thousand = t1.tenthous + 1
+        LIMIT 1);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand = 42
+        OR thousand = 99);
+
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand = 42
+        OR thousand = 99);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand < 42
+        OR thousand < 99
+        OR 43 > thousand
+        OR 42 > thousand);
+
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand < 42
+        OR thousand < 99
+        OR 43 > thousand
+        OR 42 > thousand);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1
+        OR tenthous = 3)
+    OR thousand = 41;
+
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    thousand = 42
+    AND (tenthous = 1
+        OR tenthous = 3)
+    OR thousand = 41;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand = 42
+        OR thousand = 99
+        OR tenthous < 2)
+    OR thousand = 41;
+
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand = 42
+        OR thousand = 99
+        OR tenthous < 2)
+    OR thousand = 41;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand = 42
+        OR thousand = 41
+        OR thousand = 99
+        AND tenthous = 2);
+
+SELECT
+    count(*)
+FROM
+    tenk1
+WHERE
+    hundred = 42
+    AND (thousand = 42
+        OR thousand = 41
+        OR thousand = 99
+        AND tenthous = 2);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1,
+    tenk2
+WHERE
+    tenk1.hundred = 42
+    AND (tenk2.thousand = 42
+        OR tenk1.thousand = 41
+        OR tenk2.tenthous = 2)
+    AND tenk2.hundred = tenk1.hundred;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1,
+    tenk2
+WHERE
+    tenk1.hundred = 42
+    AND (tenk2.thousand = 42
+        OR tenk2.thousand = 41
+        OR tenk2.tenthous = 2)
+    AND tenk2.hundred = tenk1.hundred;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+    JOIN tenk2 ON tenk1.hundred = 42
+        AND (tenk2.thousand = 42
+            OR tenk2.thousand = 41
+            OR tenk2.tenthous = 2)
+        AND tenk2.hundred = tenk1.hundred;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+    LEFT JOIN tenk2 ON tenk1.hundred = 42
+        AND (tenk2.thousand = 42
+            OR tenk2.thousand = 41
+            OR tenk2.tenthous = 2)
+        AND tenk2.hundred = tenk1.hundred;
 
 --
 -- Check behavior with duplicate index column contents
@@ -1848,11 +2403,9 @@ WHERE
     AND f1 ~<~ 'YX';
 
 --
--- Check ordering of =ANY indexqual results (bug in 9.2.0)
+-- Check that index scans with SAOP array and/or skip array indexquals
+-- return rows in index order
 --
-VACUUM tenk1;
-
--- ensure we get consistent plans here
 EXPLAIN (
     COSTS OFF
 )
@@ -1874,6 +2427,7 @@ WHERE
 ORDER BY
     unique1;
 
+-- Skip array on "thousand", SAOP array on "tenthous":
 EXPLAIN (
     COSTS OFF
 )
@@ -1899,8 +2453,7 @@ WHERE
 ORDER BY
     thousand;
 
-SET enable_indexonlyscan = OFF;
-
+-- Skip array on "thousand", SAOP array on "tenthous", backward scan:
 EXPLAIN (
     COSTS OFF
 )
@@ -1913,7 +2466,8 @@ WHERE
     thousand < 2
     AND tenthous IN (1001, 3000)
 ORDER BY
-    thousand;
+    thousand DESC,
+    tenthous DESC;
 
 SELECT
     thousand,
@@ -1924,9 +2478,378 @@ WHERE
     thousand < 2
     AND tenthous IN (1001, 3000)
 ORDER BY
+    thousand DESC,
+    tenthous DESC;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand > 995
+    AND tenthous IN (998, 999)
+ORDER BY
+    thousand DESC;
+
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand > 995
+    AND tenthous IN (998, 999)
+ORDER BY
+    thousand DESC;
+
+--
+-- Check elimination of redundant and contradictory index quals
+--
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 = ANY ('{7, 8, 9}');
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 = ANY ('{7, 8, 9}');
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 = ANY ('{7, 14, 22}')
+    AND unique1 = ANY ('{33, 44}'::bigint[]);
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 = ANY ('{7, 14, 22}')
+    AND unique1 = ANY ('{33, 44}'::bigint[]);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 = ANY (NULL);
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 = ANY (NULL);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 = ANY ('{NULL,NULL,NULL}');
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 = ANY ('{NULL,NULL,NULL}');
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IS NULL
+    AND unique1 IS NULL;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IS NULL
+    AND unique1 IS NULL;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 = 1;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 = 1;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 = 12345;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 = 12345;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 >= 42;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 >= 42;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 > 42;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 > 42;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 > 9996
+    AND unique1 >= 9999;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 > 9996
+    AND unique1 >= 9999;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 < 3
+    AND unique1 <= 3;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 < 3
+    AND unique1 <= 3;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 < 3
+    AND unique1 < (-1)::bigint;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 < 3
+    AND unique1 < (-1)::bigint;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 < (-1)::bigint;
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE
+    unique1 IN (1, 42, 7)
+    AND unique1 < (-1)::bigint;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE (thousand, tenthous) > (NULL, 5);
+
+SELECT
+    unique1
+FROM
+    tenk1
+WHERE (thousand, tenthous) > (NULL, 5);
+
+-- Skip array redundancy (pair of redundant low_compare inequalities)
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand > - 1
+    AND thousand >= 0
+    AND tenthous = 3000
+ORDER BY
     thousand;
 
-RESET enable_indexonlyscan;
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand > - 1
+    AND thousand >= 0
+    AND tenthous = 3000
+ORDER BY
+    thousand;
+
+-- Skip array redundancy (pair of redundant high_compare inequalities)
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand < 3
+    AND thousand <= 2
+    AND tenthous = 1001
+ORDER BY
+    thousand;
+
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand < 3
+    AND thousand <= 2
+    AND tenthous = 1001
+ORDER BY
+    thousand;
+
+-- Skip array preprocessing increments "thousand > -1" to  "thousand >= 0"
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand > - 1
+    AND tenthous IN (1001, 3000)
+ORDER BY
+    thousand
+LIMIT 2;
+
+SELECT
+    thousand,
+    tenthous
+FROM
+    tenk1
+WHERE
+    thousand > - 1
+    AND tenthous IN (1001, 3000)
+ORDER BY
+    thousand
+LIMIT 2;
 
 --
 -- Check elimination of constant-NULL subexpressions
@@ -2052,7 +2975,8 @@ CREATE TABLE concur_reindex_tab (
 REINDEX TABLE concur_reindex_tab;
 
 -- notice
-REINDEX TABLE CONCURRENTLY concur_reindex_tab;
+REINDEX (CONCURRENTLY)
+TABLE concur_reindex_tab;
 
 -- notice
 ALTER TABLE concur_reindex_tab
@@ -2111,11 +3035,39 @@ SELECT
 FROM
     concur_reindex_tab;
 
+-- Dependency lookup before and after the follow-up REINDEX commands.
+-- These should remain consistent.
+SELECT
+    pg_describe_object(classid, objid, objsubid) AS obj,
+    pg_describe_object(refclassid, refobjid, refobjsubid) AS objref,
+    deptype
+FROM
+    pg_depend
+WHERE
+    classid = 'pg_class'::regclass
+    AND objid IN ('concur_reindex_tab'::regclass, 'concur_reindex_ind1'::regclass, 'concur_reindex_ind2'::regclass, 'concur_reindex_ind3'::regclass, 'concur_reindex_ind4'::regclass, 'concur_reindex_matview'::regclass)
+ORDER BY
+    1,
+    2;
+
 REINDEX INDEX CONCURRENTLY concur_reindex_ind1;
 
 REINDEX TABLE CONCURRENTLY concur_reindex_tab;
 
 REINDEX TABLE CONCURRENTLY concur_reindex_matview;
+
+SELECT
+    pg_describe_object(classid, objid, objsubid) AS obj,
+    pg_describe_object(refclassid, refobjid, refobjsubid) AS objref,
+    deptype
+FROM
+    pg_depend
+WHERE
+    classid = 'pg_class'::regclass
+    AND objid IN ('concur_reindex_tab'::regclass, 'concur_reindex_ind1'::regclass, 'concur_reindex_ind2'::regclass, 'concur_reindex_ind3'::regclass, 'concur_reindex_ind4'::regclass, 'concur_reindex_matview'::regclass)
+ORDER BY
+    1,
+    2;
 
 -- Check that comments are preserved
 CREATE TABLE testcomment (
@@ -2140,6 +3092,73 @@ SELECT
     obj_description('testcomment_idx1'::regclass, 'pg_class');
 
 DROP TABLE testcomment;
+
+-- Check that indisclustered updates are preserved
+CREATE TABLE concur_clustered (
+    i int
+);
+
+CREATE INDEX concur_clustered_i_idx ON concur_clustered (i);
+
+ALTER TABLE concur_clustered CLUSTER ON concur_clustered_i_idx;
+
+REINDEX TABLE CONCURRENTLY concur_clustered;
+
+SELECT
+    indexrelid::regclass,
+    indisclustered
+FROM
+    pg_index
+WHERE
+    indrelid = 'concur_clustered'::regclass;
+
+DROP TABLE concur_clustered;
+
+-- Check that indisreplident updates are preserved.
+CREATE TABLE concur_replident (
+    i int NOT NULL
+);
+
+CREATE UNIQUE INDEX concur_replident_i_idx ON concur_replident (i);
+
+ALTER TABLE concur_replident REPLICA IDENTITY
+USING INDEX concur_replident_i_idx;
+
+SELECT
+    indexrelid::regclass,
+    indisreplident
+FROM
+    pg_index
+WHERE
+    indrelid = 'concur_replident'::regclass;
+
+REINDEX TABLE CONCURRENTLY concur_replident;
+
+SELECT
+    indexrelid::regclass,
+    indisreplident
+FROM
+    pg_index
+WHERE
+    indrelid = 'concur_replident'::regclass;
+
+DROP TABLE concur_replident;
+
+-- Check that opclass parameters are preserved
+CREATE TABLE concur_appclass_tab (
+    i tsvector,
+    j tsvector,
+    k tsvector
+);
+
+CREATE INDEX concur_appclass_ind ON concur_appclass_tab USING gist (i tsvector_ops (siglen = '1000'), j tsvector_ops (siglen = '500'));
+
+CREATE INDEX concur_appclass_ind_2 ON concur_appclass_tab USING gist (k tsvector_ops (siglen = '300'), j tsvector_ops);
+
+REINDEX TABLE CONCURRENTLY concur_appclass_tab;
+
+\d concur_appclass_tab
+DROP TABLE concur_appclass_tab;
 
 -- Partitions
 -- Create some partitioned tables
@@ -2194,16 +3213,6 @@ ORDER BY
     relid,
     level;
 
--- REINDEX fails for partitioned indexes
-REINDEX INDEX concur_reindex_part_index_10;
-
-REINDEX INDEX CONCURRENTLY concur_reindex_part_index_10;
-
--- REINDEX is a no-op for partitioned tables
-REINDEX TABLE concur_reindex_part_10;
-
-REINDEX TABLE CONCURRENTLY concur_reindex_part_10;
-
 SELECT
     relid,
     parentrelid,
@@ -2215,6 +3224,19 @@ ORDER BY
     level;
 
 -- REINDEX should preserve dependencies of partition tree.
+SELECT
+    pg_describe_object(classid, objid, objsubid) AS obj,
+    pg_describe_object(refclassid, refobjid, refobjsubid) AS objref,
+    deptype
+FROM
+    pg_depend
+WHERE
+    classid = 'pg_class'::regclass
+    AND objid IN ('concur_reindex_part'::regclass, 'concur_reindex_part_0'::regclass, 'concur_reindex_part_0_1'::regclass, 'concur_reindex_part_0_2'::regclass, 'concur_reindex_part_index'::regclass, 'concur_reindex_part_index_0'::regclass, 'concur_reindex_part_index_0_1'::regclass, 'concur_reindex_part_index_0_2'::regclass)
+ORDER BY
+    1,
+    2;
+
 REINDEX INDEX CONCURRENTLY concur_reindex_part_index_0_1;
 
 REINDEX INDEX CONCURRENTLY concur_reindex_part_index_0_2;
@@ -2234,6 +3256,19 @@ REINDEX TABLE CONCURRENTLY concur_reindex_part_0_1;
 REINDEX TABLE CONCURRENTLY concur_reindex_part_0_2;
 
 SELECT
+    pg_describe_object(classid, objid, objsubid) AS obj,
+    pg_describe_object(refclassid, refobjid, refobjsubid) AS objref,
+    deptype
+FROM
+    pg_depend
+WHERE
+    classid = 'pg_class'::regclass
+    AND objid IN ('concur_reindex_part'::regclass, 'concur_reindex_part_0'::regclass, 'concur_reindex_part_0_1'::regclass, 'concur_reindex_part_0_2'::regclass, 'concur_reindex_part_index'::regclass, 'concur_reindex_part_index_0'::regclass, 'concur_reindex_part_index_0_1'::regclass, 'concur_reindex_part_index_0_2'::regclass)
+ORDER BY
+    1,
+    2;
+
+SELECT
     relid,
     parentrelid,
     level
@@ -2243,6 +3278,142 @@ ORDER BY
     relid,
     level;
 
+-- REINDEX for partitioned indexes
+-- REINDEX TABLE fails for partitioned indexes
+-- Top-most parent index
+REINDEX TABLE concur_reindex_part_index;
+
+-- error
+REINDEX TABLE CONCURRENTLY concur_reindex_part_index;
+
+-- error
+-- Partitioned index with no leaves
+REINDEX TABLE concur_reindex_part_index_10;
+
+-- error
+REINDEX TABLE CONCURRENTLY concur_reindex_part_index_10;
+
+-- error
+-- Cannot run in a transaction block
+BEGIN;
+REINDEX INDEX concur_reindex_part_index;
+ROLLBACK;
+
+-- Helper functions to track changes of relfilenodes in a partition tree.
+-- Create a table tracking the relfilenode state.
+CREATE OR REPLACE FUNCTION create_relfilenode_part (relname text, indname text)
+    RETURNS VOID
+    AS $func$
+BEGIN
+    EXECUTE format('
+    CREATE TABLE %I AS
+      SELECT oid, relname, relfilenode, relkind, reltoastrelid
+      FROM pg_class
+      WHERE oid IN
+         (SELECT relid FROM pg_partition_tree(''%I''));', relname, indname);
+END
+$func$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION compare_relfilenode_part (tabname text)
+    RETURNS TABLE (
+        relname name,
+        relkind "char",
+        state text
+    )
+    AS $func$
+BEGIN
+    RETURN QUERY EXECUTE format( 'SELECT  b.relname,
+                 b.relkind,
+                 CASE WHEN a.relfilenode = b.relfilenode THEN ''relfilenode is unchanged''
+                 ELSE ''relfilenode has changed'' END
+           -- Do not join with OID here as CONCURRENTLY changes it.
+           FROM %I b JOIN pg_class a ON b.relname = a.relname
+           ORDER BY 1;'
+, tabname);
+END
+$func$
+LANGUAGE plpgsql;
+
+--  Check that expected relfilenodes are changed, non-concurrent case.
+SELECT
+    create_relfilenode_part ('reindex_index_status', 'concur_reindex_part_index');
+
+REINDEX INDEX concur_reindex_part_index;
+
+SELECT
+    *
+FROM
+    compare_relfilenode_part ('reindex_index_status');
+
+DROP TABLE reindex_index_status;
+
+-- concurrent case.
+SELECT
+    create_relfilenode_part ('reindex_index_status', 'concur_reindex_part_index');
+
+REINDEX INDEX CONCURRENTLY concur_reindex_part_index;
+
+SELECT
+    *
+FROM
+    compare_relfilenode_part ('reindex_index_status');
+
+DROP TABLE reindex_index_status;
+
+-- REINDEX for partitioned tables
+-- REINDEX INDEX fails for partitioned tables
+-- Top-most parent
+REINDEX INDEX concur_reindex_part;
+
+-- error
+REINDEX INDEX CONCURRENTLY concur_reindex_part;
+
+-- error
+-- Partitioned with no leaves
+REINDEX INDEX concur_reindex_part_10;
+
+-- error
+REINDEX INDEX CONCURRENTLY concur_reindex_part_10;
+
+-- error
+-- Cannot run in a transaction block
+BEGIN;
+REINDEX TABLE concur_reindex_part;
+ROLLBACK;
+
+-- Check that expected relfilenodes are changed, non-concurrent case.
+-- Note that the partition tree changes of the *indexes* need to be checked.
+SELECT
+    create_relfilenode_part ('reindex_index_status', 'concur_reindex_part_index');
+
+REINDEX TABLE concur_reindex_part;
+
+SELECT
+    *
+FROM
+    compare_relfilenode_part ('reindex_index_status');
+
+DROP TABLE reindex_index_status;
+
+-- concurrent case.
+SELECT
+    create_relfilenode_part ('reindex_index_status', 'concur_reindex_part_index');
+
+REINDEX TABLE CONCURRENTLY concur_reindex_part;
+
+SELECT
+    *
+FROM
+    compare_relfilenode_part ('reindex_index_status');
+
+DROP TABLE reindex_index_status;
+
+DROP FUNCTION create_relfilenode_part;
+
+DROP FUNCTION compare_relfilenode_part;
+
+-- Cleanup of partition tree used for REINDEX test.
 DROP TABLE concur_reindex_part;
 
 -- Check errors
@@ -2251,17 +3422,35 @@ BEGIN;
 REINDEX TABLE CONCURRENTLY concur_reindex_tab;
 COMMIT;
 
-REINDEX TABLE CONCURRENTLY pg_database;
-
--- no shared relation
 REINDEX TABLE CONCURRENTLY pg_class;
 
--- no catalog relations
+-- no catalog relation
+REINDEX INDEX CONCURRENTLY pg_class_oid_index;
+
+-- no catalog index
+-- These are the toast table and index of pg_database.
+REINDEX TABLE CONCURRENTLY pg_toast.pg_toast_1262;
+
+-- no catalog toast table
+REINDEX INDEX CONCURRENTLY pg_toast.pg_toast_1262_index;
+
+-- no catalog toast index
 REINDEX SYSTEM CONCURRENTLY postgres;
 
 -- not allowed for SYSTEM
+REINDEX (CONCURRENTLY)
+SYSTEM postgres;
+
+-- ditto
+REINDEX (CONCURRENTLY)
+SYSTEM;
+
+-- ditto
 -- Warns about catalog relations
 REINDEX SCHEMA CONCURRENTLY pg_catalog;
+
+-- Not the current database
+REINDEX DATABASE not_current_database;
 
 -- Check the relation status, there should not be invalid indexes
 \d concur_reindex_tab
@@ -2303,6 +3492,304 @@ REINDEX INDEX CONCURRENTLY concur_reindex_ind5;
 
 \d concur_reindex_tab4
 DROP TABLE concur_reindex_tab4;
+
+-- Check handling of indexes with expressions and predicates.  The
+-- definitions of the rebuilt indexes should match the original
+-- definitions.
+CREATE TABLE concur_exprs_tab (
+    c1 int,
+    c2 boolean
+);
+
+INSERT INTO concur_exprs_tab (c1, c2)
+VALUES
+    (1369652450, FALSE),
+    (414515746, TRUE),
+    (897778963, FALSE);
+
+CREATE UNIQUE INDEX concur_exprs_index_expr ON concur_exprs_tab ((c1::text COLLATE "C"));
+
+CREATE UNIQUE INDEX concur_exprs_index_pred ON concur_exprs_tab (c1)
+WHERE (c1::text > 500000000::text COLLATE "C");
+
+CREATE UNIQUE INDEX concur_exprs_index_pred_2 ON concur_exprs_tab ((1 / c1))
+WHERE ('-H') >= (c2::text) COLLATE "C";
+
+ALTER INDEX concur_exprs_index_expr
+    ALTER COLUMN 1 SET STATISTICS 100;
+
+ANALYZE concur_exprs_tab;
+
+SELECT
+    starelid::regclass,
+    count(*)
+FROM
+    pg_statistic
+WHERE
+    starelid IN ('concur_exprs_index_expr'::regclass, 'concur_exprs_index_pred'::regclass, 'concur_exprs_index_pred_2'::regclass)
+GROUP BY
+    starelid
+ORDER BY
+    starelid::regclass::text;
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_expr'::regclass);
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_pred'::regclass);
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_pred_2'::regclass);
+
+REINDEX TABLE CONCURRENTLY concur_exprs_tab;
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_expr'::regclass);
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_pred'::regclass);
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_pred_2'::regclass);
+
+-- ALTER TABLE recreates the indexes, which should keep their collations.
+ALTER TABLE concur_exprs_tab
+    ALTER c2 TYPE TEXT;
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_expr'::regclass);
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_pred'::regclass);
+
+SELECT
+    pg_get_indexdef('concur_exprs_index_pred_2'::regclass);
+
+-- Statistics should remain intact.
+SELECT
+    starelid::regclass,
+    count(*)
+FROM
+    pg_statistic
+WHERE
+    starelid IN ('concur_exprs_index_expr'::regclass, 'concur_exprs_index_pred'::regclass, 'concur_exprs_index_pred_2'::regclass)
+GROUP BY
+    starelid
+ORDER BY
+    starelid::regclass::text;
+
+-- attstattarget should remain intact
+SELECT
+    attrelid::regclass,
+    attnum,
+    attstattarget
+FROM
+    pg_attribute
+WHERE
+    attrelid IN ('concur_exprs_index_expr'::regclass, 'concur_exprs_index_pred'::regclass, 'concur_exprs_index_pred_2'::regclass)
+ORDER BY
+    attrelid::regclass::text,
+    attnum;
+
+DROP TABLE concur_exprs_tab;
+
+-- Temporary tables and on-commit actions, where CONCURRENTLY is ignored.
+-- ON COMMIT PRESERVE ROWS, the default.
+CREATE TEMP TABLE concur_temp_tab_1 (
+    c1 int,
+    c2 text
+) ON COMMIT PRESERVE ROWS;
+
+INSERT INTO concur_temp_tab_1
+VALUES
+    (1, 'foo'),
+    (2, 'bar');
+
+CREATE INDEX concur_temp_ind_1 ON concur_temp_tab_1 (c2);
+
+REINDEX TABLE CONCURRENTLY concur_temp_tab_1;
+
+REINDEX INDEX CONCURRENTLY concur_temp_ind_1;
+
+-- Still fails in transaction blocks
+BEGIN;
+REINDEX INDEX CONCURRENTLY concur_temp_ind_1;
+COMMIT;
+
+-- ON COMMIT DELETE ROWS
+CREATE TEMP TABLE concur_temp_tab_2 (
+    c1 int,
+    c2 text
+) ON COMMIT DELETE ROWS;
+
+CREATE INDEX concur_temp_ind_2 ON concur_temp_tab_2 (c2);
+
+REINDEX TABLE CONCURRENTLY concur_temp_tab_2;
+
+REINDEX INDEX CONCURRENTLY concur_temp_ind_2;
+
+-- ON COMMIT DROP
+BEGIN;
+CREATE TEMP TABLE concur_temp_tab_3 (
+    c1 int,
+    c2 text
+) ON COMMIT PRESERVE ROWS;
+INSERT INTO concur_temp_tab_3
+VALUES
+    (1, 'foo'),
+    (2, 'bar');
+CREATE INDEX concur_temp_ind_3 ON concur_temp_tab_3 (c2);
+-- Fails when running in a transaction
+REINDEX INDEX CONCURRENTLY concur_temp_ind_3;
+COMMIT;
+
+-- REINDEX SCHEMA processes all temporary relations
+CREATE TABLE reindex_temp_before AS
+SELECT
+    oid,
+    relname,
+    relfilenode,
+    relkind,
+    reltoastrelid
+FROM
+    pg_class
+WHERE
+    relname IN ('concur_temp_ind_1', 'concur_temp_ind_2');
+
+SELECT
+    pg_my_temp_schema()::regnamespace AS temp_schema_name \gset
+
+REINDEX SCHEMA CONCURRENTLY :temp_schema_name;
+
+SELECT
+    b.relname,
+    b.relkind,
+    CASE WHEN a.relfilenode = b.relfilenode THEN
+        'relfilenode is unchanged'
+    ELSE
+        'relfilenode has changed'
+    END
+FROM
+    reindex_temp_before b
+    JOIN pg_class a ON b.oid = a.oid
+ORDER BY
+    1;
+
+DROP TABLE concur_temp_tab_1, concur_temp_tab_2, reindex_temp_before;
+
+-- No OR-clause groupings should happen, and there should be no clause
+-- permutations in the filtering conditions we could see in the EXPLAIN.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    unique1 < 1
+    OR hundred < 2;
+
+-- OR clauses in the 'unique1' column are grouped, so clause permutation
+-- occurs. W e can see it in the 'Recheck Cond': the second clause involving
+-- the 'unique1' column goes just after the first one.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    unique1 < 1
+    OR unique1 < 3
+    OR hundred < 2;
+
+-- Check bitmap scan can consider similar OR arguments separately without
+-- grouping them into SAOP.
+CREATE TABLE bitmap_split_or (
+    a int NOT NULL,
+    b int NOT NULL,
+    c int NOT NULL
+);
+
+INSERT INTO bitmap_split_or (
+    SELECT
+        1,
+        1,
+        i
+    FROM
+        generate_series(1, 1000) i);
+
+INSERT INTO bitmap_split_or (
+    SELECT
+        i,
+        2,
+        2
+    FROM
+        generate_series(1, 1000) i);
+
+VACUUM ANALYZE bitmap_split_or;
+
+CREATE INDEX t_b_partial_1_idx ON bitmap_split_or (b)
+WHERE
+    a = 1;
+
+CREATE INDEX t_b_partial_2_idx ON bitmap_split_or (b)
+WHERE
+    a = 2;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    bitmap_split_or
+WHERE (a = 1
+    OR a = 2)
+AND b = 2;
+
+DROP INDEX t_b_partial_1_idx;
+
+DROP INDEX t_b_partial_2_idx;
+
+CREATE INDEX t_a_b_idx ON bitmap_split_or (a, b);
+
+CREATE INDEX t_b_c_idx ON bitmap_split_or (b, c);
+
+CREATE STATISTICS t_a_b_stat (mcv) ON a, b FROM bitmap_split_or;
+
+CREATE STATISTICS t_b_c_stat (mcv) ON b, c FROM bitmap_split_or;
+
+ANALYZE bitmap_split_or;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    bitmap_split_or t1,
+    bitmap_split_or t2
+WHERE
+    t1.a = t2.b
+    OR t1.a = 2;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    bitmap_split_or
+WHERE
+    a = 1
+    AND (b = 1
+        OR b = 2)
+    AND c = 2;
+
+DROP TABLE bitmap_split_or;
 
 --
 -- REINDEX SCHEMA
@@ -2453,7 +3940,14 @@ REINDEX SCHEMA CONCURRENTLY schema_to_reindex;
 CREATE ROLE regress_reindexuser NOLOGIN;
 SET SESSION ROLE regress_reindexuser;
 REINDEX SCHEMA schema_to_reindex;
+-- Permission failures with toast tables and indexes (pg_authid here)
+RESET ROLE;
+GRANT USAGE ON SCHEMA pg_toast TO regress_reindexuser;
+SET SESSION ROLE regress_reindexuser;
+REINDEX TABLE pg_toast.pg_toast_1262;
+REINDEX INDEX pg_toast.pg_toast_1262_index;
 -- Clean up
 RESET ROLE;
+REVOKE USAGE ON SCHEMA pg_toast FROM regress_reindexuser;
 DROP ROLE regress_reindexuser;
 DROP SCHEMA schema_to_reindex CASCADE;

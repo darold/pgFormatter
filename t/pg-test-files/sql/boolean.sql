@@ -62,6 +62,11 @@ SELECT bool '000' AS error;
 
 SELECT bool '' AS error;
 
+-- Also try it with non-error-throwing API
+SELECT pg_input_is_valid('true', 'bool');
+SELECT pg_input_is_valid('asdf', 'bool');
+SELECT * FROM pg_input_error_info('junk', 'bool');
+
 -- and, or, not in qualifications
 
 SELECT bool 't' or bool 'f' AS true;
@@ -101,25 +106,25 @@ INSERT INTO BOOLTBL1 (f1) VALUES (bool 'true');
 
 
 -- BOOLTBL1 should be full of true's at this point
-SELECT '' AS t_3, BOOLTBL1.* FROM BOOLTBL1;
+SELECT BOOLTBL1.* FROM BOOLTBL1;
 
 
-SELECT '' AS t_3, BOOLTBL1.*
+SELECT BOOLTBL1.*
    FROM BOOLTBL1
    WHERE f1 = bool 'true';
 
 
-SELECT '' AS t_3, BOOLTBL1.*
+SELECT BOOLTBL1.*
    FROM BOOLTBL1
    WHERE f1 <> bool 'false';
 
-SELECT '' AS zero, BOOLTBL1.*
+SELECT BOOLTBL1.*
    FROM BOOLTBL1
    WHERE booleq(bool 'false', f1);
 
 INSERT INTO BOOLTBL1 (f1) VALUES (bool 'f');
 
-SELECT '' AS f_1, BOOLTBL1.*
+SELECT BOOLTBL1.*
    FROM BOOLTBL1
    WHERE f1 = bool 'false';
 
@@ -140,25 +145,25 @@ INSERT INTO BOOLTBL2 (f1)
    VALUES (bool 'XXX');
 
 -- BOOLTBL2 should be full of false's at this point
-SELECT '' AS f_4, BOOLTBL2.* FROM BOOLTBL2;
+SELECT BOOLTBL2.* FROM BOOLTBL2;
 
 
-SELECT '' AS tf_12, BOOLTBL1.*, BOOLTBL2.*
+SELECT BOOLTBL1.*, BOOLTBL2.*
    FROM BOOLTBL1, BOOLTBL2
    WHERE BOOLTBL2.f1 <> BOOLTBL1.f1;
 
 
-SELECT '' AS tf_12, BOOLTBL1.*, BOOLTBL2.*
+SELECT BOOLTBL1.*, BOOLTBL2.*
    FROM BOOLTBL1, BOOLTBL2
    WHERE boolne(BOOLTBL2.f1,BOOLTBL1.f1);
 
 
-SELECT '' AS ff_4, BOOLTBL1.*, BOOLTBL2.*
+SELECT BOOLTBL1.*, BOOLTBL2.*
    FROM BOOLTBL1, BOOLTBL2
    WHERE BOOLTBL2.f1 = BOOLTBL1.f1 and BOOLTBL1.f1 = bool 'false';
 
 
-SELECT '' AS tf_12_ff_4, BOOLTBL1.*, BOOLTBL2.*
+SELECT BOOLTBL1.*, BOOLTBL2.*
    FROM BOOLTBL1, BOOLTBL2
    WHERE BOOLTBL2.f1 = BOOLTBL1.f1 or BOOLTBL1.f1 = bool 'true'
    ORDER BY BOOLTBL1.f1, BOOLTBL2.f1;
@@ -169,35 +174,35 @@ SELECT '' AS tf_12_ff_4, BOOLTBL1.*, BOOLTBL2.*
 -- - thomas 2000-01-04
 --
 
-SELECT '' AS "True", f1
+SELECT f1
    FROM BOOLTBL1
    WHERE f1 IS TRUE;
 
-SELECT '' AS "Not False", f1
+SELECT f1
    FROM BOOLTBL1
    WHERE f1 IS NOT FALSE;
 
-SELECT '' AS "False", f1
+SELECT f1
    FROM BOOLTBL1
    WHERE f1 IS FALSE;
 
-SELECT '' AS "Not True", f1
+SELECT f1
    FROM BOOLTBL1
    WHERE f1 IS NOT TRUE;
 
-SELECT '' AS "True", f1
+SELECT f1
    FROM BOOLTBL2
    WHERE f1 IS TRUE;
 
-SELECT '' AS "Not False", f1
+SELECT f1
    FROM BOOLTBL2
    WHERE f1 IS NOT FALSE;
 
-SELECT '' AS "False", f1
+SELECT f1
    FROM BOOLTBL2
    WHERE f1 IS FALSE;
 
-SELECT '' AS "Not True", f1
+SELECT f1
    FROM BOOLTBL2
    WHERE f1 IS NOT TRUE;
 
@@ -222,7 +227,7 @@ FROM booltbl3 ORDER BY o;
 
 -- Test to make sure short-circuiting and NULL handling is
 -- correct. Use a table as source to prevent constant simplification
--- to interfer.
+-- from interfering.
 CREATE TABLE booltbl4(isfalse bool, istrue bool, isnul bool);
 INSERT INTO booltbl4 VALUES (false, true, null);
 \pset null '(null)'
@@ -244,6 +249,11 @@ SELECT isnul OR isfalse OR isfalse FROM booltbl4;
 SELECT isfalse OR isnul OR istrue FROM booltbl4;
 SELECT istrue OR isfalse OR isnul FROM booltbl4;
 SELECT isnul OR istrue OR isfalse FROM booltbl4;
+
+-- Casts
+SELECT 0::boolean;
+SELECT 1::boolean;
+SELECT 2::boolean;
 
 
 --

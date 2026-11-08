@@ -2,8 +2,6 @@
 -- CREATE SEQUENCE
 --
 -- various error cases
-CREATE UNLOGGED SEQUENCE sequence_testx;
-
 CREATE SEQUENCE sequence_testx
     INCREMENT BY 0;
 
@@ -560,7 +558,19 @@ DROP SEQUENCE seq2;
 SELECT
     lastval();
 
-CREATE USER regress_seq_user;
+-- unlogged sequences
+-- (more tests in src/test/recovery/)
+CREATE UNLOGGED SEQUENCE sequence_test_unlogged;
+
+ALTER SEQUENCE sequence_test_unlogged
+    SET LOGGED;
+
+\d sequence_test_unlogged
+ALTER SEQUENCE sequence_test_unlogged
+    SET UNLOGGED;
+
+\d sequence_test_unlogged
+DROP SEQUENCE sequence_test_unlogged;
 
 -- Test sequences in read-only transactions
 CREATE TEMPORARY SEQUENCE sequence_test_temp1;
@@ -590,6 +600,8 @@ SELECT
 ROLLBACK;
 
 -- privileges tests
+CREATE USER regress_seq_user;
+
 -- nextval
 BEGIN;
 SET LOCAL SESSION AUTHORIZATION regress_seq_user;
@@ -742,6 +754,14 @@ SELECT
 
 SELECT
     nextval('test_seq1');
+
+-- pg_get_sequence_data
+SELECT
+    last_value,
+    is_called,
+    page_lsn <= pg_current_wal_lsn () AS lsn
+FROM
+    pg_get_sequence_data ('test_seq1');
 
 DROP SEQUENCE test_seq1;
 

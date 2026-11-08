@@ -67,6 +67,26 @@ SELECT
     '(Joe,Blow) /'::fullname;
 
 -- bad
+-- test non-error-throwing API
+SELECT
+    pg_input_is_valid ('(1,2)', 'complex');
+
+SELECT
+    pg_input_is_valid ('(1,2', 'complex');
+
+SELECT
+    pg_input_is_valid ('(1,zed)', 'complex');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('(1,zed)', 'complex');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('(1,1e400)', 'complex');
+
 CREATE temp TABLE quadtable (
     f1 int,
     q quad
@@ -141,6 +161,19 @@ FROM
 INSERT INTO quadtable (f1, q.c1.r, q.c2.i)
     VALUES (44, 55, 66);
 
+UPDATE
+    quadtable
+SET
+    q.c1.r = 12
+WHERE
+    f1 = 2;
+
+UPDATE
+    quadtable
+SET
+    q.c1 = 12;
+
+-- error, type mismatch
 SELECT
     *
 FROM
@@ -164,6 +197,19 @@ SELECT
     CURRENT_DATE
 FROM
     pp;
+
+SELECT
+    (fn).FIRST,
+    substr((fn).LAST, 1, 20),
+    length((fn).LAST)
+FROM
+    people;
+
+-- try an update on a toasted composite value, too
+UPDATE
+    people
+SET
+    fn.first = 'Jack';
 
 SELECT
     (fn).FIRST,
@@ -451,6 +497,46 @@ FROM
     int8_tbl i8
 WHERE
     i8 IN (ROW (123, 456)::int8_tbl, '(4567890123456789,123)');
+
+-- Check ability to select columns from an anonymous rowtype
+SELECT
+    (ROW (1,
+            2.0)).f1;
+
+SELECT
+    (ROW (1,
+            2.0)).f2;
+
+SELECT
+    (ROW (1,
+            2.0)).nosuch;
+
+-- fail
+SELECT
+    (ROW (1,
+            2.0)).*;
+
+SELECT
+    (r).f1
+FROM (
+    SELECT
+        ROW (1,
+            2.0) AS r) ss;
+
+SELECT
+    (r).f3
+FROM (
+    SELECT
+        ROW (1,
+            2.0) AS r) ss;
+
+-- fail
+SELECT
+    (r).*
+FROM (
+    SELECT
+        ROW (1,
+            2.0) AS r) ss;
 
 -- Check some corner cases involving empty rowtypes
 SELECT
@@ -1032,29 +1118,14 @@ SELECT
 FROM
     int8_tbl i;
 
+-- since "i" is of type "int8_tbl", attaching aliases doesn't change anything:
 SELECT
     row_to_json(i)
 FROM
     int8_tbl i (x,
         y);
 
-CREATE temp VIEW vv1 AS
-SELECT
-    *
-FROM
-    int8_tbl;
-
-SELECT
-    row_to_json(i)
-FROM
-    vv1 i;
-
-SELECT
-    row_to_json(i)
-FROM
-    vv1 i (x,
-        y);
-
+-- in these examples, we'll report the exposed column names of the subselect:
 SELECT
     row_to_json(ss)
 FROM (
@@ -1288,6 +1359,173 @@ FROM
     r;
 
 --
+-- Check parsing of indirect references to composite values (bug #18077)
+--
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH cte (c) AS MATERIALIZED (
+    SELECT
+        ROW (1,
+            2)),
+cte2 (c)
+AS (
+    SELECT
+        *
+    FROM
+        cte
+)
+SELECT
+    *
+FROM
+    cte2 AS t
+WHERE (
+    SELECT
+        *
+    FROM (
+        SELECT
+            c AS c1) s
+    WHERE (
+        SELECT
+            (c1).f1 > 0)) IS NOT NULL;
+
+WITH cte (
+    c
+) AS MATERIALIZED (
+    SELECT
+        ROW (
+            1,
+            2
+)
+),
+cte2 (
+    c
+) AS (
+    SELECT
+        *
+    FROM
+        cte
+)
+SELECT
+    *
+FROM
+    cte2 AS t
+WHERE (
+    SELECT
+        *
+    FROM (
+        SELECT
+            c AS c1) s
+    WHERE (
+        SELECT
+            (c1).f1 > 0)) IS NOT NULL;
+
+-- Also check deparsing of such cases
+CREATE VIEW composite_v AS
+WITH cte (
+    c
+) AS MATERIALIZED (
+    SELECT
+        ROW (
+            1,
+            2
+)
+),
+cte2 (
+    c
+) AS (
+    SELECT
+        *
+    FROM
+        cte
+)
+SELECT
+    1 AS one
+FROM
+    cte2 AS t
+WHERE (
+    SELECT
+        *
+    FROM (
+        SELECT
+            c AS c1) s
+    WHERE (
+        SELECT
+            (c1).f1 > 0)) IS NOT NULL;
+
+SELECT
+    pg_get_viewdef('composite_v', TRUE);
+
+DROP VIEW composite_v;
+
+--
+-- Check cases where the composite comes from a proven-dummy rel (bug #18576)
+--
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    (ss.a).x,
+    (ss.a).n
+FROM (
+    SELECT
+        information_schema._pg_expandarray (ARRAY[1, 2]) AS a) ss;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    (ss.a).x,
+    (ss.a).n
+FROM (
+    SELECT
+        information_schema._pg_expandarray (ARRAY[1, 2]) AS a) ss
+WHERE
+    FALSE;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH cte (c) AS MATERIALIZED (
+    SELECT
+        ROW (1,
+            2)),
+cte2 (c)
+AS (
+    SELECT
+        *
+    FROM
+        cte
+)
+SELECT
+    (c).f1
+FROM
+    cte2 AS t;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+) WITH cte (c) AS MATERIALIZED (
+    SELECT
+        ROW (1,
+            2)),
+cte2 (c)
+AS (
+    SELECT
+        *
+    FROM
+        cte
+)
+SELECT
+    (c).f1
+FROM
+    cte2 AS t
+WHERE
+    FALSE;
+
+--
 -- Tests for component access / FieldSelect
 --
 CREATE TABLE compositetable (
@@ -1328,7 +1566,7 @@ FROM (
 
 -- accessing non-existing column in NULL datum errors out
 SELECT
-    (NULL::compositetable).nonexistant;
+    (NULL::compositetable).nonexistent;
 
 -- existing column in a NULL composite yield NULL
 SELECT

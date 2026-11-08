@@ -3,6 +3,14 @@
 --
 create table insertconflicttest(key int4, fruit text);
 
+-- invalid clauses
+insert into insertconflicttest values (1) on conflict (key int4_ops (fillfactor=10)) do nothing;
+insert into insertconflicttest values (1) on conflict (key asc) do nothing;
+insert into insertconflicttest values (1) on conflict (key nulls last) do nothing;
+
+-- These things should work through a view, as well
+create view insertconflictview as select * from insertconflicttest;
+
 --
 -- Test unique index inference with operator class specifications and
 -- named collations
@@ -20,6 +28,7 @@ explain (costs off) insert into insertconflicttest values(0, 'Crowberry') on con
 explain (costs off) insert into insertconflicttest values(0, 'Crowberry') on conflict (key, fruit) do nothing;
 explain (costs off) insert into insertconflicttest values(0, 'Crowberry') on conflict (fruit, key, fruit, key) do nothing;
 explain (costs off) insert into insertconflicttest values(0, 'Crowberry') on conflict (lower(fruit), key, lower(fruit), key) do nothing;
+explain (costs off) insert into insertconflictview values(0, 'Crowberry') on conflict (lower(fruit), key, lower(fruit), key) do nothing;
 explain (costs off) insert into insertconflicttest values(0, 'Crowberry') on conflict (key, fruit) do update set fruit = excluded.fruit
   where exists (select 1 from insertconflicttest ii where ii.key = excluded.key);
 -- Neither collation nor operator class specifications are required --
@@ -70,6 +79,19 @@ explain (costs off) insert into insertconflicttest values(0, 'Crowberry') on con
 drop index cross_match;
 
 --
+-- Index expressions that are simplified to a plain column can be inferred
+--
+create table insertconflict_nn (a int not null, b text);
+create unique index nn_expr_key on insertconflict_nn(coalesce(a, 0), lower(b));
+
+explain (costs off) insert into insertconflict_nn values(1, 'x') on conflict (coalesce(a, 0), lower(b)) do nothing;
+explain (costs off) insert into insertconflict_nn values(1, 'x') on conflict (a int4_ops, lower(b)) do nothing;
+-- fails:
+explain (costs off) insert into insertconflict_nn values(1, 'x') on conflict (a) do nothing;
+
+drop table insertconflict_nn;
+
+--
 -- Single key tests
 --
 create unique index key_index on insertconflicttest(key);
@@ -84,6 +106,9 @@ explain (costs off) insert into insertconflicttest values (0, 'Bilberry') on con
 explain (costs off) insert into insertconflicttest values(0, 'Crowberry') on conflict (key) do update set fruit = excluded.fruit where excluded.fruit != 'Elderberry';
 -- Does the same, but JSON format shows "Conflict Arbiter Index" as JSON array:
 explain (costs off, format json) insert into insertconflicttest values (0, 'Bilberry') on conflict (key) do update set fruit = excluded.fruit where insertconflicttest.fruit != 'Lime' returning *;
+-- Should display lock strength, if specified
+explain (costs off) insert into insertconflicttest values (1, 'Apple') on conflict (key) do select returning *;
+explain (costs off) insert into insertconflicttest values (1, 'Apple') on conflict (key) do select for key share returning *;
 
 -- Fails (no unique index inference specification, required for do update variant):
 insert into insertconflicttest values (1, 'Apple') on conflict do update set fruit = excluded.fruit;
@@ -117,6 +142,21 @@ insert into insertconflicttest values (6, 'Passionfruit') on conflict (lower(fru
 insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = excluded.fruit; -- ok, no reference to target table
 insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = ict.fruit; -- ok, alias
 insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = insertconflicttest.fruit; -- error, references aliased away name
+
+-- Check helpful hint when qualifying set column with target table
+insert into insertconflicttest values (3, 'Kiwi') on conflict (key, fruit) do update set insertconflicttest.fruit = 'Mango';
+
+--
+-- DO SELECT tests
+--
+delete from insertconflicttest where fruit = 'Apple';
+insert into insertconflicttest values (1, 'Apple') on conflict (key) do select; -- fails
+insert into insertconflicttest as i values (1, 'Apple') on conflict (key) do select returning old, new, i;
+insert into insertconflicttest as i values (1, 'Orange') on conflict (key) do select returning old, new, i;
+insert into insertconflicttest as i values (1, 'Apple') on conflict (key) do select where i.fruit = 'Apple' returning *;
+insert into insertconflicttest as i values (1, 'Apple') on conflict (key) do select where i.fruit = 'Orange' returning *;
+insert into insertconflicttest as i values (1, 'Orange') on conflict (key) do select where excluded.fruit = 'Apple' returning *;
+insert into insertconflicttest as i values (1, 'Orange') on conflict (key) do select where excluded.fruit = 'Orange' returning *;
 
 drop index key_index;
 
@@ -214,7 +254,8 @@ create unique index partial_key_index on insertconflicttest(key) where fruit lik
 
 -- Succeeds
 insert into insertconflicttest values (23, 'Blackberry') on conflict (key) where fruit like '%berry' do update set fruit = excluded.fruit;
-insert into insertconflicttest values (23, 'Blackberry') on conflict (key) where fruit like '%berry' and fruit = 'inconsequential' do nothing;
+insert into insertconflicttest as t values (23, 'Blackberry') on conflict (key) where fruit like '%berry' and t.fruit = 'inconsequential' do nothing;
+insert into insertconflictview as t values (23, 'Blackberry') on conflict (key) where fruit like '%berry' and t.fruit = 'inconsequential' do nothing;
 
 -- fails
 insert into insertconflicttest values (23, 'Blackberry') on conflict (key) do update set fruit = excluded.fruit;
@@ -247,6 +288,7 @@ explain (costs off) insert into insertconflicttest as i values (23, 'Avocado') o
 drop index plain;
 
 -- Cleanup
+drop view insertconflictview;
 drop table insertconflicttest;
 
 
@@ -445,6 +487,30 @@ begin transaction isolation level serializable;
 insert into selfconflict values (6,1), (6,2) on conflict(f1) do update set f2 = 0;
 commit;
 
+begin transaction isolation level read committed;
+insert into selfconflict values (7,1), (7,2) on conflict(f1) do select returning *;
+commit;
+
+begin transaction isolation level repeatable read;
+insert into selfconflict values (8,1), (8,2) on conflict(f1) do select returning *;
+commit;
+
+begin transaction isolation level serializable;
+insert into selfconflict values (9,1), (9,2) on conflict(f1) do select returning *;
+commit;
+
+begin transaction isolation level read committed;
+insert into selfconflict values (10,1), (10,2) on conflict(f1) do select for update returning *;
+commit;
+
+begin transaction isolation level repeatable read;
+insert into selfconflict values (11,1), (11,2) on conflict(f1) do select for update returning *;
+commit;
+
+begin transaction isolation level serializable;
+insert into selfconflict values (12,1), (12,2) on conflict(f1) do select for update returning *;
+commit;
+
 select * from selfconflict;
 
 drop table selfconflict;
@@ -459,13 +525,17 @@ insert into parted_conflict_test values (1, 'a') on conflict do nothing;
 -- index on a required, which does exist in parent
 insert into parted_conflict_test values (1, 'a') on conflict (a) do nothing;
 insert into parted_conflict_test values (1, 'a') on conflict (a) do update set b = excluded.b;
+insert into parted_conflict_test values (1, 'a') on conflict (a) do select returning *;
+insert into parted_conflict_test values (1, 'a') on conflict (a) do select for update returning *;
 
 -- targeting partition directly will work
 insert into parted_conflict_test_1 values (1, 'a') on conflict (a) do nothing;
 insert into parted_conflict_test_1 values (1, 'b') on conflict (a) do update set b = excluded.b;
+insert into parted_conflict_test_1 values (1, 'b') on conflict (a) do select returning b;
 
 -- index on b required, which doesn't exist in parent
-insert into parted_conflict_test values (2, 'b') on conflict (b) do update set a = excluded.a;
+insert into parted_conflict_test values (2, 'b') on conflict (b) do update set a = excluded.a; -- fail
+insert into parted_conflict_test values (2, 'b') on conflict (b) do select returning b; -- fail
 
 -- targeting partition directly will work
 insert into parted_conflict_test_1 values (2, 'b') on conflict (b) do update set a = excluded.a;
@@ -473,13 +543,16 @@ insert into parted_conflict_test_1 values (2, 'b') on conflict (b) do update set
 -- should see (2, 'b')
 select * from parted_conflict_test order by a;
 
--- now check that DO UPDATE works correctly for target partition with
--- different attribute numbers
+-- now check that DO UPDATE and DO SELECT work correctly for target partition
+-- with different attribute numbers
 create table parted_conflict_test_2 (b char, a int unique);
 alter table parted_conflict_test attach partition parted_conflict_test_2 for values in (3);
 truncate parted_conflict_test;
 insert into parted_conflict_test values (3, 'a') on conflict (a) do update set b = excluded.b;
 insert into parted_conflict_test values (3, 'b') on conflict (a) do update set b = excluded.b;
+insert into parted_conflict_test values (3, 'a') on conflict (a) do select returning b;
+insert into parted_conflict_test values (3, 'a') on conflict (a) do select where excluded.b = 'a' returning parted_conflict_test;
+insert into parted_conflict_test values (3, 'a') on conflict (a) do select where parted_conflict_test.b = 'b' returning b;
 
 -- should see (3, 'b')
 select * from parted_conflict_test order by a;
@@ -490,6 +563,7 @@ create table parted_conflict_test_3 partition of parted_conflict_test for values
 truncate parted_conflict_test;
 insert into parted_conflict_test (a, b) values (4, 'a') on conflict (a) do update set b = excluded.b;
 insert into parted_conflict_test (a, b) values (4, 'b') on conflict (a) do update set b = excluded.b where parted_conflict_test.b = 'a';
+insert into parted_conflict_test (a, b) values (4, 'b') on conflict (a) do select returning b;
 
 -- should see (4, 'b')
 select * from parted_conflict_test order by a;
@@ -500,6 +574,7 @@ create table parted_conflict_test_4_1 partition of parted_conflict_test_4 for va
 truncate parted_conflict_test;
 insert into parted_conflict_test (a, b) values (5, 'a') on conflict (a) do update set b = excluded.b;
 insert into parted_conflict_test (a, b) values (5, 'b') on conflict (a) do update set b = excluded.b where parted_conflict_test.b = 'a';
+insert into parted_conflict_test (a, b) values (5, 'b') on conflict (a) do select where parted_conflict_test.b = 'a' returning b;
 
 -- should see (5, 'b')
 select * from parted_conflict_test order by a;
@@ -511,6 +586,26 @@ insert into parted_conflict_test (a, b) values (1, 'b'), (2, 'c'), (4, 'b') on c
 
 -- should see (1, 'b'), (2, 'a'), (4, 'b')
 select * from parted_conflict_test order by a;
+
+-- test DO SELECT with multiple rows hitting different partitions
+truncate parted_conflict_test;
+insert into parted_conflict_test (a, b) values (1, 'a'), (2, 'b'), (4, 'c');
+insert into parted_conflict_test (a, b) values (1, 'x'), (2, 'y'), (4, 'z')
+  on conflict (a) do select returning *, tableoid::regclass;
+
+-- should see original values (1, 'a'), (2, 'b'), (4, 'c')
+select * from parted_conflict_test order by a;
+
+-- test DO SELECT with WHERE filtering across partitions
+insert into parted_conflict_test (a, b) values (1, 'n') on conflict (a) do select where parted_conflict_test.b = 'a' returning *;
+insert into parted_conflict_test (a, b) values (2, 'n') on conflict (a) do select where parted_conflict_test.b = 'x' returning *;
+
+-- test DO SELECT with EXCLUDED in WHERE across partitions with different layouts
+insert into parted_conflict_test (a, b) values (3, 't') on conflict (a) do select where excluded.b = 't' returning *;
+
+-- test DO SELECT FOR UPDATE across different partition layouts
+insert into parted_conflict_test (a, b) values (1, 'l') on conflict (a) do select for update returning *;
+insert into parted_conflict_test (a, b) values (3, 'l') on conflict (a) do select for update returning *;
 
 drop table parted_conflict_test;
 
@@ -536,6 +631,65 @@ insert into parted_conflict values (40, 'forty');
 insert into parted_conflict_1 values (40, 'cuarenta')
   on conflict (a) do update set b = excluded.b;
 drop table parted_conflict;
+
+-- a partition-local deferrable unique constraint on the arbiter columns
+-- must not be picked up as an additional arbiter for routed inserts
+create table parted_conflict (a int, b text, primary key (a)) partition by range (a);
+create table parted_conflict_1 partition of parted_conflict for values from (0) to (1000);
+alter table parted_conflict_1 add constraint parted_conflict_1_a_def unique (a) deferrable;
+insert into parted_conflict values (40, 'forty');
+insert into parted_conflict values (40, 'cuarenta')
+  on conflict (a) do update set b = excluded.b;
+insert into parted_conflict values (41, 'forty-one')
+  on conflict (a) do update set b = excluded.b;
+insert into parted_conflict values (42, 'forty-two') on conflict (a) do nothing;
+select * from parted_conflict order by a;
+drop table parted_conflict;
+
+-- ON CONFLICT ON CONSTRAINT has the same hazard: an index that merely covers
+-- the same columns as the named constraint's index, but is deferrable or
+-- disagrees with it about duplicates, must not join the arbiter set
+create table namedconstraint (a int, b text, c text);
+alter table namedconstraint add constraint namedconstraint_a_key unique (a);
+alter table namedconstraint add constraint namedconstraint_a_def unique (a) deferrable;
+create unique index namedconstraint_b_nnd on namedconstraint (b) nulls not distinct;
+alter table namedconstraint add constraint namedconstraint_b_key unique (b);
+insert into namedconstraint values (1, 'x', 'first');
+insert into namedconstraint values (2, null, 'first');
+insert into namedconstraint values (1, 'y', 'second')
+  on conflict on constraint namedconstraint_a_key do update set c = excluded.c;
+insert into namedconstraint values (3, null, 'second')
+  on conflict on constraint namedconstraint_b_key do update set c = excluded.c;  -- error
+insert into namedconstraint values (4, 'z', 'third')
+  on conflict on constraint namedconstraint_a_key do nothing;
+insert into namedconstraint values (5, null, 'third')
+  on conflict on constraint namedconstraint_b_key do nothing;  -- error
+select * from namedconstraint order by a;
+drop table namedconstraint;
+
+-- same, with the indexes created in the opposite order
+create table namedconstraint2 (a int, b text, c text);
+alter table namedconstraint2 add constraint namedconstraint2_a_def unique (a) deferrable;
+alter table namedconstraint2 add constraint namedconstraint2_a_key unique (a);
+alter table namedconstraint2 add constraint namedconstraint2_b_key unique (b);
+create unique index namedconstraint2_b_nnd on namedconstraint2 (b) nulls not distinct;
+insert into namedconstraint2 values (1, 'x', 'first');
+insert into namedconstraint2 values (2, null, 'first');
+insert into namedconstraint2 values (1, 'y', 'second')
+  on conflict on constraint namedconstraint2_a_key do update set c = excluded.c;
+insert into namedconstraint2 values (3, 'z', 'second')
+  on conflict on constraint namedconstraint2_a_key do nothing;
+insert into namedconstraint2 values (4, null, 'second')
+  on conflict on constraint namedconstraint2_b_key do nothing;  -- error
+-- ON CONFLICT DO SELECT reaches the same code
+insert into namedconstraint2 values (1, 'w', 'third')
+  on conflict on constraint namedconstraint2_a_key do select returning *;
+insert into namedconstraint2 values (5, 'v', 'third')
+  on conflict on constraint namedconstraint2_a_key do select returning *;
+insert into namedconstraint2 values (6, null, 'fourth')
+  on conflict on constraint namedconstraint2_b_key do select returning *;  -- error
+select * from namedconstraint2 order by a;
+drop table namedconstraint2;
 
 -- test whole-row Vars in ON CONFLICT expressions
 create table parted_conflict (a int, b text, c int) partition by range (a);

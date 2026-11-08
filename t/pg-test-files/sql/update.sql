@@ -31,6 +31,9 @@ UPDATE update_test t SET b = t.b + 10 WHERE t.a = 10;
 
 SELECT * FROM update_test;
 
+-- error, you're not supposed to qualify the target column
+UPDATE update_test t SET t.b = t.b + 10 WHERE t.a = 10;
+
 --
 -- Test VALUES in FROM
 --
@@ -100,21 +103,57 @@ UPDATE update_test t
 SELECT a, b, char_length(c) FROM update_test;
 
 -- Test ON CONFLICT DO UPDATE
-INSERT INTO upsert_test VALUES(1, 'Boo');
+
+INSERT INTO upsert_test VALUES(1, 'Boo'), (3, 'Zoo');
 -- uncorrelated  sub-select:
 WITH aaa AS (SELECT 1 AS a, 'Foo' AS b) INSERT INTO upsert_test
   VALUES (1, 'Bar') ON CONFLICT(a)
   DO UPDATE SET (b, a) = (SELECT b, a FROM aaa) RETURNING *;
 -- correlated sub-select:
-INSERT INTO upsert_test VALUES (1, 'Baz') ON CONFLICT(a)
+INSERT INTO upsert_test VALUES (1, 'Baz'), (3, 'Zaz') ON CONFLICT(a)
   DO UPDATE SET (b, a) = (SELECT b || ', Correlated', a from upsert_test i WHERE i.a = upsert_test.a)
   RETURNING *;
 -- correlated sub-select (EXCLUDED.* alias):
-INSERT INTO upsert_test VALUES (1, 'Bat') ON CONFLICT(a)
+INSERT INTO upsert_test VALUES (1, 'Bat'), (3, 'Zot') ON CONFLICT(a)
   DO UPDATE SET (b, a) = (SELECT b || ', Excluded', a from upsert_test i WHERE i.a = excluded.a)
   RETURNING *;
 
+-- ON CONFLICT using system attributes in RETURNING, testing both the
+-- inserting and updating paths. See bug report at:
+-- https://www.postgresql.org/message-id/73436355-6432-49B1-92ED-1FE4F7E7E100%40finefun.com.au
+INSERT INTO upsert_test VALUES (2, 'Beeble') ON CONFLICT(a)
+  DO UPDATE SET (b, a) = (SELECT b || ', Excluded', a from upsert_test i WHERE i.a = excluded.a)
+  RETURNING tableoid::regclass, xmin = pg_current_xact_id()::xid AS xmin_correct, xmax = 0 AS xmax_correct;
+-- currently xmax is set after a conflict - that's probably not good,
+-- but it seems worthwhile to have to be explicit if that changes.
+INSERT INTO upsert_test VALUES (2, 'Brox') ON CONFLICT(a)
+  DO UPDATE SET (b, a) = (SELECT b || ', Excluded', a from upsert_test i WHERE i.a = excluded.a)
+  RETURNING tableoid::regclass, xmin = pg_current_xact_id()::xid AS xmin_correct, xmax = pg_current_xact_id()::xid AS xmax_correct;
+
 DROP TABLE update_test;
+DROP TABLE upsert_test;
+
+-- Test ON CONFLICT DO UPDATE with partitioned table and non-identical children
+
+CREATE TABLE upsert_test (
+    a   INT PRIMARY KEY,
+    b   TEXT
+) PARTITION BY LIST (a);
+
+CREATE TABLE upsert_test_1 PARTITION OF upsert_test FOR VALUES IN (1);
+CREATE TABLE upsert_test_2 (b TEXT, a INT PRIMARY KEY);
+ALTER TABLE upsert_test ATTACH PARTITION upsert_test_2 FOR VALUES IN (2);
+
+INSERT INTO upsert_test VALUES(1, 'Boo'), (2, 'Zoo');
+-- uncorrelated sub-select:
+WITH aaa AS (SELECT 1 AS a, 'Foo' AS b) INSERT INTO upsert_test
+  VALUES (1, 'Bar') ON CONFLICT(a)
+  DO UPDATE SET (b, a) = (SELECT b, a FROM aaa) RETURNING *;
+-- correlated sub-select:
+WITH aaa AS (SELECT 1 AS ctea, ' Foo' AS cteb) INSERT INTO upsert_test
+  VALUES (1, 'Bar'), (2, 'Baz') ON CONFLICT(a)
+  DO UPDATE SET (b, a) = (SELECT upsert_test.b||cteb, upsert_test.a FROM aaa) RETURNING *;
+
 DROP TABLE upsert_test;
 
 
@@ -488,6 +527,38 @@ UPDATE list_default set a = 'a' WHERE a = 'd';
 UPDATE list_default set a = 'x' WHERE a = 'd';
 
 DROP TABLE list_parted;
+
+-- Test retrieval of system columns with non-consistent partition row types.
+-- This is only partially supported, as seen in the results.
+
+create table utrtest (a int, b text) partition by list (a);
+create table utr1 (a int check (a in (1)), q text, b text);
+create table utr2 (a int check (a in (2)), b text);
+alter table utr1 drop column q;
+alter table utrtest attach partition utr1 for values in (1);
+alter table utrtest attach partition utr2 for values in (2);
+
+insert into utrtest values (1, 'foo')
+  returning *, tableoid::regclass, xmin = pg_current_xact_id()::xid as xmin_ok;
+insert into utrtest values (2, 'bar')
+  returning *, tableoid::regclass, xmin = pg_current_xact_id()::xid as xmin_ok;  -- fails
+insert into utrtest values (2, 'bar')
+  returning *, tableoid::regclass;
+
+update utrtest set b = b || b from (values (1), (2)) s(x) where a = s.x
+  returning *, tableoid::regclass, xmin = pg_current_xact_id()::xid as xmin_ok;
+
+update utrtest set a = 3 - a from (values (1), (2)) s(x) where a = s.x
+  returning *, tableoid::regclass, xmin = pg_current_xact_id()::xid as xmin_ok;  -- fails
+
+update utrtest set a = 3 - a from (values (1), (2)) s(x) where a = s.x
+  returning *, tableoid::regclass;
+
+delete from utrtest
+  returning *, tableoid::regclass, xmax = pg_current_xact_id()::xid as xmax_ok;
+
+drop table utrtest;
+
 
 --------------
 -- Some more update-partition-key test scenarios below. This time use list

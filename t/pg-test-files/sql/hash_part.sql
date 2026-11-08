@@ -3,8 +3,8 @@
 --
 
 -- Use hand-rolled hash functions and operator classes to get predictable
--- result on different matchines.  See the definitions of
--- part_part_test_int4_ops and part_test_text_ops in insert.sql.
+-- result on different machines.  See the definitions of
+-- part_test_int4_ops and part_test_text_ops in test_setup.sql.
 
 CREATE TABLE mchash (a int, b text, c jsonb)
   PARTITION BY HASH (a part_test_int4_ops, b part_test_text_ops);
@@ -34,6 +34,9 @@ SELECT satisfies_hash_partition('mchash'::regclass, NULL, 0, NULL);
 
 -- remainder is null
 SELECT satisfies_hash_partition('mchash'::regclass, 4, NULL, NULL);
+
+-- variadic null
+SELECT satisfies_hash_partition('mchash'::regclass, 4, 0, VARIADIC NULL::int[]);
 
 -- too many arguments
 SELECT satisfies_hash_partition('mchash'::regclass, 4, 0, NULL::int, NULL::text, NULL::json);

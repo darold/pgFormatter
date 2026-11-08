@@ -587,6 +587,34 @@ WHERE
     unique1 = unique1
     AND unique2 = unique2;
 
+-- Test that broken ECs are processed correctly during self join removal.
+-- Disable merge joins so that we don't get an error about missing commutator.
+-- Test both orientations of the join clause, because only one of them breaks
+-- the EC.
+SET enable_mergejoin TO OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec0 m
+    JOIN ec0 n ON m.ff = n.ff
+    JOIN ec1 p ON m.ff + n.ff = p.f1;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ec0 m
+    JOIN ec0 n ON m.ff = n.ff
+    JOIN ec1 p ON p.f1::int8 = (m.ff + n.ff)::int8alias1;
+
+RESET enable_mergejoin;
+
 -- this could be converted, but isn't at present
 EXPLAIN (
     COSTS OFF
@@ -599,3 +627,74 @@ WHERE
     unique1 = unique1
     OR unique2 = unique2;
 
+-- check that we recognize equivalence with dummy domains in the way
+CREATE temp TABLE undername (
+    f1 name,
+    f2 int
+);
+
+CREATE temp VIEW overview AS
+SELECT
+    f1::information_schema.sql_identifier AS sqli,
+    f2
+FROM
+    undername;
+
+EXPLAIN (
+    COSTS OFF
+) -- this should not require a sort
+SELECT
+    *
+FROM
+    overview
+WHERE
+    sqli = 'foo'
+ORDER BY
+    sqli;
+
+--
+-- test handling of merge/hash clauses that do not have valid commutators
+--
+-- There are not (and should not be) any such operators built into Postgres
+-- that are mergejoinable or hashable but have no commutators; so we leverage
+-- the alias type 'int8alias1' created in this file to conduct the tests.
+-- That's why this test is included here rather than in join.sql.
+BEGIN;
+CREATE TABLE tbl_nocom (
+    a int8,
+    b int8alias1
+);
+-- check that non-commutable merge clauses do not lead to error
+SET enable_hashjoin TO OFF;
+SET enable_mergejoin TO ON;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tbl_nocom t1
+    FULL JOIN tbl_nocom t2 ON t2.a = t1.b;
+-- check that non-commutable hash clauses do not lead to error
+ALTER OPERATOR = (int8, int8alias1) SET (HASHES);
+ALTER OPERATOR family integer_ops
+    USING HASH
+        ADD OPERATOR 1 = (int8, int8alias1);
+CREATE FUNCTION hashint8alias1 (int8alias1)
+    RETURNS int STRICT IMMUTABLE
+    LANGUAGE internal
+    AS 'hashint8';
+ALTER OPERATOR family integer_ops
+    USING HASH
+        ADD FUNCTION 1 hashint8alias1 (int8alias1);
+SET enable_hashjoin TO ON;
+SET enable_mergejoin TO OFF;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tbl_nocom t1
+    FULL JOIN tbl_nocom t2 ON t2.a = t1.b;
+abort;

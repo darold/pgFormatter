@@ -150,3 +150,20 @@ FROM
 
 DROP TABLE macaddr_data;
 
+-- test non-error-throwing API for some core types
+SELECT
+    pg_input_is_valid ('08:00:2b:01:02:ZZ', 'macaddr');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('08:00:2b:01:02:ZZ', 'macaddr');
+
+SELECT
+    pg_input_is_valid ('08:00:2b:01:02:', 'macaddr');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('08:00:2b:01:02:', 'macaddr');
+

@@ -1,8 +1,24 @@
 --
 -- AGGREGATES
 --
+-- directory paths are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+
 -- avoid bit-exact output here because operations may not be bit-exact.
 SET extra_float_digits = 0;
+
+-- prepare some test data
+CREATE TABLE aggtest (
+    a int2,
+    b float4
+);
+
+\set filename :abs_srcdir '/data/agg.data'
+COPY aggtest
+FROM
+    :'filename';
+
+ANALYZE aggtest;
 
 SELECT
     avg(four) AS avg_1
@@ -15,6 +31,30 @@ FROM
     aggtest
 WHERE
     a < 100;
+
+SELECT
+    any_value (v)
+FROM (
+    VALUES (1),
+        (2),
+        (3)) AS v (v);
+
+SELECT
+    any_value (v)
+FROM (
+    VALUES (NULL)) AS v (v);
+
+SELECT
+    any_value (v)
+FROM (
+    VALUES (NULL),
+        (1),
+        (2)) AS v (v);
+
+SELECT
+    any_value (v)
+FROM (
+    VALUES (ARRAY['hello', 'world'])) AS v (v);
 
 -- In 7.1, avg(float4) is computed using float8 arithmetic.
 -- Round the result to 3 digits to avoid platform-specific results.
@@ -111,12 +151,97 @@ FROM
 -- population variance is defined for a single tuple, sample variance
 -- is not
 SELECT
-    var_pop(1.0),
-    var_samp(2.0);
+    var_pop(1.0::float8),
+    var_samp(2.0::float8);
+
+SELECT
+    stddev_pop(3.0::float8),
+    stddev_samp(4.0::float8);
+
+SELECT
+    var_pop('inf'::float8),
+    var_samp('inf'::float8);
+
+SELECT
+    stddev_pop('inf'::float8),
+    stddev_samp('inf'::float8);
+
+SELECT
+    var_pop('nan'::float8),
+    var_samp('nan'::float8);
+
+SELECT
+    stddev_pop('nan'::float8),
+    stddev_samp('nan'::float8);
+
+SELECT
+    var_pop(1.0::float4),
+    var_samp(2.0::float4);
+
+SELECT
+    stddev_pop(3.0::float4),
+    stddev_samp(4.0::float4);
+
+SELECT
+    var_pop('inf'::float4),
+    var_samp('inf'::float4);
+
+SELECT
+    stddev_pop('inf'::float4),
+    stddev_samp('inf'::float4);
+
+SELECT
+    var_pop('nan'::float4),
+    var_samp('nan'::float4);
+
+SELECT
+    stddev_pop('nan'::float4),
+    stddev_samp('nan'::float4);
+
+SELECT
+    var_pop(1.0::numeric),
+    var_samp(2.0::numeric);
 
 SELECT
     stddev_pop(3.0::numeric),
     stddev_samp(4.0::numeric);
+
+SELECT
+    var_pop('inf'::numeric),
+    var_samp('inf'::numeric);
+
+SELECT
+    stddev_pop('inf'::numeric),
+    stddev_samp('inf'::numeric);
+
+SELECT
+    var_pop('nan'::numeric),
+    var_samp('nan'::numeric);
+
+SELECT
+    stddev_pop('nan'::numeric),
+    stddev_samp('nan'::numeric);
+
+-- verify correct results for min(record) and max(record) aggregates
+SELECT
+    max(ROW (a, b))
+FROM
+    aggtest;
+
+SELECT
+    max(ROW (b, a))
+FROM
+    aggtest;
+
+SELECT
+    min(ROW (a, b))
+FROM
+    aggtest;
+
+SELECT
+    min(ROW (b, a))
+FROM
+    aggtest;
 
 -- verify correct results for null and NaN inputs
 SELECT
@@ -171,6 +296,7 @@ FROM
 
 -- verify correct results for infinite inputs
 SELECT
+    sum(x::float8),
     avg(x::float8),
     var_pop(x::float8)
 FROM (
@@ -178,6 +304,7 @@ FROM (
         ('infinity')) v (x);
 
 SELECT
+    sum(x::float8),
     avg(x::float8),
     var_pop(x::float8)
 FROM (
@@ -185,6 +312,7 @@ FROM (
         ('1')) v (x);
 
 SELECT
+    sum(x::float8),
     avg(x::float8),
     var_pop(x::float8)
 FROM (
@@ -192,11 +320,60 @@ FROM (
         ('infinity')) v (x);
 
 SELECT
+    sum(x::float8),
     avg(x::float8),
     var_pop(x::float8)
 FROM (
     VALUES ('-infinity'),
         ('infinity')) v (x);
+
+SELECT
+    sum(x::float8),
+    avg(x::float8),
+    var_pop(x::float8)
+FROM (
+    VALUES ('-infinity'),
+        ('-infinity')) v (x);
+
+SELECT
+    sum(x::numeric),
+    avg(x::numeric),
+    var_pop(x::numeric)
+FROM (
+    VALUES ('1'),
+        ('infinity')) v (x);
+
+SELECT
+    sum(x::numeric),
+    avg(x::numeric),
+    var_pop(x::numeric)
+FROM (
+    VALUES ('infinity'),
+        ('1')) v (x);
+
+SELECT
+    sum(x::numeric),
+    avg(x::numeric),
+    var_pop(x::numeric)
+FROM (
+    VALUES ('infinity'),
+        ('infinity')) v (x);
+
+SELECT
+    sum(x::numeric),
+    avg(x::numeric),
+    var_pop(x::numeric)
+FROM (
+    VALUES ('-infinity'),
+        ('infinity')) v (x);
+
+SELECT
+    sum(x::numeric),
+    avg(x::numeric),
+    var_pop(x::numeric)
+FROM (
+    VALUES ('-infinity'),
+        ('-infinity')) v (x);
 
 -- test accuracy with a large input offset
 SELECT
@@ -264,6 +441,153 @@ SELECT
 FROM
     aggtest;
 
+-- check single-tuple behavior
+SELECT
+    covar_pop(1::float8, 2::float8),
+    covar_samp(3::float8, 4::float8);
+
+SELECT
+    covar_pop(1::float8, 'inf'::float8),
+    covar_samp(3::float8, 'inf'::float8);
+
+SELECT
+    covar_pop(1::float8, 'nan'::float8),
+    covar_samp(3::float8, 'nan'::float8);
+
+-- check some cases that formerly had poor roundoff-error behavior
+-- note: regr_r2() differs from corr() for a horizontal line, per spec
+SELECT
+    corr(0.09, g),
+    regr_r2(0.09, g)
+FROM
+    generate_series(1, 30) g;
+
+SELECT
+    corr(g, 0.09),
+    regr_r2(g, 0.09),
+    regr_slope(g, 0.09),
+    regr_intercept(g, 0.09)
+FROM
+    generate_series(1, 30) g;
+
+SELECT
+    corr(1.3 + g * 1e-16, 1.3 + g * 1e-16)
+FROM
+    generate_series(1, 3) g;
+
+-- verify that we handle Inf/NaN the same regardless of position
+WITH data (
+    x
+) AS (
+    VALUES (1::float8),
+        (2::float8),
+        (3::float8))
+SELECT
+    covar_pop(x, 0::float8)
+FROM
+    data;
+
+WITH data (
+    x
+) AS (
+    VALUES ('Inf'::float8),
+        (2::float8),
+        (3::float8))
+SELECT
+    covar_pop(x, 0::float8)
+FROM
+    data;
+
+WITH data (
+    x
+) AS (
+    VALUES (1::float8),
+        ('Inf'::float8),
+        (3::float8))
+SELECT
+    covar_pop(x, 0::float8)
+FROM
+    data;
+
+WITH data (
+    x
+) AS (
+    VALUES ('NaN'::float8),
+        (2::float8),
+        (3::float8))
+SELECT
+    covar_pop(x, 0::float8)
+FROM
+    data;
+
+WITH data (
+    x
+) AS (
+    VALUES (1::float8),
+        ('NaN'::float8),
+        (3::float8))
+SELECT
+    covar_pop(x, 0::float8)
+FROM
+    data;
+
+-- check some cases that formerly suffered from internal overflow/underflow
+SELECT
+    corr(1e-100 + g * 1e-105, 1e-100 + g * 1e-105),
+    regr_r2(1e-100 + g * 1e-105, 1e-100 + g * 1e-105)
+FROM
+    generate_series(1, 3) g;
+
+SELECT
+    corr(1e-100 + g * 1e-105, 1e-100 + g * 1e-105),
+    regr_r2(1e-100 + g * 1e-105, 1e-100 + g * 1e-105)
+FROM
+    generate_series(1, 30) g;
+
+SELECT
+    corr(1e100 + g * 1e95, 1e100 + g * 1e95),
+    regr_r2(1e100 + g * 1e95, 1e100 + g * 1e95)
+FROM
+    generate_series(1, 2) g;
+
+SELECT
+    regr_intercept(y, x)
+FROM (
+    VALUES (- 1e150, 0),
+        (2e150, 3e150)) v (x, y);
+
+SELECT
+    regr_intercept(y, x)
+FROM (
+    VALUES (- 1e-131, 0),
+        (2e-131, 3e-131)) v (x, y);
+
+-- these examples pose definitional questions for NaN inputs,
+-- which we resolve by saying that an all-NaN input column is not all equal
+SELECT
+    corr(g, 'NaN'),
+    regr_r2(g, 'NaN')
+FROM
+    generate_series(1, 30) g;
+
+SELECT
+    corr(0.1, 'NaN'),
+    regr_r2(0.1, 'NaN')
+FROM
+    generate_series(1, 30) g;
+
+SELECT
+    corr('NaN', 0.1),
+    regr_r2('NaN', 0.1)
+FROM
+    generate_series(1, 30) g;
+
+SELECT
+    corr('NaN', 'NaN'),
+    regr_r2('NaN', 'NaN')
+FROM
+    generate_series(1, 30) g;
+
 -- test accum and combine functions directly
 CREATE TABLE regr_test (
     x float8,
@@ -304,7 +628,7 @@ SELECT
     float8_accum('{4,140,2900}'::float8[], 100);
 
 SELECT
-    float8_regr_accum('{4,140,2900,1290,83075,15050}'::float8[], 200, 100);
+    float8_regr_accum('{4,140,2900,1290,83075,15050,100,0}'::float8[], 200, 100);
 
 SELECT
     count(*),
@@ -340,13 +664,13 @@ SELECT
     float8_combine('{3,60,200}'::float8[], '{2,180,200}'::float8[]);
 
 SELECT
-    float8_regr_combine('{3,60,200,750,20000,2000}'::float8[], '{0,0,0,0,0,0}'::float8[]);
+    float8_regr_combine('{3,60,200,750,20000,2000,1,NaN}'::float8[], '{0,0,0,0,0,0,0,0}'::float8[]);
 
 SELECT
-    float8_regr_combine('{0,0,0,0,0,0}'::float8[], '{2,180,200,740,57800,-3400}'::float8[]);
+    float8_regr_combine('{0,0,0,0,0,0,0,0}'::float8[], '{2,180,200,740,57800,-3400,NaN,1}'::float8[]);
 
 SELECT
-    float8_regr_combine('{3,60,200,750,20000,2000}'::float8[], '{2,180,200,740,57800,-3400}'::float8[]);
+    float8_regr_combine('{3,60,200,750,20000,2000,7,8}'::float8[], '{2,180,200,740,57800,-3400,7,9}'::float8[]);
 
 DROP TABLE regr_test;
 
@@ -411,6 +735,27 @@ FROM
 
 SELECT
     sum2 (q1, q2)
+FROM
+    int8_tbl;
+
+-- sanity checks
+SELECT
+    sum(q1 + q2),
+    sum(q1) + sum(q2)
+FROM
+    int8_tbl;
+
+SELECT
+    sum(q1 - q2),
+    sum(q2 - q1),
+    sum(q1) - sum(q2)
+FROM
+    int8_tbl;
+
+SELECT
+    sum(q1 * 2000),
+    sum(- q1 * 2000),
+    2000 * sum(q1)
 FROM
     int8_tbl;
 
@@ -533,6 +878,36 @@ SELECT
 FROM
     generate_series(1, 3) x;
 
+-- Test handling of grouping-expression references within sublinks
+SELECT
+    two + four AS g,
+    (
+        SELECT
+            f1
+        FROM
+            int4_tbl
+        WHERE
+            f1 = (two + four))
+FROM
+    tenk1 t1
+GROUP BY
+    two + four
+ORDER BY
+    1;
+
+SELECT
+    q1,
+    (
+        SELECT
+            q1) AS ss -- q1 is actually a COALESCE expression here
+FROM
+    int8_tbl i81
+    FULL OUTER JOIN int8_tbl i82 USING (q1)
+GROUP BY
+    q1
+ORDER BY
+    q1;
+
 --
 -- test for bitwise integer aggregates
 --
@@ -548,10 +923,16 @@ CREATE TEMPORARY TABLE bitwise_test (
 -- empty case
 SELECT
     BIT_AND(i2) AS "?",
-    BIT_OR(i4) AS "?"
+    BIT_OR(i4) AS "?",
+    BIT_XOR (i8) AS "?"
 FROM
     bitwise_test;
 
+COPY bitwise_test FROM STDIN NULL 'null';
+1	1	1	1	1	B0101
+3	3	3	null	2	B0100
+7	7	7	3	4	B1100
+\.
 SELECT
     BIT_AND(i2) AS "1",
     BIT_AND(i4) AS "1",
@@ -564,7 +945,13 @@ SELECT
     BIT_OR(i8) AS "7",
     BIT_OR(i) AS "?",
     BIT_OR(x) AS "7",
-    BIT_OR(y) AS "1101"
+    BIT_OR(y) AS "1101",
+    BIT_XOR (i2) AS "5",
+    BIT_XOR (i4) AS "5",
+    BIT_XOR (i8) AS "5",
+    BIT_XOR (i) AS "?",
+    BIT_XOR (x) AS "7",
+    BIT_XOR (y) AS "1101"
 FROM
     bitwise_test;
 
@@ -614,6 +1001,11 @@ SELECT
 FROM
     bool_test;
 
+COPY bool_test FROM STDIN NULL 'null';
+TRUE	null	FALSE	null
+FALSE	TRUE	null	null
+null	TRUE	FALSE	null
+\.
 SELECT
     BOOL_AND(b1) AS "f",
     BOOL_AND(b2) AS "t",
@@ -878,7 +1270,8 @@ FROM
 ORDER BY
     g DESC;
 
--- interesting corner case: constant gets optimized into a seqscan
+-- two interesting corner cases: both non-null and null constant gets
+-- optimized into a seqscan
 EXPLAIN (
     COSTS OFF
 )
@@ -889,6 +1282,19 @@ FROM
 
 SELECT
     max(100)
+FROM
+    tenk1;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    max(NULL)
+FROM
+    tenk1;
+
+SELECT
+    max(NULL)
 FROM
     tenk1;
 
@@ -974,6 +1380,34 @@ FROM
 
 DROP TABLE minmaxtest CASCADE;
 
+-- DISTINCT can also trigger wrong answers with hash aggregation (bug #18465)
+BEGIN;
+SET local enable_groupagg = OFF;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    f1,
+    ( SELECT DISTINCT
+            min(t1.f1)
+        FROM
+            int4_tbl t1
+        WHERE
+            t1.f1 = t0.f1)
+FROM
+    int4_tbl t0;
+SELECT
+    f1,
+    ( SELECT DISTINCT
+            min(t1.f1)
+        FROM
+            int4_tbl t1
+        WHERE
+            t1.f1 = t0.f1)
+FROM
+    int4_tbl t0;
+ROLLBACK;
+
 -- check for correct detection of nested-aggregate errors
 SELECT
     max(min(unique1))
@@ -988,6 +1422,17 @@ SELECT
             int8_tbl)
 FROM
     tenk1;
+
+SELECT
+    avg((
+        SELECT
+            avg(a1.col1 ORDER BY (
+                    SELECT
+                        avg(a2.col2)
+                    FROM tenk1 a3))
+        FROM tenk1 a1 (col1)))
+FROM
+    tenk1 a2 (col2);
 
 --
 -- Test removal of redundant GROUP BY columns
@@ -1094,11 +1539,551 @@ GROUP BY
     b,
     c;
 
-DROP TABLE t1;
+CREATE temp TABLE t1c ()
+INHERITS (
+    t1
+);
+
+-- Ensure we don't remove any columns when t1 has a child table
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    t1
+GROUP BY
+    a,
+    b,
+    c,
+    d;
+
+-- Okay to remove columns if we're only querying the parent.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    ONLY t1
+GROUP BY
+    a,
+    b,
+    c,
+    d;
+
+CREATE temp TABLE p_t1 (
+    a int,
+    b int,
+    c int,
+    d int,
+    PRIMARY KEY (a, b)
+)
+PARTITION BY LIST (a);
+
+CREATE temp TABLE p_t1_1 PARTITION OF p_t1
+FOR VALUES IN (1);
+
+CREATE temp TABLE p_t1_2 PARTITION OF p_t1
+FOR VALUES IN (2);
+
+-- Ensure we can remove non-PK columns for partitioned tables.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    p_t1
+GROUP BY
+    a,
+    b,
+    c,
+    d;
+
+CREATE UNIQUE INDEX t2_z_uidx ON t2 (z);
+
+-- Ensure we don't remove any columns from the GROUP BY for a unique
+-- index on a NULLable column.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    y,
+    z
+FROM
+    t2
+GROUP BY
+    y,
+    z;
+
+-- Make the column NOT NULL and ensure we remove the redundant column
+ALTER TABLE t2
+    ALTER COLUMN z SET NOT NULL;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    y,
+    z
+FROM
+    t2
+GROUP BY
+    y,
+    z;
+
+-- When there are multiple supporting unique indexes and the GROUP BY contains
+-- columns to cover all of those, ensure we pick the index with the least
+-- number of columns so that we can remove more columns from the GROUP BY.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x,
+    y,
+    z
+FROM
+    t2
+GROUP BY
+    x,
+    y,
+    z;
+
+-- As above but try ordering the columns differently to ensure we get the
+-- same result.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    x,
+    y,
+    z
+FROM
+    t2
+GROUP BY
+    z,
+    x,
+    y;
+
+-- Ensure we don't use a partial index as proof of functional dependency
+DROP INDEX t2_z_uidx;
+
+CREATE INDEX t2_z_uidx ON t2 (z)
+WHERE
+    z > 0;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    y,
+    z
+FROM
+    t2
+GROUP BY
+    y,
+    z;
+
+-- A unique index defined as NULLS NOT DISTINCT does not need a supporting NOT
+-- NULL constraint on the indexed columns.  Ensure the redundant columns are
+-- removed from the GROUP BY for such a table.
+DROP INDEX t2_z_uidx;
+
+ALTER TABLE t2
+    ALTER COLUMN z DROP NOT NULL;
+
+CREATE UNIQUE INDEX t2_z_uidx ON t2 (z) nulls NOT DISTINCT;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    y,
+    z
+FROM
+    t2
+GROUP BY
+    y,
+    z;
+
+DROP TABLE t1 CASCADE;
 
 DROP TABLE t2;
 
 DROP TABLE t3;
+
+DROP TABLE p_t1;
+
+-- A composite type used by the tests below to exercise the asymmetry
+-- between record_ops (per-field equality, the default) and record_image_ops
+-- (bytewise equality): values like row(1.0) and row(1.00) are field-equal
+-- but byte-distinct.
+CREATE TYPE avg_rec AS (
+    x numeric
+);
+
+-- A unique index proves uniqueness only under its own opfamily.  When the
+-- GROUP BY's eqop comes from a different opfamily with looser equality,
+-- rows the index regards as distinct can collapse into one GROUP BY group,
+-- so the index is not usable for removing redundant columns.
+CREATE temp TABLE t_opf (
+    a avg_rec NOT NULL,
+    b text
+);
+
+CREATE UNIQUE INDEX ON t_opf (a record_image_ops);
+
+-- (1.0) and (1.00) are bytewise distinct but logically equal as records;
+-- the index admits both, but GROUP BY a (default record_ops) would merge
+-- them, so b must be retained as a grouping key.
+INSERT INTO t_opf
+VALUES
+    (ROW (1.0)::avg_rec, 'X'),
+    (ROW (1.00)::avg_rec, 'Y');
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    b
+FROM
+    t_opf
+GROUP BY
+    a,
+    b
+ORDER BY
+    b;
+
+SELECT
+    a,
+    b
+FROM
+    t_opf
+GROUP BY
+    a,
+    b
+ORDER BY
+    b;
+
+DROP TABLE t_opf;
+
+-- A HAVING clause that uses an equality operator from a different opfamily
+-- than the GROUP BY's eqop must NOT be pushed down to WHERE.
+CREATE temp TABLE t_having (
+    id int,
+    a avg_rec
+);
+
+INSERT INTO t_having
+VALUES
+    (1, ROW (1.0)::avg_rec),
+    (2, ROW (1.00)::avg_rec),
+    (3, ROW (2)::avg_rec);
+
+-- the clause must stay in HAVING
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    count(*)
+FROM
+    t_having
+GROUP BY
+    a
+HAVING
+    a *= ROW (1.0)::avg_rec;
+
+SELECT
+    a,
+    count(*)
+FROM
+    t_having
+GROUP BY
+    a
+HAVING
+    a *= ROW (1.0)::avg_rec;
+
+-- the clause must stay in HAVING
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    count(*)
+FROM
+    t_having
+GROUP BY
+    a
+HAVING
+    a *= ANY (ARRAY[ROW (1.0)::avg_rec]);
+
+SELECT
+    a,
+    count(*)
+FROM
+    t_having
+GROUP BY
+    a
+HAVING
+    a *= ANY (ARRAY[ROW (1.0)::avg_rec]);
+
+-- the clause can be pushed down to WHERE
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    a,
+    count(*)
+FROM
+    t_having
+GROUP BY
+    a
+HAVING
+    a = ROW (1.0)::avg_rec;
+
+SELECT
+    a,
+    count(*)
+FROM
+    t_having
+GROUP BY
+    a
+HAVING
+    a = ROW (1.0)::avg_rec;
+
+DROP TABLE t_having;
+
+DROP TYPE avg_rec;
+
+--
+-- Test GROUP BY matching of join columns that are type-coerced due to USING
+--
+CREATE temp TABLE t1 (
+    f1 int,
+    f2 int
+);
+
+CREATE temp TABLE t2 (
+    f1 bigint,
+    f2 oid
+);
+
+SELECT
+    f1
+FROM
+    t1
+    LEFT JOIN t2 USING (f1)
+GROUP BY
+    f1;
+
+SELECT
+    f1
+FROM
+    t1
+    LEFT JOIN t2 USING (f1)
+GROUP BY
+    t1.f1;
+
+SELECT
+    t1.f1
+FROM
+    t1
+    LEFT JOIN t2 USING (f1)
+GROUP BY
+    t1.f1;
+
+-- only this one should fail:
+SELECT
+    t1.f1
+FROM
+    t1
+    LEFT JOIN t2 USING (f1)
+GROUP BY
+    f1;
+
+-- check case where we have to inject nullingrels into coerced join alias
+SELECT
+    f1,
+    count(*)
+FROM
+    t1 x (x0,
+        x1)
+    LEFT JOIN (t1
+        LEFT JOIN t2 USING (f1)) ON (x0 = 0)
+GROUP BY
+    f1;
+
+-- same, for a RelabelType coercion
+SELECT
+    f2,
+    count(*)
+FROM
+    t1 x (x0,
+        x1)
+    LEFT JOIN (t1
+        LEFT JOIN t2 USING (f2)) ON (x0 = 0)
+GROUP BY
+    f2;
+
+-- check that we preserve join alias in GROUP BY expressions
+CREATE temp VIEW v1 AS
+SELECT
+    f1::int
+FROM
+    t1
+    LEFT JOIN t2 USING (f1)
+GROUP BY
+    f1;
+
+SELECT
+    pg_get_viewdef('v1'::regclass);
+
+DROP VIEW v1;
+
+DROP TABLE t1, t2;
+
+--
+-- Test planner's selection of pathkeys for ORDER BY aggregates
+--
+-- Ensure we order by four.  This suits the most aggregate functions.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    sum(two ORDER BY two),
+    max(four ORDER BY four),
+    min(four ORDER BY four)
+FROM
+    tenk1;
+
+-- Ensure we order by two.  It's a tie between ordering by two and four but
+-- we tiebreak on the aggregate's position.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    sum(two ORDER BY two),
+    max(four ORDER BY four),
+    min(four ORDER BY four),
+    max(two ORDER BY two)
+FROM
+    tenk1;
+
+-- Similar to above, but tiebreak on ordering by four
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    max(four ORDER BY four),
+    sum(two ORDER BY two),
+    min(four ORDER BY four),
+    max(two ORDER BY two)
+FROM
+    tenk1;
+
+-- Ensure this one orders by ten since there are 3 aggregates that require ten
+-- vs two that suit two and four.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    max(four ORDER BY four),
+    sum(two ORDER BY two),
+    min(four ORDER BY four),
+    max(two ORDER BY two),
+    sum(ten ORDER BY ten),
+    min(ten ORDER BY ten),
+    max(ten ORDER BY ten)
+FROM
+    tenk1;
+
+-- Try a case involving a GROUP BY clause where the GROUP BY column is also
+-- part of an aggregate's ORDER BY clause.  We want a sort order that works
+-- for the GROUP BY along with the first and the last aggregate.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    sum(unique1 ORDER BY ten, two),
+    sum(unique1 ORDER BY four),
+    sum(unique1 ORDER BY two, four)
+FROM
+    tenk1
+GROUP BY
+    ten;
+
+-- Ensure that we never choose to provide presorted input to an Aggref with
+-- a volatile function in the ORDER BY / DISTINCT clause.  We want to ensure
+-- these sorts are performed individually rather than at the query level.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    sum(unique1 ORDER BY two),
+    sum(unique1 ORDER BY four),
+    sum(unique1 ORDER BY four, two),
+    sum(unique1 ORDER BY two, random()),
+    sum(unique1 ORDER BY two, random(), random() + 1)
+FROM
+    tenk1
+GROUP BY
+    ten;
+
+-- Ensure consecutive NULLs are properly treated as distinct from each other
+SELECT
+    array_agg(DISTINCT val)
+FROM (
+    SELECT
+        NULL AS val
+    FROM
+        generate_series(1, 2));
+
+-- Ensure no ordering is requested when enable_presorted_aggregate is off
+SET enable_presorted_aggregate TO OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    sum(two ORDER BY two)
+FROM
+    tenk1;
+
+RESET enable_presorted_aggregate;
+
+--
+-- Test cases with FILTER clause
+--
+-- Ensure we presort when the aggregate contains plain Vars
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    sum(two ORDER BY two) FILTER (WHERE two > 1)
+FROM
+    tenk1;
+
+-- Ensure we presort for RelabelType'd Vars
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    string_agg(DISTINCT f1, ',') FILTER (WHERE length(f1) > 1)
+FROM
+    varchar_tbl;
+
+-- Ensure we don't presort when the aggregate's argument contains an
+-- explicit cast.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    string_agg(DISTINCT f1::varchar(2), ',') FILTER (WHERE length(f1) > 1)
+FROM
+    varchar_tbl;
 
 --
 -- Test combinations of DISTINCT and/or ORDER BY
@@ -1264,6 +2249,46 @@ FROM (
         (2, 2, 'bar'),
         (3, 1, 'baz')) v (a, b, c),
     generate_series(1, 2) i;
+
+-- single input sorted on two keys; 0 and -0 differ only for *<
+SELECT
+    array_agg(DISTINCT r ORDER BY r USING <, r USING *<)
+FROM (
+    VALUES (ROW (-0.0::float8)),
+        (ROW (0.0::float8))) v (r),
+    generate_series(1, 2) i;
+
+-- check again for the non-presorted aggregate code
+SET enable_presorted_aggregate TO OFF;
+
+SELECT
+    array_agg(DISTINCT r ORDER BY r USING <, r USING *<)
+FROM (
+    VALUES (ROW (-0.0::float8)),
+        (ROW (0.0::float8))) v (r),
+    generate_series(1, 2) i;
+
+-- likewise, but without DISTINCT; the second sort key must not be ignored
+SELECT
+    array_agg(r ORDER BY r USING <, r USING *<)
+FROM (
+    VALUES (ROW (-0.0::float8)),
+        (ROW (0.0::float8))) v (r);
+
+RESET enable_presorted_aggregate;
+
+-- test a more complex permutation that has previous caused issues
+SELECT
+    string_agg(DISTINCT 'a', ','),
+    sum((
+        SELECT
+            sum(1)
+        FROM (
+            VALUES (1)) b (id)
+        WHERE
+            a.id = b.id))
+FROM
+    unnest(ARRAY[1]) a (id);
 
 -- check node I/O via view creation and usage, also deparsing logic
 CREATE VIEW agg_view1 AS
@@ -1470,7 +2495,7 @@ FROM
     varchar_tbl;
 
 -- ok
--- string_agg bytea tests
+-- string_agg, min, max bytea tests
 CREATE TABLE bytea_test_table (
     v bytea
 );
@@ -1506,7 +2531,172 @@ SELECT
 FROM
     bytea_test_table;
 
+SELECT
+    min(v)
+FROM
+    bytea_test_table;
+
+SELECT
+    max(v)
+FROM
+    bytea_test_table;
+
+INSERT INTO bytea_test_table
+    VALUES (decode('ffff', 'hex'));
+
+INSERT INTO bytea_test_table
+    VALUES (decode('aaaa', 'hex'));
+
+SELECT
+    min(v)
+FROM
+    bytea_test_table;
+
+SELECT
+    max(v)
+FROM
+    bytea_test_table;
+
 DROP TABLE bytea_test_table;
+
+-- Test parallel string_agg and array_agg
+CREATE TABLE pagg_test (
+    x int,
+    y int
+)
+WITH (
+    autovacuum_enabled = OFF
+);
+
+INSERT INTO pagg_test
+SELECT
+    (
+        CASE x % 4
+        WHEN 1 THEN
+            NULL
+        ELSE
+            x
+        END),
+    x % 10
+FROM
+    generate_series(1, 5000) x;
+
+SET parallel_setup_cost TO 0;
+
+SET parallel_tuple_cost TO 0;
+
+SET parallel_leader_participation TO 0;
+
+SET min_parallel_table_scan_size = 0;
+
+SET bytea_output = 'escape';
+
+SET max_parallel_workers_per_gather = 2;
+
+-- create a view as we otherwise have to repeat this query a few times.
+CREATE VIEW v_pagg_test AS
+SELECT
+    y,
+    min(t) AS tmin,
+    max(t) AS tmax,
+    count(DISTINCT t) AS tndistinct,
+    min(b) AS bmin,
+    max(b) AS bmax,
+    count(DISTINCT b) AS bndistinct,
+    min(a) AS amin,
+    max(a) AS amax,
+    count(DISTINCT a) AS andistinct,
+    min(aa) AS aamin,
+    max(aa) AS aamax,
+    count(DISTINCT aa) AS aandistinct
+FROM (
+    SELECT
+        y,
+        unnest(regexp_split_to_array(a1.t, ','))::int AS t,
+        unnest(regexp_split_to_array(a1.b::text, ',')) AS b,
+        unnest(a1.a) AS a,
+        unnest(a1.aa) AS aa
+    FROM (
+        SELECT
+            y,
+            string_agg(x::text, ',') AS t,
+            string_agg(x::text::bytea, ',') AS b,
+            array_agg(x) AS a,
+            array_agg(ARRAY[x]) AS aa
+        FROM
+            pagg_test
+        GROUP BY
+            y) a1) a2
+GROUP BY
+    y;
+
+-- Ensure results are correct.
+SELECT
+    *
+FROM
+    v_pagg_test
+ORDER BY
+    y;
+
+-- Ensure parallel aggregation is actually being used.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    v_pagg_test
+ORDER BY
+    y;
+
+-- Ensure results are the same without parallel aggregation.
+SET max_parallel_workers_per_gather = 0;
+
+SELECT
+    *
+FROM
+    v_pagg_test
+ORDER BY
+    y;
+
+-- Check that we don't fail on anonymous record types.
+SET max_parallel_workers_per_gather = 2;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    array_dims(array_agg(s))
+FROM (
+    SELECT
+        *
+    FROM
+        pagg_test) s;
+
+SELECT
+    array_dims(array_agg(s))
+FROM (
+    SELECT
+        *
+    FROM
+        pagg_test) s;
+
+-- Clean up
+RESET max_parallel_workers_per_gather;
+
+RESET bytea_output;
+
+RESET min_parallel_table_scan_size;
+
+RESET parallel_leader_participation;
+
+RESET parallel_tuple_cost;
+
+RESET parallel_setup_cost;
+
+DROP VIEW v_pagg_test;
+
+DROP TABLE pagg_test;
 
 -- FILTER tests
 SELECT
@@ -1547,6 +2737,13 @@ SELECT
     max(foo COLLATE "C") FILTER (WHERE (bar COLLATE "POSIX") > '0')
 FROM (
     VALUES ('a', 'b')) AS v (foo, bar);
+
+SELECT
+    any_value (v) FILTER (WHERE v > 2)
+FROM (
+    VALUES (1),
+        (2),
+        (3)) AS v (v);
 
 -- outer reference in FILTER (PostgreSQL extension)
 SELECT
@@ -1609,6 +2806,48 @@ FROM (
         (2, 2, 'bar'),
         (3, 1, 'baz')) v (a, b, c),
     generate_series(1, 2) i;
+
+-- check handling of bare boolean Var in FILTER
+SELECT
+    max(0) FILTER (WHERE b1)
+FROM
+    bool_test;
+
+SELECT
+    (
+        SELECT
+            max(0) FILTER (WHERE b1))
+FROM
+    bool_test;
+
+-- check for correct detection of nested-aggregate errors in FILTER
+SELECT
+    max(unique1) FILTER (WHERE sum(ten) > 0)
+FROM
+    tenk1;
+
+SELECT
+    (
+        SELECT
+            max(unique1) FILTER (WHERE sum(ten) > 0)
+        FROM
+            int8_tbl)
+FROM
+    tenk1;
+
+SELECT
+    max(unique1) FILTER (WHERE bool_or(ten > 0))
+FROM
+    tenk1;
+
+SELECT
+    (
+        SELECT
+            max(unique1) FILTER (WHERE bool_or(ten > 0))
+        FROM
+            int8_tbl)
+FROM
+    tenk1;
 
 -- ordered-set aggregates
 SELECT
@@ -1916,6 +3155,110 @@ SELECT
 FROM
     int8_tbl;
 
+SELECT
+    cleast_agg (q1, q2)
+FROM
+    int8_tbl;
+
+SELECT
+    cleast_agg (4.5, f1)
+FROM
+    int4_tbl;
+
+SELECT
+    cleast_agg (VARIADIC ARRAY[4.5, f1])
+FROM
+    int4_tbl;
+
+SELECT
+    pg_typeof(cleast_agg (VARIADIC ARRAY[4.5, f1]))
+FROM
+    int4_tbl;
+
+--
+-- Test SupportRequestSimplifyAggref code
+--
+BEGIN;
+CREATE TABLE agg_simplify (
+    a int,
+    not_null_col int NOT NULL,
+    nullable_col int
+);
+-- Ensure count(not_null_col) uses count(*)
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    count(not_null_col)
+FROM
+    agg_simplify;
+-- Ensure count(<not null const>) uses count(*)
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    count('bananas')
+FROM
+    agg_simplify;
+-- Ensure count(null) isn't optimized
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    count(NULL)
+FROM
+    agg_simplify;
+-- Ensure count(nullable_col) does not use count(*)
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    count(nullable_col)
+FROM
+    agg_simplify;
+-- Ensure there's no optimization with DISTINCT aggs
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    count(DISTINCT not_null_col)
+FROM
+    agg_simplify;
+-- Ensure there's no optimization with ORDER BY aggs
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    count(not_null_col ORDER BY not_null_col)
+FROM
+    agg_simplify;
+-- Ensure we don't optimize to count(*) with agglevelsup > 0
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    a
+FROM
+    agg_simplify a
+GROUP BY
+    a
+HAVING
+    EXISTS (
+        SELECT
+            1
+        FROM
+            onek b
+        WHERE
+            count(a.not_null_col) = b.four);
+ROLLBACK;
+
 -- test aggregates with common transition functions share the same states
 BEGIN WORK;
 CREATE TYPE avg_state AS (
@@ -2166,10 +3509,273 @@ FROM
     tenk1;
 ROLLBACK;
 
+-- GROUP BY optimization by reordering GROUP BY clauses
+CREATE TABLE btg AS
+SELECT
+    i % 10 AS x,
+    i % 10 AS y,
+    'abc' || i % 10 AS z,
+    i AS w
+FROM
+    generate_series(1, 100) AS i;
+
+CREATE INDEX btg_x_y_idx ON btg (x, y);
+
+ANALYZE btg;
+
+SET enable_hashagg = OFF;
+
+SET enable_seqscan = OFF;
+
+-- Utilize the ordering of index scan to avoid a Sort operation
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    btg
+GROUP BY
+    y,
+    x;
+
+-- Engage incremental sort
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    btg
+GROUP BY
+    z,
+    y,
+    w,
+    x;
+
+-- Utilize the ordering of subquery scan to avoid a Sort operation
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM (
+    SELECT
+        *
+    FROM
+        btg
+    ORDER BY
+        x,
+        y,
+        w,
+        z) AS q1
+GROUP BY
+    w,
+    x,
+    z,
+    y;
+
+-- Utilize the ordering of merge join to avoid a Sort operation
+SET enable_hashjoin = OFF;
+
+SET enable_nestloop = OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    btg t1
+    JOIN btg t2 ON t1.w = t2.w
+        AND t1.x = t2.x
+        AND t1.z = t2.z
+GROUP BY
+    t1.w,
+    t1.z,
+    t1.x;
+
+RESET enable_nestloop;
+
+RESET enable_hashjoin;
+
+-- Should work with and without GROUP-BY optimization
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    btg
+GROUP BY
+    w,
+    x,
+    z,
+    y
+ORDER BY
+    y,
+    x,
+    z,
+    w;
+
+-- Utilize incremental sort to make the ORDER BY rule a bit cheaper
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    btg
+GROUP BY
+    w,
+    x,
+    y,
+    z
+ORDER BY
+    x * x,
+    z;
+
+-- Test the case where the number of incoming subtree path keys is more than
+-- the number of grouping keys.
+CREATE INDEX btg_y_x_w_idx ON btg (y, x, w);
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    y,
+    x,
+    array_agg(DISTINCT w)
+FROM
+    btg
+WHERE
+    y < 0
+GROUP BY
+    x,
+    y;
+
+-- Ensure that we do not select the aggregate pathkeys instead of the grouping
+-- pathkeys
+CREATE TABLE group_agg_pk AS
+SELECT
+    i % 10 AS x,
+    i % 2 AS y,
+    i % 2 AS z,
+    2 AS w,
+    i % 10 AS f
+FROM
+    generate_series(1, 100) AS i;
+
+ANALYZE group_agg_pk;
+
+SET enable_nestloop = OFF;
+
+SET enable_hashjoin = OFF;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    avg(c1.f ORDER BY c1.x, c1.y)
+FROM
+    group_agg_pk c1
+    JOIN group_agg_pk c2 ON c1.x = c2.x
+GROUP BY
+    c1.w,
+    c1.z;
+
+SELECT
+    avg(c1.f ORDER BY c1.x, c1.y)
+FROM
+    group_agg_pk c1
+    JOIN group_agg_pk c2 ON c1.x = c2.x
+GROUP BY
+    c1.w,
+    c1.z;
+
+-- Pathkeys, built in a subtree, can be used to optimize GROUP-BY clause
+-- ordering.  Also, here we check that it doesn't depend on the initial clause
+-- order in the GROUP-BY list.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    c1.y,
+    c1.x
+FROM
+    group_agg_pk c1
+    JOIN group_agg_pk c2 ON c1.x = c2.x
+GROUP BY
+    c1.y,
+    c1.x,
+    c2.x;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    c1.y,
+    c1.x
+FROM
+    group_agg_pk c1
+    JOIN group_agg_pk c2 ON c1.x = c2.x
+GROUP BY
+    c1.y,
+    c2.x,
+    c1.x;
+
+RESET enable_nestloop;
+
+RESET enable_hashjoin;
+
+DROP TABLE group_agg_pk;
+
+-- Test the case where the ordering of the scan matches the ordering within the
+-- aggregate but cannot be found in the group-by list
+CREATE TABLE agg_sort_order (
+    c1 int PRIMARY KEY,
+    c2 int
+);
+
+CREATE UNIQUE INDEX agg_sort_order_c2_idx ON agg_sort_order (c2);
+
+INSERT INTO agg_sort_order
+SELECT
+    i,
+    i
+FROM
+    generate_series(1, 100) i;
+
+ANALYZE agg_sort_order;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    array_agg(c1 ORDER BY c2),
+    c2
+FROM
+    agg_sort_order
+WHERE
+    c2 < 100
+GROUP BY
+    c1
+ORDER BY
+    2;
+
+DROP TABLE agg_sort_order CASCADE;
+
+DROP TABLE btg;
+
+RESET enable_hashagg;
+
+RESET enable_seqscan;
+
 -- Secondly test the case of a parallel aggregate combiner function
 -- returning NULL. For that use normal transition function, but a
 -- combiner function returning NULL.
-BEGIN ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
 CREATE FUNCTION balkifnull (int8, int8)
     RETURNS int8 PARALLEL SAFE STRICT
     LANGUAGE plpgsql
@@ -2205,28 +3811,165 @@ FROM
     tenk1;
 ROLLBACK;
 
+-- test multiple usage of an aggregate whose finalfn returns a R/W datum
+BEGIN;
+CREATE FUNCTION rwagg_sfunc (x anyarray, y anyarray)
+    RETURNS anyarray
+    LANGUAGE plpgsql
+    IMMUTABLE
+    AS $$
+BEGIN
+    RETURN array_fill(y[1], ARRAY[4]);
+END;
+$$;
+CREATE FUNCTION rwagg_finalfunc (x anyarray)
+    RETURNS anyarray
+    LANGUAGE plpgsql
+    STRICT IMMUTABLE
+    AS $$
+DECLARE
+    res x%TYPE;
+BEGIN
+    -- assignment is essential for this test, it expands the array to R/W
+    res := array_fill(x[1], ARRAY[4]);
+    RETURN res;
+END;
+$$;
+CREATE AGGREGATE rwagg (anyarray) (
+    STYPE = anyarray,
+    SFUNC = rwagg_sfunc,
+    FINALFUNC = rwagg_finalfunc
+);
+CREATE FUNCTION eatarray (x real[])
+    RETURNS real[]
+    LANGUAGE plpgsql
+    STRICT IMMUTABLE
+    AS $$
+BEGIN
+    x[1] := x[1] + 1;
+    RETURN x;
+END;
+$$;
+SELECT
+    eatarray (rwagg (ARRAY[1.0::real])),
+    eatarray (rwagg (ARRAY[1.0::real]));
+ROLLBACK;
+
 -- test coverage for aggregate combine/serial/deserial functions
-BEGIN ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
 SET parallel_setup_cost = 0;
 SET parallel_tuple_cost = 0;
 SET min_parallel_table_scan_size = 0;
 SET max_parallel_workers_per_gather = 4;
+SET parallel_leader_participation = OFF;
 SET enable_indexonlyscan = OFF;
 -- variance(int4) covers numeric_poly_combine
 -- sum(int8) covers int8_avg_combine
+-- regr_count(float8, float8) covers int8inc_float8_float8 and aggregates with > 1 arg
 EXPLAIN (
-    COSTS OFF
+    COSTS OFF,
+    VERBOSE
 )
 SELECT
     variance(unique1::int4),
-    sum(unique1::int8)
-FROM
-    tenk1;
+    sum(unique1::int8),
+    regr_count(unique1::float8, unique1::float8)
+FROM (
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1) u;
 SELECT
     variance(unique1::int4),
-    sum(unique1::int8)
-FROM
-    tenk1;
+    sum(unique1::int8),
+    regr_count(unique1::float8, unique1::float8)
+FROM (
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1) u;
+-- variance(int8) covers numeric_combine
+-- avg(numeric) covers numeric_avg_combine
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    variance(unique1::int8),
+    avg(unique1::numeric)
+FROM (
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1) u;
+SELECT
+    variance(unique1::int8),
+    avg(unique1::numeric)
+FROM (
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1
+    UNION ALL
+    SELECT
+        *
+    FROM
+        tenk1) u;
 ROLLBACK;
 
 -- test coverage for dense_rank
@@ -2288,4 +4031,291 @@ GROUP BY
     v || 'a'
 ORDER BY
     1;
+
+--
+-- Hash Aggregation Spill tests
+--
+SET enable_groupagg = FALSE;
+
+SET work_mem = '64kB';
+
+SELECT
+    unique1,
+    count(*),
+    sum(twothousand)
+FROM
+    tenk1
+GROUP BY
+    unique1
+HAVING
+    sum(fivethous) > 4975
+ORDER BY
+    sum(twothousand);
+
+SET work_mem TO DEFAULT;
+
+SET enable_groupagg TO DEFAULT;
+
+--
+-- Compare results between plans using sorting and plans using hash
+-- aggregation. Force spilling in both cases by setting work_mem low.
+--
+SET work_mem = '64kB';
+
+CREATE TABLE agg_data_2k AS
+SELECT
+    g
+FROM
+    generate_series(0, 1999) g;
+
+ANALYZE agg_data_2k;
+
+CREATE TABLE agg_data_20k AS
+SELECT
+    g
+FROM
+    generate_series(0, 19999) g;
+
+ANALYZE agg_data_20k;
+
+-- Produce results with sorting.
+SET enable_hashagg = FALSE;
+
+SET jit_above_cost = 0;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    g % 10000 AS c1,
+    sum(g::numeric) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_20k
+GROUP BY
+    g % 10000;
+
+CREATE TABLE agg_group_1 AS
+SELECT
+    g % 10000 AS c1,
+    sum(g::numeric) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_20k
+GROUP BY
+    g % 10000;
+
+CREATE TABLE agg_group_2 AS
+SELECT
+    *
+FROM (
+    VALUES (100),
+        (300),
+        (500)) AS r (a),
+    LATERAL (
+        SELECT
+            (g / 2)::numeric AS c1, array_agg(g::numeric) AS c2,
+            count(*) AS c3
+        FROM
+            agg_data_2k
+        WHERE
+            g < r.a
+        GROUP BY
+            g / 2) AS s;
+
+SET jit_above_cost TO DEFAULT;
+
+CREATE TABLE agg_group_3 AS
+SELECT
+    (g / 2)::numeric AS c1,
+    sum(7::int4) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_2k
+GROUP BY
+    g / 2;
+
+CREATE TABLE agg_group_4 AS
+SELECT
+    (g / 2)::numeric AS c1,
+    array_agg(g::numeric) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_2k
+GROUP BY
+    g / 2;
+
+-- Produce results with hash aggregation
+SET enable_hashagg = TRUE;
+
+SET enable_groupagg = FALSE;
+
+SET jit_above_cost = 0;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    g % 10000 AS c1,
+    sum(g::numeric) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_20k
+GROUP BY
+    g % 10000;
+
+CREATE TABLE agg_hash_1 AS
+SELECT
+    g % 10000 AS c1,
+    sum(g::numeric) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_20k
+GROUP BY
+    g % 10000;
+
+CREATE TABLE agg_hash_2 AS
+SELECT
+    *
+FROM (
+    VALUES (100),
+        (300),
+        (500)) AS r (a),
+    LATERAL (
+        SELECT
+            (g / 2)::numeric AS c1, array_agg(g::numeric) AS c2,
+            count(*) AS c3
+        FROM
+            agg_data_2k
+        WHERE
+            g < r.a
+        GROUP BY
+            g / 2) AS s;
+
+SET jit_above_cost TO DEFAULT;
+
+CREATE TABLE agg_hash_3 AS
+SELECT
+    (g / 2)::numeric AS c1,
+    sum(7::int4) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_2k
+GROUP BY
+    g / 2;
+
+CREATE TABLE agg_hash_4 AS
+SELECT
+    (g / 2)::numeric AS c1,
+    array_agg(g::numeric) AS c2,
+    count(*) AS c3
+FROM
+    agg_data_2k
+GROUP BY
+    g / 2;
+
+SET enable_groupagg = TRUE;
+
+SET work_mem TO DEFAULT;
+
+-- Compare group aggregation results to hash aggregation results
+(
+    SELECT
+        *
+    FROM
+        agg_hash_1
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_group_1)
+UNION ALL (
+    SELECT
+        *
+    FROM
+        agg_group_1
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_hash_1);
+
+(
+    SELECT
+        *
+    FROM
+        agg_hash_2
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_group_2)
+UNION ALL (
+    SELECT
+        *
+    FROM
+        agg_group_2
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_hash_2);
+
+(
+    SELECT
+        *
+    FROM
+        agg_hash_3
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_group_3)
+UNION ALL (
+    SELECT
+        *
+    FROM
+        agg_group_3
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_hash_3);
+
+(
+    SELECT
+        *
+    FROM
+        agg_hash_4
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_group_4)
+UNION ALL (
+    SELECT
+        *
+    FROM
+        agg_group_4
+    EXCEPT
+    SELECT
+        *
+    FROM
+        agg_hash_4);
+
+DROP TABLE agg_group_1;
+
+DROP TABLE agg_group_2;
+
+DROP TABLE agg_group_3;
+
+DROP TABLE agg_group_4;
+
+DROP TABLE agg_hash_1;
+
+DROP TABLE agg_hash_2;
+
+DROP TABLE agg_hash_3;
+
+DROP TABLE agg_hash_4;
 

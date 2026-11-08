@@ -1,6 +1,13 @@
 --
 -- ADVISORY LOCKS
 --
+SELECT
+    oid AS datoid
+FROM
+    pg_database
+WHERE
+    datname = current_database() \gset
+
 BEGIN;
 SELECT
     pg_advisory_xact_lock(1),
@@ -18,6 +25,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -30,7 +38,8 @@ SELECT
 FROM
     pg_locks
 WHERE
-    locktype = 'advisory';
+    locktype = 'advisory'
+    AND DATABASE = :datoid;
 -- can't unlock xact locks
 SELECT
     pg_advisory_unlock(1),
@@ -45,7 +54,8 @@ SELECT
 FROM
     pg_locks
 WHERE
-    locktype = 'advisory';
+    locktype = 'advisory'
+    AND DATABASE = :datoid;
 
 BEGIN;
 -- holding both session and xact locks on the same objects, xact first
@@ -65,6 +75,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -87,6 +98,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -108,7 +120,8 @@ SELECT
 FROM
     pg_locks
 WHERE
-    locktype = 'advisory';
+    locktype = 'advisory'
+    AND DATABASE = :datoid;
 
 BEGIN;
 -- holding both session and xact locks on the same objects, session first
@@ -128,6 +141,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -150,6 +164,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -164,7 +179,8 @@ SELECT
 FROM
     pg_locks
 WHERE
-    locktype = 'advisory';
+    locktype = 'advisory'
+    AND DATABASE = :datoid;
 
 BEGIN;
 -- grabbing txn locks multiple times
@@ -188,6 +204,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -199,7 +216,8 @@ SELECT
 FROM
     pg_locks
 WHERE
-    locktype = 'advisory';
+    locktype = 'advisory'
+    AND DATABASE = :datoid;
 
 -- grabbing session locks multiple times
 SELECT
@@ -223,6 +241,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -243,7 +262,8 @@ SELECT
 FROM
     pg_locks
 WHERE
-    locktype = 'advisory';
+    locktype = 'advisory'
+    AND DATABASE = :datoid;
 
 -- .. and releasing them all at once
 SELECT
@@ -267,6 +287,7 @@ FROM
     pg_locks
 WHERE
     locktype = 'advisory'
+    AND DATABASE = :datoid
 ORDER BY
     classid,
     objid,
@@ -280,5 +301,6 @@ SELECT
 FROM
     pg_locks
 WHERE
-    locktype = 'advisory';
+    locktype = 'advisory'
+    AND DATABASE = :datoid;
 

@@ -59,6 +59,14 @@ SELECT
 FROM
     update_test;
 
+-- error, you're not supposed to qualify the target column
+UPDATE
+    update_test t
+SET
+    t.b = t.b + 10
+WHERE
+    t.a = 10;
+
 --
 -- Test VALUES in FROM
 --
@@ -310,7 +318,9 @@ FROM
 
 -- Test ON CONFLICT DO UPDATE
 INSERT INTO upsert_test
-    VALUES (1, 'Boo');
+VALUES
+    (1, 'Boo'),
+    (3, 'Zoo');
 
 -- uncorrelated  sub-select:
 WITH aaa AS (
@@ -333,7 +343,9 @@ ON CONFLICT (a)
 
 -- correlated sub-select:
 INSERT INTO upsert_test
-    VALUES (1, 'Baz')
+VALUES
+    (1, 'Baz'),
+    (3, 'Zaz')
 ON CONFLICT (a)
     DO UPDATE SET
         (b, a) = (
@@ -349,7 +361,9 @@ ON CONFLICT (a)
 
 -- correlated sub-select (EXCLUDED.* alias):
 INSERT INTO upsert_test
-    VALUES (1, 'Bat')
+VALUES
+    (1, 'Bat'),
+    (3, 'Zot')
 ON CONFLICT (a)
     DO UPDATE SET
         (b, a) = (
@@ -363,7 +377,111 @@ ON CONFLICT (a)
     RETURNING
         *;
 
+-- ON CONFLICT using system attributes in RETURNING, testing both the
+-- inserting and updating paths. See bug report at:
+-- https://www.postgresql.org/message-id/73436355-6432-49B1-92ED-1FE4F7E7E100%40finefun.com.au
+INSERT INTO upsert_test
+    VALUES (2, 'Beeble')
+ON CONFLICT (a)
+    DO UPDATE SET
+        (b, a) = (
+            SELECT
+                b || ', Excluded',
+                a
+            FROM
+                upsert_test i
+            WHERE
+                i.a = excluded.a)
+    RETURNING
+        tableoid::regclass,
+        xmin = pg_current_xact_id ()::xid AS xmin_correct,
+        xmax = 0 AS xmax_correct;
+
+-- currently xmax is set after a conflict - that's probably not good,
+-- but it seems worthwhile to have to be explicit if that changes.
+INSERT INTO upsert_test
+    VALUES (2, 'Brox')
+ON CONFLICT (a)
+    DO UPDATE SET
+        (b, a) = (
+            SELECT
+                b || ', Excluded',
+                a
+            FROM
+                upsert_test i
+            WHERE
+                i.a = excluded.a)
+    RETURNING
+        tableoid::regclass,
+        xmin = pg_current_xact_id ()::xid AS xmin_correct,
+        xmax = pg_current_xact_id ()::xid AS xmax_correct;
+
 DROP TABLE update_test;
+
+DROP TABLE upsert_test;
+
+-- Test ON CONFLICT DO UPDATE with partitioned table and non-identical children
+CREATE TABLE upsert_test (
+    a int PRIMARY KEY,
+    b text
+)
+PARTITION BY LIST (a);
+
+CREATE TABLE upsert_test_1 PARTITION OF upsert_test
+FOR VALUES IN (1);
+
+CREATE TABLE upsert_test_2 (
+    b text,
+    a int PRIMARY KEY
+);
+
+ALTER TABLE upsert_test ATTACH PARTITION upsert_test_2
+FOR VALUES IN (2);
+
+INSERT INTO upsert_test
+VALUES
+    (1, 'Boo'),
+    (2, 'Zoo');
+
+-- uncorrelated sub-select:
+WITH aaa AS (
+    SELECT
+        1 AS a,
+        'Foo' AS b
+)
+INSERT INTO upsert_test
+    VALUES (1, 'Bar')
+ON CONFLICT (a)
+    DO UPDATE SET
+        (b, a) = (
+            SELECT
+                b,
+                a
+            FROM
+                aaa)
+    RETURNING
+        *;
+
+-- correlated sub-select:
+WITH aaa AS (
+    SELECT
+        1 AS ctea,
+        ' Foo' AS cteb
+)
+INSERT INTO upsert_test
+VALUES
+    (1, 'Bar'),
+    (2, 'Baz')
+ON CONFLICT (a)
+    DO UPDATE SET
+        (b, a) = (
+            SELECT
+                upsert_test.b || cteb,
+                upsert_test.a
+            FROM
+                aaa)
+    RETURNING
+        *;
 
 DROP TABLE upsert_test;
 
@@ -999,54 +1117,66 @@ $$;
 
 -- Triggers on root partition
 CREATE TRIGGER parent_delete_trig
-    AFTER DELETE ON range_parted FOR EACH statement
+    AFTER DELETE ON range_parted
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER parent_update_trig
-    AFTER UPDATE ON range_parted FOR EACH statement
+    AFTER UPDATE ON range_parted
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER parent_insert_trig
-    AFTER INSERT ON range_parted FOR EACH statement
+    AFTER INSERT ON range_parted
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 -- Triggers on leaf partition part_c_1_100
 CREATE TRIGGER c1_delete_trig
-    AFTER DELETE ON part_c_1_100 FOR EACH statement
+    AFTER DELETE ON part_c_1_100
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER c1_update_trig
-    AFTER UPDATE ON part_c_1_100 FOR EACH statement
+    AFTER UPDATE ON part_c_1_100
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER c1_insert_trig
-    AFTER INSERT ON part_c_1_100 FOR EACH statement
+    AFTER INSERT ON part_c_1_100
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 -- Triggers on leaf partition part_d_1_15
 CREATE TRIGGER d1_delete_trig
-    AFTER DELETE ON part_d_1_15 FOR EACH statement
+    AFTER DELETE ON part_d_1_15
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER d1_update_trig
-    AFTER UPDATE ON part_d_1_15 FOR EACH statement
+    AFTER UPDATE ON part_d_1_15
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER d1_insert_trig
-    AFTER INSERT ON part_d_1_15 FOR EACH statement
+    AFTER INSERT ON part_d_1_15
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 -- Triggers on leaf partition part_d_15_20
 CREATE TRIGGER d15_delete_trig
-    AFTER DELETE ON part_d_15_20 FOR EACH statement
+    AFTER DELETE ON part_d_15_20
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER d15_update_trig
-    AFTER UPDATE ON part_d_15_20 FOR EACH statement
+    AFTER UPDATE ON part_d_15_20
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 CREATE TRIGGER d15_insert_trig
-    AFTER INSERT ON part_d_15_20 FOR EACH statement
+    AFTER INSERT ON part_d_15_20
+    FOR EACH statement
     EXECUTE PROCEDURE trigfunc ();
 
 -- Move all rows from part_c_100_200 to part_c_1_100. None of the delete or
@@ -1193,6 +1323,100 @@ WHERE
 
 DROP TABLE list_parted;
 
+-- Test retrieval of system columns with non-consistent partition row types.
+-- This is only partially supported, as seen in the results.
+CREATE TABLE utrtest (
+    a int,
+    b text
+)
+PARTITION BY LIST (a);
+
+CREATE TABLE utr1 (
+    a int CHECK (a IN (1)),
+    q text,
+    b text
+);
+
+CREATE TABLE utr2 (
+    a int CHECK (a IN (2)),
+    b text
+);
+
+ALTER TABLE utr1
+    DROP COLUMN q;
+
+ALTER TABLE utrtest ATTACH PARTITION utr1
+FOR VALUES IN (1);
+
+ALTER TABLE utrtest ATTACH PARTITION utr2
+FOR VALUES IN (2);
+
+INSERT INTO utrtest
+    VALUES (1, 'foo')
+RETURNING
+    *, tableoid::regclass, xmin = pg_current_xact_id ()::xid AS xmin_ok;
+
+INSERT INTO utrtest
+    VALUES (2, 'bar')
+RETURNING
+    *, tableoid::regclass, xmin = pg_current_xact_id ()::xid AS xmin_ok;
+
+-- fails
+INSERT INTO utrtest
+    VALUES (2, 'bar')
+RETURNING
+    *, tableoid::regclass;
+
+UPDATE
+    utrtest
+SET
+    b = b || b
+FROM (
+    VALUES (1),
+        (2)) s (x)
+WHERE
+    a = s.x
+RETURNING
+    *,
+    tableoid::regclass,
+    xmin = pg_current_xact_id ()::xid AS xmin_ok;
+
+UPDATE
+    utrtest
+SET
+    a = 3 - a
+FROM (
+    VALUES (1),
+        (2)) s (x)
+WHERE
+    a = s.x
+RETURNING
+    *,
+    tableoid::regclass,
+    xmin = pg_current_xact_id ()::xid AS xmin_ok;
+
+-- fails
+UPDATE
+    utrtest
+SET
+    a = 3 - a
+FROM (
+    VALUES (1),
+        (2)) s (x)
+WHERE
+    a = s.x
+RETURNING
+    *,
+    tableoid::regclass;
+
+DELETE FROM utrtest
+RETURNING
+    *,
+    tableoid::regclass,
+    xmax = pg_current_xact_id ()::xid AS xmax_ok;
+
+DROP TABLE utrtest;
+
 --------------
 -- Some more update-partition-key test scenarios below. This time use list
 -- partitions.
@@ -1299,7 +1523,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER parted_mod_b
-    BEFORE UPDATE ON sub_part1 FOR EACH ROW
+    BEFORE UPDATE ON sub_part1
+    FOR EACH ROW
     EXECUTE PROCEDURE func_parted_mod_b ();
 
 SELECT
@@ -1348,7 +1573,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trig_skip_delete
-    BEFORE DELETE ON sub_part2 FOR EACH ROW
+    BEFORE DELETE ON sub_part2
+    FOR EACH ROW
     EXECUTE PROCEDURE func_parted_mod_b ();
 
 UPDATE

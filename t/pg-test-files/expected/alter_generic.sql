@@ -1,6 +1,17 @@
 --
 -- Test for ALTER some_object {RENAME TO, OWNER TO, SET SCHEMA}
 --
+-- directory paths and dlsuffix are passed to us in environment variables
+\getenv libdir PG_LIBDIR
+
+\getenv dlsuffix PG_DLSUFFIX
+
+\set regresslib :libdir '/regress' :dlsuffix
+CREATE FUNCTION test_opclass_options_func (internal)
+    RETURNS void
+    AS :'regresslib', 'test_opclass_options_func'
+    LANGUAGE C;
+
 -- Clean up in case a prior regression run failed
 SET client_min_messages TO 'warning';
 
@@ -666,12 +677,12 @@ ALTER OPERATOR FAMILY alt_opf4
     USING btree
         ADD FUNCTION 0 btint42cmp(int4, int2);
 
--- function number should be between 1 and 5
+-- invalid options parsing function
 ALTER OPERATOR FAMILY alt_opf4
     USING btree
-        ADD FUNCTION 6 btint42cmp(int4, int2);
+        ADD FUNCTION 7 btint42cmp(int4, int2);
 
--- function number should be between 1 and 5
+-- function number should be between 1 and 6
 ALTER OPERATOR FAMILY alt_opf4
     USING btree
         ADD STORAGE invalid_storage;
@@ -934,11 +945,49 @@ ALTER OPERATOR FAMILY alt_opf18
         OPERATOR 5 > (int4, int2),
         FUNCTION 1 btint42cmp(int4, int2);
 
+-- Should fail. Not allowed to have cross-type equalimage function.
+ALTER OPERATOR FAMILY alt_opf18
+    USING btree
+        ADD FUNCTION 4 (int4, int2) btequalimage (oid);
+
+-- Should fail. Not allowed to have cross-type skip support function.
+ALTER OPERATOR FAMILY alt_opf18
+    USING btree
+        ADD FUNCTION 6 (int4, int2) btint4skipsupport (internal);
+
 ALTER OPERATOR FAMILY alt_opf18
     USING btree
         DROP FUNCTION 2 (int4, int4);
 
 DROP OPERATOR FAMILY alt_opf18
+    USING btree;
+
+-- Should fail. Invalid opclass options function (#5) specifications.
+CREATE OPERATOR FAMILY alt_opf19
+    USING btree;
+
+ALTER OPERATOR FAMILY alt_opf19
+    USING btree
+        ADD FUNCTION 5 test_opclass_options_func (internal, text[], bool);
+
+ALTER OPERATOR FAMILY alt_opf19
+    USING btree
+        ADD FUNCTION 5 (int4) btint42cmp(int4, int2);
+
+ALTER OPERATOR FAMILY alt_opf19
+    USING btree
+        ADD FUNCTION 5 (int4, int2) btint42cmp(int4, int2);
+
+ALTER OPERATOR FAMILY alt_opf19
+    USING btree
+        ADD FUNCTION 5 (int4) test_opclass_options_func (internal);
+
+-- Ok
+ALTER OPERATOR FAMILY alt_opf19
+    USING btree
+        DROP FUNCTION 5 (int4, int4);
+
+DROP OPERATOR FAMILY alt_opf19
     USING btree;
 
 --
@@ -960,7 +1009,7 @@ ALTER STATISTICS alt_stat1 RENAME TO alt_stat2;
 -- failed (name conflict)
 ALTER STATISTICS alt_stat1 RENAME TO alt_stat3;
 
--- failed (name conflict)
+-- OK
 ALTER STATISTICS alt_stat2 OWNER TO regress_alter_generic_user2;
 
 -- failed (no role membership)

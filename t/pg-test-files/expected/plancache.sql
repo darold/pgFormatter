@@ -310,6 +310,9 @@ DEALLOCATE pstmt_def_insert;
 -- Test plan_cache_mode
 CREATE TABLE test_mode (
     a int
+)
+WITH (
+    autovacuum_enabled = FALSE
 );
 
 INSERT INTO test_mode
@@ -321,9 +324,13 @@ UNION ALL
 SELECT
     2;
 
-CREATE INDEX ON test_mode (a);
-
+-- ANALYZE before creating the index. CREATE INDEX scans the table, which may
+-- set pages all-visible via on-access pruning. If relallvisible is then updated
+-- by ANALYZE, the generic plan may pick an index-only scan instead of the
+-- expected sequential scan.
 ANALYZE test_mode;
+
+CREATE INDEX ON test_mode (a);
 
 PREPARE test_mode_pp (int) AS
 SELECT
@@ -333,10 +340,30 @@ FROM
 WHERE
     a = $1;
 
+SELECT
+    name,
+    generic_plans,
+    custom_plans
+FROM
+    pg_prepared_statements
+WHERE
+    name = 'test_mode_pp';
+
 -- up to 5 executions, custom plan is used
+SET plan_cache_mode TO auto;
+
 EXPLAIN (
     COSTS OFF
 ) EXECUTE test_mode_pp (2);
+
+SELECT
+    name,
+    generic_plans,
+    custom_plans
+FROM
+    pg_prepared_statements
+WHERE
+    name = 'test_mode_pp';
 
 -- force generic plan
 SET plan_cache_mode TO force_generic_plan;
@@ -344,6 +371,15 @@ SET plan_cache_mode TO force_generic_plan;
 EXPLAIN (
     COSTS OFF
 ) EXECUTE test_mode_pp (2);
+
+SELECT
+    name,
+    generic_plans,
+    custom_plans
+FROM
+    pg_prepared_statements
+WHERE
+    name = 'test_mode_pp';
 
 -- get to generic plan by 5 executions
 SET plan_cache_mode TO auto;
@@ -360,9 +396,27 @@ EXECUTE test_mode_pp (1);
 EXECUTE test_mode_pp (1);
 
 -- 4x
+SELECT
+    name,
+    generic_plans,
+    custom_plans
+FROM
+    pg_prepared_statements
+WHERE
+    name = 'test_mode_pp';
+
 EXECUTE test_mode_pp (1);
 
 -- 5x
+SELECT
+    name,
+    generic_plans,
+    custom_plans
+FROM
+    pg_prepared_statements
+WHERE
+    name = 'test_mode_pp';
+
 -- we should now get a really bad plan
 EXPLAIN (
     COSTS OFF
@@ -374,6 +428,15 @@ SET plan_cache_mode TO force_custom_plan;
 EXPLAIN (
     COSTS OFF
 ) EXECUTE test_mode_pp (2);
+
+SELECT
+    name,
+    generic_plans,
+    custom_plans
+FROM
+    pg_prepared_statements
+WHERE
+    name = 'test_mode_pp';
 
 DROP TABLE test_mode;
 

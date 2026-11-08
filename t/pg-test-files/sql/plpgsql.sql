@@ -1559,6 +1559,122 @@ SELECT * FROM test_ret_rec_dyn(1500) AS (a int, b int, c int);
 SELECT * FROM test_ret_rec_dyn(5) AS (a int, b numeric, c text);
 
 --
+-- Test some simple polymorphism cases.
+--
+
+create function f1(x anyelement) returns anyelement as $$
+begin
+  return x + 1;
+end$$ language plpgsql;
+
+select f1(42) as int, f1(4.5) as num;
+select f1(point(3,4));  -- fail for lack of + operator
+
+drop function f1(x anyelement);
+
+create function f1(x anyelement) returns anyarray as $$
+begin
+  return array[x + 1, x + 2];
+end$$ language plpgsql;
+
+select f1(42) as int, f1(4.5) as num;
+
+drop function f1(x anyelement);
+
+create function f1(x anyarray) returns anyelement as $$
+begin
+  return x[1];
+end$$ language plpgsql;
+
+select f1(array[2,4]) as int, f1(array[4.5, 7.7]) as num;
+
+select f1(stavalues1) from pg_statistic;  -- fail, can't infer element type
+
+drop function f1(x anyarray);
+
+create function f1(x anyarray) returns anyarray as $$
+begin
+  return x;
+end$$ language plpgsql;
+
+select f1(array[2,4]) as int, f1(array[4.5, 7.7]) as num;
+
+select f1(stavalues1) from pg_statistic;  -- fail, can't infer element type
+
+drop function f1(x anyarray);
+
+-- fail, can't infer type:
+create function f1(x anyelement) returns anyrange as $$
+begin
+  return array[x + 1, x + 2];
+end$$ language plpgsql;
+
+create function f1(x anyrange) returns anyarray as $$
+begin
+  return array[lower(x), upper(x)];
+end$$ language plpgsql;
+
+select f1(int4range(42, 49)) as int, f1(float8range(4.5, 7.8)) as num;
+
+drop function f1(x anyrange);
+
+create function f1(x anycompatible, y anycompatible) returns anycompatiblearray as $$
+begin
+  return array[x, y];
+end$$ language plpgsql;
+
+select f1(2, 4) as int, f1(2, 4.5) as num;
+
+drop function f1(x anycompatible, y anycompatible);
+
+create function f1(x anycompatiblerange, y anycompatible, z anycompatible) returns anycompatiblearray as $$
+begin
+  return array[lower(x), upper(x), y, z];
+end$$ language plpgsql;
+
+select f1(int4range(42, 49), 11, 2::smallint) as int, f1(float8range(4.5, 7.8), 7.8, 11::real) as num;
+
+select f1(int4range(42, 49), 11, 4.5) as fail;  -- range type doesn't fit
+
+drop function f1(x anycompatiblerange, y anycompatible, z anycompatible);
+
+-- fail, can't infer type:
+create function f1(x anycompatible) returns anycompatiblerange as $$
+begin
+  return array[x + 1, x + 2];
+end$$ language plpgsql;
+
+create function f1(x anycompatiblerange, y anycompatiblearray) returns anycompatiblerange as $$
+begin
+  return x;
+end$$ language plpgsql;
+
+select f1(int4range(42, 49), array[11]) as int, f1(float8range(4.5, 7.8), array[7]) as num;
+
+drop function f1(x anycompatiblerange, y anycompatiblearray);
+
+create function f1(a anyelement, b anyarray,
+                   c anycompatible, d anycompatible,
+                   OUT x anyarray, OUT y anycompatiblearray)
+as $$
+begin
+  x := a || b;
+  y := array[c, d];
+end$$ language plpgsql;
+
+select x, pg_typeof(x), y, pg_typeof(y)
+  from f1(11, array[1, 2], 42, 34.5);
+select x, pg_typeof(x), y, pg_typeof(y)
+  from f1(11, array[1, 2], point(1,2), point(3,4));
+select x, pg_typeof(x), y, pg_typeof(y)
+  from f1(11, '{1,2}', point(1,2), '(3,4)');
+select x, pg_typeof(x), y, pg_typeof(y)
+  from f1(11, array[1, 2.2], 42, 34.5);  -- fail
+
+drop function f1(a anyelement, b anyarray,
+                 c anycompatible, d anycompatible);
+
+--
 -- Test handling of OUT parameters, including polymorphic cases.
 -- Note that RETURN is optional with OUT params; we try both ways.
 --
@@ -1638,6 +1754,18 @@ select * from duplic(42);
 select * from duplic('foo'::text);
 
 drop function duplic(anyelement);
+
+create function duplic(in i anycompatiblerange, out j anycompatible, out k anycompatiblearray) as $$
+begin
+  j := lower(i);
+  k := array[lower(i),upper(i)];
+  return;
+end$$ language plpgsql;
+
+select * from duplic(int4range(42,49));
+select * from duplic(textrange('aaa', 'bbb'));
+
+drop function duplic(anycompatiblerange);
 
 --
 -- test PERFORM
@@ -1731,6 +1859,11 @@ drop function sp_id_user(text);
 -- tests for refcursors
 --
 create table rc_test (a int, b int);
+copy rc_test from stdin;
+5	10
+50	100
+500	1000
+\.
 
 create function return_unnamed_refcursor() returns refcursor as $$
 declare
@@ -1799,6 +1932,30 @@ $$ language plpgsql;
 
 select refcursor_test2(20000, 20000) as "Should be false",
        refcursor_test2(20, 20) as "Should be true";
+
+-- should fail
+create function constant_refcursor() returns refcursor as $$
+declare
+    rc constant refcursor;
+begin
+    open rc for select a from rc_test;
+    return rc;
+end
+$$ language plpgsql;
+
+select constant_refcursor();
+
+-- but it's okay like this
+create or replace function constant_refcursor() returns refcursor as $$
+declare
+    rc constant refcursor := 'my_cursor_name';
+begin
+    open rc for select a from rc_test;
+    return rc;
+end
+$$ language plpgsql;
+
+select constant_refcursor();
 
 --
 -- tests for cursors with named parameter arguments
@@ -1890,11 +2047,9 @@ begin
 end $$ language plpgsql;
 select namedparmcursor_test7();
 
--- check that line comments work correctly within the argument list (there
--- is some special handling of this case in the code: the newline after the
--- comment must be preserved when the argument-evaluating query is
--- constructed, otherwise the comment effectively comments out the next
--- argument, too)
+-- check that line comments work correctly within the argument list
+-- (this used to require a special hack in the code; it no longer does,
+-- but let's keep the test anyway)
 create function namedparmcursor_test8() returns int4 as $$
 declare
   c1 cursor (p1 int, p2 int) for
@@ -1917,7 +2072,8 @@ declare
   p2 int4 := 1006;
   n int4;
 begin
-  open c1 (p1 := p1, p2 := p2, debug := 2);
+  -- use both supported syntaxes for named arguments
+  open c1 (p1 := p1, p2 => p2, debug => 2);
   fetch c1 into n;
   return n;
 end $$ language plpgsql;
@@ -2267,6 +2423,19 @@ declare
 x record;
 p1 int := 2;
 p3 text := 'foo';
+begin
+  -- no rows
+  select * from foo where f1 = p1 and f1::text = p3 into strict x;
+  raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
+end$$ language plpgsql;
+
+select stricttest();
+
+create or replace function stricttest() returns void as $$
+declare
+x record;
+p1 int := 2;
+p3 text := $a$'Valame Dios!' dijo Sancho; 'no le dije yo a vuestra merced que mirase bien lo que hacia?'$a$;
 begin
   -- no rows
   select * from foo where f1 = p1 and f1::text = p3 into strict x;
@@ -2707,7 +2876,7 @@ create type record_type as (x text, y int, z boolean);
 
 create or replace function ret_query2(lim int) returns setof record_type as $$
 begin
-    return query select md5(s.x::text), s.x, s.x > 0
+    return query select fipshash(s.x::text), s.x, s.x > 0
                  from generate_series(-8, lim) s (x) where s.x % 2 = 0;
 end;
 $$ language plpgsql;
@@ -2759,11 +2928,15 @@ declare
   c2 cursor
        for select * from generate_series(41,43) i;
 begin
+  -- assign portal names to cursors to get stable output
+  c := 'c';
+  c2 := 'c2';
   for r in c(5,7) loop
     raise notice '% from %', r.i, c;
   end loop;
   -- again, to test if cursor was closed properly
-  for r in c(9,10) loop
+  -- (and while we're at it, test named-parameter notation)
+  for r in c(r2 := 10, r1 => 9) loop
     raise notice '% from %', r.i, c;
   end loop;
   -- and test a parameterless cursor
@@ -2831,6 +3004,23 @@ select forc01();
 select * from forc_test;
 
 drop function forc01();
+
+-- it's okay to re-use a cursor variable name, even when bound
+
+do $$
+declare cnt int := 0;
+  c1 cursor for select * from forc_test;
+begin
+  for r1 in c1 loop
+    declare c1 cursor for select * from forc_test;
+    begin
+      for r2 in c1 loop
+        cnt := cnt + 1;
+      end loop;
+    end;
+  end loop;
+  raise notice 'cnt = %', cnt;
+end $$;
 
 -- fail because cursor has no query bound to it
 
@@ -3166,7 +3356,7 @@ declare v int := 0;
 begin
   return 10 / v;
 end;
-$$ language plpgsql;
+$$ language plpgsql parallel safe;
 
 create or replace function raise_test() returns void as $$
 begin
@@ -3227,8 +3417,28 @@ $$ language plpgsql;
 
 select stacked_diagnostics_test();
 
-drop function zero_divide();
 drop function stacked_diagnostics_test();
+
+-- Test that an error recovery subtransaction is parallel safe
+
+create function error_trap_test() returns text as $$
+begin
+  perform zero_divide();
+  return 'no error detected!';
+exception when division_by_zero then
+  return 'division_by_zero detected';
+end;
+$$ language plpgsql parallel safe;
+
+set debug_parallel_query to on;
+
+explain (verbose, costs off) select error_trap_test();
+select error_trap_test();
+
+reset debug_parallel_query;
+
+drop function error_trap_test();
+drop function zero_divide();
 
 -- check cases where implicit SQLSTATE variable could be confused with
 -- SQLSTATE as a keyword, cf bug #5524
@@ -3348,10 +3558,9 @@ select * from tftest(10);
 
 drop function tftest(int);
 
-create or replace function rttest()
+create function rttest()
 returns setof int as $$
 declare rc int;
-  rca int[];
 begin
   return query values(10),(20);
   get diagnostics rc = row_count;
@@ -3360,16 +3569,37 @@ begin
   get diagnostics rc = row_count;
   raise notice '% %', found, rc;
   return query execute 'values(10),(20)';
-  -- just for fun, let's use array elements as targets
-  get diagnostics rca[1] = row_count;
-  raise notice '% %', found, rca[1];
+  get diagnostics rc = row_count;
+  raise notice '% %', found, rc;
   return query execute 'select * from (values(10),(20)) f(a) where false';
-  get diagnostics rca[2] = row_count;
-  raise notice '% %', found, rca[2];
+  get diagnostics rc = row_count;
+  raise notice '% %', found, rc;
 end;
 $$ language plpgsql;
 
 select * from rttest();
+
+-- check some error cases, too
+
+create or replace function rttest()
+returns setof int as $$
+begin
+  return query select 10 into no_such_table;
+end;
+$$ language plpgsql;
+
+select * from rttest();
+
+create or replace function rttest()
+returns setof int as $$
+begin
+  return query execute 'select 10 into no_such_table';
+end;
+$$ language plpgsql;
+
+select * from rttest();
+
+select * from no_such_table;
 
 drop function rttest();
 
@@ -3543,28 +3773,6 @@ drop function fail();
 
 -- Test handling of string literals.
 
-set standard_conforming_strings = off;
-
-create or replace function strtest() returns text as $$
-begin
-  raise notice 'foo\\bar\041baz';
-  return 'foo\\bar\041baz';
-end
-$$ language plpgsql;
-
-select strtest();
-
-create or replace function strtest() returns text as $$
-begin
-  raise notice E'foo\\bar\041baz';
-  return E'foo\\bar\041baz';
-end
-$$ language plpgsql;
-
-select strtest();
-
-set standard_conforming_strings = on;
-
 create or replace function strtest() returns text as $$
 begin
   raise notice 'foo\\bar\041baz\';
@@ -3629,22 +3837,42 @@ end;
 $outer$;
 
 -- Check variable scoping -- a var is not available in its own or prior
--- default expressions.
+-- default expressions, but it is available in later ones.
 
-create function scope_test() returns int as $$
+do $$
+declare x int := x + 1;  -- error
+begin
+  raise notice 'x = %', x;
+end;
+$$;
+
+do $$
+declare y int := x + 1;  -- error
+        x int := 42;
+begin
+  raise notice 'x = %, y = %', x, y;
+end;
+$$;
+
+do $$
+declare x int := 42;
+        y int := x + 1;
+begin
+  raise notice 'x = %, y = %', x, y;
+end;
+$$;
+
+do $$
 declare x int := 42;
 begin
   declare y int := x + 1;
           x int := x + 2;
+          z int := x * 10;
   begin
-    return x * 100 + y;
+    raise notice 'x = %, y = %, z = %', x, y, z;
   end;
 end;
-$$ language plpgsql;
-
-select scope_test();
-
-drop function scope_test();
+$$;
 
 -- Check handling of conflicts between plpgsql vars and table columns.
 
@@ -3976,7 +4204,7 @@ end;
 $$ language plpgsql;
 
 select outer_outer_func(10);
--- repeated call should to work
+-- repeated call should work
 select outer_outer_func(20);
 
 drop function outer_outer_func(int);
@@ -4031,12 +4259,37 @@ end;
 $$ language plpgsql;
 
 select outer_outer_func(10);
--- repeated call should to work
+-- repeated call should work
 select outer_outer_func(20);
 
 drop function outer_outer_func(int);
 drop function outer_func(int);
 drop function inner_func(int);
+
+-- Test pg_routine_oid
+create function current_function(text)
+returns regprocedure as $$
+declare
+  fn_oid regprocedure;
+begin
+  get diagnostics fn_oid = pg_routine_oid;
+  return fn_oid;
+end;
+$$ language plpgsql;
+
+select current_function('foo');
+
+drop function current_function(text);
+
+-- shouldn't fail in DO, even though there's no useful data
+do $$
+declare
+  fn_oid oid;
+begin
+  get diagnostics fn_oid = pg_routine_oid;
+  raise notice 'pg_routine_oid = %', fn_oid;
+end;
+$$;
 
 --
 -- Test ASSERT
@@ -4479,12 +4732,12 @@ END; $$ LANGUAGE plpgsql;
 SELECT * FROM get_from_partitioned_table(1) AS t;
 
 CREATE OR REPLACE FUNCTION list_partitioned_table()
-RETURNS SETOF partitioned_table.a%TYPE AS $$
+RETURNS SETOF public.partitioned_table.a%TYPE AS $$
 DECLARE
-    row partitioned_table%ROWTYPE;
-    a_val partitioned_table.a%TYPE;
+    row public.partitioned_table%ROWTYPE;
+    a_val public.partitioned_table.a%TYPE;
 BEGIN
-    FOR row IN SELECT * FROM partitioned_table ORDER BY a LOOP
+    FOR row IN SELECT * FROM public.partitioned_table ORDER BY a LOOP
         a_val := row.a;
         RETURN NEXT a_val;
     END LOOP;

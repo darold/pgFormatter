@@ -1,7 +1,11 @@
 --
 -- FLOAT8
 --
-CREATE TABLE FLOAT8_TBL (
+--
+-- Build a table for testing
+-- (This temporarily hides the table created in test_setup.sql)
+--
+CREATE TEMP TABLE FLOAT8_TBL (
     f1 float8
 );
 
@@ -62,6 +66,21 @@ INSERT INTO FLOAT8_TBL (f1)
 INSERT INTO FLOAT8_TBL (f1)
     VALUES ('123           5');
 
+-- Also try it with non-error-throwing API
+SELECT
+    pg_input_is_valid ('34.5', 'float8');
+
+SELECT
+    pg_input_is_valid ('xyz', 'float8');
+
+SELECT
+    pg_input_is_valid ('1e4000', 'float8');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('1e4000', 'float8');
+
 -- special inputs
 SELECT
     'NaN'::float8;
@@ -95,19 +114,23 @@ SELECT
     'Infinity'::float8 / 'Infinity'::float8;
 
 SELECT
+    '42'::float8 / 'Infinity'::float8;
+
+SELECT
     'nan'::float8 / 'nan'::float8;
+
+SELECT
+    'nan'::float8 / '0'::float8;
 
 SELECT
     'nan'::numeric::float8;
 
 SELECT
-    '' AS five,
     *
 FROM
     FLOAT8_TBL;
 
 SELECT
-    '' AS four,
     f.*
 FROM
     FLOAT8_TBL f
@@ -115,7 +138,6 @@ WHERE
     f.f1 <> '1004.3';
 
 SELECT
-    '' AS one,
     f.*
 FROM
     FLOAT8_TBL f
@@ -123,7 +145,6 @@ WHERE
     f.f1 = '1004.3';
 
 SELECT
-    '' AS three,
     f.*
 FROM
     FLOAT8_TBL f
@@ -131,7 +152,6 @@ WHERE
     '1004.3' > f.f1;
 
 SELECT
-    '' AS three,
     f.*
 FROM
     FLOAT8_TBL f
@@ -139,7 +159,6 @@ WHERE
     f.f1 < '1004.3';
 
 SELECT
-    '' AS four,
     f.*
 FROM
     FLOAT8_TBL f
@@ -147,7 +166,6 @@ WHERE
     '1004.3' >= f.f1;
 
 SELECT
-    '' AS four,
     f.*
 FROM
     FLOAT8_TBL f
@@ -155,7 +173,6 @@ WHERE
     f.f1 <= '1004.3';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 * '-10' AS x
 FROM
@@ -164,7 +181,6 @@ WHERE
     f.f1 > '0.0';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 + '-10' AS x
 FROM
@@ -173,7 +189,6 @@ WHERE
     f.f1 > '0.0';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 / '-10' AS x
 FROM
@@ -182,7 +197,6 @@ WHERE
     f.f1 > '0.0';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 - '-10' AS x
 FROM
@@ -191,7 +205,6 @@ WHERE
     f.f1 > '0.0';
 
 SELECT
-    '' AS one,
     f.f1 ^ '2.0' AS square_f1
 FROM
     FLOAT8_TBL f
@@ -200,15 +213,13 @@ WHERE
 
 -- absolute value
 SELECT
-    '' AS five,
     f.f1,
-    @f.f1 AS abs_f1
+    @ f.f1 AS abs_f1
 FROM
     FLOAT8_TBL f;
 
 -- truncate
 SELECT
-    '' AS five,
     f.f1,
     trunc(f.f1) AS trunc_f1
 FROM
@@ -216,7 +227,6 @@ FROM
 
 -- round
 SELECT
-    '' AS five,
     f.f1,
     round(f.f1) AS round_f1
 FROM
@@ -256,7 +266,6 @@ SELECT
     |/ float8 '64' AS eight;
 
 SELECT
-    '' AS three,
     f.f1,
     |/ f.f1 AS sqrt_f1
 FROM
@@ -286,9 +295,91 @@ SELECT
 SELECT
     power(float8 'NaN', float8 '0');
 
+SELECT
+    power(float8 'inf', float8 '0');
+
+SELECT
+    power(float8 '-inf', float8 '0');
+
+SELECT
+    power(float8 '0', float8 'inf');
+
+SELECT
+    power(float8 '0', float8 '-inf');
+
+SELECT
+    power(float8 '1', float8 'inf');
+
+SELECT
+    power(float8 '1', float8 '-inf');
+
+SELECT
+    power(float8 '-1', float8 'inf');
+
+SELECT
+    power(float8 '-1', float8 '-inf');
+
+SELECT
+    power(float8 '0.1', float8 'inf');
+
+SELECT
+    power(float8 '-0.1', float8 'inf');
+
+SELECT
+    power(float8 '1.1', float8 'inf');
+
+SELECT
+    power(float8 '-1.1', float8 'inf');
+
+SELECT
+    power(float8 '0.1', float8 '-inf');
+
+SELECT
+    power(float8 '-0.1', float8 '-inf');
+
+SELECT
+    power(float8 '1.1', float8 '-inf');
+
+SELECT
+    power(float8 '-1.1', float8 '-inf');
+
+SELECT
+    power(float8 'inf', float8 '-2');
+
+SELECT
+    power(float8 'inf', float8 '2');
+
+SELECT
+    power(float8 'inf', float8 'inf');
+
+SELECT
+    power(float8 'inf', float8 '-inf');
+
+-- Intel's icc misoptimizes the code that controls the sign of this result,
+-- even with -mp1.  Pending a fix for that, only test for "is it zero".
+SELECT
+    power(float8 '-inf', float8 '-2') = '0';
+
+SELECT
+    power(float8 '-inf', float8 '-3');
+
+SELECT
+    power(float8 '-inf', float8 '2');
+
+SELECT
+    power(float8 '-inf', float8 '3');
+
+SELECT
+    power(float8 '-inf', float8 '3.5');
+
+SELECT
+    power(float8 '-inf', float8 'inf');
+
+SELECT
+    power(float8 '-inf', float8 '-inf');
+
 -- take exp of ln(f.f1)
 SELECT
-    '' AS three,
     f.f1,
     exp(ln(f.f1)) AS exp_ln_f1
 FROM
@@ -296,19 +387,23 @@ FROM
 WHERE
     f.f1 > '0.0';
 
+-- check edge cases for exp
+SELECT
+    exp('inf'::float8),
+    exp('-inf'::float8),
+    exp('nan'::float8);
+
 -- cube root
 SELECT
     ||/ float8 '27' AS three;
 
 SELECT
-    '' AS five,
     f.f1,
     ||/ f.f1 AS cbrt_f1
 FROM
     FLOAT8_TBL f;
 
 SELECT
-    '' AS five,
     *
 FROM
     FLOAT8_TBL;
@@ -321,13 +416,11 @@ WHERE
     FLOAT8_TBL.f1 > '0.0';
 
 SELECT
-    '' AS bad,
     f.f1 * '1e200'
 FROM
     FLOAT8_TBL f;
 
 SELECT
-    '' AS bad,
     f.f1 ^ '1e200'
 FROM
     FLOAT8_TBL f;
@@ -336,7 +429,6 @@ SELECT
     0 ^ 0 + 0 ^ 1 + 0 ^ 0.0 + 0 ^ 0.5;
 
 SELECT
-    '' AS bad,
     ln(f.f1)
 FROM
     FLOAT8_TBL f
@@ -344,7 +436,6 @@ WHERE
     f.f1 = '0.0';
 
 SELECT
-    '' AS bad,
     ln(f.f1)
 FROM
     FLOAT8_TBL f
@@ -352,22 +443,21 @@ WHERE
     f.f1 < '0.0';
 
 SELECT
-    '' AS bad,
     exp(f.f1)
 FROM
     FLOAT8_TBL f;
 
 SELECT
-    '' AS bad,
     f.f1 / '0.0'
 FROM
     FLOAT8_TBL f;
 
 SELECT
-    '' AS five,
     *
 FROM
-    FLOAT8_TBL;
+    FLOAT8_TBL
+ORDER BY
+    1;
 
 -- hyperbolic functions
 -- we run these with extra_float_digits = 0 too, since different platforms
@@ -444,6 +534,94 @@ SELECT
 SELECT
     atanh (float8 'nan');
 
+-- error functions
+-- we run these with extra_float_digits = -1, to get consistently rounded
+-- results on all platforms.
+SET extra_float_digits = -1;
+
+SELECT
+    x,
+    erf (x),
+    erfc (x)
+FROM (
+    VALUES (float8 '-infinity'),
+        (-28),
+        (-6),
+        (-3.4),
+        (-2.1),
+        (-1.1),
+        (-0.45),
+        (- 1.2e-9),
+        (- 2.3e-13),
+        (- 1.2e-17),
+        (0),
+        (1.2e-17),
+        (2.3e-13),
+        (1.2e-9),
+        (0.45),
+        (1.1),
+        (2.1),
+        (3.4),
+        (6),
+        (28),
+        (float8 'infinity'),
+        (float8 'nan')) AS t (x);
+
+RESET extra_float_digits;
+
+-- gamma functions
+-- we run these with extra_float_digits = -1, to get consistently rounded
+-- results on all platforms.
+SET extra_float_digits = -1;
+
+SELECT
+    x,
+    gamma (x),
+    lgamma (x)
+FROM (
+    VALUES (0.5),
+        (1),
+        (2),
+        (3),
+        (4),
+        (5),
+        (float8 'infinity'),
+        (float8 'nan')) AS t (x);
+
+-- test overflow/underflow handling
+SELECT
+    gamma (float8 '-infinity');
+
+SELECT
+    lgamma (float8 '-infinity');
+
+SELECT
+    gamma (float8 '-1000.5');
+
+SELECT
+    lgamma (float8 '-1000.5');
+
+SELECT
+    gamma (float8 '-1');
+
+SELECT
+    lgamma (float8 '-1');
+
+SELECT
+    gamma (float8 '0');
+
+SELECT
+    lgamma (float8 '0');
+
+SELECT
+    gamma (float8 '1000');
+
+SELECT
+    lgamma (float8 '1000');
+
+SELECT
+    lgamma (float8 '1e308');
+
 RESET extra_float_digits;
 
 -- test for over- and underflow
@@ -459,27 +637,10 @@ INSERT INTO FLOAT8_TBL (f1)
 INSERT INTO FLOAT8_TBL (f1)
     VALUES ('-10e-400');
 
--- maintain external table consistency across platforms
--- delete all values and reinsert well-behaved ones
-DELETE FROM FLOAT8_TBL;
+DROP TABLE FLOAT8_TBL;
 
-INSERT INTO FLOAT8_TBL (f1)
-    VALUES ('0.0');
-
-INSERT INTO FLOAT8_TBL (f1)
-    VALUES ('-34.84');
-
-INSERT INTO FLOAT8_TBL (f1)
-    VALUES ('-1004.30');
-
-INSERT INTO FLOAT8_TBL (f1)
-    VALUES ('-1.2345678901234e+200');
-
-INSERT INTO FLOAT8_TBL (f1)
-    VALUES ('-1.2345678901234e-200');
-
+-- Check the float8 values exported for use by other tests
 SELECT
-    '' AS five,
     *
 FROM
     FLOAT8_TBL;
@@ -622,6 +783,12 @@ CREATE FUNCTION xfloat8out (xfloat8)
     RETURNS cstring IMMUTABLE STRICT
     LANGUAGE internal
     AS 'int8out';
+
+CREATE TYPE xfloat8 (
+    input = xfloat8in,
+    output = xfloat8out,
+    LIKE = no_such_type
+);
 
 CREATE TYPE xfloat8 (
     input = xfloat8in,

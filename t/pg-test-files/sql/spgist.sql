@@ -71,3 +71,39 @@ create index spgist_point_idx2 on spgist_point_tbl using spgist(p) with (fillfac
 -- Modify fillfactor in existing index
 alter index spgist_point_idx set (fillfactor = 90);
 reindex index spgist_point_idx;
+
+-- Test index over a domain
+create domain spgist_text as varchar;
+create table spgist_domain_tbl (f1 spgist_text);
+create index spgist_domain_idx on spgist_domain_tbl using spgist(f1);
+insert into spgist_domain_tbl values('fee'), ('fi'), ('fo'), ('fum');
+explain (costs off)
+select * from spgist_domain_tbl where f1 = 'fo';
+select * from spgist_domain_tbl where f1 = 'fo';
+
+-- test an unlogged table, mostly to get coverage of spgistbuildempty
+create unlogged table spgist_unlogged_tbl(id serial, b box);
+create index spgist_unlogged_idx on spgist_unlogged_tbl using spgist (b);
+insert into spgist_unlogged_tbl(b)
+select box(point(i,j))
+  from generate_series(1,100,5) i,
+       generate_series(1,10,5) j;
+-- leave this table around, to help in testing dump/restore
+
+-- Bug #19597: coverage of getQuadrant for a point just over EPSILON from the centroid
+create table spgist_quad_fp_tbl(p point);
+insert into spgist_quad_fp_tbl select point(i, 5) from generate_series(1, 300) i;
+create index spgist_quad_fp_idx on spgist_quad_fp_tbl using spgist(p);
+insert into spgist_quad_fp_tbl values (point(3, 5 + 1e-6));
+
+-- Bug #19597: needs exact comparison on one axis, within EPSILON on the other
+insert into spgist_quad_fp_tbl values (point(114 - 5e-7, 5 + 1e-6));
+set enable_seqscan = off;
+select count(*) from spgist_quad_fp_tbl
+  where p <@ box(point(113.999999, 5.0000004), point(113.9999999, 5.0000016));
+
+-- test top of box within EPSILON of the centroid
+insert into spgist_quad_fp_tbl values (point(200, 5 - 5e-6));
+select count(*) from spgist_quad_fp_tbl
+  where p <@ box(point(0, 4.99999), point(400, 4.9999995));
+reset enable_seqscan;

@@ -1,6 +1,9 @@
 --
 -- ARRAYS
 --
+-- directory paths are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+
 CREATE TABLE arrtest (
     a int2[],
     b int4[][][],
@@ -10,6 +13,19 @@ CREATE TABLE arrtest (
     f char(5)[],
     g varchar(5)[]
 );
+
+CREATE TABLE array_op_test (
+    seqno int4,
+    i int4[],
+    t text[]
+);
+
+\set filename :abs_srcdir '/data/array.data'
+COPY array_op_test
+FROM
+    :'filename';
+
+ANALYZE array_op_test;
 
 --
 -- only the 'e' array is 0-based, the others are 1-based.
@@ -36,6 +52,14 @@ INSERT INTO arrtest (a, b[1:2][1:2], c, d, e, f, g)
 INSERT INTO arrtest (a, b[1:2], c, d[1:2])
     VALUES ('{}', '{3,4}', '{foo,bar}', '{bar,foo}');
 
+INSERT INTO arrtest (b[2])
+    VALUES (now());
+
+-- error, type mismatch
+INSERT INTO arrtest (b[1:2])
+    VALUES (now());
+
+-- error, type mismatch
 SELECT
     *
 FROM
@@ -166,6 +190,21 @@ SELECT
 FROM
     arrtest;
 
+-- test non-error-throwing API
+SELECT
+    pg_input_is_valid ('{1,2,3}', 'integer[]');
+
+SELECT
+    pg_input_is_valid ('{1,2', 'integer[]');
+
+SELECT
+    pg_input_is_valid ('{1,zed}', 'integer[]');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('{1,zed}', 'integer[]');
+
 -- test mixed slice/scalar subscripting
 SELECT
     '{{1,2,3},{4,5,6},{7,8,9}}'::int[];
@@ -182,7 +221,7 @@ SELECT
 --
 -- check subscription corner cases
 --
--- More subscripts than MAXDIMS(6)
+-- More subscripts than MAXDIM (6)
 SELECT
     ('{}'::int[])[1][2][3][4][5][6][7];
 
@@ -217,6 +256,10 @@ SET
     c[1:NULL] = '{"can''t assign"}'
 WHERE
     array_dims(c) IS NOT NULL;
+
+-- Un-subscriptable type
+SELECT
+    (now())[1];
 
 -- test slices with empty lower and/or upper index
 CREATE TEMP TABLE arrtest_s (
@@ -303,6 +346,16 @@ SET
     a[:] = '{11, 12, 13, 14, 15}';
 
 -- fail, no good with null
+-- we want to work with a point_tbl that includes a null
+CREATE TEMP TABLE point_tbl AS
+SELECT
+    *
+FROM
+    public.point_tbl;
+
+INSERT INTO POINT_TBL (f1)
+    VALUES (NULL);
+
 -- check with fixed-length-array type, such as point
 SELECT
     f1[0:1]
@@ -774,6 +827,22 @@ SELECT
     0 || ARRAY[1, 2] || 3 AS "{0,1,2,3}";
 
 SELECT
+    ARRAY[1.1] || ARRAY[2, 3, 4];
+
+SELECT
+    array_agg(x) || array_agg(x)
+FROM (
+    VALUES (ROW (1, 2)),
+        (ROW (3, 4))) v (x);
+
+SELECT
+    ROW (1,
+        2) || array_agg(x)
+FROM (
+    VALUES (ROW (3, 4)),
+        (ROW (5, 6))) v (x);
+
+SELECT
     *
 FROM
     array_op_test
@@ -1012,13 +1081,13 @@ SELECT
     ARRAY[1, 2, 3]::text[]::int[]::float8[] AS "{1,2,3}";
 
 SELECT
-    ARRAY[1, 2, 3]::text[]::int[]::float8[] IS OF (float8[]) AS "TRUE";
+    pg_typeof(ARRAY[1, 2, 3]::text[]::int[]::float8[]) AS "double precision[]";
 
 SELECT
     ARRAY[['a', 'bc'],['def', 'hijk']]::text[]::varchar[] AS "{{a,bc},{def,hijk}}";
 
 SELECT
-    ARRAY[['a', 'bc'],['def', 'hijk']]::text[]::varchar[] IS OF (varchar[]) AS "TRUE";
+    pg_typeof(ARRAY[['a', 'bc'],['def', 'hijk']]::text[]::varchar[]) AS "character varying[]";
 
 SELECT
     CAST(ARRAY[[[[[['a', 'bb', 'ccc']]]]]] AS text[]) AS "{{{{{{a,bb,ccc}}}}}}";
@@ -1175,6 +1244,44 @@ RESET enable_seqscan;
 
 RESET enable_bitmapscan;
 
+-- test subscript overflow detection
+-- The normal error message includes a platform-dependent limit,
+-- so suppress it to avoid needing multiple expected-files.
+\set VERBOSITY sqlstate
+INSERT INTO arr_pk_tbl
+    VALUES (10, '[-2147483648:-2147483647]={1,2}');
+
+UPDATE
+    arr_pk_tbl
+SET
+    f1[2147483647] = 42
+WHERE
+    pk = 10;
+
+UPDATE
+    arr_pk_tbl
+SET
+    f1[2147483646:2147483647] = ARRAY[4, 2]
+WHERE
+    pk = 10;
+
+INSERT INTO arr_pk_tbl (pk, f1[0:2147483647])
+    VALUES (2, '{}');
+
+INSERT INTO arr_pk_tbl (pk, f1[- 2147483648:2147483647])
+    VALUES (2, '{}');
+
+-- also exercise the expanded-array case
+DO $$
+DECLARE
+    a int[];
+BEGIN
+    a := '[-2147483648:-2147483647]={1,2}'::int[];
+    a[2147483647] := 42;
+END
+$$;
+
+\set VERBOSITY default
 -- test [not] (like|ilike) (any|all) (...)
 SELECT
     'foo' LIKE ANY (ARRAY['%a', '%o']);
@@ -1216,13 +1323,22 @@ SELECT
     '{{1,{2}},{2,3}}'::text[];
 
 SELECT
-    '{{},{}}'::text[];
-
-SELECT
     E'{{1,2},\\{2,3}}'::text[];
 
 SELECT
+    '{"a"b}'::text[];
+
+SELECT
+    '{a"b"}'::text[];
+
+SELECT
+    '{"a""b"}'::text[];
+
+SELECT
     '{{"1 2" x},{3}}'::text[];
+
+SELECT
+    '{{"1 2"} x,{3}}'::text[];
 
 SELECT
     '{}}'::text[];
@@ -1231,7 +1347,73 @@ SELECT
     '{ }}'::text[];
 
 SELECT
+    '}{'::text[];
+
+SELECT
+    '{foo{}}'::text[];
+
+SELECT
+    '{"foo"{}}'::text[];
+
+SELECT
+    '{foo,,bar}'::text[];
+
+SELECT
+    '{{1},{{2}}}'::text[];
+
+SELECT
+    '{{{1}},{2}}'::text[];
+
+SELECT
+    '{{},{{}}}'::text[];
+
+SELECT
+    '{{{}},{}}'::text[];
+
+SELECT
+    '{{1},{}}'::text[];
+
+SELECT
+    '{{},{1}}'::text[];
+
+SELECT
+    '[1:0]={}'::int[];
+
+SELECT
+    '[2147483646:2147483647]={1,2}'::int[];
+
+SELECT
+    '[1:-1]={}'::int[];
+
+SELECT
+    '[2]={1}'::int[];
+
+SELECT
+    '[1:]={1}'::int[];
+
+SELECT
+    '[:1]={1}'::int[];
+
+SELECT
     ARRAY[];
+
+SELECT
+    '{{1,},{1},}'::text[];
+
+SELECT
+    '{{1,},{1}}'::text[];
+
+SELECT
+    '{{1,}}'::text[];
+
+SELECT
+    '{1,}'::text[];
+
+SELECT
+    '[21474836488:21474836489]={1,2}'::int[];
+
+SELECT
+    '[-2147483649:-2147483648]={1,2}'::int[];
 
 -- none of the above should be accepted
 -- all of the following should be accepted
@@ -1239,7 +1421,16 @@ SELECT
     '{}'::text[];
 
 SELECT
+    '{{},{}}'::text[];
+
+SELECT
     '{{{1,2,3,4},{2,3,4,5}},{{3,4,5,6},{4,5,6,7}}}'::text[];
+
+SELECT
+    '{null,n\ull,"null"}'::text[];
+
+SELECT
+    '{ ab\c , "ab\"c" }'::text[];
 
 SELECT
     '{0 second  ,0 second}'::interval[];
@@ -1260,9 +1451,25 @@ SELECT
     ARRAY[]::text[];
 
 SELECT
+    '[2]={1,7}'::int[];
+
+SELECT
     '[0:1]={1.1,2.2}'::float8[];
 
+SELECT
+    '[2147483646:2147483646]={1}'::int[];
+
+SELECT
+    '[-2147483648:-2147483647]={1,2}'::int[];
+
 -- all of the above should be accepted
+-- some day we might allow these cases, but for now they're errors:
+SELECT
+    ARRAY[]::oidvector;
+
+SELECT
+    ARRAY[]::int2vector;
+
 -- tests for array aggregates
 CREATE TEMP TABLE arraggtest (
     f1 int[],
@@ -1341,7 +1548,8 @@ FROM
 -- A few simple tests for arrays of composite types
 CREATE TYPE comptype AS (
     f1 int,
-    f2 text
+    f2 text,
+    f3 int[]
 );
 
 CREATE TABLE comptable (
@@ -1351,7 +1559,7 @@ CREATE TABLE comptable (
 
 -- XXX would like to not have to specify row() construct types here ...
 INSERT INTO comptable
-    VALUES (ROW (1, 'foo'), ARRAY[ROW (2, 'bar')::comptype, ROW (3, 'baz')::comptype]);
+    VALUES (ROW (1, 'foo', ARRAY[10, 20]), ARRAY[ROW (2, 'bar', ARRAY[30, 40])::comptype, ROW (3, 'baz', ARRAY[50, 60])::comptype]);
 
 -- check that implicitly named array type _comptype isn't a problem
 CREATE TYPE _comptype AS enum (
@@ -1365,6 +1573,21 @@ FROM
 
 SELECT
     c2[2].f2
+FROM
+    comptable;
+
+SELECT
+    c2[2].f3
+FROM
+    comptable;
+
+SELECT
+    c2[2].f3[1:2]
+FROM
+    comptable;
+
+SELECT
+    c2[1:2].f3[1:2]
 FROM
     comptable;
 
@@ -1519,6 +1742,90 @@ SELECT
 
 SELECT
     string_to_array('1,2,3,4,*,6', ',', '*');
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1|2|3', '|') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1|2|3|', '|') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1||2|3||', '||') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1|2|3', '') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('', '|') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1|2|3', NULL) g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table (NULL, '|') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('abc', '') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('abc', '', 'abc') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('abc', ',') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('abc', ',', 'abc') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1,2,3,4,,6', ',') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1,2,3,4,,6', ',', '') g (v);
+
+SELECT
+    v,
+    v IS NULL AS "is null"
+FROM
+    string_to_table ('1,2,3,4,*,6', ',', '*') g (v);
 
 SELECT
     array_to_string(NULL::int4[], ',') IS NULL;
@@ -1712,6 +2019,9 @@ SELECT
     array_remove(ARRAY['A', 'CC', 'D', 'C', 'RR'], 'RR');
 
 SELECT
+    array_remove(ARRAY[1.0, 2.1, 3.3], 1);
+
+SELECT
     array_remove('{{1,2,2},{1,4,3}}', 2);
 
 -- not allowed
@@ -1748,6 +2058,80 @@ SELECT
         SELECT
             ARRAY['Hello', i::text]
         FROM generate_series(9, 11) i);
+
+-- int2vector and oidvector should be treated as scalar types for this purpose
+SELECT
+    pg_typeof(ARRAY(
+            SELECT
+                '11 22 33'::int2vector
+            FROM generate_series(1, 5)));
+
+SELECT
+    ARRAY(
+        SELECT
+            '11 22 33'::int2vector
+        FROM generate_series(1, 5));
+
+SELECT
+    unnest(ARRAY(
+            SELECT
+                '11 22 33'::int2vector
+            FROM generate_series(1, 5)));
+
+SELECT
+    pg_typeof(ARRAY(
+            SELECT
+                '11 22 33'::oidvector
+            FROM generate_series(1, 5)));
+
+SELECT
+    ARRAY(
+        SELECT
+            '11 22 33'::oidvector
+        FROM generate_series(1, 5));
+
+SELECT
+    unnest(ARRAY(
+            SELECT
+                '11 22 33'::oidvector
+            FROM generate_series(1, 5)));
+
+-- array[] should do the same
+SELECT
+    pg_typeof(ARRAY['11 22 33'::int2vector]);
+
+SELECT
+    ARRAY['11 22 33'::int2vector];
+
+SELECT
+    pg_typeof(unnest(ARRAY['11 22 33'::int2vector]));
+
+SELECT
+    unnest(ARRAY['11 22 33'::int2vector]);
+
+SELECT
+    pg_typeof(unnest('11 22 33'::int2vector));
+
+SELECT
+    unnest('11 22 33'::int2vector);
+
+SELECT
+    pg_typeof(ARRAY['11 22 33'::oidvector]);
+
+SELECT
+    ARRAY['11 22 33'::oidvector];
+
+SELECT
+    pg_typeof(unnest(ARRAY['11 22 33'::oidvector]));
+
+SELECT
+    unnest(ARRAY['11 22 33'::oidvector]);
+
+SELECT
+    pg_typeof(unnest('11 22 33'::oidvector));
+
+SELECT
+    unnest('11 22 33'::oidvector);
 
 -- Insert/update on a column that is array of composite
 CREATE temp TABLE t1 (
@@ -1799,14 +2183,14 @@ FROM
     src;
 
 SELECT
-    length(md5((f1[1]).c2))
+    length(fipshash ((f1[1]).c2))
 FROM
     dest;
 
 DELETE FROM src;
 
 SELECT
-    length(md5((f1[1]).c2))
+    length(fipshash ((f1[1]).c2))
 FROM
     dest;
 
@@ -1815,7 +2199,7 @@ TRUNCATE TABLE src;
 DROP TABLE src;
 
 SELECT
-    length(md5((f1[1]).c2))
+    length(fipshash ((f1[1]).c2))
 FROM
     dest;
 
@@ -1890,4 +2274,171 @@ SELECT
 
 SELECT
     width_bucket(5, ARRAY[ARRAY[1, 2], ARRAY[3, 4]]);
+
+-- trim_array
+SELECT
+    arr,
+    trim_array (arr, 2)
+FROM (
+    VALUES ('{1,2,3,4,5,6}'::bigint[]),
+        ('{1,2}'),
+        ('[10:16]={1,2,3,4,5,6,7}'),
+        ('[-15:-10]={1,2,3,4,5,6}'),
+        ('{{1,10},{2,20},{3,30},{4,40}}')) v (arr);
+
+SELECT
+    trim_array (ARRAY[1, 2, 3], -1);
+
+-- fail
+SELECT
+    trim_array (ARRAY[1, 2, 3], 10);
+
+-- fail
+SELECT
+    trim_array (ARRAY[]::int[], 1);
+
+-- fail
+-- array_shuffle
+SELECT
+    array_shuffle ('{1,2,3,4,5,6}'::int[]) <@ '{1,2,3,4,5,6}';
+
+SELECT
+    array_shuffle ('{1,2,3,4,5,6}'::int[]) @> '{1,2,3,4,5,6}';
+
+SELECT
+    array_dims(array_shuffle ('[-1:2][2:3]={{1,2},{3,NULL},{5,6},{7,8}}'::int[]));
+
+SELECT
+    array_dims(array_shuffle ('{{{1,2},{3,NULL}},{{5,6},{7,8}},{{9,10},{11,12}}}'::int[]));
+
+-- array_sample
+SELECT
+    array_sample ('{1,2,3,4,5,6}'::int[], 3) <@ '{1,2,3,4,5,6}';
+
+SELECT
+    array_length(array_sample ('{1,2,3,4,5,6}'::int[], 3), 1);
+
+SELECT
+    array_dims(array_sample ('[-1:2][2:3]={{1,2},{3,NULL},{5,6},{7,8}}'::int[], 3));
+
+SELECT
+    array_dims(array_sample ('{{{1,2},{3,NULL}},{{5,6},{7,8}},{{9,10},{11,12}}}'::int[], 2));
+
+SELECT
+    array_sample ('{1,2,3,4,5,6}'::int[], -1);
+
+-- fail
+SELECT
+    array_sample ('{1,2,3,4,5,6}'::int[], 7);
+
+--fail
+-- array_reverse
+SELECT
+    array_reverse ('{}'::int[]);
+
+SELECT
+    array_reverse ('{1}'::int[]);
+
+SELECT
+    array_reverse ('{1,2}'::int[]);
+
+SELECT
+    array_reverse ('{1,2,3,NULL,4,5,6}'::int[]);
+
+SELECT
+    array_reverse ('{{1,2},{3,4},{5,6},{7,8}}'::int[]);
+
+-- array_sort
+SELECT
+    array_sort ('{}'::int[]);
+
+SELECT
+    array_sort ('{1}'::int[]);
+
+SELECT
+    array_sort ('{1,3,5,2,4,6}'::int[]);
+
+SELECT
+    array_sort ('{1.1,3.3,5.5,2.2,4.4,6.6}'::numeric[]);
+
+SELECT
+    array_sort ('{foo,bar,CCC,Abc,bbc}'::text[] COLLATE "C");
+
+SELECT
+    array_sort ('{foo,bar,null,CCC,Abc,bbc}'::text[] COLLATE "C");
+
+SELECT
+    array_sort (ARRAY(
+            SELECT
+                '1 4'::int2vector
+            UNION ALL
+            SELECT
+                '1 2'::int2vector));
+
+-- array_sort with order specified
+SELECT
+    array_sort ('{1.1,3.3,5.5,2.2,null,4.4,6.6}'::float8[], TRUE);
+
+SELECT
+    array_sort ('{1.1,3.3,5.5,2.2,null,4.4,6.6}'::float8[], FALSE);
+
+-- array_sort with order and nullsfirst flag specified
+SELECT
+    array_sort ('{1.1,3.3,5.5,2.2,null,4.4,6.6}'::float8[], TRUE, TRUE);
+
+SELECT
+    array_sort ('{1.1,3.3,5.5,2.2,null,4.4,6.6}'::float8[], TRUE, FALSE);
+
+SELECT
+    array_sort ('{1.1,3.3,5.5,2.2,null,4.4,6.6}'::float8[], FALSE, TRUE);
+
+SELECT
+    array_sort ('{1.1,3.3,5.5,2.2,null,4.4,6.6}'::float8[], FALSE, FALSE);
+
+-- multidimensional array tests
+SELECT
+    array_sort ('{{1}}'::int[]);
+
+SELECT
+    array_sort (ARRAY[[2, 4],[2, 1],[6, 5]]);
+
+SELECT
+    array_sort ('{{"1 2","3 4"}, {"1 -2","-1 4"}}'::int2vector[]);
+
+-- no ordering operator tests
+SELECT
+    array_sort ('{1}'::xid[]);
+
+-- no error because no sort is required
+SELECT
+    array_sort ('{1,2,3}'::xid[]);
+
+SELECT
+    array_sort ('{{1,2,3},{2,3,4}}'::xid[]);
+
+-- bounds preservation tests
+SELECT
+    array_sort (a)
+FROM (
+    VALUES ('[10:12][20:21]={{1,2},{10,20},{3,4}}'::int[])) v (a);
+
+SELECT
+    array_sort (a)
+FROM (
+    VALUES ('[-1:0]={7,1}'::int[])) v (a);
+
+SELECT
+    array_sort (a)
+FROM (
+    VALUES ('[-2:0][20:21]={{1,2},{10,20},{1,-4}}'::int[])) v (a);
+
+SELECT
+    array_sort (a[- 1:0])
+FROM (
+    VALUES ('[-2:0][20:21]={{1,2},{10,20},{1,-4}}'::int[])) v (a);
+
+SELECT
+    array_sort (a[- 1:0][20:20])
+FROM (
+    VALUES ('[-2:0][20:21]={{1,2},{10,20},{1,-4}}'::int[])) v (a);
 

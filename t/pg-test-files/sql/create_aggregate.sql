@@ -35,12 +35,20 @@ CREATE AGGREGATE oldcnt (
 -- aggregate that only cares about null/nonnull input
 CREATE AGGREGATE newcnt ("any") (
    sfunc = int8inc_any, stype = int8,
+   support = int8inc_support,
    initcond = '0'
 );
 
 COMMENT ON AGGREGATE nosuchagg (*) IS 'should fail';
 COMMENT ON AGGREGATE newcnt (*) IS 'an agg(*) comment';
 COMMENT ON AGGREGATE newcnt ("any") IS 'an agg(any) comment';
+
+-- verify that newcnt's support function enables run-condition optimization
+EXPLAIN (COSTS OFF)
+SELECT * FROM
+  (SELECT newcnt(ten) OVER (RANGE BETWEEN CURRENT ROW AND CURRENT ROW) c
+   FROM tenk1) t
+WHERE c = 1;
 
 -- multi-argument aggregate
 create function sum3(int8,int8,int8) returns int8 as
@@ -72,13 +80,45 @@ create aggregate aggfns(integer,integer,text) (
    initcond = '{}'
 );
 
--- variadic aggregate
+-- check error cases that would require run-time type coercion
+create function least_accum(int8, int8) returns int8 language sql as
+  'select least($1, $2)';
+
+create aggregate least_agg(int4) (
+  stype = int8, sfunc = least_accum
+);  -- fails
+
+drop function least_accum(int8, int8);
+
+create function least_accum(anycompatible, anycompatible)
+returns anycompatible language sql as
+  'select least($1, $2)';
+
+create aggregate least_agg(int4) (
+  stype = int8, sfunc = least_accum
+);  -- fails
+
+create aggregate least_agg(int8) (
+  stype = int8, sfunc = least_accum
+);
+
+drop function least_accum(anycompatible, anycompatible) cascade;
+
+-- variadic aggregates
 create function least_accum(anyelement, variadic anyarray)
 returns anyelement language sql as
   'select least($1, min($2[i])) from generate_subscripts($2,1) g(i)';
 
 create aggregate least_agg(variadic items anyarray) (
   stype = anyelement, sfunc = least_accum
+);
+
+create function cleast_accum(anycompatible, variadic anycompatiblearray)
+returns anycompatible language sql as
+  'select least($1, min($2[i])) from generate_subscripts($2,1) g(i)';
+
+create aggregate cleast_agg(variadic items anycompatiblearray) (
+  stype = anycompatible, sfunc = cleast_accum
 );
 
 -- test ordered-set aggs using built-in support functions

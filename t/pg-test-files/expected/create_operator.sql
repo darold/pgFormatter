@@ -8,54 +8,75 @@ CREATE OPERATOR ## (
     commutator = ##
 );
 
-CREATE OPERATOR <% (
-    LEFTARG = point,
-    RIGHTARG = widget,
-    PROCEDURE = pt_in_widget,
-    commutator = >%,
-    negator = >=%
-);
-
 CREATE OPERATOR @#@ (
-    RIGHTARG = int8, -- left unary
-    PROCEDURE = numeric_fac
-);
-
-CREATE OPERATOR #@# (
-    LEFTARG = int8, -- right unary
-    PROCEDURE = numeric_fac
+    RIGHTARG = int8, -- prefix
+    PROCEDURE = factorial
 );
 
 CREATE OPERATOR #%# (
-    LEFTARG = int8, -- right unary
-    PROCEDURE = numeric_fac
+    LEFTARG = int8, -- fail, postfix is no longer supported
+    PROCEDURE = factorial
 );
 
 -- Test operator created above
 SELECT
-    point '(1,2)' <% widget '(0,0,3)' AS t,
-    point '(1,2)' <% widget '(0,0,1)' AS f;
+    @#@ 24;
 
+-- Test error cases
+SELECT
+    @@##@@ 24;
+
+-- no such operator
+SET search_path = pg_catalog;
+
+SELECT
+    @#@ 24;
+
+-- wrong schema
+RESET search_path;
+
+SELECT
+    @#@ 24.0;
+
+-- wrong data type
 -- Test comments
-COMMENT ON OPERATOR ## ## ## (int4,
-    NONE) IS 'bad right unary';
+COMMENT ON OPERATOR ###### (NONE,
+    int4) IS 'bad prefix';
 
--- => is disallowed now
+COMMENT ON OPERATOR ###### (int4,
+    NONE) IS 'bad postfix';
+
+COMMENT ON OPERATOR ###### (int4,
+    int8) IS 'bad infix';
+
+-- Check that DROP on a nonexistent op behaves sanely, too
+DROP OPERATOR ###### (
+    NONE, int4);
+
+DROP OPERATOR ###### (int4, NONE);
+
+DROP OPERATOR ###### (int4, int8);
+
+-- => is disallowed as an operator name now
 CREATE OPERATOR => (
-    LEFTARG = int8, -- right unary
-    PROCEDURE = numeric_fac
+    RIGHTARG = int8,
+    PROCEDURE = factorial
 );
 
 -- lexing of <=, >=, <>, != has a number of edge cases
 -- (=> is tested elsewhere)
 -- this is legal because ! is not allowed in sql ops
 CREATE OPERATOR !=- (
-    LEFTARG = int8, -- right unary
-    PROCEDURE = numeric_fac
+    RIGHTARG = int8,
+    PROCEDURE = factorial
 );
 
 SELECT
-    2 != -;
+    !=- 10;
+
+-- postfix operators don't work anymore
+SELECT
+    10 !=-;
 
 -- make sure lexer returns != as <> even in edge cases
 SELECT
@@ -127,23 +148,23 @@ CREATE SCHEMA schema_op1;
 GRANT USAGE ON SCHEMA schema_op1 TO PUBLIC;
 REVOKE USAGE ON SCHEMA schema_op1 FROM regress_rol_op1;
 SET ROLE regress_rol_op1;
-CREATE OPERATOR schema_op1. # * # (
-    LEFTARG = int8, -- right unary
-    PROCEDURE = numeric_fac
+CREATE OPERATOR schema_op1.#*# (
+    RIGHTARG = int8,
+    PROCEDURE = factorial
 );
 ROLLBACK;
 -- Should fail. SETOF type functions not allowed as argument (testing leftarg)
 BEGIN TRANSACTION;
 CREATE OPERATOR #*# (
     LEFTARG = SETOF int8,
-    PROCEDURE = numeric_fac
+    PROCEDURE = factorial
 );
 ROLLBACK;
 -- Should fail. SETOF type functions not allowed as argument (testing rightarg)
 BEGIN TRANSACTION;
 CREATE OPERATOR #*# (
     RIGHTARG = SETOF int8,
-    PROCEDURE = numeric_fac
+    PROCEDURE = factorial
 );
 ROLLBACK;
 -- Should work. Sample text-book case
@@ -174,17 +195,17 @@ CREATE OPERATOR === (
 ROLLBACK;
 -- Should fail. Invalid attribute
 CREATE OPERATOR #@%# (
-    LEFTARG = int8, -- right unary
-    PROCEDURE = numeric_fac,
+    RIGHTARG = int8,
+    PROCEDURE = factorial,
     invalid_att = int8
 );
--- Should fail. At least leftarg or rightarg should be mandatorily specified
+-- Should fail. At least rightarg should be mandatorily specified
 CREATE OPERATOR #@%# (
-    PROCEDURE = numeric_fac
+    PROCEDURE = factorial
 );
 -- Should fail. Procedure should be mandatorily specified
 CREATE OPERATOR #@%# (
-    LEFTARG = int8
+    RIGHTARG = int8
 );
 -- Should fail. CREATE OPERATOR requires USAGE on TYPE
 BEGIN TRANSACTION;
@@ -294,13 +315,57 @@ CREATE OPERATOR #*# (
 );
 ROLLBACK;
 
+-- Should fail. An operator cannot be its own negator.
+BEGIN TRANSACTION;
+CREATE OPERATOR === (
+    LEFTARG = integer,
+    RIGHTARG = integer,
+    PROCEDURE = int4eq,
+    negator = ===
+);
+ROLLBACK;
+
+-- Should fail. An operator cannot be its own negator. Here we check that
+-- this error is detected when replacing a shell operator.
+BEGIN TRANSACTION;
+-- create a shell operator for ===!!! by referencing it as a commutator
+CREATE OPERATOR === (
+    LEFTARG = integer,
+    RIGHTARG = integer,
+    PROCEDURE = int4eq,
+    commutator = ===!!!
+);
+CREATE OPERATOR ===!!! (
+    LEFTARG = integer,
+    RIGHTARG = integer,
+    PROCEDURE = int4ne,
+    negator = ===!!!
+);
+ROLLBACK;
+
+-- test that we can't use part of an existing commutator or negator pair
+-- as a commutator or negator
+CREATE OPERATOR === (
+    LEFTARG = integer,
+    RIGHTARG = integer,
+    PROCEDURE = int4eq,
+    commutator = =
+);
+
+CREATE OPERATOR === (
+    LEFTARG = integer,
+    RIGHTARG = integer,
+    PROCEDURE = int4eq,
+    negator = <>
+);
+
 -- invalid: non-lowercase quoted identifiers
 CREATE OPERATOR === (
     "Leftarg" = box,
     "Rightarg" = box,
     "Procedure" = area_equal_function,
-    "Commutator" = == =,
-    "Negator" = != =,
+    "Commutator" = ===,
+    "Negator" = !==,
     "Restrict" = area_restriction_function,
     "Join" = area_join_function,
     "Hashes",

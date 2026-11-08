@@ -12,8 +12,23 @@ create temp view gstest1(a,b,v)
 
 create temp table gstest2 (a integer, b integer, c integer, d integer,
                            e integer, f integer, g integer, h integer);
+copy gstest2 from stdin;
+1	1	1	1	1	1	1	1
+1	1	1	1	1	1	1	2
+1	1	1	1	1	1	2	2
+1	1	1	1	1	2	2	2
+1	1	1	1	2	2	2	2
+1	1	1	2	2	2	2	2
+1	1	2	2	2	2	2	2
+1	2	2	2	2	2	2	2
+2	2	2	2	2	2	2	2
+\.
 
 create temp table gstest3 (a integer, b integer, c integer, d integer);
+copy gstest3 from stdin;
+1	1	1	1
+2	2	2	2
+\.
 alter table gstest3 add primary key (a);
 
 create temp table gstest4(id integer, v integer,
@@ -121,6 +136,19 @@ select a, b, grouping(a, b), sum(t1.v), max(t2.c)
   from gstest1 t1 join gstest2 t2 using (a,b)
  group by grouping sets ((a, b), ());
 
+select a, b, grouping(a, b), sum(t1.v), max(t2.c)
+  from gstest1 t1 full join gstest2 t2 using (a,b)
+ group by grouping sets ((a, b), ());
+
+-- references in subqueries should work too
+select (select a),
+       (select b),
+       (select grouping(a, b)),
+       (select sum(t1.v)),
+       (select max(t2.c))
+  from gstest1 t1 full join gstest2 t2 using (a,b)
+ group by grouping sets ((a, b), ());
+
 -- check that functionally dependent cols are not nulled
 select a, d, grouping(a,b,c)
   from gstest3
@@ -156,6 +184,102 @@ select x, not x as not_x, q2 from
   (select *, q1 = 1 as x from int8_tbl i1) as t
   group by grouping sets(x, q2)
   order by x, q2;
+
+select x, y
+  from (select four as x, four as y from tenk1) as t
+  group by grouping sets (x, y)
+  having y is null
+  order by 1, 2;
+
+select x, y || 'y'
+  from (select four as x, four as y from tenk1) as t
+  group by grouping sets (x, y)
+  order by 1, 2;
+
+-- check that operands wrapped in PlaceHolderVars are capable of index matching
+begin;
+
+set local enable_bitmapscan = off;
+
+explain (costs off)
+select x, y
+  from (select unique1 as x, unique2 as y from tenk1) as t
+  where x = 1
+  group by grouping sets (x, y)
+  order by 1, 2;
+
+select x, y
+  from (select unique1 as x, unique2 as y from tenk1) as t
+  where x = 1
+  group by grouping sets (x, y)
+  order by 1, 2;
+
+explain (costs off)
+select x, y
+  from (select unique1::oid as x, unique2 as y from tenk1) as t
+  where x::integer = 1
+  group by grouping sets (x, y)
+  order by 1, 2;
+
+select x, y
+  from (select unique1::oid as x, unique2 as y from tenk1) as t
+  where x::integer = 1
+  group by grouping sets (x, y)
+  order by 1, 2;
+
+explain (costs off)
+select x, y
+  from (select t1.unique1 as x, t1.unique2 as y from tenk1 t1, tenk1 t2) as t
+  where x = 1
+  group by grouping sets (x, y)
+  order by 1, 2;
+
+select x, y
+  from (select t1.unique1 as x, t1.unique2 as y from tenk1 t1, tenk1 t2) as t
+  where x = 1
+  group by grouping sets (x, y)
+  order by 1, 2;
+
+rollback;
+
+-- check qual push-down rules for a subquery with grouping sets
+explain (verbose, costs off)
+select * from (
+  select 1 as x, q1, sum(q2)
+  from int8_tbl i1
+  group by grouping sets(1, 2)
+) ss
+where x = 1 and q1 = 123;
+
+select * from (
+  select 1 as x, q1, sum(q2)
+  from int8_tbl i1
+  group by grouping sets(1, 2)
+) ss
+where x = 1 and q1 = 123;
+
+-- check handling of pulled-up SubPlan in GROUPING() argument (bug #17479)
+explain (verbose, costs off)
+select grouping(ss.x)
+from int8_tbl i1
+cross join lateral (select (select i1.q1) as x) ss
+group by ss.x;
+
+select grouping(ss.x)
+from int8_tbl i1
+cross join lateral (select (select i1.q1) as x) ss
+group by ss.x;
+
+explain (verbose, costs off)
+select (select grouping(ss.x))
+from int8_tbl i1
+cross join lateral (select (select i1.q1) as x) ss
+group by ss.x;
+
+select (select grouping(ss.x))
+from int8_tbl i1
+cross join lateral (select (select i1.q1) as x) ss
+group by ss.x;
 
 -- simple rescan tests
 
@@ -198,6 +322,9 @@ select a, b, sum(v.x)
   from (values (1),(2)) v(x), gstest_data(v.x)
  group by cube (a,b) order by a,b;
 
+-- Test reordering of grouping sets
+explain (costs off)
+select * from gstest1 group by grouping sets((a,b,v),(v)) order by v,b,a;
 
 -- Agg level check. This query should error out.
 select (select grouping(a,b) from gstest2) from gstest2 group by a,b;
@@ -221,6 +348,29 @@ select v.c, (select count(*) from gstest2 group by () having v.c)
 explain (costs off)
   select v.c, (select count(*) from gstest2 group by () having v.c)
     from (values (false),(true)) v(c) order by v.c;
+
+-- test pushdown of non-degenerate HAVING clause that does not reference any
+-- columns that are nullable by grouping sets
+explain (costs off)
+select a, b, count(*) from gstest2 group by grouping sets ((a, b), (a)) having a > 1 and b > 1;
+select a, b, count(*) from gstest2 group by grouping sets ((a, b), (a)) having a > 1 and b > 1;
+
+explain (costs off)
+select a, b, count(*) from gstest2 group by rollup(a), b having b > 1;
+select a, b, count(*) from gstest2 group by rollup(a), b having b > 1;
+
+-- test pushdown of degenerate HAVING clause
+explain (costs off)
+select count(*) from gstest2 group by grouping sets (()) having false;
+select count(*) from gstest2 group by grouping sets (()) having false;
+
+explain (costs off)
+select a, count(*) from gstest2 group by grouping sets ((a), ()) having false;
+select a, count(*) from gstest2 group by grouping sets ((a), ()) having false;
+
+explain (costs off)
+select a, b, count(*) from gstest2 group by grouping sets ((a), (b)) having false;
+select a, b, count(*) from gstest2 group by grouping sets ((a), (b)) having false;
 
 -- HAVING with GROUPING queries
 select ten, grouping(ten) from onek
@@ -366,6 +516,27 @@ explain (costs off)
     from (values (1),(2)) v(x), gstest_data(v.x)
    group by cube (a,b) order by a,b;
 
+-- Verify that we correctly handle the child node returning a
+-- non-minimal slot, which happens if the input is pre-sorted,
+-- e.g. due to an index scan.
+BEGIN;
+SET LOCAL enable_hashagg = false;
+EXPLAIN (COSTS OFF) SELECT a, b, count(*), max(a), max(b) FROM gstest3 GROUP BY GROUPING SETS(a, b,()) ORDER BY a, b;
+SELECT a, b, count(*), max(a), max(b) FROM gstest3 GROUP BY GROUPING SETS(a, b,()) ORDER BY a, b;
+SET LOCAL enable_seqscan = false;
+EXPLAIN (COSTS OFF) SELECT a, b, count(*), max(a), max(b) FROM gstest3 GROUP BY GROUPING SETS(a, b,()) ORDER BY a, b;
+SELECT a, b, count(*), max(a), max(b) FROM gstest3 GROUP BY GROUPING SETS(a, b,()) ORDER BY a, b;
+COMMIT;
+
+-- Verify handling of injecting NULL values for the rollup row works correctly
+-- when additional columns need to be deformed from the tuple after the NULL
+-- is added.
+begin;
+insert into gstest3 values(3,4,null,5);
+set enable_hashagg = false;
+select b, c, d, grouping(b, c) AS g from gstest3 where a = 3 group by grouping sets ((a, b), (a, c));
+rollback;
+
 -- More rescan tests
 select * from (values (1),(2)) v(a) left join lateral (select v.a, four, ten, count(*) from onek group by cube(four,ten)) s on true order by v.a,four,ten;
 select array(select row(v.a,s1.*) from (select two,four, count(*) from onek group by cube(two,four) order by two,four) s1) from (values (1),(2)) v(a);
@@ -378,6 +549,7 @@ select array(select row(v.a,s1.*) from (select two,four, count(*) from onek grou
 -- test the knapsack
 
 set enable_indexscan = false;
+set hash_mem_multiplier = 1.0;
 set work_mem = '64kB';
 explain (costs off)
   select unique1,
@@ -410,5 +582,234 @@ select v||'a', case grouping(v||'a') when 1 then 1 else 0 end, count(*)
 select v||'a', case when grouping(v||'a') = 1 then 1 else 0 end, count(*)
   from unnest(array[1,1], array['a','b']) u(i,v)
  group by rollup(i, v||'a') order by 1,3;
+
+-- Bug #16784
+create table bug_16784(i int, j int);
+analyze bug_16784;
+alter table bug_16784 set (autovacuum_enabled = 'false');
+update pg_class set reltuples = 10 where relname='bug_16784';
+
+insert into bug_16784 select g/10, g from generate_series(1,40) g;
+
+set work_mem='64kB';
+set enable_groupagg = false;
+
+select * from
+  (values (1),(2)) v(a),
+  lateral (select a, i, j, count(*) from
+             bug_16784 group by cube(i,j)) s
+  order by v.a, i, j;
+
+--
+-- Compare results between plans using sorting and plans using hash
+-- aggregation. Force spilling in both cases by setting work_mem low
+-- and altering the statistics.
+--
+
+create table gs_data_1 as
+select g%1000 as g1000, g%100 as g100, g%10 as g10, g
+   from generate_series(0,1999) g;
+
+analyze gs_data_1;
+alter table gs_data_1 set (autovacuum_enabled = 'false');
+update pg_class set reltuples = 10 where relname='gs_data_1';
+
+set work_mem='64kB';
+
+-- Produce results with sorting.
+
+set enable_groupagg = true;
+set enable_hashagg = false;
+set jit_above_cost = 0;
+
+explain (costs off)
+select g100, g10, sum(g::numeric), count(*), max(g::text)
+from gs_data_1 group by cube (g1000, g100,g10);
+
+create table gs_group_1 as
+select g100, g10, sum(g::numeric), count(*), max(g::text)
+from gs_data_1 group by cube (g1000, g100,g10);
+
+-- Produce results with hash aggregation.
+
+set enable_hashagg = true;
+set enable_groupagg = false;
+
+explain (costs off)
+select g100, g10, sum(g::numeric), count(*), max(g::text)
+from gs_data_1 group by cube (g1000, g100,g10);
+
+create table gs_hash_1 as
+select g100, g10, sum(g::numeric), count(*), max(g::text)
+from gs_data_1 group by cube (g1000, g100,g10);
+
+set enable_groupagg = true;
+set work_mem to default;
+set hash_mem_multiplier to default;
+
+-- Compare results
+
+(select * from gs_hash_1 except select * from gs_group_1)
+  union all
+(select * from gs_group_1 except select * from gs_hash_1);
+
+drop table gs_group_1;
+drop table gs_hash_1;
+
+-- GROUP BY DISTINCT
+
+-- "normal" behavior...
+select a, b, c
+from (values (1, 2, 3), (4, null, 6), (7, 8, 9)) as t (a, b, c)
+group by all rollup(a, b), rollup(a, c)
+order by a, b, c;
+
+-- ...which is also the default
+select a, b, c
+from (values (1, 2, 3), (4, null, 6), (7, 8, 9)) as t (a, b, c)
+group by rollup(a, b), rollup(a, c)
+order by a, b, c;
+
+-- "group by distinct" behavior...
+select a, b, c
+from (values (1, 2, 3), (4, null, 6), (7, 8, 9)) as t (a, b, c)
+group by distinct rollup(a, b), rollup(a, c)
+order by a, b, c;
+
+-- ...which is not the same as "select distinct"
+select distinct a, b, c
+from (values (1, 2, 3), (4, null, 6), (7, 8, 9)) as t (a, b, c)
+group by rollup(a, b), rollup(a, c)
+order by a, b, c;
+
+-- test handling of outer GroupingFunc within subqueries
+explain (costs off)
+select (select grouping(v1)) from (values ((select 1))) v(v1) group by cube(v1);
+select (select grouping(v1)) from (values ((select 1))) v(v1) group by cube(v1);
+
+explain (costs off)
+select (select grouping(v1)) from (values ((select 1))) v(v1) group by v1;
+select (select grouping(v1)) from (values ((select 1))) v(v1) group by v1;
+
+-- test handling of subqueries in grouping sets
+create temp table gstest5(id integer primary key, v integer);
+insert into gstest5 select i, i from generate_series(1,5)i;
+
+explain (verbose, costs off)
+select grouping((select t1.v from gstest5 t2 where id = t1.id)),
+       (select t1.v from gstest5 t2 where id = t1.id) as s
+from gstest5 t1
+group by grouping sets(v, s)
+order by case when grouping((select t1.v from gstest5 t2 where id = t1.id)) = 0
+              then (select t1.v from gstest5 t2 where id = t1.id)
+              else null end
+         nulls first;
+
+select grouping((select t1.v from gstest5 t2 where id = t1.id)),
+       (select t1.v from gstest5 t2 where id = t1.id) as s
+from gstest5 t1
+group by grouping sets(v, s)
+order by case when grouping((select t1.v from gstest5 t2 where id = t1.id)) = 0
+              then (select t1.v from gstest5 t2 where id = t1.id)
+              else null end
+         nulls first;
+
+explain (verbose, costs off)
+select grouping((select t1.v from gstest5 t2 where id = t1.id)),
+       (select t1.v from gstest5 t2 where id = t1.id) as s,
+       case when grouping((select t1.v from gstest5 t2 where id = t1.id)) = 0
+            then (select t1.v from gstest5 t2 where id = t1.id)
+            else null end as o
+from gstest5 t1
+group by grouping sets(v, s)
+order by o nulls first;
+
+select grouping((select t1.v from gstest5 t2 where id = t1.id)),
+       (select t1.v from gstest5 t2 where id = t1.id) as s,
+       case when grouping((select t1.v from gstest5 t2 where id = t1.id)) = 0
+            then (select t1.v from gstest5 t2 where id = t1.id)
+            else null end as o
+from gstest5 t1
+group by grouping sets(v, s)
+order by o nulls first;
+
+-- test handling of expressions that should match lower target items
+explain (costs off)
+select a < b and b < 3 from (values (1, 2)) t(a, b) group by rollup(a < b and b < 3) having a < b and b < 3;
+select a < b and b < 3 from (values (1, 2)) t(a, b) group by rollup(a < b and b < 3) having a < b and b < 3;
+
+explain (costs off)
+select not a from (values(true)) t(a) group by rollup(not a) having not not a;
+select not a from (values(true)) t(a) group by rollup(not a) having not not a;
+
+-- test handling of expressions nullable by grouping sets
+explain (costs off)
+select distinct on (a, b) a, b
+from (values (1, 1), (2, 2)) as t (a, b) where a = b
+group by grouping sets((a, b), (a))
+order by a, b;
+
+select distinct on (a, b) a, b
+from (values (1, 1), (2, 2)) as t (a, b) where a = b
+group by grouping sets((a, b), (a))
+order by a, b;
+
+explain (costs off)
+select distinct on (a, b+1) a, b+1
+from (values (1, 0), (2, 1)) as t (a, b) where a = b+1
+group by grouping sets((a, b+1), (a))
+order by a, b+1;
+
+select distinct on (a, b+1) a, b+1
+from (values (1, 0), (2, 1)) as t (a, b) where a = b+1
+group by grouping sets((a, b+1), (a))
+order by a, b+1;
+
+explain (costs off)
+select a, b
+from (values (1, 1), (2, 2)) as t (a, b) where a = b
+group by grouping sets((a, b), (a))
+order by a, b nulls first;
+
+select a, b
+from (values (1, 1), (2, 2)) as t (a, b) where a = b
+group by grouping sets((a, b), (a))
+order by a, b nulls first;
+
+explain (costs off)
+select 1 as one group by rollup(one) order by one nulls first;
+select 1 as one group by rollup(one) order by one nulls first;
+
+explain (costs off)
+select a, b, row_number() over (order by a, b nulls first)
+from (values (1, 1), (2, 2)) as t (a, b) where a = b
+group by grouping sets((a, b), (a));
+
+select a, b, row_number() over (order by a, b nulls first)
+from (values (1, 1), (2, 2)) as t (a, b) where a = b
+group by grouping sets((a, b), (a));
+
+-- test handling of SRFs with grouping sets
+explain (verbose, costs off)
+select generate_series(1, a) as g
+from (values (1, 1), (2, 2)) as t (a, b)
+group by rollup(g)
+order by 1;
+
+select generate_series(1, a) as g
+from (values (1, 1), (2, 2)) as t (a, b)
+group by rollup(g)
+order by 1;
+
+explain (verbose, costs off)
+select generate_series(1, a) as g, a+b as ab
+from (values (1, 1), (2, 2)) as t (a, b)
+group by rollup(a, ab)
+order by 1, 2;
+
+select generate_series(1, a) as g, a+b as ab
+from (values (1, 1), (2, 2)) as t (a, b)
+group by rollup(a, ab)
+order by 1, 2;
 
 -- end

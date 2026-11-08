@@ -278,6 +278,37 @@ SET
 INSERT INTO ro_view13
     VALUES (3, 'Row 3');
 
+MERGE INTO ro_view13 AS t
+    USING ( VALUES (1, 'Row 1')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        DELETE;
+
+MERGE INTO ro_view13 AS t
+    USING ( VALUES (2, 'Row 2')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = v.b;
+
+MERGE INTO ro_view13 AS t
+    USING ( VALUES (3, 'Row 3')) AS v (a, b) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a, v.b);
+
+MERGE INTO ro_view13 AS t
+    USING ( VALUES (2, 'Row 2')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        DO NOTHING
+    WHEN NOT MATCHED THEN
+        DO NOTHING;
+
+-- should be OK to do nothing
+MERGE INTO ro_view13 AS t
+    USING ( VALUES (3, 'Row 3')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        DO NOTHING
+    WHEN NOT MATCHED THEN
+        DO NOTHING;
+
+-- should be OK to do nothing
 -- Partially updatable view
 INSERT INTO rw_view14
     VALUES (NULL, 3, 'Row 3');
@@ -312,6 +343,44 @@ DELETE FROM rw_view14
 WHERE a = 3;
 
 -- should be OK
+MERGE INTO rw_view14 AS t
+    USING ( VALUES (2, 'Merged row 2'), (3, 'Merged row 3')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = v.b -- should be OK, except...
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (NULL, v.a, v.b);
+
+-- should fail
+MERGE INTO rw_view14 AS t
+    USING ( VALUES (2, 'Merged row 2'), (3, 'Merged row 3')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = v.b -- should be OK
+    WHEN NOT MATCHED THEN
+        INSERT (a, b) VALUES (v.a, v.b);
+
+-- should be OK
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a;
+
+MERGE INTO rw_view14 AS t
+    USING ( VALUES (2, 'Row 2'), (3, 'Row 3')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED AND t.a = 2 THEN
+        UPDATE SET b = v.b -- should be OK
+    WHEN MATCHED AND t.a = 3 THEN
+        DELETE;
+
+-- should be OK
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a;
+
 -- Partially updatable view
 INSERT INTO rw_view15
     VALUES (3, 'ROW 3');
@@ -366,6 +435,27 @@ SELECT
     *
 FROM
     rw_view15;
+
+INSERT INTO rw_view15 (a)
+    VALUES (3)
+ON CONFLICT (a)
+    DO UPDATE SET
+        a = excluded.a
+    WHERE
+        excluded.upper = 'UNSPECIFIED'
+    RETURNING
+        old, new;
+
+INSERT INTO rw_view15 (a)
+    VALUES (3)
+ON CONFLICT (a)
+DO
+SELECT
+WHERE
+    excluded.upper = 'UNSPECIFIED'
+RETURNING
+    old,
+    new;
 
 SELECT
     *
@@ -453,6 +543,12 @@ INSERT INTO ro_view17
 
 DELETE FROM ro_view18;
 
+MERGE INTO ro_view18 AS t
+    USING ( VALUES (1, 'Row 1')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        DO NOTHING;
+
+-- should be OK to do nothing
 UPDATE
     ro_view19
 SET
@@ -463,6 +559,51 @@ UPDATE
 SET
     b = upper(b);
 
+-- A view with a conditional INSTEAD rule but no unconditional INSTEAD rules
+-- or INSTEAD OF triggers should be non-updatable and generate useful error
+-- messages with appropriate detail
+CREATE RULE rw_view16_ins_rule AS ON INSERT TO rw_view16 WHERE
+    NEW.a > 0
+        DO INSTEAD
+        INSERT INTO base_tbl VALUES (NEW.a, NEW.b);
+
+CREATE RULE rw_view16_upd_rule AS ON UPDATE
+    TO rw_view16 WHERE
+    OLD.a > 0
+        DO INSTEAD
+        UPDATE
+            base_tbl SET
+            b = NEW.b WHERE
+            a = OLD.a;
+
+CREATE RULE rw_view16_del_rule AS ON DELETE TO rw_view16
+WHERE OLD.a > 0
+        DO INSTEAD
+        DELETE FROM base_tbl
+        WHERE a = OLD.a;
+
+INSERT INTO rw_view16 (a, b)
+    VALUES (3, 'Row 3');
+
+-- should fail
+UPDATE
+    rw_view16
+SET
+    b = 'ROW 2'
+WHERE
+    a = 2;
+
+-- should fail
+DELETE FROM rw_view16
+WHERE a = 2;
+
+-- should fail
+MERGE INTO rw_view16 AS t
+    USING ( VALUES (3, 'Row 3')) AS v (a, b) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a, v.b);
+
+-- should fail
 DROP TABLE base_tbl CASCADE;
 
 DROP VIEW ro_view10, ro_view12, ro_view18;
@@ -485,7 +626,11 @@ FROM
 
 CREATE VIEW rw_view1 AS
 SELECT
-    *
+    *,
+    'Const' AS c,
+    (
+        SELECT
+            concat('b: ', b)) AS d
 FROM
     base_tbl
 WHERE
@@ -540,6 +685,46 @@ SELECT
 FROM
     base_tbl;
 
+SET jit_above_cost = 0;
+
+MERGE INTO rw_view1 t
+    USING ( VALUES (0, 'ROW 0'), (1, 'ROW 1'), (2, 'ROW 2'), (3, 'ROW 3')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED AND t.a <= 1 THEN
+        UPDATE SET b = v.b
+    WHEN MATCHED THEN
+        DELETE
+    WHEN NOT MATCHED AND a > 0 THEN
+        INSERT (a) VALUES (v.a) RETURNING
+    merge_action (), v.*, old, new, old.*, new.*, t.*;
+
+SET jit_above_cost TO DEFAULT;
+
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a;
+
+MERGE INTO rw_view1 t
+    USING ( VALUES (0, 'R0'), (1, 'R1'), (2, 'R2'), (3, 'R3')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED AND t.a <= 1 THEN
+        UPDATE SET b = v.b
+    WHEN MATCHED THEN
+        DELETE
+    WHEN NOT MATCHED BY SOURCE THEN
+        DELETE
+    WHEN NOT MATCHED AND a > 0 THEN
+        INSERT (a) VALUES (v.a) RETURNING
+    merge_action (), v.*, old, new, old.*, new.*, t.*;
+
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a;
+
 EXPLAIN (
     COSTS OFF
 ) UPDATE
@@ -554,7 +739,79 @@ EXPLAIN (
 ) DELETE FROM rw_view1
 WHERE a = 5;
 
+EXPLAIN (
+    COSTS OFF
+) MERGE INTO rw_view1 t
+    USING ( VALUES (5, 'X')) AS v (a, b) ON t.a = v.a
+    WHEN MATCHED THEN
+        DELETE;
+
+EXPLAIN (
+    COSTS OFF
+) MERGE INTO rw_view1 t
+    USING (
+        SELECT
+            * FROM
+            generate_series(1, 5)) AS s (a) ON t.a = s.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'Updated';
+
+EXPLAIN (
+    COSTS OFF
+) MERGE INTO rw_view1 t
+    USING (
+        SELECT
+            * FROM
+            generate_series(1, 5)) AS s (a) ON t.a = s.a
+    WHEN NOT MATCHED BY SOURCE THEN
+        DELETE;
+
+EXPLAIN (
+    COSTS OFF
+) MERGE INTO rw_view1 t
+    USING (
+        SELECT
+            * FROM
+            generate_series(1, 5)) AS s (a) ON t.a = s.a
+    WHEN NOT MATCHED THEN
+        INSERT (a) VALUES (s.a);
+
+-- it's still updatable if we add a DO ALSO rule
+CREATE TABLE base_tbl_hist (
+    ts timestamptz DEFAULT now(),
+    a int,
+    b text
+);
+
+CREATE RULE base_tbl_log AS ON INSERT TO rw_view1
+    DO ALSO
+    INSERT INTO base_tbl_hist (a, b)
+    VALUES (NEW.a, NEW.b);
+
+SELECT
+    table_name,
+    is_updatable,
+    is_insertable_into
+FROM
+    information_schema.views
+WHERE
+    table_name = 'rw_view1';
+
+-- Check behavior with DEFAULTs (bug #17633)
+INSERT INTO rw_view1
+VALUES
+    (9, DEFAULT),
+    (10, DEFAULT);
+
+SELECT
+    a,
+    b
+FROM
+    base_tbl_hist;
+
 DROP TABLE base_tbl CASCADE;
+
+DROP TABLE base_tbl_hist;
 
 -- view on top of view
 CREATE TABLE base_tbl (
@@ -572,7 +829,8 @@ FROM
 CREATE VIEW rw_view1 AS
 SELECT
     b AS bb,
-    a AS aa
+    a AS aa,
+    'Const1' AS c
 FROM
     base_tbl
 WHERE
@@ -581,7 +839,9 @@ WHERE
 CREATE VIEW rw_view2 AS
 SELECT
     aa AS aaa,
-    bb AS bbb
+    bb AS bbb,
+    c AS c1,
+    'Const2' AS c2
 FROM
     rw_view1
 WHERE
@@ -640,6 +900,52 @@ SELECT
     *
 FROM
     rw_view2;
+
+MERGE INTO rw_view2 t
+    USING ( VALUES (3, 'R3'), (4, 'R4'), (5, 'R5')) AS v (a, b) ON aaa = v.a
+    WHEN MATCHED AND aaa = 3 THEN
+        DELETE
+    WHEN MATCHED THEN
+        UPDATE SET bbb = v.b
+    WHEN NOT MATCHED THEN
+        INSERT (aaa) VALUES (v.a) RETURNING
+    merge_action (), v.*, (
+        SELECT
+            old), (
+        SELECT
+            (
+                SELECT
+                    new)), t.*;
+
+SELECT
+    *
+FROM
+    rw_view2
+ORDER BY
+    aaa;
+
+MERGE INTO rw_view2 t
+    USING ( VALUES (4, 'r4'), (5, 'r5'), (6, 'r6')) AS v (a, b) ON aaa = v.a
+    WHEN MATCHED AND aaa = 4 THEN
+        DELETE
+    WHEN MATCHED THEN
+        UPDATE SET bbb = v.b
+    WHEN NOT MATCHED THEN
+        INSERT (aaa) VALUES (v.a)
+    WHEN NOT MATCHED BY SOURCE THEN
+        UPDATE SET bbb = 'Not matched by source' RETURNING
+            merge_action (), v.*, old, (
+                SELECT
+                    new FROM ( VALUES ((
+                                SELECT
+                                    new)))), t.*;
+
+SELECT
+    *
+FROM
+    rw_view2
+ORDER BY
+    aaa;
 
 EXPLAIN (
     COSTS OFF
@@ -843,7 +1149,29 @@ ORDER BY
 INSERT INTO rw_view2
     VALUES (3, 'Row 3')
 RETURNING
-    *;
+    old.*, new.*;
+
+UPDATE
+    rw_view2
+SET
+    b = 'R3'
+WHERE
+    a = 3
+RETURNING
+    old.*,
+    new.*;
+
+-- rule returns NEW
+DROP RULE rw_view1_upd_rule ON rw_view1;
+
+CREATE RULE rw_view1_upd_rule AS ON UPDATE
+    TO rw_view1
+        DO INSTEAD
+        UPDATE
+            base_tbl SET
+            b = NEW.b WHERE
+            a = OLD.a RETURNING
+            *;
 
 UPDATE
     rw_view2
@@ -852,7 +1180,8 @@ SET
 WHERE
     a = 3
 RETURNING
-    *;
+    old.*,
+    new.*;
 
 SELECT
     *
@@ -862,13 +1191,20 @@ FROM
 DELETE FROM rw_view2
 WHERE a = 3
 RETURNING
-    *;
+    old.*,
+    new.*;
 
 SELECT
     *
 FROM
     rw_view2;
 
+MERGE INTO rw_view2 t
+    USING ( VALUES (3, 'Row 3')) AS v (a, b) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a, v.b);
+
+-- should fail
 EXPLAIN (
     COSTS OFF
 ) UPDATE
@@ -900,7 +1236,8 @@ FROM
 
 CREATE VIEW rw_view1 AS
 SELECT
-    *
+    *,
+    'Const1' AS c1
 FROM
     base_tbl
 WHERE
@@ -909,7 +1246,8 @@ WHERE
 -- not updatable without rules/triggers
 CREATE VIEW rw_view2 AS
 SELECT
-    *
+    *,
+    'Const2' AS c2
 FROM
     rw_view1
 WHERE
@@ -958,6 +1296,7 @@ BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO base_tbl
             VALUES (NEW.a, NEW.b);
+        NEW.c1 = 'Trigger Const1';
         RETURN NEW;
     ELSIF TG_OP = 'UPDATE' THEN
         UPDATE
@@ -966,6 +1305,7 @@ BEGIN
             b = NEW.b
         WHERE
             a = OLD.a;
+        NEW.c1 = 'Trigger Const1';
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
         DELETE FROM base_tbl
@@ -1102,7 +1442,7 @@ ORDER BY
 INSERT INTO rw_view2
     VALUES (3, 'Row 3')
 RETURNING
-    *;
+    old.*, new.*;
 
 UPDATE
     rw_view2
@@ -1111,7 +1451,8 @@ SET
 WHERE
     a = 3
 RETURNING
-    *;
+    old.*,
+    new.*;
 
 SELECT
     *
@@ -1121,12 +1462,53 @@ FROM
 DELETE FROM rw_view2
 WHERE a = 3
 RETURNING
-    *;
+    old.*,
+    new.*;
 
 SELECT
     *
 FROM
     rw_view2;
+
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED AND t.a <= 1 THEN
+        DELETE
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b
+    WHEN NOT MATCHED AND s.a > 0 THEN
+        INSERT VALUES (s.a, s.b) RETURNING
+    merge_action (), s.*, old, new, t.*;
+
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a;
+
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'r' || x FROM
+            generate_series(0, 2) x) AS s (a, b) ON t.a = s.a
+        WHEN MATCHED THEN
+            UPDATE SET b = s.b
+        WHEN NOT MATCHED AND s.a > 0 THEN
+            INSERT VALUES (s.a, s.b)
+        WHEN NOT MATCHED BY SOURCE THEN
+            UPDATE SET b = 'Not matched by source' RETURNING
+                merge_action (), s.*, old, new, t.*;
+
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a;
 
 EXPLAIN (
     COSTS OFF
@@ -1141,6 +1523,102 @@ EXPLAIN (
     COSTS OFF
 ) DELETE FROM rw_view2
 WHERE a = 2;
+
+EXPLAIN (
+    COSTS OFF
+) MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED AND t.a <= 1 THEN
+        DELETE
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b
+    WHEN NOT MATCHED AND s.a > 0 THEN
+        INSERT VALUES (s.a, s.b);
+
+-- MERGE with incomplete set of INSTEAD OF triggers
+DROP TRIGGER rw_view1_del_trig ON rw_view1;
+
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED AND t.a <= 1 THEN
+        DELETE
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b
+    WHEN NOT MATCHED AND s.a > 0 THEN
+        INSERT VALUES (s.a, s.b);
+
+-- should fail
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b
+    WHEN NOT MATCHED AND s.a > 0 THEN
+        INSERT VALUES (s.a, s.b);
+
+-- ok
+DROP TRIGGER rw_view1_ins_trig ON rw_view1;
+
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b
+    WHEN NOT MATCHED AND s.a > 0 THEN
+        INSERT VALUES (s.a, s.b);
+
+-- should fail
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b;
+
+-- ok
+-- MERGE with INSTEAD OF triggers on auto-updatable view
+CREATE TRIGGER rw_view2_upd_trig
+    INSTEAD OF UPDATE ON rw_view2
+    FOR EACH ROW
+    EXECUTE PROCEDURE rw_view1_trig_fn ();
+
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b
+    WHEN NOT MATCHED AND s.a > 0 THEN
+        INSERT VALUES (s.a, s.b);
+
+-- should fail
+MERGE INTO rw_view2 t
+    USING (
+        SELECT
+            x, 'R' || x FROM
+            generate_series(0, 3) x) AS s (a, b) ON t.a = s.a
+    WHEN MATCHED THEN
+        UPDATE SET b = s.b;
+
+-- ok
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a;
 
 DROP TABLE base_tbl CASCADE;
 
@@ -1207,6 +1685,8 @@ DROP TABLE base_tbl CASCADE;
 CREATE USER regress_view_user1;
 
 CREATE USER regress_view_user2;
+
+CREATE USER regress_view_user3;
 
 SET SESSION AUTHORIZATION regress_view_user1;
 
@@ -1280,6 +1760,18 @@ INSERT INTO rw_view2
     VALUES ('Row 3', 3.0, 3);
 
 -- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES ('Row 3', 3.0, 3)) AS v (b, c, a) ON t.aa = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.b, v.c, v.a);
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES ('Row 3', 3.0, 3)) AS v (b, c, a) ON t.aa = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.b, v.c, v.a);
+
+-- not allowed
 UPDATE
     base_tbl
 SET
@@ -1317,6 +1809,30 @@ UPDATE
     rw_view2
 SET
     bb = bb;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bb = bb, cc = cc;
+
+-- ok
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aa = aa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aa = aa, cc = cc;
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bb = bb;
 
 -- not allowed
 DELETE FROM base_tbl;
@@ -1362,6 +1878,18 @@ DELETE FROM rw_view2
 WHERE aa = 2;
 
 -- ok
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED AND bb = 'xxx' THEN
+        DELETE;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED AND bb = 'xxx' THEN
+        DELETE;
+
+-- ok
 SELECT
     *
 FROM
@@ -1401,6 +1929,18 @@ WHERE aa = 3;
 -- ok
 DELETE FROM rw_view2
 WHERE aa = 4;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED AND bb = 'xxx' THEN
+        DELETE;
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED AND bb = 'xxx' THEN
+        DELETE;
 
 -- not allowed
 SELECT
@@ -1451,6 +1991,12 @@ WHERE
     a = 1;
 
 -- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
+
+-- not allowed
 SET SESSION AUTHORIZATION regress_view_user2;
 
 CREATE VIEW rw_view2 AS
@@ -1480,6 +2026,12 @@ WHERE
     a = 1;
 
 -- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
+
+-- not allowed
 RESET SESSION AUTHORIZATION;
 
 GRANT SELECT ON base_tbl TO regress_view_user1;
@@ -1506,6 +2058,12 @@ WHERE
     a = 1;
 
 -- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
+
+-- not allowed
 SET SESSION AUTHORIZATION regress_view_user2;
 
 SELECT
@@ -1527,6 +2085,12 @@ SET
     b = 'bar'
 WHERE
     a = 1;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
 
 -- not allowed
 SET SESSION AUTHORIZATION regress_view_user1;
@@ -1555,6 +2119,12 @@ WHERE
     a = 1;
 
 -- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
+
+-- not allowed
 RESET SESSION AUTHORIZATION;
 
 GRANT UPDATE ON base_tbl TO regress_view_user1;
@@ -1579,6 +2149,11 @@ SET
 WHERE
     a = 1;
 
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
+
 SET SESSION AUTHORIZATION regress_view_user2;
 
 SELECT
@@ -1599,6 +2174,12 @@ SET
     b = 'bar'
 WHERE
     a = 1;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'bar';
 
 -- not allowed
 SET SESSION AUTHORIZATION regress_view_user1;
@@ -1624,6 +2205,11 @@ SET
     b = 'bar'
 WHERE
     a = 1;
+
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'fud';
 
 RESET SESSION AUTHORIZATION;
 
@@ -1651,6 +2237,12 @@ WHERE
     a = 1;
 
 -- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
+
+-- not allowed
 SET SESSION AUTHORIZATION regress_view_user2;
 
 SELECT
@@ -1673,6 +2265,790 @@ WHERE
     a = 1;
 
 -- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET b = 'foo';
+
+-- not allowed
+RESET SESSION AUTHORIZATION;
+
+DROP TABLE base_tbl CASCADE;
+
+-- security invoker view permissions
+SET SESSION AUTHORIZATION regress_view_user1;
+
+CREATE TABLE base_tbl (
+    a int,
+    b text,
+    c float
+);
+
+INSERT INTO base_tbl
+    VALUES (1, 'Row 1', 1.0);
+
+CREATE VIEW rw_view1 AS
+SELECT
+    b AS bb,
+    c AS cc,
+    a AS aa
+FROM
+    base_tbl;
+
+ALTER VIEW rw_view1 SET (security_invoker = TRUE);
+
+INSERT INTO rw_view1
+    VALUES ('Row 2', 2.0, 2);
+
+GRANT SELECT ON rw_view1 TO regress_view_user2;
+
+GRANT UPDATE (bb, cc) ON rw_view1 TO regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+SELECT
+    *
+FROM
+    base_tbl;
+
+-- not allowed
+SELECT
+    *
+FROM
+    rw_view1;
+
+-- not allowed
+INSERT INTO base_tbl
+    VALUES (3, 'Row 3', 3.0);
+
+-- not allowed
+INSERT INTO rw_view1
+    VALUES ('Row 3', 3.0, 3);
+
+-- not allowed
+UPDATE
+    base_tbl
+SET
+    a = a;
+
+-- not allowed
+UPDATE
+    rw_view1
+SET
+    bb = bb,
+    cc = cc;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bb = bb;
+
+-- not allowed
+DELETE FROM base_tbl;
+
+-- not allowed
+DELETE FROM rw_view1;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        DELETE;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user1;
+
+GRANT SELECT ON base_tbl TO regress_view_user2;
+
+GRANT UPDATE (a, c) ON base_tbl TO regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+SELECT
+    *
+FROM
+    base_tbl;
+
+-- ok
+SELECT
+    *
+FROM
+    rw_view1;
+
+-- ok
+UPDATE
+    base_tbl
+SET
+    a = a,
+    c = c;
+
+-- ok
+UPDATE
+    base_tbl
+SET
+    b = b;
+
+-- not allowed
+UPDATE
+    rw_view1
+SET
+    cc = cc;
+
+-- ok
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET cc = cc;
+
+-- ok
+UPDATE
+    rw_view1
+SET
+    aa = aa;
+
+-- not allowed
+UPDATE
+    rw_view1
+SET
+    bb = bb;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aa = aa;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bb = bb;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user1;
+
+GRANT INSERT, DELETE ON base_tbl TO regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+INSERT INTO base_tbl
+    VALUES (3, 'Row 3', 3.0);
+
+-- ok
+INSERT INTO rw_view1
+    VALUES ('Row 4', 4.0, 4);
+
+-- not allowed
+DELETE FROM base_tbl
+WHERE a = 1;
+
+-- ok
+DELETE FROM rw_view1
+WHERE aa = 2;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        DELETE;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user1;
+
+REVOKE INSERT, DELETE ON base_tbl FROM regress_view_user2;
+
+GRANT INSERT, DELETE ON rw_view1 TO regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+INSERT INTO rw_view1
+    VALUES ('Row 4', 4.0, 4);
+
+-- not allowed
+DELETE FROM rw_view1
+WHERE aa = 2;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        DELETE;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user1;
+
+GRANT INSERT, DELETE ON base_tbl TO regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+INSERT INTO rw_view1
+    VALUES ('Row 4', 4.0, 4);
+
+-- ok
+DELETE FROM rw_view1
+WHERE aa = 2;
+
+-- ok
+MERGE INTO rw_view1 t
+    USING ( VALUES (3)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        DELETE;
+
+-- ok
+SELECT
+    *
+FROM
+    base_tbl;
+
+-- ok
+RESET SESSION AUTHORIZATION;
+
+DROP TABLE base_tbl CASCADE;
+
+-- ordinary view on top of security invoker view permissions
+CREATE TABLE base_tbl (
+    a int,
+    b text,
+    c float
+);
+
+INSERT INTO base_tbl
+    VALUES (1, 'Row 1', 1.0);
+
+SET SESSION AUTHORIZATION regress_view_user1;
+
+CREATE VIEW rw_view1 AS
+SELECT
+    b AS bb,
+    c AS cc,
+    a AS aa
+FROM
+    base_tbl;
+
+ALTER VIEW rw_view1 SET (security_invoker = TRUE);
+
+SELECT
+    *
+FROM
+    rw_view1;
+
+-- not allowed
+UPDATE
+    rw_view1
+SET
+    aa = aa;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (2, 'Row 2', 2.0)) AS v (a, b, c) ON t.aa = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.b, v.c, v.a);
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user2;
+
+CREATE VIEW rw_view2 AS
+SELECT
+    cc AS ccc,
+    aa AS aaa,
+    bb AS bbb
+FROM
+    rw_view1;
+
+GRANT SELECT, UPDATE ON rw_view2 TO regress_view_user3;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (2, 'Row 2', 2.0)) AS v (a, b, c) ON t.aaa = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.c, v.a, v.b);
+
+-- not allowed
+RESET SESSION AUTHORIZATION;
+
+GRANT SELECT ON base_tbl TO regress_view_user1;
+
+GRANT UPDATE (a, b) ON base_tbl TO regress_view_user1;
+
+SET SESSION AUTHORIZATION regress_view_user1;
+
+SELECT
+    *
+FROM
+    rw_view1;
+
+-- ok
+UPDATE
+    rw_view1
+SET
+    aa = aa,
+    bb = bb;
+
+-- ok
+UPDATE
+    rw_view1
+SET
+    cc = cc;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aa = aa, bb = bb;
+
+-- ok
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET cc = cc;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user2;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user3;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user1;
+
+GRANT SELECT ON rw_view1 TO regress_view_user2;
+
+GRANT UPDATE (bb, cc) ON rw_view1 TO regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user3;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+RESET SESSION AUTHORIZATION;
+
+GRANT SELECT ON base_tbl TO regress_view_user2;
+
+GRANT UPDATE (a, c) ON base_tbl TO regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- ok
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    ccc = ccc;
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET ccc = ccc;
+
+-- ok
+SET SESSION AUTHORIZATION regress_view_user3;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    ccc = ccc;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET ccc = ccc;
+
+-- not allowed
+RESET SESSION AUTHORIZATION;
+
+GRANT SELECT ON base_tbl TO regress_view_user3;
+
+GRANT UPDATE (a, c) ON base_tbl TO regress_view_user3;
+
+SET SESSION AUTHORIZATION regress_view_user3;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- ok
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    ccc = ccc;
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET ccc = ccc;
+
+-- ok
+RESET SESSION AUTHORIZATION;
+
+REVOKE SELECT, UPDATE ON base_tbl FROM regress_view_user1;
+
+SET SESSION AUTHORIZATION regress_view_user1;
+
+SELECT
+    *
+FROM
+    rw_view1;
+
+-- not allowed
+UPDATE
+    rw_view1
+SET
+    aa = aa;
+
+-- not allowed
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.aa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aa = aa;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user2;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- ok
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    ccc = ccc;
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET ccc = ccc;
+
+-- ok
+SET SESSION AUTHORIZATION regress_view_user3;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- ok
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    ccc = ccc;
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET ccc = ccc;
+
+-- ok
+RESET SESSION AUTHORIZATION;
+
+REVOKE SELECT, UPDATE ON base_tbl FROM regress_view_user2;
+
+SET SESSION AUTHORIZATION regress_view_user2;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    ccc = ccc;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET ccc = ccc;
+
+-- not allowed
+SET SESSION AUTHORIZATION regress_view_user3;
+
+SELECT
+    *
+FROM
+    rw_view2;
+
+-- ok
+UPDATE
+    rw_view2
+SET
+    aaa = aaa;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    bbb = bbb;
+
+-- not allowed
+UPDATE
+    rw_view2
+SET
+    ccc = ccc;
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET aaa = aaa;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET bbb = bbb;
+
+-- not allowed
+MERGE INTO rw_view2 t
+    USING ( VALUES (1)) AS v (a) ON t.aaa = v.a
+    WHEN MATCHED THEN
+        UPDATE SET ccc = ccc;
+
+-- ok
 RESET SESSION AUTHORIZATION;
 
 DROP TABLE base_tbl CASCADE;
@@ -1680,6 +3056,8 @@ DROP TABLE base_tbl CASCADE;
 DROP USER regress_view_user1;
 
 DROP USER regress_view_user2;
+
+DROP USER regress_view_user3;
 
 -- column defaults
 CREATE TABLE base_tbl (
@@ -1712,6 +3090,11 @@ INSERT INTO rw_view1
 
 INSERT INTO rw_view1 (aa)
     VALUES (5);
+
+MERGE INTO rw_view1 t
+    USING ( VALUES (6)) AS v (a) ON t.aa = v.a
+    WHEN NOT MATCHED THEN
+        INSERT (aa) VALUES (v.a);
 
 SELECT
     *
@@ -1899,6 +3282,10 @@ INSERT INTO rw_view1 (s, c, a)
     VALUES (NULL, NULL, 1.1);
 
 -- should fail
+INSERT INTO rw_view1 (s, c, a)
+    VALUES (DEFAULT, DEFAULT, 1.1);
+
+-- should fail
 INSERT INTO rw_view1 (a)
     VALUES (1.1)
 RETURNING
@@ -2060,6 +3447,64 @@ FROM
 
 DROP TABLE base_tbl CASCADE;
 
+-- view on table with GENERATED columns
+CREATE TABLE base_tbl (
+    id int,
+    idplus1 int GENERATED ALWAYS AS (id + 1) STORED
+);
+
+CREATE VIEW rw_view1 AS
+SELECT
+    *
+FROM
+    base_tbl;
+
+INSERT INTO base_tbl (id)
+    VALUES (1);
+
+INSERT INTO rw_view1 (id)
+    VALUES (2);
+
+INSERT INTO base_tbl (id, idplus1)
+    VALUES (3, DEFAULT);
+
+INSERT INTO rw_view1 (id, idplus1)
+    VALUES (4, DEFAULT);
+
+INSERT INTO base_tbl (id, idplus1)
+    VALUES (5, 6);
+
+-- error
+INSERT INTO rw_view1 (id, idplus1)
+    VALUES (6, 7);
+
+-- error
+SELECT
+    *
+FROM
+    base_tbl;
+
+UPDATE
+    base_tbl
+SET
+    id = 2000
+WHERE
+    id = 2;
+
+UPDATE
+    rw_view1
+SET
+    id = 3000
+WHERE
+    id = 3;
+
+SELECT
+    *
+FROM
+    base_tbl;
+
+DROP TABLE base_tbl CASCADE;
+
 -- inheritance tests
 CREATE TABLE base_tbl_parent (
     a int
@@ -2175,6 +3620,44 @@ DELETE FROM ONLY rw_view2
 WHERE a IN (-8, 8);
 
 -- Should delete -8 only
+SELECT
+    *
+FROM
+    ONLY base_tbl_parent
+ORDER BY
+    a;
+
+SELECT
+    *
+FROM
+    base_tbl_child
+ORDER BY
+    a;
+
+MERGE INTO rw_view1 t
+    USING ( VALUES (-200), (10)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET a = t.a + 1;
+
+-- Should produce -199 and 11
+MERGE INTO ONLY rw_view1 t
+    USING ( VALUES (-100), (20)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET a = t.a + 1;
+
+-- Should produce -99 and 21
+MERGE INTO rw_view2 t
+    USING ( VALUES (-40), (3)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET a = t.a + 1;
+
+-- Should produce -39 only
+MERGE INTO ONLY rw_view2 t
+    USING ( VALUES (-30), (4)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET a = t.a + 1;
+
+-- Should produce -29 only
 SELECT
     *
 FROM
@@ -2313,7 +3796,42 @@ INSERT INTO rw_view1 (a)
 SELECT
     *
 FROM
-    base_tbl;
+    base_tbl
+ORDER BY
+    a,
+    b;
+
+MERGE INTO rw_view1 t
+    USING ( VALUES (10)) AS v (a) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a, v.a + 1);
+
+-- ok
+MERGE INTO rw_view1 t
+    USING ( VALUES (11)) AS v (a) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a, v.a - 1);
+
+-- should fail
+MERGE INTO rw_view1 t
+    USING ( VALUES (1)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET a = t.a - 1;
+
+-- ok
+MERGE INTO rw_view1 t
+    USING ( VALUES (2)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET a = t.a + 1;
+
+-- should fail
+SELECT
+    *
+FROM
+    base_tbl
+ORDER BY
+    a,
+    b;
 
 DROP TABLE base_tbl CASCADE;
 
@@ -2720,18 +4238,42 @@ INSERT INTO rw_view2
     VALUES (-5);
 
 -- should fail
+MERGE INTO rw_view2 t
+    USING ( VALUES (-5)) AS v (a) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a);
+
+-- should fail
 INSERT INTO rw_view2
     VALUES (5);
+
+-- ok
+MERGE INTO rw_view2 t
+    USING ( VALUES (6)) AS v (a) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a);
 
 -- ok
 INSERT INTO rw_view2
     VALUES (50);
 
 -- ok, but not in view
+MERGE INTO rw_view2 t
+    USING ( VALUES (60)) AS v (a) ON t.a = v.a
+    WHEN NOT MATCHED THEN
+        INSERT VALUES (v.a);
+
+-- ok, but not in view
 UPDATE
     rw_view2
 SET
     a = a - 10;
+
+-- should fail
+MERGE INTO rw_view2 t
+    USING ( VALUES (6)) AS v (a) ON t.a = v.a
+    WHEN MATCHED THEN
+        UPDATE SET a = t.a - 10;
 
 -- should fail
 SELECT
@@ -2949,6 +4491,11 @@ WHERE
 DELETE FROM rw_view1
 WHERE NOT snoop (person);
 
+MERGE INTO rw_view1 t
+    USING ( VALUES ('Tom'), ('Dick'), ('Harry')) AS v (person) ON t.person = v.person
+    WHEN MATCHED AND snoop (t.person) THEN
+        UPDATE SET person = v.person;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -2972,6 +4519,13 @@ EXPLAIN (
     COSTS OFF
 ) DELETE FROM rw_view1
 WHERE NOT snoop (person);
+
+EXPLAIN (
+    COSTS OFF
+) MERGE INTO rw_view1 t
+    USING ( VALUES ('Tom'), ('Dick'), ('Harry')) AS v (person) ON t.person = v.person
+    WHEN MATCHED AND snoop (t.person) THEN
+        UPDATE SET person = v.person;
 
 -- security barrier view on top of security barrier view
 CREATE VIEW rw_view2 WITH ( security_barrier = TRUE
@@ -3029,6 +4583,11 @@ WHERE
 DELETE FROM rw_view2
 WHERE NOT snoop (person);
 
+MERGE INTO rw_view2 t
+    USING ( VALUES ('Tom'), ('Dick'), ('Harry')) AS v (person) ON t.person = v.person
+    WHEN MATCHED AND snoop (t.person) THEN
+        UPDATE SET person = v.person;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -3052,6 +4611,13 @@ EXPLAIN (
     COSTS OFF
 ) DELETE FROM rw_view2
 WHERE NOT snoop (person);
+
+EXPLAIN (
+    COSTS OFF
+) MERGE INTO rw_view2 t
+    USING ( VALUES ('Tom'), ('Dick'), ('Harry')) AS v (person) ON t.person = v.person
+    WHEN MATCHED AND snoop (t.person) THEN
+        UPDATE SET person = v.person;
 
 DROP TABLE base_tbl CASCADE;
 
@@ -3585,6 +5151,52 @@ DROP TABLE t2;
 DROP TABLE t1;
 
 --
+-- Test sub-select in nested security barrier views, per bug #17972
+--
+CREATE TABLE t1 (
+    a int
+);
+
+CREATE VIEW v1 WITH ( security_barrier = TRUE
+) AS
+SELECT
+    *
+FROM
+    t1;
+
+CREATE RULE v1_upd_rule AS ON UPDATE
+    TO v1
+        DO INSTEAD
+        UPDATE
+            t1 SET
+            a = NEW.a WHERE
+            a = OLD.a;
+
+CREATE VIEW v2 WITH ( security_barrier = TRUE
+) AS
+SELECT
+    *
+FROM
+    v1
+WHERE
+    EXISTS (
+        SELECT
+            1);
+
+EXPLAIN (
+    COSTS OFF
+) UPDATE
+    v2
+SET
+    a = 1;
+
+DROP VIEW v2;
+
+DROP VIEW v1;
+
+DROP TABLE t1;
+
+--
 -- Test CREATE OR REPLACE VIEW turning a non-updatable view into an
 -- auto-updatable view and adding check options in a single step
 --
@@ -3713,6 +5325,38 @@ WHERE
 INSERT INTO uv_ptv_wco
     VALUES (1, 2);
 
+merge INTO uv_ptv t
+    USING ( VALUES (1, 2), (1, 4)) AS v (a, b) ON t.a = v.a -- fail: matches 2 src rows
+    WHEN matched THEN
+        UPDATE SET b = t.b + 1
+    WHEN NOT matched THEN
+        INSERT VALUES (v.a, v.b + 1);
+
+merge INTO uv_ptv t
+    USING ( VALUES (1, 2), (1, 4)) AS v (a, b) ON t.a = v.a AND t.b = v.b
+        WHEN matched THEN
+            UPDATE SET b = t.b + 1
+        WHEN NOT matched THEN
+            INSERT VALUES (v.a, v.b + 1);
+
+-- fail: no partition for b=5
+merge INTO uv_ptv t
+    USING ( VALUES (1, 2), (1, 3)) AS v (a, b) ON t.a = v.a AND t.b = v.b
+        WHEN matched THEN
+            UPDATE SET b = t.b + 1
+        WHEN NOT matched THEN
+            INSERT VALUES (v.a, v.b + 1);
+
+-- ok
+SELECT
+    tableoid::regclass,
+    *
+FROM
+    uv_pt
+ORDER BY
+    a,
+    b;
+
 DROP VIEW uv_ptv, uv_ptv_wco;
 
 DROP TABLE uv_pt, uv_pt1, uv_pt11;
@@ -3787,7 +5431,7 @@ DROP VIEW wcowrtest_v, wcowrtest_v2;
 
 DROP TABLE wcowrtest, sometable;
 
--- Check INSERT .. ON CONFLICT DO UPDATE works correctly when the view's
+-- Check INSERT .. ON CONFLICT DO SELECT/UPDATE works correctly when the view's
 -- columns are named and ordered differently than the underlying table's.
 CREATE TABLE uv_iocu_tab (
     a text UNIQUE,
@@ -3827,6 +5471,17 @@ SELECT
     *
 FROM
     uv_iocu_tab;
+
+INSERT INTO uv_iocu_view (a, b)
+    VALUES ('xyxyxy', 1)
+ON CONFLICT (a)
+DO
+SELECT
+WHERE
+    uv_iocu_view.c = 2
+        AND excluded.c = 2
+    RETURNING
+        *;
 
 -- OK to access view columns that are not present in underlying base
 -- relation in the ON CONFLICT portion of the query
@@ -3912,6 +5567,28 @@ SELECT
 FROM
     uv_iocu_view;
 
+EXPLAIN (
+    COSTS OFF
+) INSERT INTO uv_iocu_view (aa, bb)
+    VALUES (1, 'Rejected: (y,1,"(1,y)")')
+ON CONFLICT (aa)
+DO
+SELECT
+WHERE
+    uv_iocu_view.* = excluded.*
+RETURNING
+    *;
+
+INSERT INTO uv_iocu_view (aa, bb)
+    VALUES (1, 'Rejected: (y,1,"(1,y)")')
+ON CONFLICT (aa)
+DO
+SELECT
+WHERE
+    uv_iocu_view.* = excluded.*
+RETURNING
+    *;
+
 -- Test omitting a column of the base relation
 DELETE FROM uv_iocu_view;
 
@@ -3943,6 +5620,14 @@ SELECT
 FROM
     uv_iocu_view;
 
+INSERT INTO uv_iocu_view (aa)
+    VALUES (1)
+ON CONFLICT (aa)
+DO
+SELECT
+RETURNING
+    *;
+
 ALTER VIEW uv_iocu_view
     ALTER COLUMN bb SET DEFAULT 'view default';
 
@@ -3957,6 +5642,14 @@ SELECT
 FROM
     uv_iocu_view;
 
+INSERT INTO uv_iocu_view (aa)
+    VALUES (1)
+ON CONFLICT (aa)
+DO
+SELECT
+RETURNING
+    *;
+
 -- Should fail to update non-updatable columns
 INSERT INTO uv_iocu_view (aa)
     VALUES (1)
@@ -3968,7 +5661,7 @@ DROP VIEW uv_iocu_view;
 
 DROP TABLE uv_iocu_tab;
 
--- ON CONFLICT DO UPDATE permissions checks
+-- ON CONFLICT DO SELECT/UPDATE permissions checks
 CREATE USER regress_view_user1;
 
 CREATE USER regress_view_user2;
@@ -4035,6 +5728,26 @@ ON CONFLICT (aa)
         cc = 3.0;
 
 -- Not allowed
+INSERT INTO rw_view1
+    VALUES ('yyy', 2.0, 1)
+ON CONFLICT (aa)
+DO
+SELECT
+    FOR UPDATE
+RETURNING
+    cc;
+
+-- Not allowed
+INSERT INTO rw_view1
+    VALUES ('yyy', 2.0, 1)
+ON CONFLICT (aa)
+DO
+SELECT
+    FOR UPDATE
+RETURNING
+    aa,
+    bb;
+
 RESET session AUTHORIZATION;
 
 SELECT
@@ -4067,6 +5780,15 @@ ON CONFLICT (aa)
         bb = excluded.bb;
 
 -- Not allowed
+INSERT INTO rw_view2 (aa, bb)
+    VALUES (1, 'xxx')
+ON CONFLICT (aa)
+DO
+SELECT
+RETURNING
+    1;
+
+-- Not allowed
 CREATE VIEW rw_view3 AS
 SELECT
     b AS bb,
@@ -4079,6 +5801,16 @@ INSERT INTO rw_view3 (aa, bb)
 ON CONFLICT (aa)
     DO UPDATE SET
         bb = excluded.bb;
+
+-- OK
+INSERT INTO rw_view3 (aa, bb)
+    VALUES (1, 'xxx')
+ON CONFLICT (aa)
+DO
+SELECT
+RETURNING
+    aa,
+    bb;
 
 -- OK
 RESET session AUTHORIZATION;
@@ -4103,6 +5835,15 @@ INSERT INTO rw_view4 (aa, bb)
 ON CONFLICT (aa)
     DO UPDATE SET
         bb = excluded.bb;
+
+-- Not allowed
+INSERT INTO rw_view4 (aa, bb)
+    VALUES (1, 'yyy')
+ON CONFLICT (aa)
+DO
+SELECT
+RETURNING
+    1;
 
 -- Not allowed
 CREATE VIEW rw_view5 AS
@@ -4222,7 +5963,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER base_tab_def_view_instrig
-    INSTEAD OF insert ON base_tab_def_view FOR EACH ROW
+    INSTEAD OF insert ON base_tab_def_view
+    FOR EACH ROW
     EXECUTE FUNCTION base_tab_def_view_instrig_func ();
 
 TRUNCATE base_tab_def;
@@ -4384,6 +6126,35 @@ FROM
 ORDER BY
     a,
     c NULLS LAST;
+
+-- Test a DO ALSO INSERT ... SELECT rule
+DROP RULE base_tab_def_view_ins_rule ON base_tab_def_view;
+
+CREATE RULE base_tab_def_view_ins_rule AS ON INSERT TO base_tab_def_view
+    DO ALSO
+    INSERT INTO base_tab_def (a, b, e)
+    SELECT
+        NEW.a,
+        NEW.b,
+        'xxx';
+
+TRUNCATE base_tab_def;
+
+INSERT INTO base_tab_def_view
+    VALUES (1, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
+
+INSERT INTO base_tab_def_view
+VALUES
+    (2, DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+    (3, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
+
+SELECT
+    *
+FROM
+    base_tab_def
+ORDER BY
+    a,
+    e nulls FIRST;
 
 DROP VIEW base_tab_def_view;
 

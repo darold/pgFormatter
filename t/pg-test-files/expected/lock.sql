@@ -1,6 +1,12 @@
 --
 -- Test the LOCK statement
 --
+-- directory paths and dlsuffix are passed to us in environment variables
+\getenv libdir PG_LIBDIR
+
+\getenv dlsuffix PG_DLSUFFIX
+
+\set regresslib :libdir '/regress' :dlsuffix
 -- Setup
 CREATE SCHEMA lock_schema1;
 
@@ -178,7 +184,7 @@ ROLLBACK;
 
 BEGIN TRANSACTION;
 LOCK TABLE lock_view6 IN EXCLUSIVE MODE;
--- lock_view6 an lock_tbl1 are locked.
+-- lock_view6 and lock_tbl1 are locked.
 SELECT
     relname
 FROM
@@ -192,7 +198,7 @@ ORDER BY
     relname;
 ROLLBACK;
 
--- detecting infinite recursions in view definitions
+-- Verify that we cope with infinite recursion in view definitions.
 CREATE OR REPLACE VIEW lock_view2 AS
 SELECT
     *
@@ -230,11 +236,16 @@ BEGIN TRANSACTION;
 LOCK TABLE lock_tbl1 * IN ACCESS EXCLUSIVE MODE;
 ROLLBACK;
 
--- Verify that we can't lock a child table just because we have permission
--- on the parent, but that we can lock the parent only.
+-- Child tables are locked without granting explicit permission to do so as
+-- long as we have permission to lock the parent.
 GRANT UPDATE ON TABLE lock_tbl1 TO regress_rol_lock1;
 
 SET ROLE regress_rol_lock1;
+
+-- fail when child locked directly
+BEGIN;
+LOCK TABLE lock_tbl2;
+ROLLBACK;
 
 BEGIN;
 LOCK TABLE lock_tbl1 * IN ACCESS EXCLUSIVE MODE;
@@ -246,9 +257,99 @@ ROLLBACK;
 
 RESET ROLE;
 
+REVOKE UPDATE ON TABLE lock_tbl1 FROM regress_rol_lock1;
+
+-- Tables referred to by views are locked without explicit permission to do so
+-- as long as we have permission to lock the view itself.
+SET ROLE regress_rol_lock1;
+
+-- fail without permissions on the view
+BEGIN;
+LOCK TABLE lock_view1;
+ROLLBACK;
+
+RESET ROLE;
+
+GRANT UPDATE ON TABLE lock_view1 TO regress_rol_lock1;
+
+SET ROLE regress_rol_lock1;
+
+BEGIN;
+LOCK TABLE lock_view1 IN ACCESS EXCLUSIVE MODE;
+-- lock_view1 and lock_tbl1 (plus children lock_tbl2 and lock_tbl3) are locked.
+SELECT
+    relname
+FROM
+    pg_locks l,
+    pg_class c
+WHERE
+    l.relation = c.oid
+    AND relname LIKE '%lock_%'
+    AND mode = 'AccessExclusiveLock'
+ORDER BY
+    relname;
+ROLLBACK;
+
+RESET ROLE;
+
+REVOKE UPDATE ON TABLE lock_view1 FROM regress_rol_lock1;
+
+-- Tables referred to by security invoker views require explicit permission to
+-- be locked.
+CREATE VIEW lock_view8 WITH ( security_invoker
+) AS
+SELECT
+    *
+FROM
+    lock_tbl1;
+
+SET ROLE regress_rol_lock1;
+
+-- fail without permissions on the view
+BEGIN;
+LOCK TABLE lock_view8;
+ROLLBACK;
+
+RESET ROLE;
+
+GRANT UPDATE ON TABLE lock_view8 TO regress_rol_lock1;
+
+SET ROLE regress_rol_lock1;
+
+-- fail without permissions on the table referenced by the view
+BEGIN;
+LOCK TABLE lock_view8;
+ROLLBACK;
+
+RESET ROLE;
+
+GRANT UPDATE ON TABLE lock_tbl1 TO regress_rol_lock1;
+
+BEGIN;
+LOCK TABLE lock_view8 IN ACCESS EXCLUSIVE MODE;
+-- lock_view8 and lock_tbl1 (plus children lock_tbl2 and lock_tbl3) are locked.
+SELECT
+    relname
+FROM
+    pg_locks l,
+    pg_class c
+WHERE
+    l.relation = c.oid
+    AND relname LIKE '%lock_%'
+    AND mode = 'AccessExclusiveLock'
+ORDER BY
+    relname;
+ROLLBACK;
+
+RESET ROLE;
+
+REVOKE UPDATE ON TABLE lock_view8 FROM regress_rol_lock1;
+
 --
 -- Clean up
 --
+DROP VIEW lock_view8;
+
 DROP VIEW lock_view7;
 
 DROP VIEW lock_view6;
@@ -275,6 +376,11 @@ DROP ROLE regress_rol_lock1;
 
 -- atomic ops tests
 RESET search_path;
+
+CREATE FUNCTION test_atomic_ops ()
+    RETURNS bool
+    AS :'regresslib'
+    LANGUAGE C;
 
 SELECT
     test_atomic_ops ();

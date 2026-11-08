@@ -6,12 +6,8 @@ SELECT text 'this is a text string' = text 'this is a text string' AS true;
 
 SELECT text 'this is a text string' = text 'this is a text strin' AS false;
 
-CREATE TABLE TEXT_TBL (f1 text);
-
-INSERT INTO TEXT_TBL VALUES ('doh!');
-INSERT INTO TEXT_TBL VALUES ('hi de ho neighbor');
-
-SELECT '' AS two, * FROM TEXT_TBL;
+-- text_tbl was already created and filled in test_setup.sql.
+SELECT * FROM TEXT_TBL;
 
 -- As of 8.3 we have removed most implicit casts to text, so that for example
 -- this no longer works:
@@ -41,6 +37,9 @@ select concat_ws('',10,20,null,30);
 select concat_ws(NULL,10,20,null,30) is null;
 select reverse('abcde');
 select i, left('ahoj', i), right('ahoj', i) from generate_series(-5, 5) t(i) order by i;
+-- the most negative value must skip the whole string, same as any other n
+-- whose absolute value exceeds its length
+select left('ahoj', (-2147483648)::int4), right('ahoj', (-2147483648)::int4);
 select quote_literal('');
 select quote_literal('abc''');
 select quote_literal(e'\\');

@@ -7,6 +7,18 @@ SELECT '"abc
 def"'::json;					-- ERROR, unescaped newline in string constant
 SELECT '"\n\"\\"'::json;		-- OK, legal escapes
 SELECT '"\v"'::json;			-- ERROR, not a valid JSON escape
+
+-- Check fast path for longer strings (at least 16 bytes long)
+SELECT ('"'||repeat('.', 12)||'abc"')::json; -- OK
+SELECT ('"'||repeat('.', 12)||'abc\n"')::json; -- OK, legal escapes
+
+-- Test various lengths of strings to validate SIMD processing to escape
+-- special chars in the JSON.
+SELECT row_to_json(j)::jsonb FROM (
+  SELECT left(E'abcdefghijklmnopqrstuv"\twxyz012345678', a) AS a
+  FROM generate_series(0,37) a
+) j;
+
 -- see json_encoding test for input with unicode escapes
 
 -- Numbers.
@@ -59,6 +71,28 @@ SELECT 'trues'::json;			-- ERROR, not a keyword
 SELECT ''::json;				-- ERROR, no value
 SELECT '    '::json;			-- ERROR, no value
 
+-- Multi-line JSON input to check ERROR reporting
+SELECT '{
+		"one": 1,
+		"two":"two",
+		"three":
+		true}'::json; -- OK
+SELECT '{
+		"one": 1,
+		"two":,"two",  -- ERROR extraneous comma before field "two"
+		"three":
+		true}'::json;
+SELECT '{
+		"one": 1,
+		"two":"two",
+		"averyveryveryveryveryveryveryveryveryverylongfieldname":}'::json;
+-- ERROR missing value for last field
+
+-- test non-error-throwing input
+select pg_input_is_valid('{"a":true}', 'json');
+select pg_input_is_valid('{"a":true', 'json');
+select * from pg_input_error_info('{"a":true', 'json');
+
 --constructors
 -- array_to_json
 
@@ -104,9 +138,13 @@ SELECT row_to_json(row((select array_agg(x) as d from generate_series(5,10) x)),
 
 -- anyarray column
 
-select to_json(histogram_bounds) histogram_bounds
+analyze rows;
+
+select attname, to_json(histogram_bounds) histogram_bounds
 from pg_stats
-where attname = 'tmplname' and tablename = 'pg_pltemplate';
+where tablename = 'rows' and
+      schemaname = pg_my_temp_schema()::regnamespace::text
+order by 1;
 
 -- to_json, timestamps
 
@@ -522,6 +560,8 @@ SELECT rec FROM json_populate_record(
 -- anonymous record type
 SELECT json_populate_record(null::record, '{"x": 0, "y": 1}');
 SELECT json_populate_record(row(1,2), '{"f1": 0, "f2": 1}');
+SELECT * FROM
+  json_populate_record(null::record, '{"x": 776}') AS (x int, y int);
 
 -- composite domain
 SELECT json_populate_record(null::j_ordered_pair, '{"x": 0, "y": 1}');
@@ -549,11 +589,15 @@ SELECT json_populate_recordset(null::record, '[{"x": 0, "y": 1}]');
 SELECT json_populate_recordset(row(1,2), '[{"f1": 0, "f2": 1}]');
 SELECT i, json_populate_recordset(row(i,50), '[{"f1":"42"},{"f2":"43"}]')
 FROM (VALUES (1),(2)) v(i);
+SELECT * FROM
+  json_populate_recordset(null::record, '[{"x": 776}]') AS (x int, y int);
 
 -- empty array is a corner case
 SELECT json_populate_recordset(null::record, '[]');
 SELECT json_populate_recordset(row(1,2), '[]');
 SELECT * FROM json_populate_recordset(NULL::jpop,'[]') q;
+SELECT * FROM
+  json_populate_recordset(null::record, '[]') AS (x int, y int);
 
 -- composite domain
 SELECT json_populate_recordset(null::j_ordered_pair, '[{"x": 0, "y": 1}]');
@@ -651,6 +695,20 @@ SELECT json_build_object(json '{"a":1,"b":2}', 3);
 
 SELECT json_build_object('{1,2,3}'::int[], 3);
 
+-- handling of NULL values
+SELECT json_object_agg(1, NULL::json);
+SELECT json_object_agg(NULL, '{"a":1}');
+
+SELECT json_object_agg_unique(i, null) OVER (ORDER BY i)
+  FROM generate_series(1, 10) g(i);
+
+SELECT json_object_agg_unique_strict(i, null) OVER (ORDER BY i)
+  FROM generate_series(1, 10) g(i);
+
+-- a NULL-valued pair must still count as a duplicate key
+SELECT i, json_object_agg_unique_strict(k, v) OVER (ORDER BY i)
+  FROM (VALUES (1, 'a', null::int), (2, 'a', 1)) t(i, k, v);
+
 CREATE TEMP TABLE foo (serial_num int, name text, type text);
 INSERT INTO foo VALUES (847001,'t15','GE1043');
 INSERT INTO foo VALUES (847002,'t16','GE1043');
@@ -663,6 +721,13 @@ SELECT json_object_agg(name, type) FROM foo;
 
 INSERT INTO foo VALUES (999999, NULL, 'bar');
 SELECT json_object_agg(name, type) FROM foo;
+
+-- the final function runs once per row, but later pairs must still win
+SELECT g, json_object_agg(k, v) OVER (ORDER BY g)
+  FROM (VALUES (1,'a',1),(1,'a',2),(1,'a',3),(1,'b',5),(2,'b',6),(3,'a',7)) t(g,k,v);
+
+-- edge case for parser
+SELECT json_object_agg(DISTINCT 'a', 'abc');
 
 -- json_object
 
@@ -711,6 +776,8 @@ select json_object('{a,b,NULL,"d e f"}','{1,2,3,"a b c"}');
 
 select json_object('{a,b,"","d e f"}','{1,2,3,"a b c"}');
 
+-- json_object_agg_unique requires unique keys
+select json_object_agg_unique(mod(i,100), i) from generate_series(0, 199) i;
 
 -- json_to_record and json_to_recordset
 
@@ -742,6 +809,13 @@ select * from json_to_record('{"ia2": [1, 2, 3]}') as x(ia2 int[][]);
 select * from json_to_record('{"ia2": [[1, 2], [3, 4]]}') as x(ia2 int4[][]);
 select * from json_to_record('{"ia2": [[[1], [2], [3]]]}') as x(ia2 int4[][]);
 
+select * from json_to_record('{"out": {"key": 1}}') as x(out json);
+select * from json_to_record('{"out": [{"key": 1}]}') as x(out json);
+select * from json_to_record('{"out": "{\"key\": 1}"}') as x(out json);
+select * from json_to_record('{"out": {"key": 1}}') as x(out jsonb);
+select * from json_to_record('{"out": [{"key": 1}]}') as x(out jsonb);
+select * from json_to_record('{"out": "{\"key\": 1}"}') as x(out jsonb);
+
 -- json_strip_nulls
 
 select json_strip_nulls(null);
@@ -760,6 +834,25 @@ select json_strip_nulls('[1,{"a":1,"b":null,"c":2},3]');
 
 -- an empty object is not null and should not be stripped
 select json_strip_nulls('{"a": {"b": null, "c": null}, "d": {} }');
+
+-- json_strip_nulls (strip_in_arrays=true)
+
+select json_strip_nulls(null, true);
+
+select json_strip_nulls('1', true);
+
+select json_strip_nulls('"a string"', true);
+
+select json_strip_nulls('null', true);
+
+select json_strip_nulls('[1,2,null,3,4]', true);
+
+select json_strip_nulls('{"a":1,"b":null,"c":[2,null,3],"d":{"e":4,"f":null}}', true);
+
+select json_strip_nulls('[1,{"a":1,"b":null,"c":2},3]', true);
+
+-- an empty object is not null and should not be stripped
+select json_strip_nulls('{"a": {"b": null, "c": null}, "d": {} }', true);
 
 -- json to tsvector
 select to_tsvector('{"a": "aaa bbb ddd ccc", "b": ["eee fff ggg"], "c": {"d": "hhh iii"}}'::json);

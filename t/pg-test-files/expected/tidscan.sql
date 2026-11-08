@@ -231,7 +231,8 @@ EXPLAIN (
     ANALYZE,
     COSTS OFF,
     SUMMARY OFF,
-    TIMING OFF
+    TIMING OFF,
+    BUFFERS OFF
 ) UPDATE
     tidscan
 SET
@@ -246,7 +247,8 @@ EXPLAIN (
     ANALYZE,
     COSTS OFF,
     SUMMARY OFF,
-    TIMING OFF
+    TIMING OFF,
+    BUFFERS OFF
 ) UPDATE
     tidscan
 SET
@@ -268,7 +270,8 @@ EXPLAIN (
     ANALYZE,
     COSTS OFF,
     SUMMARY OFF,
-    TIMING OFF
+    TIMING OFF,
+    BUFFERS OFF
 ) UPDATE
     tidscan
 SET
@@ -289,13 +292,17 @@ SELECT
     count(*)
 FROM
     tenk1 t1
-    JOIN tenk1 t2 ON t1.ctid = t2.ctid;
+    JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE
+    t2.ten = 0;
 
 SELECT
     count(*)
 FROM
     tenk1 t1
-    JOIN tenk1 t2 ON t1.ctid = t2.ctid;
+    JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE
+    t2.ten = 0;
 
 SET enable_hashjoin TO OFF;
 
@@ -306,15 +313,38 @@ SELECT
     count(*)
 FROM
     tenk1 t1
-    JOIN tenk1 t2 ON t1.ctid = t2.ctid;
+    JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE
+    t2.ten = 0;
 
 SELECT
     count(*)
 FROM
     tenk1 t1
-    JOIN tenk1 t2 ON t1.ctid = t2.ctid;
+    JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE
+    t2.ten = 0;
 
 RESET enable_hashjoin;
+
+-- check predicate lock on CTID
+BEGIN ISOLATION LEVEL SERIALIZABLE;
+SELECT
+    *
+FROM
+    tidscan
+WHERE
+    ctid = '(0,1)';
+-- locktype should be 'tuple'
+SELECT
+    locktype,
+    mode
+FROM
+    pg_locks
+WHERE
+    pid = pg_backend_pid()
+    AND mode = 'SIReadLock';
+ROLLBACK;
 
 DROP TABLE tidscan;
 

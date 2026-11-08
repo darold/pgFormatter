@@ -1,9 +1,6 @@
 --
 -- Regular expression tests
 --
--- Don't want to have to double backslashes in regexes
-SET standard_conforming_strings = ON;
-
 -- Test simple quantified backrefs
 SELECT
     'bbbbb' ~ '^([bc])\1*$' AS t;
@@ -320,6 +317,31 @@ SELECT
 SELECT
     regexp_matches('foo/bar/baz', '^([^/]+?)(?:/([^/]+?))(?:/([^/]+?))?$', '');
 
+-- Test that greediness can be overridden by outer quantifier
+SELECT
+    regexp_matches('llmmmfff', '^(l*)(.*)(f*)$');
+
+SELECT
+    regexp_matches('llmmmfff', '^(l*){1,1}(.*)(f*)$');
+
+SELECT
+    regexp_matches('llmmmfff', '^(l*){1,1}?(.*)(f*)$');
+
+SELECT
+    regexp_matches('llmmmfff', '^(l*){1,1}?(.*){1,1}?(f*)$');
+
+SELECT
+    regexp_matches('llmmmfff', '^(l*?)(.*)(f*)$');
+
+SELECT
+    regexp_matches('llmmmfff', '^(l*?){1,1}(.*)(f*)$');
+
+SELECT
+    regexp_matches('llmmmfff', '^(l*?){1,1}?(.*)(f*)$');
+
+SELECT
+    regexp_matches('llmmmfff', '^(l*?){1,1}?(.*){1,1}?(f*)$');
+
 -- Test for infinite loop in cfindloop with zero-length possible match
 -- but no actual match (can only happen in the presence of backrefs)
 SELECT
@@ -333,6 +355,42 @@ SELECT
 
 SELECT
     'a' ~ '()+\1';
+
+-- Test incorrect removal of capture groups within {0}
+SELECT
+    'xxx' ~ '(.){0}(\1)' AS f;
+
+SELECT
+    'xxx' ~ '((.)){0}(\2)' AS f;
+
+SELECT
+    'xyz' ~ '((.)){0}(\2){0}' AS t;
+
+-- Test ancient oversight in when to apply zaptreesubs
+SELECT
+    'abcdef' ~ '^(.)\1|\1.' AS f;
+
+SELECT
+    'abadef' ~ '^((.)\2|..)\2' AS f;
+
+-- Add coverage for some cases in checkmatchall
+SELECT
+    regexp_match('xy', '.|...');
+
+SELECT
+    regexp_match('xyz', '.|...');
+
+SELECT
+    regexp_match('xy', '.*');
+
+SELECT
+    regexp_match('fooba', '(?:..)*');
+
+SELECT
+    regexp_match('xyz', repeat('.', 260));
+
+SELECT
+    regexp_match('foo', '(?:.|){99}');
 
 -- Error conditions
 SELECT

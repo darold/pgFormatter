@@ -55,6 +55,9 @@ SELECT * FROM temptest;
 
 CREATE TEMP TABLE temptest(col int) ON COMMIT DELETE ROWS;
 
+-- while we're here, verify successful truncation of index with SQL function
+CREATE INDEX ON temptest(bit_length(''));
+
 BEGIN;
 INSERT INTO temptest VALUES (1);
 INSERT INTO temptest VALUES (2);
@@ -92,6 +95,22 @@ SELECT * FROM temptest;
 
 BEGIN;
 CREATE TEMP TABLE temptest(col) ON COMMIT DROP AS SELECT 1;
+
+SELECT * FROM temptest;
+COMMIT;
+
+SELECT * FROM temptest;
+
+-- Test it with a CHECK condition that produces a toasted pg_constraint entry
+BEGIN;
+do $$
+begin
+  execute format($cmd$
+    CREATE TEMP TABLE temptest (col text CHECK (col < %L)) ON COMMIT DROP
+  $cmd$,
+    (SELECT string_agg(g.i::text || ':' || random()::text, '|')
+     FROM generate_series(1, 100) g(i)));
+end$$;
 
 SELECT * FROM temptest;
 COMMIT;
@@ -152,6 +171,17 @@ select pg_temp.whoami();
 
 drop table public.whereami;
 
+-- types in temp schema
+set search_path = pg_temp, public;
+create domain pg_temp.nonempty as text check (value <> '');
+-- function-syntax invocation of types matches rules for functions
+select nonempty('');
+select pg_temp.nonempty('');
+-- other syntax matches rules for tables
+select ''::nonempty;
+
+reset search_path;
+
 -- For partitioned temp tables, ON COMMIT actions ignore storage-less
 -- partitioned tables.
 begin;
@@ -181,7 +211,7 @@ create temp table temp_parted_oncommit_test2
 insert into temp_parted_oncommit_test values (1), (2);
 commit;
 -- no relations remain in this case.
-select relname from pg_class where relname like 'temp_parted_oncommit_test%';
+select relname from pg_class where relname ~ '^temp_parted_oncommit_test';
 -- Using ON COMMIT DELETE on a partitioned table does not remove
 -- all rows if partitions preserve their data.
 begin;
@@ -199,7 +229,8 @@ commit;
 -- preserved.
 select * from temp_parted_oncommit_test;
 -- two relations remain in this case.
-select relname from pg_class where relname like 'temp_parted_oncommit_test%';
+select relname from pg_class where relname ~ '^temp_parted_oncommit_test'
+  order by relname;
 drop table temp_parted_oncommit_test;
 
 -- Check dependencies between ON COMMIT actions with inheritance trees.
@@ -211,7 +242,7 @@ create temp table temp_inh_oncommit_test1 ()
 insert into temp_inh_oncommit_test1 values (1);
 commit;
 -- no relations remain in this case
-select relname from pg_class where relname like 'temp_inh_oncommit_test%';
+select relname from pg_class where relname ~ '^temp_inh_oncommit_test';
 -- Data on the parent is removed, and the child goes away.
 begin;
 create temp table temp_inh_oncommit_test (a int) on commit delete rows;
@@ -222,7 +253,7 @@ insert into temp_inh_oncommit_test values (1);
 commit;
 select * from temp_inh_oncommit_test;
 -- one relation remains
-select relname from pg_class where relname like 'temp_inh_oncommit_test%';
+select relname from pg_class where relname ~ '^temp_inh_oncommit_test';
 drop table temp_inh_oncommit_test;
 
 -- Tests with two-phase commit
@@ -280,3 +311,110 @@ SET search_path TO 'pg_temp';
 BEGIN;
 SELECT current_schema() ~ 'pg_temp' AS is_temp_schema;
 PREPARE TRANSACTION 'twophase_search';
+
+
+-- Tests to verify we recover correctly from exhausting buffer pins and
+-- related matters.
+
+-- use lower possible buffer limit to make the test cheaper
+\c
+SET temp_buffers = 100;
+
+CREATE TEMPORARY TABLE test_temp(a int not null unique, b TEXT not null, cnt int not null);
+INSERT INTO test_temp SELECT generate_series(1, 10000) as id, repeat('a', 200), 0;
+-- should be at least 2x as large than temp_buffers
+SELECT pg_relation_size('test_temp') / current_setting('block_size')::int8 > 200;
+
+-- Don't want cursor names and plpgsql function lines in the error messages
+\set VERBOSITY terse
+
+/* helper function to create cursors for each page in [p_start, p_end] */
+CREATE FUNCTION test_temp_pin(p_start int, p_end int)
+RETURNS void
+LANGUAGE plpgsql
+AS $f$
+  DECLARE
+      cursorname text;
+      query text;
+  BEGIN
+    FOR i IN p_start..p_end LOOP
+       cursorname = 'c_'||i;
+       query = format($q$DECLARE %I CURSOR FOR SELECT ctid FROM test_temp WHERE ctid >= '( %s, 1)'::tid $q$, cursorname, i);
+       EXECUTE query;
+       EXECUTE 'FETCH NEXT FROM '||cursorname;
+       -- for test development
+       -- RAISE NOTICE '%: %', cursorname, query;
+    END LOOP;
+  END;
+$f$;
+
+
+-- Test overflow of temp table buffers is handled correctly
+BEGIN;
+-- should work, below max
+SELECT test_temp_pin(0, 9);
+-- should fail, too many buffers pinned
+SELECT test_temp_pin(10, 105);
+ROLLBACK;
+
+BEGIN;
+-- have some working cursors to test after errors
+SELECT test_temp_pin(0, 9);
+FETCH NEXT FROM c_3;
+-- exhaust buffer pins in subtrans, check things work after
+SAVEPOINT rescue_me;
+SELECT test_temp_pin(10, 105);
+ROLLBACK TO SAVEPOINT rescue_me;
+-- pre-subtrans cursors continue to work
+FETCH NEXT FROM c_3;
+
+-- new cursors with pins can be created after subtrans rollback
+SELECT test_temp_pin(10, 90);
+
+-- Check that read streams deal with lower number of pins available
+SELECT count(*), max(a) max_a, min(a) min_a, max(cnt) max_cnt FROM test_temp;
+
+ROLLBACK;
+
+
+-- Check that temp tables with existing cursors can't be dropped.
+BEGIN;
+SELECT test_temp_pin(0, 1);
+DROP TABLE test_temp;
+COMMIT;
+
+-- Check that temp tables with existing cursors can't be dropped.
+BEGIN;
+SELECT test_temp_pin(0, 1);
+TRUNCATE test_temp;
+COMMIT;
+
+-- Check that temp tables that are dropped in transaction that's rolled back
+-- preserve buffer contents
+SELECT count(*), max(a) max_a, min(a) min_a, max(cnt) max_cnt FROM test_temp;
+INSERT INTO test_temp(a, b, cnt) VALUES (-1, '', 0);
+BEGIN;
+INSERT INTO test_temp(a, b, cnt) VALUES (-2, '', 0);
+DROP TABLE test_temp;
+ROLLBACK;
+SELECT count(*), max(a) max_a, min(a) min_a, max(cnt) max_cnt FROM test_temp;
+
+-- Check that temp table drop is transactional and preserves dirty
+-- buffer contents
+UPDATE test_temp SET cnt = cnt + 1 WHERE a = -1;
+BEGIN;
+DROP TABLE test_temp;
+ROLLBACK;
+SELECT count(*), max(a) max_a, min(a) min_a, max(cnt) max_cnt FROM test_temp;
+
+-- Check that temp table truncation is transactional and preserves dirty
+-- buffer contents
+UPDATE test_temp SET cnt = cnt + 1 WHERE a = -1;
+BEGIN;
+TRUNCATE test_temp;
+ROLLBACK;
+SELECT count(*), max(a) max_a, min(a) min_a, max(cnt) max_cnt FROM test_temp;
+
+
+-- cleanup
+DROP FUNCTION test_temp_pin(int, int);

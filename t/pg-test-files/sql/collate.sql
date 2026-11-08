@@ -177,6 +177,14 @@ SELECT a, CAST(b AS varchar) FROM collate_test1 ORDER BY 2;
 SELECT a, CAST(b AS varchar) FROM collate_test2 ORDER BY 2;
 
 
+-- result of a SQL function
+
+CREATE FUNCTION vc (text) RETURNS text LANGUAGE sql
+    AS 'select $1::varchar';
+
+SELECT a, b FROM collate_test1 ORDER BY a, vc(b);
+
+
 -- polymorphism
 
 SELECT * FROM unnest((SELECT array_agg(b ORDER BY b) FROM collate_test1)) ORDER BY 1;
@@ -236,6 +244,14 @@ EXPLAIN (COSTS OFF)
 
 -- CREATE/DROP COLLATION
 
+CREATE COLLATION builtin_c ( PROVIDER = builtin, LOCALE = "C" );
+
+SELECT b FROM collate_test1 ORDER BY b COLLATE builtin_c;
+
+CREATE COLLATION builtin2 ( PROVIDER = builtin ); -- fails
+CREATE COLLATION builtin2 ( PROVIDER = builtin, LOCALE = "en_US" ); -- fails
+CREATE COLLATION builtin2 ( PROVIDER = builtin, LC_CTYPE = "C", LC_COLLATE = "C" ); -- fails
+
 CREATE COLLATION mycoll1 FROM "C";
 CREATE COLLATION mycoll2 ( LC_COLLATE = "POSIX", LC_CTYPE = "POSIX" );
 CREATE COLLATION mycoll3 FROM "default";  -- intentionally unsupported
@@ -258,6 +274,43 @@ SELECT collation for ('foo'::text);
 SELECT collation for ((SELECT a FROM collate_test1 LIMIT 1)); -- non-collatable type - error
 SELECT collation for ((SELECT b FROM collate_test1 LIMIT 1));
 
+-- old bug with not dropping COLLATE when coercing to non-collatable type
+CREATE VIEW collate_on_int AS
+SELECT c1+1 AS c1p FROM
+  (SELECT ('4' COLLATE "C")::INT AS c1) ss;
+\d+ collate_on_int
+
+-- Check conflicting or redundant options in CREATE COLLATION
+-- LC_COLLATE
+CREATE COLLATION coll_dup_chk (LC_COLLATE = "POSIX", LC_COLLATE = "NONSENSE", LC_CTYPE = "POSIX");
+-- LC_CTYPE
+CREATE COLLATION coll_dup_chk (LC_CTYPE = "POSIX", LC_CTYPE = "NONSENSE", LC_COLLATE = "POSIX");
+-- PROVIDER
+CREATE COLLATION coll_dup_chk (PROVIDER = icu, PROVIDER = NONSENSE, LC_COLLATE = "POSIX", LC_CTYPE = "POSIX");
+-- LOCALE
+CREATE COLLATION case_sensitive (LOCALE = '', LOCALE = "NONSENSE");
+-- DETERMINISTIC
+CREATE COLLATION coll_dup_chk (DETERMINISTIC = TRUE, DETERMINISTIC = NONSENSE, LOCALE = '');
+-- VERSION
+CREATE COLLATION coll_dup_chk (VERSION = '1', VERSION = "NONSENSE", LOCALE = '');
+-- LOCALE conflicts with LC_COLLATE and LC_CTYPE
+CREATE COLLATION coll_dup_chk (LC_COLLATE = "POSIX", LC_CTYPE = "POSIX", LOCALE = '');
+-- LOCALE conflicts with LC_COLLATE
+CREATE COLLATION coll_dup_chk (LC_COLLATE = "POSIX", LOCALE = '');
+-- LOCALE conflicts with LC_CTYPE
+CREATE COLLATION coll_dup_chk (LC_CTYPE = "POSIX", LOCALE = '');
+-- FROM conflicts with any other option
+CREATE COLLATION coll_dup_chk (FROM = "C", VERSION = "1");
+
+-- Regex exact-match optimization should use an index even when the expression
+-- and index have different collations, so long as the expression's collation
+-- is deterministic.  This example tests what we want because the optimizer
+-- does not perceive "C" collation (used by the system catalogs) as identical
+-- to "POSIX" collation.
+EXPLAIN (COSTS OFF)
+SELECT * FROM pg_class WHERE relname ~ '^pg_class$' COLLATE "POSIX";
+EXPLAIN (COSTS OFF)
+SELECT * FROM pg_class WHERE relname LIKE 'pg\_class' COLLATE "POSIX";
 
 --
 -- Clean up.  Many of these table names will be re-used if the user is

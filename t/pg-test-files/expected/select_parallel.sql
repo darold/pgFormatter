@@ -1,6 +1,18 @@
 --
 -- PARALLEL
 --
+-- Save parallel worker stats, used for comparison at the end
+SELECT
+    pg_stat_force_next_flush ();
+
+SELECT
+    parallel_workers_to_launch AS parallel_workers_to_launch_before,
+    parallel_workers_launched AS parallel_workers_launched_before
+FROM
+    pg_stat_database
+WHERE
+    datname = current_database() \gset
+
 CREATE FUNCTION sp_parallel_restricted (int)
     RETURNS int
     AS $$
@@ -11,9 +23,7 @@ $$
 LANGUAGE plpgsql
 parallel restricted;
 
--- Serializable isolation would disable parallel query, so explicitly use an
--- arbitrary other level.
-BEGIN ISOLATION level REPEATABLE read;
+BEGIN;
 -- encourage use of parallel plans
 SET parallel_setup_cost = 0;
 SET parallel_tuple_cost = 0;
@@ -313,6 +323,7 @@ ALTER TABLE tenk2 RESET (parallel_workers);
 -- test parallel index scans.
 SET enable_seqscan TO OFF;
 SET enable_bitmapscan TO OFF;
+SET random_page_cost = 2;
 EXPLAIN (
     COSTS OFF
 )
@@ -328,6 +339,30 @@ FROM
     tenk1
 WHERE
     hundred > 1;
+-- Parallel ScalarArrayOp index scan
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(unique1)
+FROM
+    tenk1
+WHERE
+    hundred = ANY ((
+            SELECT
+                array_agg(i)
+            FROM
+                generate_series(1, 100, 15) i)::int[]);
+SELECT
+    count(unique1)
+FROM
+    tenk1
+WHERE
+    hundred = ANY ((
+            SELECT
+                array_agg(i)
+            FROM
+                generate_series(1, 100, 15) i)::int[]);
 -- test parallel index-only scans.
 EXPLAIN (
     COSTS OFF
@@ -404,9 +439,50 @@ FROM (
         VALUES (1),
             (2),
             (3)) v (x) ON TRUE;
-RESET enable_material;
+-- test rescans for a Limit node with a parallel node beneath it.
 RESET enable_seqscan;
+SET enable_indexonlyscan TO OFF;
+SET enable_indexscan TO OFF;
+ALTER TABLE tenk1 SET (parallel_workers = 0);
+ALTER TABLE tenk2 SET (parallel_workers = 1);
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+    LEFT JOIN (
+        SELECT
+            tenk2.unique1
+        FROM
+            tenk2
+        ORDER BY
+            1
+        LIMIT 1000) ss ON tenk1.unique1 < ss.unique1 + 1
+WHERE
+    tenk1.unique1 < 2;
+SELECT
+    count(*)
+FROM
+    tenk1
+    LEFT JOIN (
+        SELECT
+            tenk2.unique1
+        FROM
+            tenk2
+        ORDER BY
+            1
+        LIMIT 1000) ss ON tenk1.unique1 < ss.unique1 + 1
+WHERE
+    tenk1.unique1 < 2;
+--reset the value of workers for each table as it was before this test.
+ALTER TABLE tenk1 SET (parallel_workers = 4);
+ALTER TABLE tenk2 RESET (parallel_workers);
+RESET enable_material;
 RESET enable_bitmapscan;
+RESET enable_indexonlyscan;
+RESET enable_indexscan;
 -- test parallel bitmap heap scan.
 SET enable_seqscan TO OFF;
 SET enable_indexscan TO OFF;
@@ -466,7 +542,8 @@ EXPLAIN (
     ANALYZE,
     timing OFF,
     summary OFF,
-    COSTS OFF
+    COSTS OFF,
+    buffers OFF
 )
 SELECT
     count(*)
@@ -489,7 +566,8 @@ BEGIN
         ANALYZE,
         timing OFF,
         summary OFF,
-        COSTS OFF
+        COSTS OFF,
+        buffers OFF
 )
     SELECT
         *
@@ -544,6 +622,38 @@ WHERE
     tenk1.unique1 = tenk2.unique1;
 RESET enable_hashjoin;
 RESET enable_nestloop;
+-- test parallel nestloop join path with materialization of the inner path
+ALTER TABLE tenk2 SET (parallel_workers = 0);
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1 t1,
+    tenk2 t2
+WHERE
+    t1.two > t2.two;
+-- test that parallel nestloop join is not generated if the inner path is
+-- not parallel-safe
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1 t1
+    LEFT JOIN LATERAL (
+        SELECT
+            t1.unique1 AS x,
+            *
+        FROM
+            tenk2 t2
+        ORDER BY
+            1) t2 ON TRUE
+WHERE
+    t1.two > t2.two;
+ALTER TABLE tenk2 RESET (parallel_workers);
 -- test gather merge
 SET enable_hashagg = FALSE;
 EXPLAIN (
@@ -732,8 +842,60 @@ ORDER BY
 LIMIT 5;
 RESET parallel_leader_participation;
 RESET max_parallel_workers;
+CREATE FUNCTION parallel_safe_volatile (a int)
+    RETURNS int
+    AS $$
+BEGIN
+    RETURN a;
+END;
+$$ parallel safe VOLATILE
+LANGUAGE plpgsql;
+-- Test gather merge atop of a sort of a partial path
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    four = 2
+ORDER BY
+    four,
+    hundred,
+    parallel_safe_volatile (thousand);
+-- Test gather merge atop of an incremental sort a of partial path
+SET min_parallel_index_scan_size = 0;
+SET enable_seqscan = OFF;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    tenk1
+WHERE
+    four = 2
+ORDER BY
+    four,
+    hundred,
+    parallel_safe_volatile (thousand);
+RESET min_parallel_index_scan_size;
+RESET enable_seqscan;
+-- Test GROUP BY with a gather merge path atop of a sort of a partial path
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    tenk1
+GROUP BY
+    twenty,
+    parallel_safe_volatile (two);
+DROP FUNCTION parallel_safe_volatile (int);
 SAVEPOINT settings;
-SET LOCAL force_parallel_mode = 1;
+SET LOCAL debug_parallel_query = 1;
 EXPLAIN (
     COSTS OFF
 )
@@ -744,6 +906,7 @@ FROM
 WHERE
     unique1 = 1;
 ROLLBACK TO SAVEPOINT settings;
+
 -- exercise record typmod remapping between backends
 CREATE FUNCTION make_record (n int)
     RETURNS RECORD
@@ -775,8 +938,11 @@ BEGIN
     END;
 END;
 $$;
+
 SAVEPOINT settings;
-SET LOCAL force_parallel_mode = 1;
+
+SET LOCAL debug_parallel_query = 1;
+
 SELECT
     make_record (x)
 FROM (
@@ -784,21 +950,33 @@ FROM (
         generate_series(1, 5) x) ss
 ORDER BY
     x;
+
 ROLLBACK TO SAVEPOINT settings;
+
 DROP FUNCTION make_record (n int);
+
 -- test the sanity of parallel query after the active role is dropped.
 DROP ROLE IF EXISTS regress_parallel_worker;
+
 CREATE ROLE regress_parallel_worker;
+
 SET ROLE regress_parallel_worker;
+
 RESET session AUTHORIZATION;
+
 DROP ROLE regress_parallel_worker;
-SET force_parallel_mode = 1;
+
+SET debug_parallel_query = 1;
+
 SELECT
     count(*)
 FROM
     tenk1;
-RESET force_parallel_mode;
+
+RESET debug_parallel_query;
+
 RESET ROLE;
+
 -- Window function calculation can't be pushed to workers.
 EXPLAIN (
     COSTS OFF,
@@ -813,6 +991,7 @@ WHERE (unique1, two) IN (
         unique1,
         row_number() OVER ()
     FROM tenk1 b);
+
 -- LIMIT/OFFSET within sub-selects can't be pushed to workers.
 EXPLAIN (
     COSTS OFF
@@ -830,35 +1009,48 @@ WHERE
         WHERE
             stringu1 LIKE '%AAAA'
         LIMIT 3);
+
 -- to increase the parallel query test coverage
 SAVEPOINT settings;
-SET LOCAL force_parallel_mode = 1;
+
+SET LOCAL debug_parallel_query = 1;
+
 EXPLAIN (
     ANALYZE,
     timing OFF,
     summary OFF,
-    COSTS OFF
+    COSTS OFF,
+    buffers OFF
 )
 SELECT
     *
 FROM
     tenk1;
+
 ROLLBACK TO SAVEPOINT settings;
+
 -- provoke error in worker
+-- (make the error message long enough to require multiple bufferloads)
 SAVEPOINT settings;
-SET LOCAL force_parallel_mode = 1;
+
+SET LOCAL debug_parallel_query = 1;
+
 SELECT
-    stringu1::int2
+    (stringu1 || repeat('abcd', 5000))::int2
 FROM
     tenk1
 WHERE
     unique1 = 1;
+
 ROLLBACK TO SAVEPOINT settings;
+
 -- test interaction with set-returning functions
 SAVEPOINT settings;
+
 -- multiple subqueries under a single Gather node
 -- must set parallel_setup_cost > 0 to discourage multiple Gather nodes
 SET LOCAL parallel_setup_cost = 10;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -875,7 +1067,9 @@ FROM
     tenk1
 WHERE
     fivethous = tenthous + 1;
+
 ROLLBACK TO SAVEPOINT settings;
+
 -- can't use multiple subqueries under a single Gather node due to initPlans
 EXPLAIN (
     COSTS OFF
@@ -909,6 +1103,7 @@ WHERE
         LIMIT 1)
 ORDER BY
     1;
+
 -- test interaction with SRFs
 SELECT
     *
@@ -918,6 +1113,34 @@ ORDER BY
     1,
     2,
     3;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    generate_series(1, two),
+    ARRAY(
+        SELECT
+            generate_series(1, two))
+FROM
+    tenk1
+ORDER BY
+    tenthous;
+
+-- must disallow pushing sort below gather when pathkey contains an SRF
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    unnest(ARRAY[]::integer[]) + 1 AS pathkey
+FROM
+    tenk1 t1
+    JOIN tenk1 t2 ON TRUE
+ORDER BY
+    pathkey;
+
 -- test passing expanded-value representations to workers
 CREATE FUNCTION make_some_array (int, int)
     RETURNS int[]
@@ -932,13 +1155,16 @@ END
 $$
 LANGUAGE plpgsql
 parallel safe;
+
 CREATE TABLE fooarr (
     f1 text,
     f2 int[],
     f3 text
 );
+
 INSERT INTO fooarr
     VALUES ('1', ARRAY[1, 2], 'one');
+
 PREPARE pstmt (text, int[]) AS
 SELECT
     *
@@ -947,11 +1173,15 @@ FROM
 WHERE
     f1 = $1
     AND f2 = $2;
+
 EXPLAIN (
     COSTS OFF
 ) EXECUTE pstmt ('1', make_some_array (1, 2));
+
 EXECUTE pstmt ('1', make_some_array (1, 2));
+
 DEALLOCATE pstmt;
+
 -- test interaction between subquery and partial_paths
 CREATE VIEW tenk1_vw_sec WITH ( security_barrier
 ) AS
@@ -959,6 +1189,7 @@ SELECT
     *
 FROM
     tenk1;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -973,5 +1204,113 @@ WHERE (
         int4_tbl
     WHERE
         f1 < unique1) < 100;
+
 ROLLBACK;
+
+-- test that a newly-created session role propagates to workers.
+BEGIN;
+CREATE ROLE regress_parallel_worker;
+SET session AUTHORIZATION regress_parallel_worker;
+SELECT
+    current_setting('session_authorization');
+SET debug_parallel_query = 1;
+SELECT
+    current_setting('session_authorization');
+ROLLBACK;
+
+-- test that function option SET ROLE works in parallel workers.
+CREATE ROLE regress_parallel_worker;
+
+CREATE FUNCTION set_and_report_role ()
+    RETURNS text
+    AS $$
+    SELECT
+        current_setting('role')
+$$
+LANGUAGE sql
+parallel safe SET ROLE = regress_parallel_worker;
+
+CREATE FUNCTION set_role_and_error (int)
+    RETURNS int
+    AS $$
+    SELECT
+        1 / $1
+$$
+LANGUAGE sql
+parallel safe SET ROLE = regress_parallel_worker;
+
+SET debug_parallel_query = 0;
+
+SELECT
+    set_and_report_role ();
+
+SELECT
+    set_role_and_error (0);
+
+SET debug_parallel_query = 1;
+
+SELECT
+    set_and_report_role ();
+
+SELECT
+    set_role_and_error (0);
+
+RESET debug_parallel_query;
+
+DROP FUNCTION set_and_report_role ();
+
+DROP FUNCTION set_role_and_error (int);
+
+DROP ROLE regress_parallel_worker;
+
+-- don't freeze in ParallelFinish while holding an LWLock
+BEGIN;
+CREATE FUNCTION my_cmp (int4, int4)
+    RETURNS int
+    LANGUAGE sql
+    AS $$
+    SELECT
+        CASE WHEN $1 < $2 THEN
+            -1
+        WHEN $1 > $2 THEN
+            1
+        ELSE
+            0
+        END;
+$$;
+CREATE TABLE parallel_hang (
+    i int4
+);
+INSERT INTO parallel_hang (
+    SELECT
+        *
+    FROM
+        generate_series(1, 400) gs);
+CREATE OPERATOR CLASS int4_custom_ops FOR TYPE int4
+    USING btree AS
+    OPERATOR 1 < (int4, int4),
+    OPERATOR 2 <= (int4, int4),
+    OPERATOR 3 = (int4, int4),
+    OPERATOR 4 >= (int4, int4),
+    OPERATOR 5 > (int4, int4),
+    FUNCTION 1 my_cmp (int4, int4
+);
+CREATE UNIQUE INDEX parallel_hang_idx ON parallel_hang USING btree (i int4_custom_ops);
+SET debug_parallel_query = ON;
+DELETE FROM parallel_hang
+WHERE 380 <= i
+    AND i <= 420;
+ROLLBACK;
+
+-- Check parallel worker stats
+SELECT
+    pg_stat_force_next_flush ();
+
+SELECT
+    parallel_workers_to_launch > :'parallel_workers_to_launch_before' AS wrk_to_launch,
+    parallel_workers_launched > :'parallel_workers_launched_before' AS wrk_launched
+FROM
+    pg_stat_database
+WHERE
+    datname = current_database();
 

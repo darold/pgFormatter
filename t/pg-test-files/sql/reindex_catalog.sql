@@ -1,8 +1,8 @@
 --
 -- Check that system tables can be reindexed.
 --
--- Note that this test currently has to run without parallel tests
--- being scheduled, as currently reindex catalog tables can cause
+-- Note that this test currently is not included in the default
+-- schedules, as currently reindexing catalog tables can cause
 -- deadlocks:
 --
 -- * The lock upgrade between the ShareLock acquired for the reindex
@@ -16,6 +16,11 @@
 --   tables are routinely released before commit - therefore the lock
 --   held for reindexing doesn't guarantee that no running transaction
 --   performed modifications in the table underlying the index.
+--
+--   This is particularly problematic as such conflicts can be
+--   triggered even when run in isolation, as a previous session's
+--   temporary table cleanup might still be running (even when the
+--   session ended from a client perspective).
 
 
 -- Check reindexing of whole tables
@@ -34,3 +39,14 @@ REINDEX INDEX pg_index_indexrelid_index; -- non-mapped, non-shared, critical
 REINDEX INDEX pg_index_indrelid_index; -- non-mapped, non-shared, non-critical
 REINDEX INDEX pg_database_oid_index; -- mapped, shared, critical
 REINDEX INDEX pg_shdescription_o_c_index; -- mapped, shared, non-critical
+
+-- Check the same REINDEX INDEX statements under parallelism.
+BEGIN;
+SET min_parallel_table_scan_size = 0;
+REINDEX INDEX pg_class_oid_index; -- mapped, non-shared, critical
+REINDEX INDEX pg_class_relname_nsp_index; -- mapped, non-shared, non-critical
+REINDEX INDEX pg_index_indexrelid_index; -- non-mapped, non-shared, critical
+REINDEX INDEX pg_index_indrelid_index; -- non-mapped, non-shared, non-critical
+REINDEX INDEX pg_database_oid_index; -- mapped, shared, critical
+REINDEX INDEX pg_shdescription_o_c_index; -- mapped, shared, non-critical
+ROLLBACK;

@@ -156,6 +156,28 @@ FOR VALUES FROM (0) TO (10);
 \d idxpart1
 \d+ idxpart1_a_idx
 \d+ idxpart1_b_c_idx
+-- Forbid ALTER TABLE when attaching or detaching an index to a partition.
+CREATE INDEX idxpart_c ON ONLY idxpart (c);
+
+CREATE INDEX idxpart1_c ON idxpart1 (c);
+
+ALTER TABLE idxpart_c ATTACH PARTITION idxpart1_c
+FOR VALUES FROM (10) TO (20);
+
+ALTER INDEX idxpart_c ATTACH PARTITION idxpart1_c;
+
+SELECT
+    relname,
+    relpartbound
+FROM
+    pg_class
+WHERE
+    relname IN ('idxpart_c', 'idxpart1_c')
+ORDER BY
+    relname;
+
+ALTER TABLE idxpart_c DETACH PARTITION idxpart1_c;
+
 DROP TABLE idxpart;
 
 -- If a partition already has an index, don't create a duplicative one
@@ -203,6 +225,9 @@ FOR VALUES FROM (0) TO (10);
 DROP INDEX idxpart1_a_idx;
 
 -- no way
+DROP INDEX CONCURRENTLY idxpart_a_idx;
+
+-- unsupported
 DROP INDEX idxpart_a_idx;
 
 -- both indexes go away
@@ -232,6 +257,35 @@ ORDER BY
     relname;
 
 DROP TABLE idxpart;
+
+-- DROP behavior with temporary partitioned indexes
+CREATE temp TABLE idxpart_temp (
+    a int
+)
+PARTITION BY RANGE (a);
+
+CREATE INDEX ON idxpart_temp (a);
+
+CREATE temp TABLE idxpart1_temp PARTITION OF idxpart_temp
+FOR VALUES FROM (0) TO (10);
+
+DROP INDEX idxpart1_temp_a_idx;
+
+-- error
+-- non-concurrent drop is enforced here, so it is a valid case.
+DROP INDEX CONCURRENTLY idxpart_temp_a_idx;
+
+SELECT
+    relname,
+    relkind
+FROM
+    pg_class
+WHERE
+    relname LIKE 'idxpart_temp%'
+ORDER BY
+    relname;
+
+DROP TABLE idxpart_temp;
 
 -- ALTER INDEX .. ATTACH, error cases
 CREATE TABLE idxpart (
@@ -397,7 +451,8 @@ DROP TABLE idxpart;
 CREATE TABLE idxpart (
     a int,
     b int,
-    c text
+    c text,
+    d bool
 )
 PARTITION BY RANGE (a);
 
@@ -425,6 +480,43 @@ ORDER BY
 
 ALTER TABLE idxpart ATTACH PARTITION idxpart1
 FOR VALUES FROM (0) TO (10);
+
+\d idxpart1
+SELECT
+    relname,
+    relkind,
+    inhparent::regclass
+FROM
+    pg_class
+    LEFT JOIN pg_index ix ON (indexrelid = oid)
+    LEFT JOIN pg_inherits ON (ix.indexrelid = inhrelid)
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+-- While here, also check matching when creating an index after the fact.
+CREATE INDEX ON idxpart1 ((a + b))
+WHERE
+    d = TRUE;
+
+\d idxpart1
+SELECT
+    relname,
+    relkind,
+    inhparent::regclass
+FROM
+    pg_class
+    LEFT JOIN pg_index ix ON (indexrelid = oid)
+    LEFT JOIN pg_inherits ON (ix.indexrelid = inhrelid)
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+CREATE INDEX idxparti3 ON idxpart ((a + b))
+WHERE
+    d = TRUE;
 
 \d idxpart1
 SELECT
@@ -494,6 +586,167 @@ ORDER BY
 CREATE INDEX ON idxpart11 (a);
 
 ALTER INDEX idxpart1_a_idx ATTACH PARTITION idxpart11_a_idx;
+
+SELECT
+    relname,
+    indisvalid
+FROM
+    pg_class
+    JOIN pg_index ON indexrelid = oid
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+DROP TABLE idxpart;
+
+-- Verify that re-attaching an already-attached partition index can
+-- validate the parent index if it was still invalid, including
+-- indirect ancestors in subpartitions.
+CREATE TABLE idxpart (
+    a int,
+    b int
+)
+PARTITION BY RANGE (a);
+
+CREATE TABLE idxpart1 PARTITION OF idxpart
+FOR VALUES FROM (0) TO (1000)
+PARTITION BY RANGE (a);
+
+CREATE TABLE idxpart11 PARTITION OF idxpart1
+FOR VALUES FROM (0) TO (500);
+
+-- Partitioned table with no partitions
+CREATE TABLE idxpart2 PARTITION OF idxpart
+FOR VALUES FROM (1000) TO (2000)
+PARTITION BY RANGE (a);
+
+-- create parent indexes
+CREATE INDEX ON ONLY idxpart ((a / b));
+
+CREATE INDEX ON ONLY idxpart1 ((a / b));
+
+CREATE INDEX ON ONLY idxpart2 ((a / b));
+
+-- fail, leaves behind an invalid index on the leaf partition
+INSERT INTO idxpart11
+    VALUES (1, 0);
+
+CREATE INDEX CONCURRENTLY ON idxpart11 ((a / b));
+
+SELECT
+    relname,
+    indisvalid
+FROM
+    pg_class
+    JOIN pg_index ON indexrelid = oid
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+-- attach the indexes; parents stay invalid
+ALTER INDEX idxpart1_a_b_idx ATTACH PARTITION idxpart11_a_b_idx;
+
+ALTER INDEX idxpart_a_b_idx ATTACH PARTITION idxpart1_a_b_idx;
+
+ALTER INDEX idxpart_a_b_idx ATTACH PARTITION idxpart2_a_b_idx;
+
+SELECT
+    relname,
+    indisvalid
+FROM
+    pg_class
+    JOIN pg_index ON indexrelid = oid
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+-- fix the index on the leaf partition
+DELETE FROM idxpart11
+WHERE b = 0;
+
+REINDEX INDEX CONCURRENTLY idxpart11_a_b_idx;
+
+-- reattach the leaf partition index; parents should now be valid
+ALTER INDEX idxpart1_a_b_idx ATTACH PARTITION idxpart11_a_b_idx;
+
+SELECT
+    relname,
+    indisvalid
+FROM
+    pg_class
+    JOIN pg_index ON indexrelid = oid
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+DROP TABLE idxpart;
+
+-- Verify that re-attaching does not validate the parent when another
+-- child index is still invalid.
+CREATE TABLE idxpart (
+    a int,
+    b int
+)
+PARTITION BY RANGE (a);
+
+CREATE TABLE idxpart1 PARTITION OF idxpart
+FOR VALUES FROM (0) TO (500);
+
+CREATE TABLE idxpart2 PARTITION OF idxpart
+FOR VALUES FROM (500) TO (1000);
+
+CREATE INDEX ON ONLY idxpart ((a / b));
+
+-- create invalid indexes on both children
+INSERT INTO idxpart1
+    VALUES (1, 0);
+
+INSERT INTO idxpart2
+    VALUES (501, 0);
+
+CREATE INDEX CONCURRENTLY ON idxpart1 ((a / b));
+
+CREATE INDEX CONCURRENTLY ON idxpart2 ((a / b));
+
+SELECT
+    relname,
+    indisvalid
+FROM
+    pg_class
+    JOIN pg_index ON indexrelid = oid
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+-- attach both; parent stays invalid
+ALTER INDEX idxpart_a_b_idx ATTACH PARTITION idxpart1_a_b_idx;
+
+ALTER INDEX idxpart_a_b_idx ATTACH PARTITION idxpart2_a_b_idx;
+
+SELECT
+    relname,
+    indisvalid
+FROM
+    pg_class
+    JOIN pg_index ON indexrelid = oid
+WHERE
+    relname LIKE 'idxpart%'
+ORDER BY
+    relname;
+
+-- fix only idxpart1's index, leave idxpart2's still invalid
+DELETE FROM idxpart1
+WHERE b = 0;
+
+REINDEX INDEX CONCURRENTLY idxpart1_a_b_idx;
+
+-- re-attach the fixed child; parent should stay invalid
+ALTER INDEX idxpart_a_b_idx ATTACH PARTITION idxpart1_a_b_idx;
 
 SELECT
     relname,
@@ -1231,12 +1484,79 @@ PARTITION BY RANGE (b, c, a);
 
 DROP TABLE idxpart;
 
--- not other types of index-based constraints
+-- OK to add an exclusion constraint if partitioning by its equal column
 CREATE TABLE idxpart (
-    a int,
-    EXCLUDE (a WITH =)
+    a int4range,
+    EXCLUDE USING GIST (a WITH =)
 )
 PARTITION BY RANGE (a);
+
+DROP TABLE idxpart;
+
+-- OK more than one equal column
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    EXCLUDE USING GIST (a WITH =, b WITH =)
+)
+PARTITION BY RANGE (a, b);
+
+DROP TABLE idxpart;
+
+-- OK with more than one equal column: constraint is a proper superset of partition key
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    EXCLUDE USING GIST (a WITH =, b WITH =)
+)
+PARTITION BY RANGE (a);
+
+DROP TABLE idxpart;
+
+-- Not OK more than one equal column: partition keys are a proper superset of constraint
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    EXCLUDE USING GIST (a WITH =)
+)
+PARTITION BY RANGE (a, b);
+
+-- Not OK with just -|-
+CREATE TABLE idxpart (
+    a int4range,
+    EXCLUDE USING GIST (a WITH -|-)
+)
+PARTITION BY RANGE (a);
+
+-- OK with equals and &&, and equals is the partition key
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    EXCLUDE USING GIST (a WITH =, b WITH &&)
+)
+PARTITION BY RANGE (a);
+
+DROP TABLE idxpart;
+
+-- Not OK with equals and &&, and equals is not the partition key
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    c int4range,
+    EXCLUDE USING GIST (b WITH =, c WITH &&)
+)
+PARTITION BY RANGE (a);
+
+-- OK more than one equal column and a && column
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    c int4range,
+    EXCLUDE USING GIST (a WITH =, b WITH =, c WITH &&)
+)
+PARTITION BY RANGE (a, b);
+
+DROP TABLE idxpart;
 
 -- no expressions in partition key for PK/UNIQUE
 CREATE TABLE idxpart (
@@ -1292,15 +1612,101 @@ ALTER TABLE idxpart
 \d idxpart
 DROP TABLE idxpart;
 
--- Exclusion constraints cannot be added
+-- Exclusion constraints can be added if partitioning by their equal column
 CREATE TABLE idxpart (
-    a int,
-    b int
+    a int4range,
+    b int4range
 )
 PARTITION BY RANGE (a);
 
 ALTER TABLE idxpart
-    ADD EXCLUDE (a WITH =);
+    ADD EXCLUDE USING GIST (a WITH =);
+
+DROP TABLE idxpart;
+
+-- OK more than one equal column
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range
+)
+PARTITION BY RANGE (a, b);
+
+ALTER TABLE idxpart
+    ADD EXCLUDE USING GIST (a WITH =, b WITH =);
+
+DROP TABLE idxpart;
+
+-- OK with more than one equal column: constraint is a proper superset of partition key
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range
+)
+PARTITION BY RANGE (a);
+
+ALTER TABLE idxpart
+    ADD EXCLUDE USING GIST (a WITH =, b WITH =);
+
+DROP TABLE idxpart;
+
+-- Not OK more than one equal column: partition keys are a proper superset of constraint
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range
+)
+PARTITION BY RANGE (a, b);
+
+ALTER TABLE idxpart
+    ADD EXCLUDE USING GIST (a WITH =);
+
+DROP TABLE idxpart;
+
+-- Not OK with just -|-
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range
+)
+PARTITION BY RANGE (a, b);
+
+ALTER TABLE idxpart
+    ADD EXCLUDE USING GIST (a WITH -|-);
+
+DROP TABLE idxpart;
+
+-- OK with equals and &&, and equals is the partition key
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range
+)
+PARTITION BY RANGE (a);
+
+ALTER TABLE idxpart
+    ADD EXCLUDE USING GIST (a WITH =, b WITH &&);
+
+DROP TABLE idxpart;
+
+-- Not OK with equals and &&, and equals is not the partition key
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    c int4range
+)
+PARTITION BY RANGE (a);
+
+ALTER TABLE idxpart
+    ADD EXCLUDE USING GIST (b WITH =, c WITH &&);
+
+DROP TABLE idxpart;
+
+-- OK more than one equal column and a && column
+CREATE TABLE idxpart (
+    a int4range,
+    b int4range,
+    c int4range
+)
+PARTITION BY RANGE (a, b);
+
+ALTER TABLE idxpart
+    ADD EXCLUDE USING GIST (a WITH =, b WITH =, c WITH &&);
 
 DROP TABLE idxpart;
 
@@ -1344,6 +1750,7 @@ FROM
 WHERE
     conrelid::regclass::text LIKE 'idxpart%'
 ORDER BY
+    conrelid::regclass::text,
     conname;
 
 DROP TABLE idxpart;
@@ -1409,6 +1816,7 @@ FROM
 WHERE
     conrelid::regclass::text LIKE 'idxpart%'
 ORDER BY
+    conrelid::regclass::text,
     conname;
 
 DROP TABLE idxpart;
@@ -1621,7 +2029,7 @@ ALTER TABLE idxpart ATTACH PARTITION idxpart0 DEFAULT;
 ALTER TABLE ONLY idxpart
     ADD PRIMARY KEY (a);
 
--- fail, no NOT NULL constraint
+-- fail, no not-null constraint
 ALTER TABLE idxpart0
     ALTER COLUMN a SET NOT NULL;
 
@@ -1629,10 +2037,8 @@ ALTER TABLE ONLY idxpart
     ADD PRIMARY KEY (a);
 
 -- now it works
-ALTER TABLE idxpart0
-    ALTER COLUMN a DROP NOT NULL;
+ALTER INDEX idxpart_pkey ATTACH PARTITION idxpart0_a_key;
 
--- fail, pkey needs it
 DROP TABLE idxpart;
 
 -- if a partition has a unique index without a constraint, does not attach
@@ -1772,6 +2178,65 @@ FROM
     idxpart
 ORDER BY
     a;
+
+DROP TABLE idxpart;
+
+-- Test some other non-btree index types
+CREATE TABLE idxpart (
+    a int,
+    b text,
+    c int[]
+)
+PARTITION BY RANGE (a);
+
+CREATE TABLE idxpart1 PARTITION OF idxpart
+FOR VALUES FROM (0) TO (100000);
+
+SET enable_seqscan TO OFF;
+
+CREATE INDEX idxpart_brin ON idxpart USING brin (b);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    idxpart
+WHERE
+    b = 'abcd';
+
+DROP INDEX idxpart_brin;
+
+CREATE INDEX idxpart_spgist ON idxpart USING spgist (b);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    idxpart
+WHERE
+    b = 'abcd';
+
+DROP INDEX idxpart_spgist;
+
+CREATE INDEX idxpart_gin ON idxpart USING gin (c);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    idxpart
+WHERE
+    c @> ARRAY[42];
+
+DROP INDEX idxpart_gin;
+
+RESET enable_seqscan;
 
 DROP TABLE idxpart;
 
@@ -1985,3 +2450,299 @@ ALTER TABLE parted_uniq_detach_test1
 
 DROP TABLE parted_uniq_detach_test, parted_uniq_detach_test1;
 
+-- check that dropping a column takes with it any partitioned indexes
+-- depending on it.
+CREATE TABLE parted_index_col_drop (
+    a int,
+    b int,
+    c int
+)
+PARTITION BY LIST (a);
+
+CREATE TABLE parted_index_col_drop1 PARTITION OF parted_index_col_drop
+FOR VALUES IN (1)
+PARTITION BY LIST (a);
+
+-- leave this partition without children.
+CREATE TABLE parted_index_col_drop2 PARTITION OF parted_index_col_drop
+FOR VALUES IN (2)
+PARTITION BY LIST (a);
+
+CREATE TABLE parted_index_col_drop11 PARTITION OF parted_index_col_drop1
+FOR VALUES IN (1);
+
+CREATE INDEX ON parted_index_col_drop (b);
+
+CREATE INDEX ON parted_index_col_drop (c);
+
+CREATE INDEX ON parted_index_col_drop (b, c);
+
+ALTER TABLE parted_index_col_drop
+    DROP COLUMN c;
+
+\d parted_index_col_drop
+\d parted_index_col_drop1
+\d parted_index_col_drop2
+\d parted_index_col_drop11
+DROP TABLE parted_index_col_drop;
+
+-- Check that invalid indexes are not selected when attaching a partition.
+CREATE TABLE parted_inval_tab (
+    a int
+)
+PARTITION BY RANGE (a);
+
+CREATE INDEX parted_inval_idx ON parted_inval_tab (a);
+
+CREATE TABLE parted_inval_tab_1 (
+    a int
+)
+PARTITION BY RANGE (a);
+
+CREATE TABLE parted_inval_tab_1_1 PARTITION OF parted_inval_tab_1
+FOR VALUES FROM (0) TO (10);
+
+CREATE TABLE parted_inval_tab_1_2 PARTITION OF parted_inval_tab_1
+FOR VALUES FROM (10) TO (20);
+
+-- this creates an invalid index.
+CREATE INDEX parted_inval_ixd_1 ON ONLY parted_inval_tab_1 (a);
+
+-- this creates new indexes for all the partitions of parted_inval_tab_1,
+-- discarding the invalid index created previously as what is chosen.
+ALTER TABLE parted_inval_tab ATTACH PARTITION parted_inval_tab_1
+FOR VALUES FROM (1) TO (100);
+
+SELECT
+    indexrelid::regclass,
+    indisvalid,
+    indrelid::regclass,
+    inhparent::regclass
+FROM
+    pg_index idx
+    LEFT JOIN pg_inherits inh ON (idx.indexrelid = inh.inhrelid)
+WHERE
+    indexrelid::regclass::text LIKE 'parted_inval%'
+ORDER BY
+    indexrelid::regclass::text COLLATE "C";
+
+DROP TABLE parted_inval_tab;
+
+-- Check setup of indisvalid across a complex partition tree on index
+-- creation.  If one index in a partition index is invalid, so should its
+-- partitioned index.
+CREATE TABLE parted_isvalid_tab (
+    a int,
+    b int
+)
+PARTITION BY RANGE (a);
+
+CREATE TABLE parted_isvalid_tab_1 PARTITION OF parted_isvalid_tab
+FOR VALUES FROM (1) TO (10)
+PARTITION BY RANGE (a);
+
+CREATE TABLE parted_isvalid_tab_2 PARTITION OF parted_isvalid_tab
+FOR VALUES FROM (10) TO (20)
+PARTITION BY RANGE (a);
+
+CREATE TABLE parted_isvalid_tab_11 PARTITION OF parted_isvalid_tab_1
+FOR VALUES FROM (1) TO (5);
+
+CREATE TABLE parted_isvalid_tab_12 PARTITION OF parted_isvalid_tab_1
+FOR VALUES FROM (5) TO (10);
+
+-- create an invalid index on one of the partitions.
+INSERT INTO parted_isvalid_tab_11
+    VALUES (1, 0);
+
+CREATE INDEX CONCURRENTLY parted_isvalid_idx_11 ON parted_isvalid_tab_11 ((a / b));
+
+-- The previous invalid index is selected, invalidating all the indexes up to
+-- the top-most parent.
+CREATE INDEX parted_isvalid_idx ON parted_isvalid_tab ((a / b));
+
+SELECT
+    indexrelid::regclass,
+    indisvalid,
+    indrelid::regclass,
+    inhparent::regclass
+FROM
+    pg_index idx
+    LEFT JOIN pg_inherits inh ON (idx.indexrelid = inh.inhrelid)
+WHERE
+    indexrelid::regclass::text LIKE 'parted_isvalid%'
+ORDER BY
+    indexrelid::regclass::text COLLATE "C";
+
+DROP TABLE parted_isvalid_tab;
+
+-- Check state of replica indexes when attaching a partition.
+BEGIN;
+CREATE TABLE parted_replica_tab (
+    id int NOT NULL
+)
+PARTITION BY RANGE (id);
+CREATE TABLE parted_replica_tab_1 PARTITION OF parted_replica_tab
+FOR VALUES FROM (1) TO (10)
+PARTITION BY RANGE (id);
+CREATE TABLE parted_replica_tab_11 PARTITION OF parted_replica_tab_1
+FOR VALUES FROM (1) TO (5);
+CREATE UNIQUE INDEX parted_replica_idx ON ONLY parted_replica_tab USING btree (id);
+CREATE UNIQUE INDEX parted_replica_idx_1 ON ONLY parted_replica_tab_1 USING btree (id);
+-- This triggers an update of pg_index.indisreplident for parted_replica_idx.
+ALTER TABLE ONLY parted_replica_tab_1 REPLICA IDENTITY
+USING INDEX parted_replica_idx_1;
+CREATE UNIQUE INDEX parted_replica_idx_11 ON parted_replica_tab_11 USING btree (id);
+SELECT
+    indexrelid::regclass,
+    indisvalid,
+    indisreplident,
+    indrelid::regclass,
+    inhparent::regclass
+FROM
+    pg_index idx
+    LEFT JOIN pg_inherits inh ON (idx.indexrelid = inh.inhrelid)
+WHERE
+    indexrelid::regclass::text LIKE 'parted_replica%'
+ORDER BY
+    indexrelid::regclass::text COLLATE "C";
+-- parted_replica_idx is not valid yet here, because parted_replica_idx_1
+-- is not valid.
+ALTER INDEX parted_replica_idx ATTACH PARTITION parted_replica_idx_1;
+SELECT
+    indexrelid::regclass,
+    indisvalid,
+    indisreplident,
+    indrelid::regclass,
+    inhparent::regclass
+FROM
+    pg_index idx
+    LEFT JOIN pg_inherits inh ON (idx.indexrelid = inh.inhrelid)
+WHERE
+    indexrelid::regclass::text LIKE 'parted_replica%'
+ORDER BY
+    indexrelid::regclass::text COLLATE "C";
+-- parted_replica_idx becomes valid here.
+ALTER INDEX parted_replica_idx_1 ATTACH PARTITION parted_replica_idx_11;
+ALTER TABLE ONLY parted_replica_tab_1 REPLICA IDENTITY
+USING INDEX parted_replica_idx_1;
+COMMIT;
+
+SELECT
+    indexrelid::regclass,
+    indisvalid,
+    indisreplident,
+    indrelid::regclass,
+    inhparent::regclass
+FROM
+    pg_index idx
+    LEFT JOIN pg_inherits inh ON (idx.indexrelid = inh.inhrelid)
+WHERE
+    indexrelid::regclass::text LIKE 'parted_replica%'
+ORDER BY
+    indexrelid::regclass::text COLLATE "C";
+
+DROP TABLE parted_replica_tab;
+
+-- test that indexing commands work with TOASTed values in pg_index
+CREATE TABLE test_pg_index_toast_table (
+    a int
+);
+
+CREATE OR REPLACE FUNCTION test_pg_index_toast_func (a int, b int[])
+    RETURNS bool
+    AS $$
+    SELECT
+        TRUE
+$$
+LANGUAGE sql
+IMMUTABLE;
+
+SELECT
+    array_agg(n) b
+FROM
+    generate_series(1, 10000) n \gset
+
+CREATE INDEX CONCURRENTLY test_pg_index_toast_index ON test_pg_index_toast_table (test_pg_index_toast_func (a, :'b'));
+
+REINDEX INDEX CONCURRENTLY test_pg_index_toast_index;
+
+DROP INDEX CONCURRENTLY test_pg_index_toast_index;
+
+CREATE INDEX test_pg_index_toast_index ON test_pg_index_toast_table (test_pg_index_toast_func (a, :'b'));
+
+REINDEX INDEX test_pg_index_toast_index;
+
+DROP INDEX test_pg_index_toast_index;
+
+DROP FUNCTION test_pg_index_toast_func;
+
+DROP TABLE test_pg_index_toast_table;
+
+-- test creation of an index involving a whole-row expression
+CREATE TABLE test_pg_wholerow_index (
+    a int,
+    b text,
+    c numeric
+);
+
+CREATE OR REPLACE FUNCTION row_image (test_pg_wholerow_index)
+    RETURNS test_pg_wholerow_index
+    AS $$
+    SELECT
+        $1
+$$
+LANGUAGE sql
+IMMUTABLE;
+
+INSERT INTO test_pg_wholerow_index
+    VALUES (1, 'multiplication', 1.0);
+
+CREATE INDEX row_image_index ON test_pg_wholerow_index ((row_image (test_pg_wholerow_index)));
+
+INSERT INTO test_pg_wholerow_index
+    VALUES (2, 'addition', 0);
+
+DROP INDEX row_image_index;
+
+DROP FUNCTION row_image (test_pg_wholerow_index);
+
+DROP TABLE test_pg_wholerow_index;
+
+-- Test of a partitioned index attach, when there are exclusion constraints.
+CREATE TABLE idx_excl_part (
+    a int4range,
+    b int4range
+)
+PARTITION BY LIST (a);
+
+CREATE TABLE idx_excl_part_1 (
+    a int4range,
+    b int4range
+);
+
+ALTER TABLE ONLY idx_excl_part ATTACH PARTITION idx_excl_part_1
+FOR VALUES IN ('[0,1)'::int4range);
+
+ALTER TABLE ONLY idx_excl_part
+    ADD CONSTRAINT idxpart_id_data_excl
+    EXCLUDE USING gist (a WITH =, b WITH &&);
+
+ALTER TABLE idx_excl_part_1
+    ADD CONSTRAINT idxpart_1_id_data_excl
+    EXCLUDE USING gist (a WITH &&, b WITH &&);
+
+-- This should be disallowed, because the constraints don't match.
+ALTER INDEX idxpart_id_data_excl ATTACH PARTITION idxpart_1_id_data_excl;
+
+-- but if we recreate the constraint differently, it's allowed:
+ALTER TABLE idx_excl_part_1
+    DROP CONSTRAINT idxpart_1_id_data_excl;
+
+ALTER TABLE idx_excl_part_1
+    ADD CONSTRAINT idxpart_1_id_data_excl
+    EXCLUDE USING gist (a WITH =, b WITH &&);
+
+ALTER INDEX idxpart_id_data_excl ATTACH PARTITION idxpart_1_id_data_excl;
+
+-- leave these tables around, for pg_upgrade testing

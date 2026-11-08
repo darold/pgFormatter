@@ -4,6 +4,7 @@
 BEGIN;
 SET local min_parallel_table_scan_size = 0;
 SET local parallel_setup_cost = 0;
+SET local enable_hashjoin = ON;
 -- Extract bucket and batch counts from an explain analyze plan.  In
 -- general we can't make assertions about how many batches (or
 -- buckets) will be required because it can vary, but we can in some
@@ -56,6 +57,8 @@ CREATE TABLE simple AS
 SELECT
     generate_series(1, 20000) AS id,
     'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+INSERT INTO simple
+    VALUES (NULL, NULL);
 ALTER TABLE simple SET (parallel_workers = 2);
 ANALYZE simple;
 -- Make a relation whose size we will under-estimate.  We want stats
@@ -96,10 +99,10 @@ SET
     relpages = pg_relation_size('extremely_skewed') / 8192
 WHERE
     relname = 'extremely_skewed';
--- Make a relation with a couple of enormous tuples.
+-- Make a relation with several enormous tuples.
 CREATE TABLE wide AS
 SELECT
-    generate_series(1, 2) AS id,
+    generate_series(1, 3) AS id,
     rpad('', 320000, 'x') AS t;
 ALTER TABLE wide SET (parallel_workers = 2);
 -- The "optimal" case: the hash table fits in memory; we plan for 1
@@ -109,6 +112,7 @@ ALTER TABLE wide SET (parallel_workers = 2);
 SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 0;
 SET local work_mem = '4MB';
+SET local hash_mem_multiplier = 1.0;
 EXPLAIN (
     COSTS OFF
 )
@@ -140,6 +144,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 2;
 
 SET local work_mem = '4MB';
+
+SET local hash_mem_multiplier = 1.0;
 
 SET local enable_parallel_hash = OFF;
 
@@ -178,6 +184,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 2;
 
 SET local work_mem = '4MB';
+
+SET local hash_mem_multiplier = 1.0;
 
 SET local enable_parallel_hash = ON;
 
@@ -220,6 +228,8 @@ SET local max_parallel_workers_per_gather = 0;
 
 SET local work_mem = '128kB';
 
+SET local hash_mem_multiplier = 1.0;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -255,6 +265,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 2;
 
 SET local work_mem = '128kB';
+
+SET local hash_mem_multiplier = 1.0;
 
 SET local enable_parallel_hash = OFF;
 
@@ -294,6 +306,8 @@ SET local max_parallel_workers_per_gather = 2;
 
 SET local work_mem = '192kB';
 
+SET local hash_mem_multiplier = 1.0;
+
 SET local enable_parallel_hash = ON;
 
 EXPLAIN (
@@ -323,6 +337,13 @@ FROM
 
 $$);
 
+-- parallel full multi-batch hash join
+SELECT
+    count(*)
+FROM
+    simple r
+    FULL OUTER JOIN simple s USING (id);
+
 ROLLBACK TO settings;
 
 -- The "bad" case: during execution we need to increase number of
@@ -335,6 +356,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 0;
 
 SET local work_mem = '128kB';
+
+SET local hash_mem_multiplier = 1.0;
 
 EXPLAIN (
     COSTS OFF
@@ -371,6 +394,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 2;
 
 SET local work_mem = '128kB';
+
+SET local hash_mem_multiplier = 1.0;
 
 SET local enable_parallel_hash = OFF;
 
@@ -409,6 +434,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 1;
 
 SET local work_mem = '192kB';
+
+SET local hash_mem_multiplier = 1.0;
 
 SET local enable_parallel_hash = ON;
 
@@ -453,6 +480,8 @@ SET local max_parallel_workers_per_gather = 0;
 
 SET local work_mem = '128kB';
 
+SET local hash_mem_multiplier = 1.0;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -487,6 +516,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 2;
 
 SET local work_mem = '128kB';
+
+SET local hash_mem_multiplier = 1.0;
 
 SET local enable_parallel_hash = OFF;
 
@@ -524,6 +555,8 @@ SAVEPOINT settings;
 SET local max_parallel_workers_per_gather = 1;
 
 SET local work_mem = '128kB';
+
+SET local hash_mem_multiplier = 1.0;
 
 SET local enable_parallel_hash = ON;
 
@@ -563,6 +596,8 @@ SET local max_parallel_workers_per_gather = 2;
 
 SET local work_mem = '4MB';
 
+SET local hash_mem_multiplier = 1.0;
+
 SET local parallel_leader_participation = OFF;
 
 SELECT
@@ -594,6 +629,9 @@ SELECT
 
 ALTER TABLE join_bar SET (parallel_workers = 2);
 
+ANALYZE join_foo,
+join_bar;
+
 -- multi-batch with rescan, parallel-oblivious
 SAVEPOINT settings;
 
@@ -614,6 +652,8 @@ SET enable_material = OFF;
 SET enable_mergejoin = OFF;
 
 SET work_mem = '64kB';
+
+SET hash_mem_multiplier = 1.0;
 
 EXPLAIN (
     COSTS OFF
@@ -683,6 +723,8 @@ SET enable_mergejoin = OFF;
 
 SET work_mem = '4MB';
 
+SET hash_mem_multiplier = 1.0;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -751,6 +793,8 @@ SET enable_mergejoin = OFF;
 
 SET work_mem = '64kB';
 
+SET hash_mem_multiplier = 1.0;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -818,6 +862,8 @@ SET enable_material = OFF;
 SET enable_mergejoin = OFF;
 
 SET work_mem = '4MB';
+
+SET hash_mem_multiplier = 1.0;
 
 EXPLAIN (
     COSTS OFF
@@ -889,7 +935,31 @@ FROM
 
 ROLLBACK TO settings;
 
--- parallelism not possible with parallel-oblivious outer hash join
+-- parallelism not possible with parallel-oblivious full hash join
+SAVEPOINT settings;
+
+SET enable_parallel_hash = OFF;
+
+SET local max_parallel_workers_per_gather = 2;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    simple r
+    FULL OUTER JOIN simple s USING (id);
+
+SELECT
+    count(*)
+FROM
+    simple r
+    FULL OUTER JOIN simple s USING (id);
+
+ROLLBACK TO settings;
+
+-- parallelism is possible with parallel-aware full hash join
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 2;
@@ -911,7 +981,7 @@ FROM
 
 ROLLBACK TO settings;
 
--- An full outer join where every record is not matched.
+-- A full outer join where every record is not matched.
 -- non-parallel
 SAVEPOINT settings;
 
@@ -934,7 +1004,31 @@ FROM
 
 ROLLBACK TO settings;
 
--- parallelism not possible with parallel-oblivious outer hash join
+-- parallelism not possible with parallel-oblivious full hash join
+SAVEPOINT settings;
+
+SET enable_parallel_hash = OFF;
+
+SET local max_parallel_workers_per_gather = 2;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    simple r
+    FULL OUTER JOIN simple s ON (r.id = 0 - s.id);
+
+SELECT
+    count(*)
+FROM
+    simple r
+    FULL OUTER JOIN simple s ON (r.id = 0 - s.id);
+
+ROLLBACK TO settings;
+
+-- parallelism is possible with parallel-aware full hash join
 SAVEPOINT settings;
 
 SET local max_parallel_workers_per_gather = 2;
@@ -969,6 +1063,8 @@ SET enable_parallel_hash = ON;
 
 SET work_mem = '128kB';
 
+SET hash_mem_multiplier = 1.0;
+
 EXPLAIN (
     COSTS OFF
 )
@@ -981,7 +1077,9 @@ FROM
             id,
             coalesce(t, '') || '' AS t
         FROM
-            wide) s USING (id);
+            wide
+        WHERE
+            id < 3) s USING (id);
 
 SELECT
     length(max(s.t))
@@ -992,7 +1090,9 @@ FROM
             id,
             coalesce(t, '') || '' AS t
         FROM
-            wide) s USING (id);
+            wide
+        WHERE
+            id < 3) s USING (id);
 
 SELECT
     final > 1 AS multibatch
@@ -1004,11 +1104,281 @@ FROM
         LEFT JOIN (
             SELECT
                 id, coalesce(t, '') || '' AS t
-            FROM wide) s USING (id);
+            FROM wide
+            WHERE
+                id < 3) s USING (id);
 
 $$);
 
 ROLLBACK TO settings;
 
+-- Hash join reuses the HOT status bit to indicate match status. This can only
+-- be guaranteed to produce correct results if all the hash join tuple match
+-- bits are reset before reuse. This is done upon loading them into the
+-- hashtable.
+SAVEPOINT settings;
+
+SET enable_parallel_hash = ON;
+
+SET min_parallel_table_scan_size = 0;
+
+SET parallel_setup_cost = 0;
+
+SET parallel_tuple_cost = 0;
+
+CREATE TABLE hjtest_matchbits_t1 (
+    id int
+);
+
+CREATE TABLE hjtest_matchbits_t2 (
+    id int
+);
+
+INSERT INTO hjtest_matchbits_t1
+    VALUES (1);
+
+INSERT INTO hjtest_matchbits_t2
+    VALUES (2);
+
+-- Update should create a HOT tuple. If this status bit isn't cleared, we won't
+-- correctly emit the NULL-extended unmatching tuple in full hash join.
+UPDATE
+    hjtest_matchbits_t2
+SET
+    id = 2;
+
+SELECT
+    *
+FROM
+    hjtest_matchbits_t1 t1
+    FULL JOIN hjtest_matchbits_t2 t2 ON t1.id = t2.id
+ORDER BY
+    t1.id;
+
+-- Test serial full hash join.
+-- Resetting parallel_setup_cost should force a serial plan.
+-- Just to be safe, however, set enable_parallel_hash to off, as parallel full
+-- hash joins are only supported with shared hashtables.
+RESET parallel_setup_cost;
+
+SET enable_parallel_hash = OFF;
+
+SELECT
+    *
+FROM
+    hjtest_matchbits_t1 t1
+    FULL JOIN hjtest_matchbits_t2 t2 ON t1.id = t2.id;
+
+ROLLBACK TO settings;
+
+ROLLBACK;
+
+-- Verify that hash key expressions reference the correct
+-- nodes. Hashjoin's hashkeys need to reference its outer plan, Hash's
+-- need to reference Hash's outer plan (which is below HashJoin's
+-- inner plan). It's not trivial to verify that the references are
+-- correct (we don't display the hashkeys themselves), but if the
+-- hashkeys contain subplan references, those will be displayed. Force
+-- subplans to appear just about everywhere.
+--
+-- Bug report:
+-- https://www.postgresql.org/message-id/CAPpHfdvGVegF_TKKRiBrSmatJL2dR9uwFCuR%2BteQ_8tEXU8mxg%40mail.gmail.com
+--
+BEGIN;
+SET LOCAL enable_sort = OFF;
+-- avoid mergejoins
+SET LOCAL from_collapse_limit = 1;
+-- allows easy changing of join order
+CREATE TABLE hjtest_1 (
+    a text,
+    b int,
+    id int,
+    c bool
+);
+CREATE TABLE hjtest_2 (
+    a bool,
+    id int,
+    b text,
+    c int
+);
+INSERT INTO hjtest_1 (a, b, id, c)
+    VALUES ('text', 2, 1, FALSE);
+-- matches
+INSERT INTO hjtest_1 (a, b, id, c)
+    VALUES ('text', 1, 2, FALSE);
+-- fails id join condition
+INSERT INTO hjtest_1 (a, b, id, c)
+    VALUES ('text', 20, 1, FALSE);
+-- fails < 50
+INSERT INTO hjtest_1 (a, b, id, c)
+    VALUES ('text', 1, 1, FALSE);
+-- fails (SELECT hjtest_1.b * 5) = (SELECT hjtest_2.c*5)
+INSERT INTO hjtest_2 (a, id, b, c)
+    VALUES (TRUE, 1, 'another', 2);
+-- matches
+INSERT INTO hjtest_2 (a, id, b, c)
+    VALUES (TRUE, 3, 'another', 7);
+-- fails id join condition
+INSERT INTO hjtest_2 (a, id, b, c)
+    VALUES (TRUE, 1, 'another', 90);
+-- fails < 55
+INSERT INTO hjtest_2 (a, id, b, c)
+    VALUES (TRUE, 1, 'another', 3);
+-- fails (SELECT hjtest_1.b * 5) = (SELECT hjtest_2.c*5)
+INSERT INTO hjtest_2 (a, id, b, c)
+    VALUES (TRUE, 1, 'text', 1);
+--  fails hjtest_1.a <> hjtest_2.b;
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    hjtest_1.a a1,
+    hjtest_2.a a2,
+    hjtest_1.tableoid::regclass t1,
+    hjtest_2.tableoid::regclass t2
+FROM
+    hjtest_1,
+    hjtest_2
+WHERE
+    hjtest_1.id = (
+        SELECT
+            1
+        WHERE
+            hjtest_2.id = 1)
+    AND (
+        SELECT
+            hjtest_1.b * 5) = (
+        SELECT
+            hjtest_2.c * 5)
+    AND (
+        SELECT
+            hjtest_1.b * 5) < 50
+    AND (
+        SELECT
+            hjtest_2.c * 5) < 55
+    AND hjtest_1.a <> hjtest_2.b;
+SELECT
+    hjtest_1.a a1,
+    hjtest_2.a a2,
+    hjtest_1.tableoid::regclass t1,
+    hjtest_2.tableoid::regclass t2
+FROM
+    hjtest_1,
+    hjtest_2
+WHERE
+    hjtest_1.id = (
+        SELECT
+            1
+        WHERE
+            hjtest_2.id = 1)
+    AND (
+        SELECT
+            hjtest_1.b * 5) = (
+        SELECT
+            hjtest_2.c * 5)
+    AND (
+        SELECT
+            hjtest_1.b * 5) < 50
+    AND (
+        SELECT
+            hjtest_2.c * 5) < 55
+    AND hjtest_1.a <> hjtest_2.b;
+EXPLAIN (
+    COSTS OFF,
+    VERBOSE
+)
+SELECT
+    hjtest_1.a a1,
+    hjtest_2.a a2,
+    hjtest_1.tableoid::regclass t1,
+    hjtest_2.tableoid::regclass t2
+FROM
+    hjtest_2,
+    hjtest_1
+WHERE
+    hjtest_1.id = (
+        SELECT
+            1
+        WHERE
+            hjtest_2.id = 1)
+    AND (
+        SELECT
+            hjtest_1.b * 5) = (
+        SELECT
+            hjtest_2.c * 5)
+    AND (
+        SELECT
+            hjtest_1.b * 5) < 50
+    AND (
+        SELECT
+            hjtest_2.c * 5) < 55
+    AND hjtest_1.a <> hjtest_2.b;
+SELECT
+    hjtest_1.a a1,
+    hjtest_2.a a2,
+    hjtest_1.tableoid::regclass t1,
+    hjtest_2.tableoid::regclass t2
+FROM
+    hjtest_2,
+    hjtest_1
+WHERE
+    hjtest_1.id = (
+        SELECT
+            1
+        WHERE
+            hjtest_2.id = 1)
+    AND (
+        SELECT
+            hjtest_1.b * 5) = (
+        SELECT
+            hjtest_2.c * 5)
+    AND (
+        SELECT
+            hjtest_1.b * 5) < 50
+    AND (
+        SELECT
+            hjtest_2.c * 5) < 55
+    AND hjtest_1.a <> hjtest_2.b;
+ROLLBACK;
+
+-- Verify that we behave sanely when the inner hash keys contain parameters
+-- (that is, outer or lateral references).  This situation has to defeat
+-- re-use of the inner hash table across rescans.
+BEGIN;
+SET local enable_hashjoin = ON;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    i8.q2,
+    ss.*
+FROM
+    int8_tbl i8,
+    LATERAL (
+        SELECT
+            t1.fivethous,
+            i4.f1
+        FROM
+            tenk1 t1
+            JOIN int4_tbl i4 ON t1.fivethous = i4.f1 + i8.q2
+        ORDER BY
+            1,
+            2) ss;
+SELECT
+    i8.q2,
+    ss.*
+FROM
+    int8_tbl i8,
+    LATERAL (
+        SELECT
+            t1.fivethous,
+            i4.f1
+        FROM
+            tenk1 t1
+            JOIN int4_tbl i4 ON t1.fivethous = i4.f1 + i8.q2
+        ORDER BY
+            1,
+            2) ss;
 ROLLBACK;
 

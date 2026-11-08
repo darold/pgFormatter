@@ -101,6 +101,22 @@ WHERE
 
 SELECT
     v AS value,
+    hashoid8 (v)::bit(32) AS standard,
+    hashoid8extended (v, 0)::bit(32) AS extended0,
+    hashoid8extended (v, 1)::bit(32) AS extended1
+FROM (
+    VALUES (0),
+        (1),
+        (17),
+        (42),
+        (550273),
+        (207112489)) x (v)
+WHERE
+    hashoid8 (v)::bit(32) != hashoid8extended (v, 0)::bit(32)
+        OR hashoid8 (v)::bit(32) = hashoid8extended (v, 1)::bit(32);
+
+SELECT
+    v AS value,
     hashchar(v)::bit(32) AS standard,
     hashcharextended(v, 0)::bit(32) AS extended0,
     hashcharextended(v, 1)::bit(32) AS extended1
@@ -256,6 +272,19 @@ FROM (
 WHERE
     hash_array(v)::bit(32) != hash_array_extended(v, 0)::bit(32)
         OR hash_array(v)::bit(32) = hash_array_extended(v, 1)::bit(32);
+
+-- array hashing with non-hashable element type
+SELECT
+    v AS value,
+    hash_array(v)::bit(32) AS standard
+FROM (
+    VALUES ('{101}'::varbit[])) x (v);
+
+SELECT
+    v AS value,
+    hash_array_extended(v, 0)::bit(32) AS extended0
+FROM (
+    VALUES ('{101}'::varbit[])) x (v);
 
 SELECT
     v AS value,
@@ -418,4 +447,75 @@ FROM (
 WHERE
     hash_range(v)::bit(32) != hash_range_extended(v, 0)::bit(32)
         OR hash_range(v)::bit(32) = hash_range_extended(v, 1)::bit(32);
+
+SELECT
+    v AS value,
+    hash_multirange (v)::bit(32) AS standard,
+    hash_multirange_extended (v, 0)::bit(32) AS extended0,
+    hash_multirange_extended (v, 1)::bit(32) AS extended1
+FROM (
+    VALUES ('{[10,20)}'::int4multirange),
+        ('{[23, 43]}'::int4multirange),
+        ('{[5675, 550273)}'::int4multirange),
+        ('{[550274, 1550274)}'::int4multirange),
+        ('{[1550275, 208112489)}'::int4multirange)) x (v)
+WHERE
+    hash_multirange (v)::bit(32) != hash_multirange_extended (v, 0)::bit(32)
+        OR hash_multirange (v)::bit(32) = hash_multirange_extended (v, 1)::bit(32);
+
+CREATE TYPE hash_test_t1 AS (
+    a int,
+    b text
+);
+
+SELECT
+    v AS value,
+    hash_record (v)::bit(32) AS standard,
+    hash_record_extended (v, 0)::bit(32) AS extended0,
+    hash_record_extended (v, 1)::bit(32) AS extended1
+FROM (
+    VALUES (ROW (1, 'aaa')::hash_test_t1, ROW (2, 'bbb'), ROW (-1, 'ccc'))) x (v)
+WHERE
+    hash_record (v)::bit(32) != hash_record_extended (v, 0)::bit(32)
+        OR hash_record (v)::bit(32) = hash_record_extended (v, 1)::bit(32);
+
+DROP TYPE hash_test_t1;
+
+-- record hashing with non-hashable field type
+CREATE TYPE hash_test_t2 AS (
+    a varbit,
+    b text
+);
+
+SELECT
+    v AS value,
+    hash_record (v)::bit(32) AS standard
+FROM (
+    VALUES (ROW ('10'::varbit, 'aaa')::hash_test_t2)) x (v);
+
+SELECT
+    v AS value,
+    hash_record_extended (v, 0)::bit(32) AS extended0
+FROM (
+    VALUES (ROW ('11'::varbit, 'aaa')::hash_test_t2)) x (v);
+
+DROP TYPE hash_test_t2;
+
+--
+-- Check special cases for specific data types
+--
+SELECT
+    hashfloat4('0'::float4) = hashfloat4('-0'::float4) AS t;
+
+SELECT
+    hashfloat4('NaN'::float4) = hashfloat4(- 'NaN'::float4) AS t;
+
+SELECT
+    hashfloat8('0'::float8) = hashfloat8('-0'::float8) AS t;
+
+SELECT
+    hashfloat8('NaN'::float8) = hashfloat8(- 'NaN'::float8) AS t;
+
+SELECT
+    hashfloat4('NaN'::float4) = hashfloat8('NaN'::float8) AS t;
 

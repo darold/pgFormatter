@@ -24,7 +24,7 @@ CREATE VIEW test_tablesample_v2 AS
 
 -- check a sampled query doesn't affect cursor in progress
 BEGIN;
-DECLARE tablesample_cur CURSOR FOR
+DECLARE tablesample_cur SCROLL CURSOR FOR
   SELECT id FROM test_tablesample TABLESAMPLE SYSTEM (50) REPEATABLE (0);
 
 FETCH FIRST FROM tablesample_cur;
@@ -81,6 +81,18 @@ select pct, count(unique1) from
   (values (0),(100)) v(pct),
   lateral (select * from tenk1 tablesample system (pct)) ss
   group by pct;
+
+-- check that a join alias Var in a pulled-up LATERAL subquery's TABLESAMPLE
+-- clause gets flattened
+explain (costs off)
+select pct, count(unique1) from
+  ((values (0)) v(pct) full join (values (100)) w(pct) using (pct)),
+  lateral (select * from tenk1 tablesample bernoulli (pct)) ss
+  group by pct order by pct;
+select pct, count(unique1) from
+  ((values (0)) v(pct) full join (values (100)) w(pct) using (pct)),
+  lateral (select * from tenk1 tablesample bernoulli (pct)) ss
+  group by pct order by pct;
 
 -- errors
 SELECT id FROM test_tablesample TABLESAMPLE FOOBAR (1);

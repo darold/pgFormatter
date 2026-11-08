@@ -54,6 +54,23 @@ SELECT DISTINCT ON (foobar)
 FROM
     pg_database;
 
+-- grouping with FOR UPDATE
+SELECT
+    NULL
+FROM
+    pg_database
+GROUP BY
+    datname
+FOR UPDATE;
+
+SELECT
+    NULL
+FROM
+    pg_database
+GROUP BY
+    GROUPING SETS (())
+FOR UPDATE;
+
 --
 -- DELETE
 -- missing relation name (this had better not wildcard!)
@@ -83,7 +100,7 @@ ALTER TABLE nonesuch RENAME TO newnonesuch;
 ALTER TABLE nonesuch RENAME TO stud_emp;
 
 -- conflict
-ALTER TABLE stud_emp RENAME TO aggtest;
+ALTER TABLE stud_emp RENAME TO student;
 
 -- self-conflict
 ALTER TABLE stud_emp RENAME TO stud_emp;
@@ -378,18 +395,4 @@ CREATE TEMPORARY TABLE foo (
     idz int4 UNIQUE NOT NULL,
     idv int4 UNIQUE NOT NULL
 );
-
--- Check that stack depth detection mechanism works and
--- max_stack_depth is not set too high
-CREATE FUNCTION infinite_recurse ()
-    RETURNS int
-    AS '
-    SELECT
-        infinite_recurse ();
-'
-LANGUAGE sql;
-
-\set VERBOSITY terse
-SELECT
-    infinite_recurse ();
 

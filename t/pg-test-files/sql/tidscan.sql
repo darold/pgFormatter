@@ -68,17 +68,17 @@ DECLARE c CURSOR FOR SELECT ctid, * FROM tidscan;
 FETCH NEXT FROM c; -- skip one row
 FETCH NEXT FROM c;
 -- perform update
-EXPLAIN (ANALYZE, COSTS OFF, SUMMARY OFF, TIMING OFF)
+EXPLAIN (ANALYZE, COSTS OFF, SUMMARY OFF, TIMING OFF, BUFFERS OFF)
 UPDATE tidscan SET id = -id WHERE CURRENT OF c RETURNING *;
 FETCH NEXT FROM c;
 -- perform update
-EXPLAIN (ANALYZE, COSTS OFF, SUMMARY OFF, TIMING OFF)
+EXPLAIN (ANALYZE, COSTS OFF, SUMMARY OFF, TIMING OFF, BUFFERS OFF)
 UPDATE tidscan SET id = -id WHERE CURRENT OF c RETURNING *;
 SELECT * FROM tidscan;
 -- position cursor past any rows
 FETCH NEXT FROM c;
 -- should error out
-EXPLAIN (ANALYZE, COSTS OFF, SUMMARY OFF, TIMING OFF)
+EXPLAIN (ANALYZE, COSTS OFF, SUMMARY OFF, TIMING OFF, BUFFERS OFF)
 UPDATE tidscan SET id = -id WHERE CURRENT OF c RETURNING *;
 ROLLBACK;
 
@@ -86,12 +86,27 @@ ROLLBACK;
 -- (these plans don't use TID scans, but this still seems like an
 -- appropriate place for these tests)
 EXPLAIN (COSTS OFF)
-SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid;
-SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid;
+SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE t2.ten = 0;
+
+SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE t2.ten = 0;
+
 SET enable_hashjoin TO off;
+
 EXPLAIN (COSTS OFF)
-SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid;
-SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid;
+SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE t2.ten = 0;
+
+SELECT count(*) FROM tenk1 t1 JOIN tenk1 t2 ON t1.ctid = t2.ctid
+WHERE t2.ten = 0;
 RESET enable_hashjoin;
+
+-- check predicate lock on CTID
+BEGIN ISOLATION LEVEL SERIALIZABLE;
+SELECT * FROM tidscan WHERE ctid = '(0,1)';
+-- locktype should be 'tuple'
+SELECT locktype, mode FROM pg_locks WHERE pid = pg_backend_pid() AND mode = 'SIReadLock';
+ROLLBACK;
 
 DROP TABLE tidscan;

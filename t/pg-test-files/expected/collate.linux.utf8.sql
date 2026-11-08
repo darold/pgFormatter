@@ -3,6 +3,21 @@
  * locales is installed.  It must be run in a database with UTF-8 encoding,
  * because other encodings don't support all the characters used.
  */
+SELECT
+    getdatabaseencoding() <> 'UTF8'
+    OR (
+        SELECT
+            count(*)
+        FROM
+            pg_collation
+        WHERE
+            collname IN ('de_DE', 'en_US', 'sv_SE', 'tr_TR')
+            AND collencoding = pg_char_to_encoding('UTF8')) <> 4
+    OR version() !~ '-linux[-,]' AS skip_test \gset
+
+\if :skip_test
+\quit
+\endif
 SET client_encoding TO UTF8;
 
 CREATE SCHEMA collate_tests;
@@ -436,6 +451,26 @@ SELECT
 
 SELECT
     to_char(date '2010-04-01', 'DD TMMON YYYY' COLLATE "tr_TR");
+
+-- to_date
+SELECT
+    to_date('01 ŞUB 2010', 'DD TMMON YYYY');
+
+SELECT
+    to_date('01 Şub 2010', 'DD TMMON YYYY');
+
+SELECT
+    to_date('1234567890ab 2010', 'TMMONTH YYYY');
+
+-- fail
+SELECT
+    to_date('01 Aralık 2010', 'DD TMMONTH YYYY');
+
+SELECT
+    to_date('01 aralık 2010', 'DD TMMONTH YYYY');
+
+SELECT
+    to_date('2010 01 araLık', 'YYYY DD TMMONTH');
 
 -- backwards parsing
 CREATE VIEW collview1 AS
@@ -1114,7 +1149,12 @@ CREATE SCHEMA test_schema;
 -- We need to do this this way to cope with varying names for encodings:
 DO $$
 BEGIN
-    EXECUTE 'CREATE COLLATION test0 (locale = ' || quote_literal(current_setting('lc_collate')) || ');';
+    EXECUTE 'CREATE COLLATION test0 (locale = ' || quote_literal((
+        SELECT
+            datcollate
+        FROM pg_database
+        WHERE
+            datname = current_database())) || ');';
 END
 $$;
 
@@ -1135,7 +1175,17 @@ CREATE COLLATION IF NOT EXISTS test0 (
 -- ok, skipped
 DO $$
 BEGIN
-    EXECUTE 'CREATE COLLATION test1 (lc_collate = ' || quote_literal(current_setting('lc_collate')) || ', lc_ctype = ' || quote_literal(current_setting('lc_ctype')) || ');';
+    EXECUTE 'CREATE COLLATION test1 (lc_collate = ' || quote_literal((
+        SELECT
+            datcollate
+        FROM pg_database
+        WHERE
+            datname = current_database())) || ', lc_ctype = ' || quote_literal((
+                SELECT
+                    datctype
+                FROM pg_database
+                WHERE
+                    datname = current_database())) || ');';
 END
 $$;
 
@@ -1149,12 +1199,6 @@ CREATE COLLATION testx (
 );
 
 -- fail
-CREATE COLLATION testy (
-    locale = 'en_US.utf8',
-    version = 'foo'
-);
-
--- fail, no versions for libc
 CREATE COLLATION test4
 FROM
     nonsense;
@@ -1221,6 +1265,12 @@ DROP ROLE regress_test_role;
 -- ALTER
 ALTER COLLATION "en_US" REFRESH VERSION;
 
+-- also test for database while we are here
+SELECT
+    current_database() AS datname \gset
+
+ALTER DATABASE :"datname" REFRESH COLLATION VERSION;
+
 -- dependencies
 CREATE COLLATION test0
 FROM
@@ -1280,6 +1330,14 @@ SELECT
 DROP TYPE textrange_c;
 
 DROP TYPE textrange_en_us;
+
+-- standard collations
+SELECT
+    *
+FROM
+    collate_test2
+ORDER BY
+    b COLLATE UCS_BASIC;
 
 -- nondeterministic collations
 -- (not supported with libc provider)

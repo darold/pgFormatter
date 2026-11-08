@@ -321,7 +321,7 @@ DROP INDEX IF EXISTS no_such_schema.foo;
 
 DROP MATERIALIZED VIEW IF EXISTS no_such_schema.foo;
 
-DROP OPERATOR IF EXISTS no_such_schema. + (int, int);
+DROP OPERATOR IF EXISTS no_such_schema.+ (int, int);
 
 DROP OPERATOR IF EXISTS + ( no_such_type, no_such_type);
 
@@ -408,4 +408,16 @@ DROP ROUTINE IF EXISTS test_ambiguous_procname;
 DROP PROCEDURE test_ambiguous_procname (int);
 
 DROP PROCEDURE test_ambiguous_procname (text);
+
+-- This test checks both the functionality of 'if exists' and the syntax
+-- of the drop database command.
+DROP DATABASE test_database_exists (force);
+
+DROP DATABASE test_database_exists WITH (
+    force);
+
+DROP DATABASE IF EXISTS test_database_exists (force);
+
+DROP DATABASE IF EXISTS test_database_exists WITH (
+    force);
 

@@ -287,6 +287,10 @@ WHERE
     AND pg_class_2.relname = 'clstr_tst'
     AND indisclustered;
 
+-- Verify that toast tables are clusterable
+CLUSTER pg_toast.pg_toast_826
+USING pg_toast_826_index;
+
 -- Verify that clustering all tables does in fact cluster the right ones
 CREATE USER regress_clstr_user;
 
@@ -378,7 +382,12 @@ INSERT INTO clstr_3
 -- has not been clustered
 SET SESSION AUTHORIZATION regress_clstr_user;
 
+SET client_min_messages = ERROR;
+
+-- order of "skipping" warnings may vary
 CLUSTER;
+
+RESET client_min_messages;
 
 SELECT
     *
@@ -506,20 +515,284 @@ DROP TABLE clstr_temp;
 
 RESET SESSION AUTHORIZATION;
 
--- Check that partitioned tables cannot be clustered
+-- check clustering an empty table
+DROP TABLE clustertest;
+
+CREATE TABLE clustertest (
+    f1 int PRIMARY KEY
+);
+
+CLUSTER clustertest
+USING clustertest_pkey;
+
+CLUSTER clustertest;
+
+-- Check that partitioned tables can be clustered
 CREATE TABLE clstrpart (
     a int
 )
 PARTITION BY RANGE (a);
 
+CREATE TABLE clstrpart1 PARTITION OF clstrpart
+FOR VALUES FROM (1) TO (10)
+PARTITION BY RANGE (a);
+
+CREATE TABLE clstrpart11 PARTITION OF clstrpart1
+FOR VALUES FROM (1) TO (5);
+
+CREATE TABLE clstrpart12 PARTITION OF clstrpart1
+FOR VALUES FROM (5) TO (10)
+PARTITION BY RANGE (a);
+
+CREATE TABLE clstrpart2 PARTITION OF clstrpart
+FOR VALUES FROM (10) TO (20);
+
+CREATE TABLE clstrpart3 PARTITION OF clstrpart DEFAULT PARTITION BY RANGE (a);
+
+CREATE TABLE clstrpart33 PARTITION OF clstrpart3 DEFAULT;
+
+CREATE INDEX clstrpart_only_idx ON ONLY clstrpart (a);
+
+CLUSTER clstrpart
+USING clstrpart_only_idx;
+
+-- fails
+DROP INDEX clstrpart_only_idx;
+
 CREATE INDEX clstrpart_idx ON clstrpart (a);
 
-ALTER TABLE clstrpart CLUSTER ON clstrpart_idx;
+-- Check that clustering sets new relfilenodes:
+CREATE TEMP TABLE old_cluster_info AS
+SELECT
+    relname,
+    level,
+    relfilenode,
+    relkind
+FROM
+    pg_partition_tree ('clstrpart'::regclass) AS tree
+    JOIN pg_class c ON c.oid = tree.relid;
 
 CLUSTER clstrpart
 USING clstrpart_idx;
 
-DROP TABLE clstrpart;
+CREATE TEMP TABLE new_cluster_info AS
+SELECT
+    relname,
+    level,
+    relfilenode,
+    relkind
+FROM
+    pg_partition_tree ('clstrpart'::regclass) AS tree
+    JOIN pg_class c ON c.oid = tree.relid;
+
+SELECT
+    relname,
+    old.level,
+    old.relkind,
+    old.relfilenode = new.relfilenode
+FROM
+    old_cluster_info AS old
+    JOIN new_cluster_info AS new USING (relname)
+ORDER BY
+    relname COLLATE "C";
+
+-- Partitioned indexes aren't and can't be marked un/clustered:
+\d clstrpart
+CLUSTER clstrpart;
+
+ALTER TABLE clstrpart SET WITHOUT CLUSTER;
+
+ALTER TABLE clstrpart CLUSTER ON clstrpart_idx;
+
+-- and they cannot get an index-ordered REPACK without an explicit index name
+REPACK clstrpart
+USING INDEX;
+
+-- Check that REPACK sets new relfilenodes: it should process exactly the same
+-- tables as CLUSTER did.
+DROP TABLE old_cluster_info;
+
+DROP TABLE new_cluster_info;
+
+CREATE TEMP TABLE old_cluster_info AS
+SELECT
+    relname,
+    level,
+    relfilenode,
+    relkind
+FROM
+    pg_partition_tree ('clstrpart'::regclass) AS tree
+    JOIN pg_class c ON c.oid = tree.relid;
+
+REPACK clstrpart
+USING INDEX clstrpart_idx;
+
+CREATE TEMP TABLE new_cluster_info AS
+SELECT
+    relname,
+    level,
+    relfilenode,
+    relkind
+FROM
+    pg_partition_tree ('clstrpart'::regclass) AS tree
+    JOIN pg_class c ON c.oid = tree.relid;
+
+SELECT
+    relname,
+    old.level,
+    old.relkind,
+    old.relfilenode = new.relfilenode
+FROM
+    old_cluster_info AS old
+    JOIN new_cluster_info AS new USING (relname)
+ORDER BY
+    relname COLLATE "C";
+
+-- And finally the same for REPACK w/o index.
+DROP TABLE old_cluster_info;
+
+DROP TABLE new_cluster_info;
+
+CREATE TEMP TABLE old_cluster_info AS
+SELECT
+    relname,
+    level,
+    relfilenode,
+    relkind
+FROM
+    pg_partition_tree ('clstrpart'::regclass) AS tree
+    JOIN pg_class c ON c.oid = tree.relid;
+
+REPACK clstrpart;
+
+CREATE TEMP TABLE new_cluster_info AS
+SELECT
+    relname,
+    level,
+    relfilenode,
+    relkind
+FROM
+    pg_partition_tree ('clstrpart'::regclass) AS tree
+    JOIN pg_class c ON c.oid = tree.relid;
+
+SELECT
+    relname,
+    old.level,
+    old.relkind,
+    old.relfilenode = new.relfilenode
+FROM
+    old_cluster_info AS old
+    JOIN new_cluster_info AS new USING (relname)
+ORDER BY
+    relname COLLATE "C";
+
+-- Check that partitions that are foreign tables are skipped, with a warning
+CREATE FOREIGN DATA WRAPPER clstr_fdw;
+
+CREATE SERVER clstr_fserv FOREIGN DATA WRAPPER clstr_fdw;
+
+CREATE FOREIGN TABLE clstrpart4 PARTITION OF clstrpart
+FOR VALUES FROM (20) TO (30) SERVER clstr_fserv;
+
+CREATE FOREIGN TABLE clstrpart121 PARTITION OF clstrpart12
+FOR VALUES FROM (5) TO (10) SERVER clstr_fserv;
+
+CLUSTER clstrpart
+USING clstrpart_idx;
+
+REPACK clstrpart
+USING INDEX clstrpart_idx;
+
+REPACK clstrpart;
+
+-- ... while processing a foreign table directly is still an error
+REPACK clstrpart4;
+
+DROP FOREIGN TABLE clstrpart4, clstrpart121;
+
+-- ... and privileges are checked first, giving one warning per partition
+CREATE TABLE clstrfpart (
+    a int
+)
+PARTITION BY RANGE (a);
+
+CREATE INDEX clstrfpart_idx ON clstrfpart (a);
+
+CREATE TABLE clstrfpart1 PARTITION OF clstrfpart
+FOR VALUES FROM (0) TO (10);
+
+CREATE FOREIGN TABLE clstrfpart2 PARTITION OF clstrfpart
+FOR VALUES FROM (10) TO (20) SERVER clstr_fserv;
+
+CREATE ROLE regress_clstr_fowner;
+
+ALTER TABLE clstrfpart OWNER TO regress_clstr_fowner;
+
+ALTER TABLE clstrfpart1 OWNER TO regress_clstr_fowner;
+
+SET SESSION AUTHORIZATION regress_clstr_fowner;
+
+REPACK clstrfpart;
+
+REPACK clstrfpart
+USING INDEX clstrfpart_idx;
+
+RESET SESSION AUTHORIZATION;
+
+DROP TABLE clstrfpart;
+
+DROP ROLE regress_clstr_fowner;
+
+DROP SERVER clstr_fserv;
+
+DROP FOREIGN DATA WRAPPER clstr_fdw;
+
+-- Ownership of partitions is checked
+CREATE TABLE ptnowner (
+    i int UNIQUE NOT NULL
+)
+PARTITION BY LIST (i);
+
+CREATE INDEX ptnowner_i_idx ON ptnowner (i);
+
+CREATE TABLE ptnowner1 PARTITION OF ptnowner
+FOR VALUES IN (1);
+
+CREATE ROLE regress_ptnowner;
+
+CREATE TABLE ptnowner2 PARTITION OF ptnowner
+FOR VALUES IN (2);
+
+ALTER TABLE ptnowner1 OWNER TO regress_ptnowner;
+
+SET SESSION AUTHORIZATION regress_ptnowner;
+
+CLUSTER ptnowner
+USING ptnowner_i_idx;
+
+RESET SESSION AUTHORIZATION;
+
+ALTER TABLE ptnowner OWNER TO regress_ptnowner;
+
+CREATE TEMP TABLE ptnowner_oldnodes AS
+SELECT
+    oid,
+    relname,
+    relfilenode
+FROM
+    pg_partition_tree ('ptnowner') AS tree
+    JOIN pg_class AS c ON c.oid = tree.relid;
+
+SET SESSION AUTHORIZATION regress_ptnowner;
+
+CLUSTER ptnowner
+USING ptnowner_i_idx;
+
+RESET SESSION AUTHORIZATION;
+
+DROP TABLE ptnowner;
+
+DROP ROLE regress_ptnowner;
 
 -- Test CLUSTER with external tuplesorting
 CREATE TABLE clstr_4 AS
@@ -558,6 +831,403 @@ RESET enable_indexscan;
 
 RESET maintenance_work_mem;
 
+-- test CLUSTER on expression index
+CREATE TABLE clstr_expression (
+    id serial PRIMARY KEY,
+    a int,
+    b text COLLATE "C"
+);
+
+INSERT INTO clstr_expression (a, b)
+SELECT
+    g.i % 42,
+    'prefix' || g.i
+FROM
+    generate_series(1, 133) g (i);
+
+CREATE INDEX clstr_expression_minus_a ON clstr_expression ((- a), b);
+
+CREATE INDEX clstr_expression_upper_b ON clstr_expression ((upper(b)));
+
+-- verify indexes work before cluster
+BEGIN;
+SET LOCAL enable_seqscan = FALSE;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    upper(b) = 'PREFIX3';
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    upper(b) = 'PREFIX3';
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    - a = -3
+ORDER BY
+    - a,
+    b;
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    - a = -3
+ORDER BY
+    - a,
+    b;
+COMMIT;
+
+-- and after clustering on clstr_expression_minus_a
+CLUSTER clstr_expression
+USING clstr_expression_minus_a;
+
+WITH ROWS AS (
+    SELECT
+        ctid,
+        lag(a) OVER (ORDER BY ctid) AS la,
+        a
+    FROM
+        clstr_expression
+)
+SELECT
+    *
+FROM
+    ROWS
+WHERE
+    la < a;
+
+BEGIN;
+SET LOCAL enable_seqscan = FALSE;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    upper(b) = 'PREFIX3';
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    upper(b) = 'PREFIX3';
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    - a = -3
+ORDER BY
+    - a,
+    b;
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    - a = -3
+ORDER BY
+    - a,
+    b;
+COMMIT;
+
+-- and after clustering on clstr_expression_upper_b
+CLUSTER clstr_expression
+USING clstr_expression_upper_b;
+
+WITH ROWS AS (
+    SELECT
+        ctid,
+        lag(b) OVER (ORDER BY ctid) AS lb,
+        b
+    FROM
+        clstr_expression
+)
+SELECT
+    *
+FROM
+    ROWS
+WHERE
+    upper(lb) > upper(b);
+
+BEGIN;
+SET LOCAL enable_seqscan = FALSE;
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    upper(b) = 'PREFIX3';
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    upper(b) = 'PREFIX3';
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    - a = -3
+ORDER BY
+    - a,
+    b;
+SELECT
+    *
+FROM
+    clstr_expression
+WHERE
+    - a = -3
+ORDER BY
+    - a,
+    b;
+COMMIT;
+
+-- verify some error cases
+CREATE TABLE clstr_table_one (
+    id int,
+    val text
+);
+
+CREATE TABLE clstr_table_two (
+    id int,
+    val text
+);
+
+CREATE INDEX clstr_idx_b ON clstr_table_two (id);
+
+CLUSTER clstr_table_one
+USING clstr_idx_b;
+
+CLUSTER clstr_table_one
+USING nonexistant;
+
+CREATE INDEX clstr_hash_idx ON clstr_table_one USING HASH (id);
+
+CLUSTER clstr_table_one
+USING clstr_hash_idx;
+
+CREATE INDEX clstr_partial_idx ON clstr_table_one (id)
+WHERE
+    id > 0;
+
+CLUSTER clstr_table_one
+USING clstr_partial_idx;
+
+REPACK pg_class
+USING INDEX pg_class_oid_index;
+
+DROP TABLE clstr_table_one, clstr_table_two;
+
+-- verify that CLUSTER/REPACK don't touch a NO DATA matview
+CREATE MATERIALIZED VIEW clstr_matview AS
+SELECT
+    i
+FROM
+    generate_series(1, 5) i WITH NO DATA;
+
+CREATE INDEX clstr_matview_idx ON clstr_matview (i);
+
+SELECT
+    relfilenode
+FROM
+    pg_class
+WHERE
+    oid = 'clstr_matview'::regclass \gset
+
+CLUSTER clstr_matview
+USING clstr_matview_idx;
+
+REPACK clstr_matview
+USING INDEX clstr_matview_idx;
+
+SELECT
+    relfilenode = :relfilenode
+FROM
+    pg_class
+WHERE
+    oid = 'clstr_matview'::regclass;
+
+DROP MATERIALIZED VIEW clstr_matview;
+
+----------------------------------------------------------------------
+--
+-- REPACK
+--
+-- Note we cannot test working REPACK (CONCURRENTLY) here, because the
+-- tests are sometimes run with wal_level=minimal.  Tests for that appear
+-- elsewhere.
+--
+----------------------------------------------------------------------
+-- REPACK handles individual tables identically to CLUSTER, but it's worth
+-- checking if it handles table hierarchies identically as well.
+REPACK clstr_tst
+USING INDEX clstr_tst_c;
+
+-- Verify that inheritance link still works
+INSERT INTO clstr_tst_inh
+    VALUES (0, 100, 'in child table 2');
+
+SELECT
+    a,
+    b,
+    c,
+    substring(d FOR 30),
+    length(d)
+FROM
+    clstr_tst;
+
+-- Verify that foreign key link still works
+INSERT INTO clstr_tst (b, c)
+    VALUES (1111, 'this should fail');
+
+SELECT
+    conname
+FROM
+    pg_constraint
+WHERE
+    conrelid = 'clstr_tst'::regclass
+ORDER BY
+    1;
+
+-- Verify REPACK (ANALYZE) works, including partial analyze.
+REPACK (ANALYZE) clstr_tst (a);
+
+REPACK (ANALYZE) clstr_tst;
+
+-- Plain REPACK is allowed in a transaction block.
+BEGIN;
+REPACK clstr_tst;
+ROLLBACK;
+
+-- REPACK (ANALYZE) is not allowed in a transaction block.
+BEGIN;
+REPACK (ANALYZE) clstr_tst;
+ROLLBACK;
+
+-- REPACK is allowed within a PL, as long as there's no ANALYZE.
+DO $$
+BEGIN
+    EXECUTE 'REPACK clstr_tst';
+END
+$$;
+
+DO $$
+BEGIN
+    EXECUTE 'REPACK (ANALYZE) clstr_tst';
+END
+$$;
+
+REPACK (VERBOSE) clstr_tst (a);
+
+-- REPACK w/o argument performs no ordering, so we can only check which tables
+-- have the relfilenode changed.
+RESET SESSION AUTHORIZATION;
+
+CREATE TEMP TABLE relnodes_old AS (
+    SELECT
+        relname,
+        relfilenode
+    FROM
+        pg_class
+    WHERE
+        relname IN ('clstr_1', 'clstr_2', 'clstr_3')
+);
+
+SET SESSION AUTHORIZATION regress_clstr_user;
+
+SET client_min_messages = ERROR;
+
+-- order of "skipping" warnings may vary
+REPACK;
+
+RESET client_min_messages;
+
+RESET SESSION AUTHORIZATION;
+
+CREATE TEMP TABLE relnodes_new AS (
+    SELECT
+        relname,
+        relfilenode
+    FROM
+        pg_class
+    WHERE
+        relname IN ('clstr_1', 'clstr_2', 'clstr_3')
+);
+
+-- Do the actual comparison. Unlike CLUSTER, clstr_3 should have been
+-- processed because there is nothing like clustering index here.
+SELECT
+    o.relname
+FROM
+    relnodes_old o
+    JOIN relnodes_new n ON o.relname = n.relname
+WHERE
+    o.relfilenode <> n.relfilenode
+ORDER BY
+    o.relname;
+
+-- CLUSTER with rollbacked subtransaction, where the same row is inserted,
+-- updated, then rollbacked.
+BEGIN;
+-- Index scan required for CLUSTER, force it.
+SET LOCAL random_page_cost = 0.0001;
+SET LOCAL seq_page_cost = 1000;
+CREATE TABLE cluster_aborted_upd (
+    a int,
+    b int
+);
+CREATE INDEX cluster_aborted_upd_idx ON cluster_aborted_upd (b);
+INSERT INTO cluster_aborted_upd
+    VALUES (1, 3);
+SAVEPOINT sp;
+UPDATE
+    cluster_aborted_upd
+SET
+    a = 2;
+ROLLBACK TO sp;
+
+CLUSTER cluster_aborted_upd
+USING cluster_aborted_upd_idx;
+
+COMMIT;
+
+-- One row expected.
+SELECT
+    count(*)
+FROM
+    cluster_aborted_upd;
+
+SELECT
+    *
+FROM
+    cluster_aborted_upd;
+
 -- clean up
 DROP TABLE clustertest;
 
@@ -568,6 +1238,12 @@ DROP TABLE clstr_2;
 DROP TABLE clstr_3;
 
 DROP TABLE clstr_4;
+
+DROP TABLE clstr_expression;
+
+DROP TABLE clstrpart;
+
+DROP TABLE cluster_aborted_upd;
 
 DROP USER regress_clstr_user;
 

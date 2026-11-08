@@ -278,7 +278,23 @@ SELECT
 FROM
     few;
 
--- SRFs are normally computed after window functions
+--- ... nor in window definitions
+SELECT
+    sum(id) OVER (PARTITION BY generate_series(1, 3))
+FROM
+    few;
+
+SELECT
+    sum(id) OVER (ORDER BY generate_series(1, 3))
+FROM
+    few;
+
+SELECT
+    sum(id) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND generate_series(1, 3) FOLLOWING)
+FROM
+    few;
+
+-- SRFs are computed after window functions
 SELECT
     id,
     lag(id) OVER (),
@@ -286,15 +302,6 @@ SELECT
     generate_series(1, 3)
 FROM
     few;
-
--- unless referencing SRFs
-SELECT
-    SUM(count(*)) OVER (PARTITION BY generate_series(1, 3) ORDER BY generate_series(1, 3)),
-    generate_series(1, 3) g
-FROM
-    few
-GROUP BY
-    g;
 
 -- sorting + grouping
 SELECT
@@ -575,7 +582,7 @@ CREATE OPERATOR |@| (
 );
 
 SELECT
-    | @ | ARRAY[1, 2, 3];
+    |@| ARRAY[1, 2, 3];
 
 -- Some fun cases involving duplicate SRF calls
 EXPLAIN (

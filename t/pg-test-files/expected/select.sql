@@ -154,16 +154,6 @@ RESET enable_bitmapscan;
 
 RESET enable_sort;
 
-SELECT
-    two,
-    stringu1,
-    ten,
-    string4
-INTO
-    TABLE tmp
-FROM
-    onek;
-
 --
 -- awk '{print $1,$2;}' person.data |
 -- awk '{if(NF!=2){print $3,$2;}else{print;}}' - emp.data |
@@ -282,6 +272,17 @@ SELECT
     2 + 2,
     57
 UNION ALL TABLE int8_tbl;
+
+-- corner case: VALUES with no columns
+CREATE TEMP TABLE nocols ();
+
+INSERT INTO nocols DEFAULT VALUES;
+SELECT
+    *
+FROM
+    nocols n,
+    LATERAL (
+        VALUES (n.*)) v;
 
 --
 -- Test ORDER BY options
@@ -461,7 +462,8 @@ EXPLAIN (
     COSTS OFF,
     ANALYZE ON,
     timing OFF,
-    summary OFF
+    summary OFF,
+    buffers OFF
 )
 SELECT
     *
@@ -593,8 +595,6 @@ WHERE
     unique2 = 11
     AND stringu1 < 'B';
 
-RESET enable_indexscan;
-
 -- check multi-index cases too
 EXPLAIN (
     COSTS OFF
@@ -637,6 +637,23 @@ FROM
 WHERE (unique2 = 11
     AND stringu1 < 'B')
     OR unique1 = 0;
+
+RESET enable_indexscan;
+
+-- onek2_u2_prtl should be preferred over this index, but we have to
+-- discount the metapage to arrive at that answer
+BEGIN;
+CREATE INDEX onek2_index_full ON onek2 (stringu1, unique2);
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    unique2
+FROM
+    onek2
+WHERE
+    stringu1 < 'B'::name;
+ROLLBACK;
 
 --
 -- Test some corner cases that have been known to confuse the planner

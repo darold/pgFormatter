@@ -1,8 +1,73 @@
 --
 -- HASH_INDEX
--- grep 843938989 hash.data
 --
 
+-- directory paths are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+
+CREATE TABLE hash_i4_heap (
+	seqno 		int4,
+	random 		int4
+);
+
+CREATE TABLE hash_name_heap (
+	seqno 		int4,
+	random 		name
+);
+
+CREATE TABLE hash_txt_heap (
+	seqno 		int4,
+	random 		text
+);
+
+CREATE TABLE hash_f8_heap (
+	seqno		int4,
+	random 		float8
+);
+
+\set filename :abs_srcdir '/data/hash.data'
+COPY hash_i4_heap FROM :'filename';
+COPY hash_name_heap FROM :'filename';
+COPY hash_txt_heap FROM :'filename';
+COPY hash_f8_heap FROM :'filename';
+
+-- the data in this file has a lot of duplicates in the index key
+-- fields, leading to long bucket chains and lots of table expansion.
+-- this is therefore a stress test of the bucket overflow code (unlike
+-- the data in hash.data, which has unique index keys).
+--
+-- \set filename :abs_srcdir '/data/hashovfl.data'
+-- COPY hash_ovfl_heap FROM :'filename';
+
+ANALYZE hash_i4_heap;
+ANALYZE hash_name_heap;
+ANALYZE hash_txt_heap;
+ANALYZE hash_f8_heap;
+
+CREATE INDEX hash_i4_index ON hash_i4_heap USING hash (random int4_ops);
+
+CREATE INDEX hash_name_index ON hash_name_heap USING hash (random name_ops);
+
+CREATE INDEX hash_txt_index ON hash_txt_heap USING hash (random text_ops);
+
+CREATE INDEX hash_f8_index ON hash_f8_heap USING hash (random float8_ops)
+  WITH (fillfactor=60);
+
+CREATE INDEX hash_i4_partial_index ON hash_i4_heap USING hash (seqno)
+  WHERE seqno = 9999;
+
+--
+-- Also try building functional, expressional, and partial indexes on
+-- tables that already contain data.
+--
+create unique index hash_f8_index_1 on hash_f8_heap(abs(random));
+create unique index hash_f8_index_2 on hash_f8_heap((seqno + 1), random);
+create unique index hash_f8_index_3 on hash_f8_heap(random) where seqno > 1000;
+
+--
+-- hash index
+-- grep 843938989 hash.data
+--
 SELECT * FROM hash_i4_heap
    WHERE hash_i4_heap.random = 843938989;
 
@@ -54,6 +119,16 @@ SELECT * FROM hash_f8_heap
 --
 SELECT * FROM hash_f8_heap
    WHERE hash_f8_heap.random = '88888888'::float8;
+
+--
+-- partial hash index
+--
+EXPLAIN (COSTS OFF)
+SELECT * FROM hash_i4_heap
+   WHERE seqno = 9999;
+
+SELECT * FROM hash_i4_heap
+   WHERE seqno = 9999;
 
 --
 -- hash index
@@ -184,6 +259,80 @@ REINDEX INDEX hash_split_index;
 
 -- Clean up.
 DROP TABLE hash_split_heap;
+
+-- Testcases for removing overflow pages.
+CREATE TABLE hash_cleanup_heap(keycol INT);
+CREATE INDEX hash_cleanup_index on hash_cleanup_heap USING HASH (keycol);
+
+-- Insert tuples to both the primary bucket page and overflow pages.
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 500) as i;
+
+-- Fill overflow pages by "dead" tuples.
+BEGIN;
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 1000) as i;
+ROLLBACK;
+
+-- Checkpoint will ensure that all hash buffers are cleaned before we try
+-- to remove overflow pages.
+CHECKPOINT;
+
+-- This will squeeze the bucket and remove overflow pages.
+VACUUM hash_cleanup_heap;
+
+TRUNCATE hash_cleanup_heap;
+
+-- Insert a few tuples so that the primary bucket page doesn't get full and
+-- tuples can be moved to it.
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 50) as i;
+
+-- Fill overflow pages by "dead" tuples.
+BEGIN;
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 1500) as i;
+ROLLBACK;
+
+-- And insert some tuples again. During squeeze operation, these will be moved
+-- to the primary bucket allowing to test freeing intermediate overflow pages.
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 500) as i;
+
+CHECKPOINT;
+VACUUM hash_cleanup_heap;
+
+TRUNCATE hash_cleanup_heap;
+
+-- Insert tuples to both the primary bucket page and overflow pages.
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 500) as i;
+-- Fill overflow pages by "dead" tuples.
+BEGIN;
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 1500) as i;
+ROLLBACK;
+-- And insert some tuples again. During squeeze operation, these will be moved
+-- to other overflow pages and also allow overflow pages filled by dead tuples
+-- to be freed. Note the main purpose of this test is to test the case where
+-- we don't need to move any tuple from the overflow page being freed.
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 50) as i;
+
+CHECKPOINT;
+VACUUM hash_cleanup_heap;
+
+-- Test cleanup of dead index tuples on single page with INSERT.
+TRUNCATE hash_cleanup_heap;
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 1000) as i;
+-- This relies on a rollbacked INSERT instead of a DELETE to make the creation
+-- of the dead tuples concurrent-safe.
+BEGIN;
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 500) as i;
+ROLLBACK;
+SET enable_seqscan = off;
+SET enable_bitmapscan = off;
+SELECT count(*) FROM hash_cleanup_heap WHERE keycol = 1;
+-- This query checks the hash index pages for dead tuples where the data
+-- is inserted, and performs a local VACUUM on a single page.
+INSERT INTO hash_cleanup_heap SELECT 1 FROM generate_series(1, 200) as i;
+RESET enable_seqscan;
+RESET enable_bitmapscan;
+
+-- Clean up.
+DROP TABLE hash_cleanup_heap;
 
 -- Index on temp table.
 CREATE TEMP TABLE hash_temp_heap (x int, y int);

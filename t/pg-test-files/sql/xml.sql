@@ -5,9 +5,23 @@ CREATE TABLE xmltest (
 
 INSERT INTO xmltest VALUES (1, '<value>one</value>');
 INSERT INTO xmltest VALUES (2, '<value>two</value>');
-INSERT INTO xmltest VALUES (3, '<wrong');
+INSERT INTO xmltest VALUES (3, '<value>three</wrong>  ');
+
+-- If no XML data could be inserted, skip the tests as the server has been
+-- compiled without libxml support.
+SELECT count(*) = 0 AS skip_test FROM xmltest \gset
+\if :skip_test
+\quit
+\endif
 
 SELECT * FROM xmltest;
+
+-- test non-throwing API, too
+SELECT pg_input_is_valid('<value>one</value>', 'xml');
+SELECT pg_input_is_valid('<value>one</', 'xml');
+SELECT message FROM pg_input_error_info('<value>one</', 'xml');
+SELECT pg_input_is_valid('<?xml version="1.0" standalone="y"?><foo/>', 'xml');
+SELECT message FROM pg_input_error_info('<?xml version="1.0" standalone="y"?><foo/>', 'xml');
 
 
 SELECT xmlcomment('test');
@@ -23,7 +37,7 @@ SELECT xmlconcat(xmlcomment('hello'),
 
 SELECT xmlconcat('hello', 'you');
 SELECT xmlconcat(1, 2);
-SELECT xmlconcat('bad', '<syntax');
+SELECT xmlconcat('bad', '<wrong></syntax>  ');
 SELECT xmlconcat('<foo/>', NULL, '<?xml version="1.1" standalone="no"?><bar/>');
 SELECT xmlconcat('<?xml version="1.1"?><foo/>', NULL, '<?xml version="1.1" standalone="no"?><bar/>');
 SELECT xmlconcat(NULL);
@@ -68,17 +82,17 @@ SELECT xmlparse(content '<invalidentity>&</invalidentity>');
 SELECT xmlparse(content '<undefinedentity>&idontexist;</undefinedentity>');
 SELECT xmlparse(content '<invalidns xmlns=''&lt;''/>');
 SELECT xmlparse(content '<relativens xmlns=''relative''/>');
-SELECT xmlparse(content '<twoerrors>&idontexist;</unbalanced>');
+SELECT xmlparse(content '<twoerrors>&idontexist;</unbalanced>  ');
 SELECT xmlparse(content '<nosuchprefix:tag/>');
 
-SELECT xmlparse(document '   ');
+SELECT xmlparse(document '!');
 SELECT xmlparse(document 'abc');
 SELECT xmlparse(document '<abc>x</abc>');
-SELECT xmlparse(document '<invalidentity>&</abc>');
-SELECT xmlparse(document '<undefinedentity>&idontexist;</abc>');
+SELECT xmlparse(document '<invalidentity>&</abc>  ');
+SELECT xmlparse(document '<undefinedentity>&idontexist;</abc>  ');
 SELECT xmlparse(document '<invalidns xmlns=''&lt;''/>');
 SELECT xmlparse(document '<relativens xmlns=''relative''/>');
-SELECT xmlparse(document '<twoerrors>&idontexist;</unbalanced>');
+SELECT xmlparse(document '<twoerrors>&idontexist;</unbalanced>  ');
 SELECT xmlparse(document '<nosuchprefix:tag/>');
 
 
@@ -125,12 +139,90 @@ SELECT xmlserialize(content data as character varying(20)) FROM xmltest;
 SELECT xmlserialize(content 'good' as char(10));
 SELECT xmlserialize(document 'bad' as text);
 
+-- indent
+SELECT xmlserialize(DOCUMENT '<foo><bar><val x="y">42</val></bar></foo>' AS text INDENT);
+SELECT xmlserialize(CONTENT  '<foo><bar><val x="y">42</val></bar></foo>' AS text INDENT);
+-- no indent
+SELECT xmlserialize(DOCUMENT '<foo><bar><val x="y">42</val></bar></foo>' AS text NO INDENT);
+SELECT xmlserialize(CONTENT  '<foo><bar><val x="y">42</val></bar></foo>' AS text NO INDENT);
+-- indent non singly-rooted xml
+SELECT xmlserialize(DOCUMENT '<foo>73</foo><bar><val x="y">42</val></bar>' AS text INDENT);
+SELECT xmlserialize(CONTENT  '<foo>73</foo><bar><val x="y">42</val></bar>' AS text INDENT);
+-- indent non singly-rooted xml with mixed contents
+SELECT xmlserialize(DOCUMENT 'text node<foo>73</foo>text node<bar><val x="y">42</val></bar>' AS text INDENT);
+SELECT xmlserialize(CONTENT  'text node<foo>73</foo>text node<bar><val x="y">42</val></bar>' AS text INDENT);
+-- indent singly-rooted xml with mixed contents
+SELECT xmlserialize(DOCUMENT '<foo><bar><val x="y">42</val><val x="y">text node<val>73</val></val></bar></foo>' AS text INDENT);
+SELECT xmlserialize(CONTENT  '<foo><bar><val x="y">42</val><val x="y">text node<val>73</val></val></bar></foo>' AS text INDENT);
+-- indent empty string
+SELECT xmlserialize(DOCUMENT '' AS text INDENT);
+SELECT xmlserialize(CONTENT  '' AS text INDENT);
+-- whitespaces
+SELECT xmlserialize(DOCUMENT '  ' AS text INDENT);
+SELECT xmlserialize(CONTENT  '  ' AS text INDENT);
+-- indent null
+SELECT xmlserialize(DOCUMENT NULL AS text INDENT);
+SELECT xmlserialize(CONTENT  NULL AS text INDENT);
+-- indent with XML declaration
+SELECT xmlserialize(DOCUMENT '<?xml version="1.0" encoding="UTF-8"?><foo><bar><val>73</val></bar></foo>' AS text INDENT);
+SELECT xmlserialize(CONTENT  '<?xml version="1.0" encoding="UTF-8"?><foo><bar><val>73</val></bar></foo>' AS text INDENT);
+-- indent containing DOCTYPE declaration
+SELECT xmlserialize(DOCUMENT '<!DOCTYPE a><a/>' AS text INDENT);
+SELECT xmlserialize(CONTENT  '<!DOCTYPE a><a/>' AS text INDENT);
+-- indent xml with empty element
+SELECT xmlserialize(DOCUMENT '<foo><bar></bar></foo>' AS text INDENT);
+SELECT xmlserialize(CONTENT  '<foo><bar></bar></foo>' AS text INDENT);
+-- 'no indent' = not using 'no indent'
+SELECT xmlserialize(DOCUMENT '<foo><bar><val x="y">42</val></bar></foo>' AS text) = xmlserialize(DOCUMENT '<foo><bar><val x="y">42</val></bar></foo>' AS text NO INDENT);
+SELECT xmlserialize(CONTENT  '<foo><bar><val x="y">42</val></bar></foo>' AS text) = xmlserialize(CONTENT '<foo><bar><val x="y">42</val></bar></foo>' AS text NO INDENT);
+-- indent xml strings containing blank nodes
+SELECT xmlserialize(DOCUMENT '<foo>   <bar></bar>    </foo>' AS text INDENT);
+SELECT xmlserialize(CONTENT  'text node<foo>    <bar></bar>   </foo>' AS text INDENT);
 
+-- check some encoding-dependent behaviors
+-- (this is mostly checking for libxml2 bugs, not our bugs...)
+DO $$
+DECLARE
+  result text;
+BEGIN
+  IF getdatabaseencoding() = 'UTF8' THEN
+    -- U+FEFF after an XML declaration is content, not a byte-order mark
+    result := xmlserialize(CONTENT xmlparse(CONTENT
+              '<?xml version="1.0"?>' || chr(65279) || 'abc') AS text INDENT);
+    IF result <> '&#xFEFF;abc' THEN
+      RAISE WARNING 'U+FEFF was not preserved: %', result;
+    END IF;
+    -- non-ASCII characters are converted to hex entities if in data
+    result := xmlserialize(CONTENT xmlparse(CONTENT
+              'ni' || chr(241) || 'o') AS text INDENT);
+    IF result <> 'ni&#xF1;o' THEN
+      RAISE WARNING 'U+F1 was not converted to a hex entity: %', result;
+    END IF;
+    -- non-ASCII characters in tag attributes may or may not get converted,
+    -- depending on libxml2 version
+    result := xmlserialize(CONTENT xmlparse(CONTENT
+              '<a attr="ni' || chr(241) || 'o"/>') AS text INDENT);
+    IF result <> '<a attr="ni&#xF1;o"/>' AND
+       result <> '<a attr="ni' || chr(241) || 'o"/>' THEN
+      RAISE WARNING 'U+F1 was not preserved in a tag: %', result;
+    END IF;
+  END IF;
+END
+$$;
+
+-- IS DOCUMENT
 SELECT xml '<foo>bar</foo>' IS DOCUMENT;
 SELECT xml '<foo>bar</foo><bar>foo</bar>' IS DOCUMENT;
 SELECT xml '<abc/>' IS NOT DOCUMENT;
 SELECT xml 'abc' IS NOT DOCUMENT;
 SELECT '<>' IS NOT DOCUMENT;
+
+-- Check that IS DOCUMENT is known immutable, so that we don't reach the
+-- incorrect xpath() call at plan time.
+SELECT CASE WHEN ('2019-12-16T00:00:00.000'::xml) IS DOCUMENT
+    THEN (xpath('/*/text()', '2019-12-16T00:00:00.000'::xml))[1]
+    ELSE '2019-12-16T00:00:00.000'::xml
+END;
 
 
 SELECT xmlagg(data) FROM xmltest;
@@ -173,6 +265,8 @@ CREATE VIEW xmlview6 AS SELECT xmlpi(name foo, 'bar');
 CREATE VIEW xmlview7 AS SELECT xmlroot(xml '<foo/>', version no value, standalone yes);
 CREATE VIEW xmlview8 AS SELECT xmlserialize(content 'good' as char(10));
 CREATE VIEW xmlview9 AS SELECT xmlserialize(content 'good' as text);
+CREATE VIEW xmlview10 AS SELECT xmlserialize(document '<foo><bar>42</bar></foo>' AS text indent);
+CREATE VIEW xmlview11 AS SELECT xmlserialize(document '<foo><bar>42</bar></foo>' AS character varying no indent);
 
 SELECT table_name, view_definition FROM information_schema.views
   WHERE table_name LIKE 'xmlview%' ORDER BY 1;
@@ -196,6 +290,7 @@ SELECT xpath('count(//*)=3', '<root><sub/><sub/></root>');
 SELECT xpath('name(/*)', '<root><sub/><sub/></root>');
 SELECT xpath('/nosuchtag', '<root/>');
 SELECT xpath('root', '<root/>');
+SELECT xpath('//namespace::foo', '<root xmlns:foo="http://127.0.0.1"/>');
 
 -- Round-trip non-ASCII data through xpath().
 DO $$
@@ -224,9 +319,7 @@ BEGIN
   END IF;
 EXCEPTION
   -- character with byte sequence 0xc2 0xb0 in encoding "UTF8" has no equivalent in encoding "LATIN8"
-  WHEN untranslatable_character
-  -- default conversion function for encoding "UTF8" to "MULE_INTERNAL" does not exist
-  OR undefined_function
+  WHEN undefined_function
   -- unsupported XML feature
   OR feature_not_supported THEN
     RAISE LOG 'skip: %', SQLERRM;
@@ -384,23 +477,34 @@ SELECT * FROM xmltableview1;
 EXPLAIN (COSTS OFF) SELECT * FROM xmltableview1;
 EXPLAIN (COSTS OFF, VERBOSE) SELECT * FROM xmltableview1;
 
+-- errors
+SELECT * FROM XMLTABLE (ROW () PASSING null COLUMNS v1 timestamp) AS f (v1, v2);
+
+SELECT * FROM XMLTABLE (ROW () PASSING null COLUMNS v1 timestamp __pg__is_not_null 1) AS f (v1);
+
 -- XMLNAMESPACES tests
 SELECT * FROM XMLTABLE(XMLNAMESPACES('http://x.y' AS zz),
                       '/zz:rows/zz:row'
                       PASSING '<rows xmlns="http://x.y"><row><a>10</a></row></rows>'
                       COLUMNS a int PATH 'zz:a');
 
-CREATE VIEW xmltableview2 AS SELECT * FROM XMLTABLE(XMLNAMESPACES('http://x.y' AS zz),
-                      '/zz:rows/zz:row'
+CREATE VIEW xmltableview2 AS SELECT * FROM XMLTABLE(XMLNAMESPACES('http://x.y' AS "Zz"),
+                      '/Zz:rows/Zz:row'
                       PASSING '<rows xmlns="http://x.y"><row><a>10</a></row></rows>'
-                      COLUMNS a int PATH 'zz:a');
+                      COLUMNS a int PATH 'Zz:a');
 
 SELECT * FROM xmltableview2;
+
+\sv xmltableview2
 
 SELECT * FROM XMLTABLE(XMLNAMESPACES(DEFAULT 'http://x.y'),
                       '/rows/row'
                       PASSING '<rows xmlns="http://x.y"><row><a>10</a></row></rows>'
                       COLUMNS a int PATH 'a');
+
+SELECT * FROM XMLTABLE('.'
+                       PASSING '<foo/>'
+                       COLUMNS a text PATH 'foo/namespace::node()');
 
 -- used in prepare statements
 PREPARE pp AS
@@ -455,7 +559,10 @@ SELECT  xmltable.*
 SELECT xmltable.* FROM xmldata, LATERAL xmltable('/ROWS/ROW[COUNTRY_NAME="Japan" or COUNTRY_NAME="India"]' PASSING data COLUMNS "COUNTRY_NAME" text, "REGION_ID" int) WHERE "COUNTRY_NAME" = 'Japan';
 
 EXPLAIN (VERBOSE, COSTS OFF)
-SELECT xmltable.* FROM xmldata, LATERAL xmltable('/ROWS/ROW[COUNTRY_NAME="Japan" or COUNTRY_NAME="India"]' PASSING data COLUMNS "COUNTRY_NAME" text, "REGION_ID" int) WHERE "COUNTRY_NAME" = 'Japan';
+SELECT f.* FROM xmldata, LATERAL xmltable('/ROWS/ROW[COUNTRY_NAME="Japan" or COUNTRY_NAME="India"]' PASSING data COLUMNS "COUNTRY_NAME" text, "REGION_ID" int) AS f WHERE "COUNTRY_NAME" = 'Japan';
+
+EXPLAIN (VERBOSE, FORMAT JSON, COSTS OFF)
+SELECT f.* FROM xmldata, LATERAL xmltable('/ROWS/ROW[COUNTRY_NAME="Japan" or COUNTRY_NAME="India"]' PASSING data COLUMNS "COUNTRY_NAME" text, "REGION_ID" int) AS f WHERE "COUNTRY_NAME" = 'Japan';
 
 -- should to work with more data
 INSERT INTO xmldata VALUES('<ROWS>
@@ -606,7 +713,14 @@ SELECT xmltable.* FROM xmltest2, LATERAL xmltable(('/d/r/' || lower(_path) || 'c
 -- XPath result can be boolean or number too
 SELECT * FROM XMLTABLE('*' PASSING '<a>a</a>' COLUMNS a xml PATH '.', b text PATH '.', c text PATH '"hi"', d boolean PATH '. = "a"', e integer PATH 'string-length(.)');
 \x
-SELECT * FROM XMLTABLE('*' PASSING '<e>pre<!--c1--><?pi arg?><![CDATA[&ent1]]><n2>&amp;deep</n2>post</e>' COLUMNS x xml PATH 'node()', y xml PATH '/');
+SELECT * FROM XMLTABLE('*' PASSING '<e>pre<!--c1--><?pi arg?><![CDATA[&ent1]]><n2>&amp;deep</n2>post</e>' COLUMNS x xml PATH '/e/n2', y xml PATH '/');
 \x
 
 SELECT * FROM XMLTABLE('.' PASSING XMLELEMENT(NAME a) columns a varchar(20) PATH '"<foo/>"', b xml PATH '"<foo/>"');
+
+SELECT xmltext(NULL);
+SELECT xmltext('');
+SELECT xmltext('  ');
+SELECT xmltext('foo `$_-+?=*^%!|/\()[]{}');
+SELECT xmltext('foo & <"bar">');
+SELECT xmltext('x'|| '<P>73</P>'::xml || .42 || true || 'j'::char);

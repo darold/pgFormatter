@@ -9,31 +9,26 @@ SET extra_float_digits TO -3;
 -- Points
 --
 SELECT
-    '' AS four,
     center(f1) AS center
 FROM
     BOX_TBL;
 
 SELECT
-    '' AS four,
     (@@ f1) AS center
 FROM
     BOX_TBL;
 
 SELECT
-    '' AS six,
     point(f1) AS center
 FROM
     CIRCLE_TBL;
 
 SELECT
-    '' AS six,
     (@@ f1) AS center
 FROM
     CIRCLE_TBL;
 
 SELECT
-    '' AS two,
     (@@ f1) AS center
 FROM
     POLYGON_TBL
@@ -41,7 +36,6 @@ WHERE (# f1) > 2;
 
 -- "is horizontal" function
 SELECT
-    '' AS two,
     p1.f1
 FROM
     POINT_TBL p1
@@ -50,7 +44,6 @@ WHERE
 
 -- "is horizontal" operator
 SELECT
-    '' AS two,
     p1.f1
 FROM
     POINT_TBL p1
@@ -59,7 +52,6 @@ WHERE
 
 -- "is vertical" function
 SELECT
-    '' AS one,
     p1.f1
 FROM
     POINT_TBL p1
@@ -68,7 +60,6 @@ WHERE
 
 -- "is vertical" operator
 SELECT
-    '' AS one,
     p1.f1
 FROM
     POINT_TBL p1
@@ -161,7 +152,8 @@ WHERE
 SELECT
     p.f1,
     l.s,
-    p.f1 <-> l.s
+    p.f1 <-> l.s AS dist_pl,
+    l.s <-> p.f1 AS dist_lp
 FROM
     POINT_TBL p,
     LINE_TBL l;
@@ -170,7 +162,8 @@ FROM
 SELECT
     p.f1,
     l.s,
-    p.f1 <-> l.s
+    p.f1 <-> l.s AS dist_ps,
+    l.s <-> p.f1 AS dist_sp
 FROM
     POINT_TBL p,
     LSEG_TBL l;
@@ -179,7 +172,8 @@ FROM
 SELECT
     p.f1,
     b.f1,
-    p.f1 <-> b.f1
+    p.f1 <-> b.f1 AS dist_pb,
+    b.f1 <-> p.f1 AS dist_bp
 FROM
     POINT_TBL p,
     BOX_TBL b;
@@ -188,7 +182,8 @@ FROM
 SELECT
     p.f1,
     p1.f1,
-    p.f1 <-> p1.f1
+    p.f1 <-> p1.f1 AS dist_ppath,
+    p1.f1 <-> p.f1 AS dist_pathp
 FROM
     POINT_TBL p,
     PATH_TBL p1;
@@ -197,10 +192,22 @@ FROM
 SELECT
     p.f1,
     p1.f1,
-    p.f1 <-> p1.f1
+    p.f1 <-> p1.f1 AS dist_ppoly,
+    p1.f1 <-> p.f1 AS dist_polyp
 FROM
     POINT_TBL p,
     POLYGON_TBL p1;
+
+-- Construct line through two points
+SELECT
+    p1.f1,
+    p2.f1,
+    line(p1.f1, p2.f1)
+FROM
+    POINT_TBL p1,
+    POINT_TBL p2
+WHERE
+    p1.f1 <> p2.f1;
 
 -- Closest point to line
 SELECT
@@ -317,15 +324,6 @@ FROM
     LINE_TBL l1,
     LINE_TBL l2;
 
--- Distance to box
-SELECT
-    l.s,
-    b.f1,
-    l.s <-> b.f1
-FROM
-    LINE_TBL l,
-    BOX_TBL b;
-
 -- Intersect with line
 SELECT
     l1.s,
@@ -364,21 +362,11 @@ FROM
     LINE_TBL l,
     LSEG_TBL l1;
 
--- Closest point to box
-SELECT
-    l.s,
-    b.f1,
-    l.s ## b.f1
-FROM
-    LINE_TBL l,
-    BOX_TBL b;
-
 --
 -- Line segments
 --
 -- intersection
 SELECT
-    '' AS count,
     p.f1,
     l.s,
     l.s # p.f1 AS intersection
@@ -507,7 +495,8 @@ WHERE
 SELECT
     l.s,
     l1.s,
-    l.s <-> l1.s
+    l.s <-> l1.s AS dist_sl,
+    l1.s <-> l.s AS dist_ls
 FROM
     LSEG_TBL l,
     LINE_TBL l1;
@@ -525,7 +514,8 @@ FROM
 SELECT
     l.s,
     b.f1,
-    l.s <-> b.f1
+    l.s <-> b.f1 AS dist_sb,
+    b.f1 <-> l.s AS dist_bs
 FROM
     LSEG_TBL l,
     BOX_TBL b;
@@ -558,15 +548,6 @@ SELECT
 FROM
     LSEG_TBL l1,
     LSEG_TBL l2;
-
--- Closest point to line
-SELECT
-    l.s,
-    l1.s,
-    l.s ## l1.s
-FROM
-    LSEG_TBL l,
-    LINE_TBL l1;
 
 -- Closest point to line segment
 SELECT
@@ -610,21 +591,18 @@ WHERE
 -- Boxes
 --
 SELECT
-    '' AS six,
     box(f1) AS box
 FROM
     CIRCLE_TBL;
 
 -- translation
 SELECT
-    '' AS twentyfour,
     b.f1 + p.f1 AS translation
 FROM
     BOX_TBL b,
     POINT_TBL p;
 
 SELECT
-    '' AS twentyfour,
     b.f1 - p.f1 AS translation
 FROM
     BOX_TBL b,
@@ -739,13 +717,6 @@ FROM
 SELECT
     f1,
     @-@ f1
-FROM
-    PATH_TBL;
-
--- Center
-SELECT
-    f1,
-    @@ f1
 FROM
     PATH_TBL;
 
@@ -889,7 +860,6 @@ FROM
 --
 -- containment
 SELECT
-    '' AS twentyfour,
     p.f1,
     poly.f1,
     poly.f1 @> p.f1 AS contains
@@ -898,7 +868,6 @@ FROM
     POINT_TBL p;
 
 SELECT
-    '' AS twentyfour,
     p.f1,
     poly.f1,
     p.f1 <@ poly.f1 AS contained
@@ -907,20 +876,17 @@ FROM
     POINT_TBL p;
 
 SELECT
-    '' AS four,
     npoints(f1) AS npoints,
     f1 AS polygon
 FROM
     POLYGON_TBL;
 
 SELECT
-    '' AS four,
     polygon(f1)
 FROM
     BOX_TBL;
 
 SELECT
-    '' AS four,
     polygon(f1)
 FROM
     PATH_TBL
@@ -928,7 +894,6 @@ WHERE
     isclosed(f1);
 
 SELECT
-    '' AS four,
     f1 AS open_path,
     polygon(pclose(f1)) AS polygon
 FROM
@@ -1083,26 +1048,22 @@ FROM
 -- Circles
 --
 SELECT
-    '' AS six,
     circle(f1, 50.0)
 FROM
     POINT_TBL;
 
 SELECT
-    '' AS four,
     circle(f1)
 FROM
     BOX_TBL;
 
 SELECT
-    '' AS two,
     circle(f1)
 FROM
     POLYGON_TBL
 WHERE (# f1) >= 3;
 
 SELECT
-    '' AS twentyfour,
     c1.f1 AS circle,
     p1.f1 AS point,
     (p1.f1 <-> c1.f1) AS distance
@@ -1133,7 +1094,7 @@ FROM
 WHERE
     f1 >= '<(0,0),1>';
 
--- Too less points error
+-- Error for insufficient number of points
 SELECT
     f1,
     polygon(1, f1)
@@ -1419,4 +1380,87 @@ SELECT
 FROM
     CIRCLE_TBL c,
     POLYGON_TBL p;
+
+-- Check index behavior for circles
+CREATE INDEX gcircleind ON circle_tbl USING gist (f1);
+
+SELECT
+    *
+FROM
+    circle_tbl
+WHERE
+    f1 && circle(point(1, -2), 1)
+ORDER BY
+    area(f1);
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    circle_tbl
+WHERE
+    f1 && circle(point(1, -2), 1)
+ORDER BY
+    area(f1);
+
+SELECT
+    *
+FROM
+    circle_tbl
+WHERE
+    f1 && circle(point(1, -2), 1)
+ORDER BY
+    area(f1);
+
+-- Check index behavior for polygons
+CREATE INDEX gpolygonind ON polygon_tbl USING gist (f1);
+
+SELECT
+    *
+FROM
+    polygon_tbl
+WHERE
+    f1 @> '((1,1),(2,2),(2,1))'::polygon
+ORDER BY
+    (poly_center(f1))[0];
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    polygon_tbl
+WHERE
+    f1 @> '((1,1),(2,2),(2,1))'::polygon
+ORDER BY
+    (poly_center(f1))[0];
+
+SELECT
+    *
+FROM
+    polygon_tbl
+WHERE
+    f1 @> '((1,1),(2,2),(2,1))'::polygon
+ORDER BY
+    (poly_center(f1))[0];
+
+-- test non-error-throwing API for some core types
+SELECT
+    pg_input_is_valid ('(1', 'circle');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('1,', 'circle');
+
+SELECT
+    pg_input_is_valid ('(1,2),-1', 'circle');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('(1,2),-1', 'circle');
 

@@ -132,7 +132,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_room_au
-    AFTER UPDATE ON Room FOR EACH ROW
+    AFTER UPDATE ON Room
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_room_au ();
 
 -- ************************************************************
@@ -151,7 +152,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_room_ad
-    AFTER DELETE ON Room FOR EACH ROW
+    AFTER DELETE ON Room
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_room_ad ();
 
 -- ************************************************************
@@ -175,7 +177,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_wslot_biu
-    BEFORE INSERT OR UPDATE ON WSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON WSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_wslot_biu ();
 
 -- ************************************************************
@@ -200,7 +203,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pfield_au
-    AFTER UPDATE ON PField FOR EACH ROW
+    AFTER UPDATE ON PField
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_pfield_au ();
 
 -- ************************************************************
@@ -219,7 +223,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pfield_ad
-    AFTER DELETE ON PField FOR EACH ROW
+    AFTER DELETE ON PField
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_pfield_ad ();
 
 -- ************************************************************
@@ -249,7 +254,8 @@ $proc$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pslot_biu
-    BEFORE INSERT OR UPDATE ON PSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON PSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_pslot_biu ();
 
 -- ************************************************************
@@ -274,7 +280,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_system_au
-    AFTER UPDATE ON SYSTEM FOR EACH ROW
+    AFTER UPDATE ON SYSTEM
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_system_au ();
 
 -- ************************************************************
@@ -311,7 +318,8 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_iface_biu
-    BEFORE INSERT OR UPDATE ON IFace FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON IFace
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_iface_biu ();
 
 -- ************************************************************
@@ -350,7 +358,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hub_a
-    AFTER INSERT OR UPDATE OR DELETE ON Hub FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON Hub
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_hub_a ();
 
 -- ************************************************************
@@ -433,7 +442,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hslot_biu
-    BEFORE INSERT OR UPDATE ON HSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON HSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_hslot_biu ();
 
 -- ************************************************************
@@ -465,7 +475,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hslot_bd
-    BEFORE DELETE ON HSlot FOR EACH ROW
+    BEFORE DELETE ON HSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_hslot_bd ();
 
 -- ************************************************************
@@ -485,23 +496,28 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON PSlot FOR EACH ROW
+    BEFORE INSERT ON PSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('PS');
 
 CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON WSlot FOR EACH ROW
+    BEFORE INSERT ON WSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('WS');
 
 CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON PLine FOR EACH ROW
+    BEFORE INSERT ON PLine
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('PL');
 
 CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON IFace FOR EACH ROW
+    BEFORE INSERT ON IFace
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('IF');
 
 CREATE TRIGGER tg_chkslotname
-    BEFORE INSERT ON PHone FOR EACH ROW
+    BEFORE INSERT ON PHone
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotname ('PH');
 
 -- ************************************************************
@@ -521,23 +537,28 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT OR UPDATE ON PSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON PSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
 
 CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT OR UPDATE ON WSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON WSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
 
 CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT OR UPDATE ON IFace FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON IFace
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
 
 CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT OR UPDATE ON HSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON HSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
 
 CREATE TRIGGER tg_chkslotlink
-    BEFORE INSERT OR UPDATE ON PHone FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON PHone
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkslotlink ();
 
 -- ************************************************************
@@ -557,15 +578,18 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_chkbacklink
-    BEFORE INSERT OR UPDATE ON PSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON PSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkbacklink ();
 
 CREATE TRIGGER tg_chkbacklink
-    BEFORE INSERT OR UPDATE ON WSlot FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON WSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkbacklink ();
 
 CREATE TRIGGER tg_chkbacklink
-    BEFORE INSERT OR UPDATE ON PLine FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON PLine
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_chkbacklink ();
 
 -- ************************************************************
@@ -589,7 +613,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pslot_bu
-    BEFORE UPDATE ON PSlot FOR EACH ROW
+    BEFORE UPDATE ON PSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_pslot_bu ();
 
 -- ************************************************************
@@ -613,7 +638,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_wslot_bu
-    BEFORE UPDATE ON WSlot FOR EACH ROW
+    BEFORE UPDATE ON WSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_Wslot_bu ();
 
 -- ************************************************************
@@ -637,7 +663,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_pline_bu
-    BEFORE UPDATE ON PLine FOR EACH ROW
+    BEFORE UPDATE ON PLine
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_pline_bu ();
 
 -- ************************************************************
@@ -661,7 +688,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_iface_bu
-    BEFORE UPDATE ON IFace FOR EACH ROW
+    BEFORE UPDATE ON IFace
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_iface_bu ();
 
 -- ************************************************************
@@ -685,7 +713,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_hslot_bu
-    BEFORE UPDATE ON HSlot FOR EACH ROW
+    BEFORE UPDATE ON HSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_hslot_bu ();
 
 -- ************************************************************
@@ -709,7 +738,8 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_phone_bu
-    BEFORE UPDATE ON PHone FOR EACH ROW
+    BEFORE UPDATE ON PHone
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_phone_bu ();
 
 -- ************************************************************
@@ -754,15 +784,18 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_backlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON PSlot FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON PSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_backlink_a ('PS');
 
 CREATE TRIGGER tg_backlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON WSlot FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON WSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_backlink_a ('WS');
 
 CREATE TRIGGER tg_backlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON PLine FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON PLine
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_backlink_a ('PL');
 
 -- ************************************************************
@@ -976,23 +1009,28 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON PSlot FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON PSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('PS');
 
 CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON WSlot FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON WSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('WS');
 
 CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON IFace FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON IFace
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('IF');
 
 CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON HSlot FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON HSlot
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('HS');
 
 CREATE TRIGGER tg_slotlink_a
-    AFTER INSERT OR UPDATE OR DELETE ON PHone FOR EACH ROW
+    AFTER INSERT OR UPDATE OR DELETE ON PHone
+    FOR EACH ROW
     EXECUTE PROCEDURE tg_slotlink_a ('PH');
 
 -- ************************************************************
@@ -2473,6 +2511,231 @@ FROM
     AS (a int, b numeric, c text);
 
 --
+-- Test some simple polymorphism cases.
+--
+CREATE FUNCTION f1 (x anyelement)
+    RETURNS anyelement
+    AS $$
+BEGIN
+    RETURN x + 1;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (42) AS int,
+    f1 (4.5) AS num;
+
+SELECT
+    f1 (point(3, 4));
+
+-- fail for lack of + operator
+DROP FUNCTION f1 (x anyelement);
+
+CREATE FUNCTION f1 (x anyelement)
+    RETURNS anyarray
+    AS $$
+BEGIN
+    RETURN ARRAY[x + 1, x + 2];
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (42) AS int,
+    f1 (4.5) AS num;
+
+DROP FUNCTION f1 (x anyelement);
+
+CREATE FUNCTION f1 (x anyarray)
+    RETURNS anyelement
+    AS $$
+BEGIN
+    RETURN x[1];
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (ARRAY[2, 4]) AS int,
+    f1 (ARRAY[4.5, 7.7]) AS num;
+
+SELECT
+    f1 (stavalues1)
+FROM
+    pg_statistic;
+
+-- fail, can't infer element type
+DROP FUNCTION f1 (x anyarray);
+
+CREATE FUNCTION f1 (x anyarray)
+    RETURNS anyarray
+    AS $$
+BEGIN
+    RETURN x;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (ARRAY[2, 4]) AS int,
+    f1 (ARRAY[4.5, 7.7]) AS num;
+
+SELECT
+    f1 (stavalues1)
+FROM
+    pg_statistic;
+
+-- fail, can't infer element type
+DROP FUNCTION f1 (x anyarray);
+
+-- fail, can't infer type:
+CREATE FUNCTION f1 (x anyelement)
+    RETURNS anyrange
+    AS $$
+BEGIN
+    RETURN ARRAY[x + 1, x + 2];
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE FUNCTION f1 (x anyrange)
+    RETURNS anyarray
+    AS $$
+BEGIN
+    RETURN ARRAY[lower(x), upper(x)];
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (int4range(42, 49)) AS int,
+    f1 (float8range (4.5, 7.8)) AS num;
+
+DROP FUNCTION f1 (x anyrange);
+
+CREATE FUNCTION f1 (x anycompatible, y anycompatible)
+    RETURNS anycompatiblearray
+    AS $$
+BEGIN
+    RETURN ARRAY[x, y];
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (2,
+        4) AS int,
+    f1 (2, 4.5) AS num;
+
+DROP FUNCTION f1 (x anycompatible, y anycompatible);
+
+CREATE FUNCTION f1 (x anycompatiblerange, y anycompatible, z anycompatible)
+    RETURNS anycompatiblearray
+    AS $$
+BEGIN
+    RETURN ARRAY[lower(x), upper(x), y, z];
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (int4range(42, 49),
+        11,
+        2::smallint) AS int,
+    f1 (float8range (4.5, 7.8), 7.8, 11::real) AS num;
+
+SELECT
+    f1 (int4range(42, 49),
+        11,
+        4.5) AS fail;
+
+-- range type doesn't fit
+DROP FUNCTION f1 (x anycompatiblerange, y anycompatible, z anycompatible);
+
+-- fail, can't infer type:
+CREATE FUNCTION f1 (x anycompatible)
+    RETURNS anycompatiblerange
+    AS $$
+BEGIN
+    RETURN ARRAY[x + 1, x + 2];
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE FUNCTION f1 (x anycompatiblerange, y anycompatiblearray)
+    RETURNS anycompatiblerange
+    AS $$
+BEGIN
+    RETURN x;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    f1 (int4range(42, 49),
+        ARRAY[11]) AS int,
+    f1 (float8range (4.5, 7.8), ARRAY[7]) AS num;
+
+DROP FUNCTION f1 (x anycompatiblerange, y anycompatiblearray);
+
+CREATE FUNCTION f1 (a anyelement, b anyarray, c anycompatible, d anycompatible, OUT x anyarray, OUT y anycompatiblearray)
+AS $$
+BEGIN
+    x := a || b;
+    y := ARRAY[c, d];
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    x,
+    pg_typeof(x),
+    y,
+    pg_typeof(y)
+FROM
+    f1 (11,
+        ARRAY[1, 2],
+        42,
+        34.5);
+
+SELECT
+    x,
+    pg_typeof(x),
+    y,
+    pg_typeof(y)
+FROM
+    f1 (11,
+        ARRAY[1, 2],
+        point(1, 2),
+        point(3, 4));
+
+SELECT
+    x,
+    pg_typeof(x),
+    y,
+    pg_typeof(y)
+FROM
+    f1 (11,
+        '{1,2}',
+        point(1, 2),
+        '(3,4)');
+
+SELECT
+    x,
+    pg_typeof(x),
+    y,
+    pg_typeof(y)
+FROM
+    f1 (11,
+        ARRAY[1, 2.2],
+        42,
+        34.5);
+
+-- fail
+DROP FUNCTION f1 (a anyelement, b anyarray, c anycompatible, d anycompatible);
+
+--
 -- Test handling of OUT parameters, including polymorphic cases.
 -- Note that RETURN is optional with OUT params; we try both ways.
 --
@@ -2603,6 +2866,28 @@ FROM
     duplic ('foo'::text);
 
 DROP FUNCTION duplic (anyelement);
+
+CREATE FUNCTION duplic (IN i anycompatiblerange, out j anycompatible, out k anycompatiblearray)
+AS $$
+BEGIN
+    j := lower(i);
+    k := ARRAY[lower(i), upper(i)];
+    RETURN;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    *
+FROM
+    duplic (int4range(42, 49));
+
+SELECT
+    *
+FROM
+    duplic (textrange ('aaa', 'bbb'));
+
+DROP FUNCTION duplic (anycompatiblerange);
 
 --
 -- test PERFORM
@@ -2751,6 +3036,11 @@ CREATE TABLE rc_test (
     b int
 );
 
+copy rc_test from stdin;
+5	10
+50	100
+500	1000
+\.
 CREATE FUNCTION return_unnamed_refcursor ()
     RETURNS refcursor
     AS $$
@@ -2855,6 +3145,46 @@ LANGUAGE plpgsql;
 SELECT
     refcursor_test2 (20000, 20000) AS "Should be false",
     refcursor_test2 (20, 20) AS "Should be true";
+
+-- should fail
+CREATE FUNCTION constant_refcursor ()
+    RETURNS refcursor
+    AS $$
+DECLARE
+    rc constant refcursor;
+BEGIN
+    OPEN rc FOR
+        SELECT
+            a
+        FROM
+            rc_test;
+    RETURN rc;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    constant_refcursor ();
+
+-- but it's okay like this
+CREATE OR REPLACE FUNCTION constant_refcursor ()
+    RETURNS refcursor
+    AS $$
+DECLARE
+    rc constant refcursor := 'my_cursor_name';
+BEGIN
+    OPEN rc FOR
+        SELECT
+            a
+        FROM
+            rc_test;
+    RETURN rc;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    constant_refcursor ();
 
 --
 -- tests for cursors with named parameter arguments
@@ -3039,11 +3369,9 @@ LANGUAGE plpgsql;
 SELECT
     namedparmcursor_test7 ();
 
--- check that line comments work correctly within the argument list (there
--- is some special handling of this case in the code: the newline after the
--- comment must be preserved when the argument-evaluating query is
--- constructed, otherwise the comment effectively comments out the next
--- argument, too)
+-- check that line comments work correctly within the argument list
+-- (this used to require a special hack in the code; it no longer does,
+-- but let's keep the test anyway)
 CREATE FUNCTION namedparmcursor_test8 ()
     RETURNS int4
     AS $$
@@ -3091,9 +3419,10 @@ DECLARE
     p2 int4 := 1006;
     n int4;
 BEGIN
+    -- use both supported syntaxes for named arguments
     OPEN c1 (p1 := p1,
-        p2 := p2,
-        debug := 2);
+        p2 => p2,
+        debug => 2);
     FETCH c1 INTO n;
     RETURN n;
 END
@@ -3672,6 +4001,33 @@ DECLARE
     x record;
     p1 int := 2;
     p3 text := 'foo';
+BEGIN
+    -- no rows
+    SELECT
+        *
+    FROM
+        foo
+    WHERE
+        f1 = p1
+        AND f1::text = p3
+    INTO
+        STRICT x;
+    RAISE NOTICE 'x.f1 = %, x.f2 = %', x.f1, x.f2;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    stricttest ();
+
+CREATE OR REPLACE FUNCTION stricttest ()
+    RETURNS void
+    AS $$
+DECLARE
+    x record;
+    p1 int := 2;
+    p3 text := $a$ 'Valame Dios!' dijo Sancho;
+    'no le dije yo a vuestra merced que mirase bien lo que hacia?' $a$;
 BEGIN
     -- no rows
     SELECT
@@ -4402,7 +4758,7 @@ CREATE OR REPLACE FUNCTION ret_query2 (lim int)
 BEGIN
     RETURN QUERY
     SELECT
-        md5(s.x::text),
+        fipshash (s.x::text),
         s.x,
         s.x > 0
     FROM
@@ -4485,14 +4841,18 @@ DECLARE
         FROM
             generate_series(41, 43) i;
 BEGIN
+    -- assign portal names to cursors to get stable output
+    c := 'c';
+    c2 := 'c2';
     FOR r IN c (5,
         7)
     LOOP
         RAISE NOTICE '% from %', r.i, c;
     END LOOP;
     -- again, to test if cursor was closed properly
-    FOR r IN c (9,
-        10)
+    -- (and while we're at it, test named-parameter notation)
+    FOR r IN c (r2 := 10,
+        r1 => 9)
     LOOP
         RAISE NOTICE '% from %', r.i, c;
     END LOOP;
@@ -4602,6 +4962,32 @@ FROM
 
 DROP FUNCTION forc01 ();
 
+-- it's okay to re-use a cursor variable name, even when bound
+DO $$
+DECLARE
+    cnt int := 0;
+    c1 CURSOR FOR
+        SELECT
+            *
+        FROM
+            forc_test;
+BEGIN
+    FOR r1 IN c1 LOOP
+        DECLARE c1 CURSOR FOR
+            SELECT
+                *
+            FROM
+                forc_test;
+        BEGIN
+            FOR r2 IN c1 LOOP
+                cnt := cnt + 1;
+            END LOOP;
+        END;
+    END LOOP;
+    RAISE NOTICE 'cnt = %', cnt;
+END
+$$;
+
 -- fail because cursor has no query bound to it
 CREATE OR REPLACE FUNCTION forc_bad ()
     RETURNS void
@@ -4612,7 +4998,7 @@ BEGIN
     FOR r IN c LOOP
         RAISE NOTICE '%', r.i;
     END LOOP;
-END;
+    END;
 $$
 LANGUAGE plpgsql;
 
@@ -5098,7 +5484,8 @@ BEGIN
     RETURN 10 / v;
 END;
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql
+parallel safe;
 
 CREATE OR REPLACE FUNCTION raise_test ()
     RETURNS void
@@ -5178,9 +5565,42 @@ LANGUAGE plpgsql;
 SELECT
     stacked_diagnostics_test ();
 
-DROP FUNCTION zero_divide ();
-
 DROP FUNCTION stacked_diagnostics_test ();
+
+-- Test that an error recovery subtransaction is parallel safe
+CREATE FUNCTION error_trap_test ()
+    RETURNS text
+    AS $$
+BEGIN
+    PERFORM
+        zero_divide ();
+    RETURN 'no error detected!';
+EXCEPTION
+    WHEN division_by_zero THEN
+        RETURN 'division_by_zero detected';
+END;
+
+$$
+LANGUAGE plpgsql
+parallel safe;
+
+SET debug_parallel_query TO ON;
+
+EXPLAIN (
+    VERBOSE,
+    COSTS OFF
+)
+SELECT
+    error_trap_test ();
+
+SELECT
+    error_trap_test ();
+
+RESET debug_parallel_query;
+
+DROP FUNCTION error_trap_test ();
+
+DROP FUNCTION zero_divide ();
 
 -- check cases where implicit SQLSTATE variable could be confused with
 -- SQLSTATE as a keyword, cf bug #5524
@@ -5359,12 +5779,11 @@ FROM
 
 DROP FUNCTION tftest (int);
 
-CREATE OR REPLACE FUNCTION rttest ()
+CREATE FUNCTION rttest ()
     RETURNS SETOF int
     AS $$
 DECLARE
     rc int;
-    rca int[];
 BEGIN
     RETURN QUERY
 VALUES (10),
@@ -5382,12 +5801,11 @@ WHERE
     get diagnostics rc = row_count;
     RAISE NOTICE '% %', found, rc;
     RETURN QUERY EXECUTE 'values(10),(20)';
-    -- just for fun, let's use array elements as targets
-    get diagnostics rca[1] = row_count;
-    RAISE NOTICE '% %', found, rca[1];
+    get diagnostics rc = row_count;
+    RAISE NOTICE '% %', found, rc;
     RETURN QUERY EXECUTE 'select * from (values(10),(20)) f(a) where false';
-    get diagnostics rca[2] = row_count;
-    RAISE NOTICE '% %', found, rca[2];
+    get diagnostics rc = row_count;
+    RAISE NOTICE '% %', found, rc;
 END;
 $$
 LANGUAGE plpgsql;
@@ -5396,6 +5814,44 @@ SELECT
     *
 FROM
     rttest ();
+
+-- check some error cases, too
+CREATE OR REPLACE FUNCTION rttest ()
+    RETURNS SETOF int
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        10
+    INTO
+        no_such_table;
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    *
+FROM
+    rttest ();
+
+CREATE OR REPLACE FUNCTION rttest ()
+    RETURNS SETOF int
+    AS $$
+BEGIN
+    RETURN QUERY EXECUTE 'select 10 into no_such_table';
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT
+    *
+FROM
+    rttest ();
+
+SELECT
+    *
+FROM
+    no_such_table;
 
 DROP FUNCTION rttest ();
 
@@ -5663,30 +6119,6 @@ SELECT
     fail ();
 DROP FUNCTION fail ();
 -- Test handling of string literals.
-SET standard_conforming_strings = OFF;
-CREATE OR REPLACE FUNCTION strtest ()
-    RETURNS text
-    AS $$
-BEGIN
-    RAISE NOTICE 'foo\\bar\041baz';
-    RETURN 'foo\\bar\041baz';
-END
-$$
-LANGUAGE plpgsql;
-SELECT
-    strtest ();
-CREATE OR REPLACE FUNCTION strtest ()
-    RETURNS text
-    AS $$
-BEGIN
-    RAISE NOTICE E'foo\\bar\041baz';
-    RETURN E'foo\\bar\041baz';
-END
-$$
-LANGUAGE plpgsql;
-SELECT
-    strtest ();
-SET standard_conforming_strings = ON;
 CREATE OR REPLACE FUNCTION strtest ()
     RETURNS text
     AS $$
@@ -5771,24 +6203,44 @@ BEGIN
 END;
 $outer$;
 -- Check variable scoping -- a var is not available in its own or prior
--- default expressions.
-CREATE FUNCTION scope_test ()
-    RETURNS int
-    AS $$
+-- default expressions, but it is available in later ones.
+DO $$
+DECLARE
+    x int := x + 1;
+    -- error
+BEGIN
+    RAISE NOTICE 'x = %', x;
+END;
+$$;
+DO $$
+DECLARE
+    y int := x + 1;
+    -- error
+    x int := 42;
+BEGIN
+    RAISE NOTICE 'x = %, y = %', x, y;
+END;
+$$;
+DO $$
+DECLARE
+    x int := 42;
+    y int := x + 1;
+BEGIN
+    RAISE NOTICE 'x = %, y = %', x, y;
+END;
+$$;
+DO $$
 DECLARE
     x int := 42;
 BEGIN
     DECLARE y int := x + 1;
     x int := x + 2;
+    z int := x * 10;
     BEGIN
-        RETURN x * 100 + y;
+        RAISE NOTICE 'x = %, y = %, z = %', x, y, z;
     END;
 END;
-$$
-LANGUAGE plpgsql;
-SELECT
-    scope_test ();
-DROP FUNCTION scope_test ();
+$$;
 -- Check handling of conflicts between plpgsql vars and table columns.
 SET plpgsql.variable_conflict = error;
 CREATE FUNCTION conflict_test ()
@@ -6219,7 +6671,7 @@ $$
 LANGUAGE plpgsql;
 SELECT
     outer_outer_func (10);
--- repeated call should to work
+-- repeated call should work
 SELECT
     outer_outer_func (20);
 DROP FUNCTION outer_outer_func (int);
@@ -6277,12 +6729,36 @@ $$
 LANGUAGE plpgsql;
 SELECT
     outer_outer_func (10);
--- repeated call should to work
+-- repeated call should work
 SELECT
     outer_outer_func (20);
 DROP FUNCTION outer_outer_func (int);
 DROP FUNCTION outer_func (int);
 DROP FUNCTION inner_func (int);
+-- Test pg_routine_oid
+CREATE FUNCTION current_function (text)
+    RETURNS regprocedure
+    AS $$
+DECLARE
+    fn_oid regprocedure;
+BEGIN
+    get diagnostics fn_oid = pg_routine_oid;
+    RETURN fn_oid;
+END;
+$$
+LANGUAGE plpgsql;
+SELECT
+    current_function ('foo');
+DROP FUNCTION current_function (text);
+-- shouldn't fail in DO, even though there's no useful data
+DO $$
+DECLARE
+    fn_oid oid;
+BEGIN
+    get diagnostics fn_oid = pg_routine_oid;
+    RAISE NOTICE 'pg_routine_oid = %', fn_oid;
+END;
+$$;
 --
 -- Test ASSERT
 --
@@ -6791,17 +7267,17 @@ SELECT
 FROM
     get_from_partitioned_table (1) AS t;
 CREATE OR REPLACE FUNCTION list_partitioned_table ()
-    RETURNS SETOF partitioned_table.a%TYPE
+    RETURNS SETOF public.partitioned_table.a%TYPE
     AS $$
 DECLARE
-    ROW partitioned_table%ROWTYPE;
-    a_val partitioned_table.a%TYPE;
+    ROW public.partitioned_table%ROWTYPE;
+    a_val public.partitioned_table.a%TYPE;
 BEGIN
     FOR ROW IN
     SELECT
         *
     FROM
-        partitioned_table
+        public.partitioned_table
     ORDER BY
         a LOOP
             a_val := row.a;

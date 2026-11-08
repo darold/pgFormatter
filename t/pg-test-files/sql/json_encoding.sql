@@ -1,5 +1,16 @@
-
+--
 -- encoding-sensitive tests for json and jsonb
+--
+
+-- We provide expected-results files for UTF8 (json_encoding.out)
+-- and for SQL_ASCII (json_encoding_1.out).  Skip otherwise.
+SELECT getdatabaseencoding() NOT IN ('UTF8', 'SQL_ASCII')
+       AS skip_test \gset
+\if :skip_test
+\quit
+\endif
+
+SELECT getdatabaseencoding();           -- just to label the results files
 
 -- first json
 
@@ -65,3 +76,7 @@ SELECT jsonb '{ "a":  "dollar \u0024 character" }' ->> 'a' as correct_everywhere
 SELECT jsonb '{ "a":  "dollar \\u0024 character" }' ->> 'a' as not_an_escape;
 SELECT jsonb '{ "a":  "null \u0000 escape" }' ->> 'a' as fails;
 SELECT jsonb '{ "a":  "null \\u0000 escape" }' ->> 'a' as not_an_escape;
+
+-- soft error for input-time failure
+
+select * from pg_input_error_info('{ "a":  "\ud83d\ude04\ud83d\udc36" }', 'jsonb');

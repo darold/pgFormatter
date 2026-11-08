@@ -87,17 +87,15 @@ SELECT
     '"\b\f\r\n\t\v\"\'' \\ "'::jsonpath;
 
 SELECT
-    '''\b\f\r\n\t\v\"\''\\'' '::jsonpath;
-
-SELECT
     '"\x50\u0067\u{53}\u{051}\u{00004C}"'::jsonpath;
-
-SELECT
-    '''\x50\u0067\u{53}\u{051}\u{00004C}'''::jsonpath;
 
 SELECT
     '$.foo\x50\u0067\u{53}\u{051}\u{00004C}\t\"bar'::jsonpath;
 
+SELECT
+    '"\z"'::jsonpath;
+
+-- unrecognized escape is just the literal char
 SELECT
     '$.g ? ($.a == 1)'::jsonpath;
 
@@ -204,6 +202,161 @@ SELECT
     '$.keyvalue().key'::jsonpath;
 
 SELECT
+    '$.datetime()'::jsonpath;
+
+SELECT
+    '$.datetime("datetime template")'::jsonpath;
+
+SELECT
+    '$.bigint().integer().number().decimal()'::jsonpath;
+
+SELECT
+    '$.boolean()'::jsonpath;
+
+SELECT
+    '$.date()'::jsonpath;
+
+SELECT
+    '$.decimal(4,2)'::jsonpath;
+
+SELECT
+    '$.string()'::jsonpath;
+
+SELECT
+    '$.replace("hello","bye")'::jsonpath;
+
+SELECT
+    '$.lower()'::jsonpath;
+
+SELECT
+    '$.upper()'::jsonpath;
+
+SELECT
+    '$.lower().upper().lower().replace("hello","bye")'::jsonpath;
+
+SELECT
+    '$.ltrim()'::jsonpath;
+
+SELECT
+    '$.ltrim("xyz")'::jsonpath;
+
+SELECT
+    '$.rtrim()'::jsonpath;
+
+SELECT
+    '$.rtrim("xyz")'::jsonpath;
+
+SELECT
+    '$.btrim()'::jsonpath;
+
+SELECT
+    '$.btrim("xyz")'::jsonpath;
+
+SELECT
+    '$.initcap()'::jsonpath;
+
+SELECT
+    '$.split_part("~@~", 2)'::jsonpath;
+
+-- Parse errors
+SELECT
+    '$.replace("hello")'::jsonpath;
+
+SELECT
+    '$.replace()'::jsonpath;
+
+SELECT
+    '$.replace("hello","bye","extra")'::jsonpath;
+
+SELECT
+    '$.split_part("~@~")'::jsonpath;
+
+SELECT
+    '$.split_part()'::jsonpath;
+
+SELECT
+    '$.split_part("~@~", "hi")'::jsonpath;
+
+SELECT
+    '$.split_part("~@~", 2, "extra")'::jsonpath;
+
+SELECT
+    '$.lower("hi")'::jsonpath;
+
+SELECT
+    '$.upper("hi")'::jsonpath;
+
+SELECT
+    '$.initcap("hi")'::jsonpath;
+
+SELECT
+    '$.ltrim(42)'::jsonpath;
+
+SELECT
+    '$.ltrim("x", "y")'::jsonpath;
+
+SELECT
+    '$.rtrim(42)'::jsonpath;
+
+SELECT
+    '$.rtrim("x", "y")'::jsonpath;
+
+SELECT
+    '$.trim(42)'::jsonpath;
+
+SELECT
+    '$.trim("x", "y")'::jsonpath;
+
+-- Verify method keywords work as object key names
+SELECT
+    '$.lower'::jsonpath;
+
+SELECT
+    '$.upper'::jsonpath;
+
+SELECT
+    '$.initcap'::jsonpath;
+
+SELECT
+    '$.replace'::jsonpath;
+
+SELECT
+    '$.split_part'::jsonpath;
+
+SELECT
+    '$.ltrim'::jsonpath;
+
+SELECT
+    '$.rtrim'::jsonpath;
+
+SELECT
+    '$.btrim'::jsonpath;
+
+SELECT
+    '$.time()'::jsonpath;
+
+SELECT
+    '$.time(6)'::jsonpath;
+
+SELECT
+    '$.time_tz()'::jsonpath;
+
+SELECT
+    '$.time_tz(4)'::jsonpath;
+
+SELECT
+    '$.timestamp()'::jsonpath;
+
+SELECT
+    '$.timestamp(2)'::jsonpath;
+
+SELECT
+    '$.timestamp_tz()'::jsonpath;
+
+SELECT
+    '$.timestamp_tz(0)'::jsonpath;
+
+SELECT
     '$ ? (@ starts with "abc")'::jsonpath;
 
 SELECT
@@ -229,6 +382,15 @@ SELECT
 
 SELECT
     '$ ? (@ like_regex "pattern" flag "xsms")'::jsonpath;
+
+SELECT
+    '$ ? (@ like_regex "pattern" flag "q")'::jsonpath;
+
+SELECT
+    '$ ? (@ like_regex "pattern" flag "iq")'::jsonpath;
+
+SELECT
+    '$ ? (@ like_regex "pattern" flag "smixq")'::jsonpath;
 
 SELECT
     '$ ? (@ like_regex "pattern" flag "a")'::jsonpath;
@@ -413,11 +575,15 @@ SELECT
 SELECT
     '$ ? (@.a < +10.1e+1)'::jsonpath;
 
+-- numeric literals
 SELECT
     '0'::jsonpath;
 
 SELECT
     '00'::jsonpath;
+
+SELECT
+    '0755'::jsonpath;
 
 SELECT
     '0.0'::jsonpath;
@@ -447,10 +613,28 @@ SELECT
     '0.0010e+2'::jsonpath;
 
 SELECT
+    '.001'::jsonpath;
+
+SELECT
+    '.001e1'::jsonpath;
+
+SELECT
+    '1.'::jsonpath;
+
+SELECT
+    '1.e1'::jsonpath;
+
+SELECT
+    '1a'::jsonpath;
+
+SELECT
     '1e'::jsonpath;
 
 SELECT
     '1.e'::jsonpath;
+
+SELECT
+    '1.2a'::jsonpath;
 
 SELECT
     '1.2e'::jsonpath;
@@ -477,6 +661,9 @@ SELECT
     '1.2e3'::jsonpath;
 
 SELECT
+    '1.2e3a'::jsonpath;
+
+SELECT
     '1.2.e3'::jsonpath;
 
 SELECT
@@ -493,4 +680,120 @@ SELECT
 
 SELECT
     '(1.).e3'::jsonpath;
+
+SELECT
+    '1?(2>3)'::jsonpath;
+
+-- nondecimal
+SELECT
+    '0b100101'::jsonpath;
+
+SELECT
+    '0o273'::jsonpath;
+
+SELECT
+    '0x42F'::jsonpath;
+
+-- error cases
+SELECT
+    '0b'::jsonpath;
+
+SELECT
+    '1b'::jsonpath;
+
+SELECT
+    '0b0x'::jsonpath;
+
+SELECT
+    '0o'::jsonpath;
+
+SELECT
+    '1o'::jsonpath;
+
+SELECT
+    '0o0x'::jsonpath;
+
+SELECT
+    '0x'::jsonpath;
+
+SELECT
+    '1x'::jsonpath;
+
+SELECT
+    '0x0y'::jsonpath;
+
+-- underscores
+SELECT
+    '1_000_000'::jsonpath;
+
+SELECT
+    '1_2_3'::jsonpath;
+
+SELECT
+    '0x1EEE_FFFF'::jsonpath;
+
+SELECT
+    '0o2_73'::jsonpath;
+
+SELECT
+    '0b10_0101'::jsonpath;
+
+SELECT
+    '1_000.000_005'::jsonpath;
+
+SELECT
+    '1_000.'::jsonpath;
+
+SELECT
+    '.000_005'::jsonpath;
+
+SELECT
+    '1_000.5e0_1'::jsonpath;
+
+-- error cases
+SELECT
+    '_100'::jsonpath;
+
+SELECT
+    '100_'::jsonpath;
+
+SELECT
+    '100__000'::jsonpath;
+
+SELECT
+    '_1_000.5'::jsonpath;
+
+SELECT
+    '1_000_.5'::jsonpath;
+
+SELECT
+    '1_000._5'::jsonpath;
+
+SELECT
+    '1_000.5_'::jsonpath;
+
+SELECT
+    '1_000.5e_1'::jsonpath;
+
+-- underscore after prefix not allowed in JavaScript (but allowed in SQL)
+SELECT
+    '0b_10_0101'::jsonpath;
+
+SELECT
+    '0o_273'::jsonpath;
+
+SELECT
+    '0x_42F'::jsonpath;
+
+-- test non-error-throwing API
+SELECT
+    str AS jsonpath,
+    pg_input_is_valid (str, 'jsonpath') AS ok,
+    errinfo.sql_error_code,
+    errinfo.message,
+    errinfo.detail,
+    errinfo.hint
+FROM
+    unnest(ARRAY['$ ? (@ like_regex "pattern" flag "smixq")'::text, '$ ? (@ like_regex "pattern" flag "a")', '@ + 1', '00', '1a']) str,
+    LATERAL pg_input_error_info (str, 'jsonpath') AS errinfo;
 

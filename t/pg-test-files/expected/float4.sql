@@ -34,6 +34,18 @@ INSERT INTO FLOAT4_TBL (f1)
     VALUES ('-10e-70');
 
 INSERT INTO FLOAT4_TBL (f1)
+    VALUES ('10e70'::float8);
+
+INSERT INTO FLOAT4_TBL (f1)
+    VALUES ('-10e70'::float8);
+
+INSERT INTO FLOAT4_TBL (f1)
+    VALUES ('10e-70'::float8);
+
+INSERT INTO FLOAT4_TBL (f1)
+    VALUES ('-10e-70'::float8);
+
+INSERT INTO FLOAT4_TBL (f1)
     VALUES ('10e400');
 
 INSERT INTO FLOAT4_TBL (f1)
@@ -70,6 +82,21 @@ INSERT INTO FLOAT4_TBL (f1)
 INSERT INTO FLOAT4_TBL (f1)
     VALUES ('123            5');
 
+-- Also try it with non-error-throwing API
+SELECT
+    pg_input_is_valid ('34.5', 'float4');
+
+SELECT
+    pg_input_is_valid ('xyz', 'float4');
+
+SELECT
+    pg_input_is_valid ('1e400', 'float4');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('1e400', 'float4');
+
 -- special inputs
 SELECT
     'NaN'::float4;
@@ -103,19 +130,23 @@ SELECT
     'Infinity'::float4 / 'Infinity'::float4;
 
 SELECT
+    '42'::float4 / 'Infinity'::float4;
+
+SELECT
     'nan'::float4 / 'nan'::float4;
+
+SELECT
+    'nan'::float4 / '0'::float4;
 
 SELECT
     'nan'::numeric::float4;
 
 SELECT
-    '' AS five,
     *
 FROM
     FLOAT4_TBL;
 
 SELECT
-    '' AS four,
     f.*
 FROM
     FLOAT4_TBL f
@@ -123,7 +154,6 @@ WHERE
     f.f1 <> '1004.3';
 
 SELECT
-    '' AS one,
     f.*
 FROM
     FLOAT4_TBL f
@@ -131,7 +161,6 @@ WHERE
     f.f1 = '1004.3';
 
 SELECT
-    '' AS three,
     f.*
 FROM
     FLOAT4_TBL f
@@ -139,7 +168,6 @@ WHERE
     '1004.3' > f.f1;
 
 SELECT
-    '' AS three,
     f.*
 FROM
     FLOAT4_TBL f
@@ -147,7 +175,6 @@ WHERE
     f.f1 < '1004.3';
 
 SELECT
-    '' AS four,
     f.*
 FROM
     FLOAT4_TBL f
@@ -155,7 +182,6 @@ WHERE
     '1004.3' >= f.f1;
 
 SELECT
-    '' AS four,
     f.*
 FROM
     FLOAT4_TBL f
@@ -163,7 +189,6 @@ WHERE
     f.f1 <= '1004.3';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 * '-10' AS x
 FROM
@@ -172,7 +197,6 @@ WHERE
     f.f1 > '0.0';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 + '-10' AS x
 FROM
@@ -181,7 +205,6 @@ WHERE
     f.f1 > '0.0';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 / '-10' AS x
 FROM
@@ -190,7 +213,6 @@ WHERE
     f.f1 > '0.0';
 
 SELECT
-    '' AS three,
     f.f1,
     f.f1 - '-10' AS x
 FROM
@@ -200,22 +222,19 @@ WHERE
 
 -- test divide by zero
 SELECT
-    '' AS bad,
     f.f1 / '0.0'
 FROM
     FLOAT4_TBL f;
 
 SELECT
-    '' AS five,
     *
 FROM
     FLOAT4_TBL;
 
 -- test the unary float4abs operator
 SELECT
-    '' AS five,
     f.f1,
-    @f.f1 AS abs_f1
+    @ f.f1 AS abs_f1
 FROM
     FLOAT4_TBL f;
 
@@ -227,10 +246,11 @@ WHERE
     FLOAT4_TBL.f1 > '0.0';
 
 SELECT
-    '' AS five,
     *
 FROM
-    FLOAT4_TBL;
+    FLOAT4_TBL
+ORDER BY
+    1;
 
 -- test edge-case coercions to integer
 SELECT

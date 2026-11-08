@@ -99,6 +99,28 @@ ALTER TABLE has_volatile
 ALTER TABLE has_volatile
     ADD col4 int DEFAULT (random() * 10000)::int;
 
+-- virtual generated columns don't need a rewrite
+ALTER TABLE has_volatile
+    ADD col5 int GENERATED ALWAYS AS (tableoid::int + col2) VIRTUAL;
+
+ALTER TABLE has_volatile
+    ALTER COLUMN col5 TYPE float8;
+
+ALTER TABLE has_volatile
+    ALTER COLUMN col5 TYPE numeric;
+
+ALTER TABLE has_volatile
+    ALTER COLUMN col5 TYPE numeric;
+
+-- here, we do need a rewrite
+ALTER TABLE has_volatile
+    ALTER COLUMN col1 SET DATA TYPE float8,
+    ADD COLUMN col6 float8 GENERATED ALWAYS AS (col1 * 4) VIRTUAL;
+
+-- stored generated columns need a rewrite
+ALTER TABLE has_volatile
+    ADD col7 int GENERATED ALWAYS AS (55) STORED;
+
 -- Test a large sample of different datatypes
 CREATE TABLE T (
     pk int NOT NULL PRIMARY KEY,
@@ -378,6 +400,105 @@ SELECT
 
 DROP TABLE T;
 
+-- Test domains with default value for table rewrite.
+CREATE DOMAIN domain1 AS int DEFAULT 11;
+
+-- constant
+CREATE DOMAIN domain2 AS int DEFAULT random(min => 10, max => 100);
+
+-- volatile
+CREATE DOMAIN domain3 AS text DEFAULT foo (4);
+
+-- stable
+CREATE DOMAIN domain4 AS text[] DEFAULT ('{"This", "is", "' || foo (4) || '","the", "real", "world"}')::text[];
+
+CREATE TABLE t2 (
+    a domain1
+);
+
+INSERT INTO t2
+VALUES
+    (1),
+    (2);
+
+-- no table rewrite
+ALTER TABLE t2
+    ADD COLUMN b domain1 DEFAULT 3;
+
+SELECT
+    attnum,
+    attname,
+    atthasmissing,
+    atthasdef,
+    attmissingval
+FROM
+    pg_attribute
+WHERE
+    attnum > 0
+    AND attrelid = 't2'::regclass
+ORDER BY
+    attnum;
+
+-- table rewrite should happen
+ALTER TABLE t2
+    ADD COLUMN c domain3 DEFAULT
+    LEFT (random()::text, 3);
+
+-- no table rewrite
+ALTER TABLE t2
+    ADD COLUMN d domain4;
+
+SELECT
+    attnum,
+    attname,
+    atthasmissing,
+    atthasdef,
+    attmissingval
+FROM
+    pg_attribute
+WHERE
+    attnum > 0
+    AND attrelid = 't2'::regclass
+ORDER BY
+    attnum;
+
+-- table rewrite should happen
+ALTER TABLE t2
+    ADD COLUMN e domain2;
+
+SELECT
+    attnum,
+    attname,
+    atthasmissing,
+    atthasdef,
+    attmissingval
+FROM
+    pg_attribute
+WHERE
+    attnum > 0
+    AND attrelid = 't2'::regclass
+ORDER BY
+    attnum;
+
+SELECT
+    a,
+    b,
+    length(c) = 3 AS c_ok,
+    d,
+    e >= 10 AS e_ok
+FROM
+    t2;
+
+DROP TABLE t2;
+
+DROP DOMAIN domain1;
+
+DROP DOMAIN domain2;
+
+DROP DOMAIN domain3;
+
+DROP DOMAIN domain4;
+
 DROP FUNCTION foo (INT);
 
 -- Fall back to full rewrite for volatile expressions
@@ -405,9 +526,35 @@ ALTER TABLE T
 SELECT
     comp ();
 
+-- check that we notice insertion of a volatile default argument
+CREATE FUNCTION foolme (timestamptz DEFAULT clock_timestamp())
+    RETURNS timestamptz IMMUTABLE
+    AS '
+    SELECT
+        $1;
+'
+LANGUAGE sql;
+
+ALTER TABLE T
+    ADD COLUMN c3 timestamptz DEFAULT foolme ();
+
+SELECT
+    attname,
+    atthasmissing,
+    attmissingval
+FROM
+    pg_attribute
+WHERE
+    attrelid = 't'::regclass
+    AND attnum > 0
+ORDER BY
+    attnum;
+
 DROP TABLE T;
 
--- Simple querie
+DROP FUNCTION foolme (timestamptz);
+
+-- Simple queries
 CREATE TABLE T (
     pk int NOT NULL PRIMARY KEY
 );
@@ -1115,7 +1262,122 @@ WHERE
     a IS NULL;
 ROLLBACK;
 
+-- verify that a default set on a non-plain table doesn't set a missing
+-- value on the attribute
+CREATE FOREIGN DATA WRAPPER dummy;
+
+CREATE SERVER s0 FOREIGN DATA WRAPPER dummy;
+
+CREATE FOREIGN TABLE ft1 (
+    c1 integer NOT NULL)
+SERVER s0;
+
+ALTER FOREIGN TABLE ft1
+    ADD COLUMN c8 integer DEFAULT 0;
+
+ALTER FOREIGN TABLE ft1
+    ALTER COLUMN c8 TYPE char(10);
+
+SELECT
+    count(*)
+FROM
+    pg_attribute
+WHERE
+    attrelid = 'ft1'::regclass
+    AND (attmissingval IS NOT NULL
+        OR atthasmissing);
+
+-- Verify that table-rewriting maintenance commands preserve attmissingval
+-- columns.
+CREATE TABLE t (
+    id int PRIMARY KEY
+);
+
+INSERT INTO t
+SELECT
+    generate_series(1, 3);
+
+ALTER TABLE t
+    ADD COLUMN a int DEFAULT 42;
+
+ALTER TABLE t
+    ADD COLUMN b int NOT NULL DEFAULT 7 CHECK (b > 0);
+
+VACUUM
+    FULL t;
+
+SELECT
+    *
+FROM
+    t
+ORDER BY
+    id;
+
+ALTER TABLE t
+    ADD COLUMN c text DEFAULT 'hello';
+
+CLUSTER t
+USING t_pkey;
+
+SELECT
+    *
+FROM
+    t
+ORDER BY
+    id;
+
+ALTER TABLE t
+    ADD COLUMN d int DEFAULT 99;
+
+REPACK t;
+
+SELECT
+    *
+FROM
+    t
+ORDER BY
+    id;
+
+DROP TABLE t;
+
+-- Ensure defaults are correctly applied during tuple deformation for whole
+-- row vars when the defaults are deformed incrementally.
+CREATE TABLE t_missing_wholerow (
+    a int NOT NULL,
+    b int
+);
+
+INSERT INTO t_missing_wholerow (a, b)
+    VALUES (1, NULL);
+
+-- with NULL bitmap
+INSERT INTO t_missing_wholerow (a, b)
+    VALUES (2, 3);
+
+-- without NULL bitmap
+ALTER TABLE t_missing_wholerow
+    ADD COLUMN c int NOT NULL DEFAULT 15;
+
+ALTER TABLE t_missing_wholerow
+    ADD COLUMN d bigint NOT NULL DEFAULT 25;
+
+SELECT
+    a,
+    b,
+    c,
+    t
+FROM
+    t_missing_wholerow t;
+
+DROP TABLE t_missing_wholerow;
+
 -- cleanup
+DROP FOREIGN TABLE ft1;
+
+DROP SERVER s0;
+
+DROP FOREIGN DATA WRAPPER dummy;
+
 DROP TABLE vtype;
 
 DROP TABLE vtype2;

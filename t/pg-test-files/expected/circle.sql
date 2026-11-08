@@ -1,8 +1,9 @@
 --
 -- CIRCLE
 --
--- avoid bit-exact output here because operations may not be bit-exact.
-SET extra_float_digits = 0;
+-- Back off displayed precision a little bit to reduce platform-to-platform
+-- variation in results.
+SET extra_float_digits = -1;
 
 CREATE TABLE CIRCLE_TBL (
     f1 circle
@@ -12,16 +13,16 @@ INSERT INTO CIRCLE_TBL
     VALUES ('<(5,1),3>');
 
 INSERT INTO CIRCLE_TBL
-    VALUES ('<(1,2),100>');
+    VALUES ('((1,2),100)');
 
 INSERT INTO CIRCLE_TBL
-    VALUES ('1,3,5');
+    VALUES (' 1 , 3 , 5 ');
 
 INSERT INTO CIRCLE_TBL
-    VALUES ('((1,2),3)');
+    VALUES (' ( ( 1 , 2 ) , 3 ) ');
 
 INSERT INTO CIRCLE_TBL
-    VALUES ('<(100,200),10>');
+    VALUES (' ( 100 , 200 ) , 10 ');
 
 INSERT INTO CIRCLE_TBL
     VALUES (' < ( 100 , 1 ) , 115 > ');
@@ -56,25 +57,21 @@ FROM
     CIRCLE_TBL;
 
 SELECT
-    '' AS six,
     center(f1) AS center
 FROM
     CIRCLE_TBL;
 
 SELECT
-    '' AS six,
     radius(f1) AS radius
 FROM
     CIRCLE_TBL;
 
 SELECT
-    '' AS six,
     diameter(f1) AS diameter
 FROM
     CIRCLE_TBL;
 
 SELECT
-    '' AS two,
     f1
 FROM
     CIRCLE_TBL
@@ -82,7 +79,6 @@ WHERE
     radius(f1) < 5;
 
 SELECT
-    '' AS four,
     f1
 FROM
     CIRCLE_TBL
@@ -90,7 +86,6 @@ WHERE
     diameter(f1) >= 10;
 
 SELECT
-    '' AS five,
     c1.f1 AS one,
     c2.f1 AS two,
     (c1.f1 <-> c2.f1) AS distance

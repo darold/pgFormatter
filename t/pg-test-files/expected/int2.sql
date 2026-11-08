@@ -1,30 +1,11 @@
 --
 -- INT2
 --
-CREATE TABLE INT2_TBL (
-    f1 int2
-);
-
-INSERT INTO INT2_TBL (f1)
-    VALUES ('0   ');
-
-INSERT INTO INT2_TBL (f1)
-    VALUES ('  1234 ');
-
-INSERT INTO INT2_TBL (f1)
-    VALUES ('    -1234');
-
+-- int2_tbl was already created and filled in test_setup.sql.
+-- Here we just try to insert bad values.
 INSERT INTO INT2_TBL (f1)
     VALUES ('34.5');
 
--- largest and smallest values
-INSERT INTO INT2_TBL (f1)
-    VALUES ('32767');
-
-INSERT INTO INT2_TBL (f1)
-    VALUES ('-32767');
-
--- bad input values -- should give errors
 INSERT INTO INT2_TBL (f1)
     VALUES ('100000');
 
@@ -47,13 +28,51 @@ INSERT INTO INT2_TBL (f1)
     VALUES ('');
 
 SELECT
-    '' AS five,
     *
 FROM
     INT2_TBL;
 
+-- Also try it with non-error-throwing API
 SELECT
-    '' AS four,
+    pg_input_is_valid ('34', 'int2');
+
+SELECT
+    pg_input_is_valid ('asdf', 'int2');
+
+SELECT
+    pg_input_is_valid ('50000', 'int2');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('50000', 'int2');
+
+-- While we're here, check int2vector as well
+SELECT
+    pg_input_is_valid (' 1 3  5 ', 'int2vector');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('1 asdf', 'int2vector');
+
+SELECT
+    *
+FROM
+    pg_input_error_info ('50000', 'int2vector');
+
+SELECT
+    *
+FROM
+    INT2_TBL AS f (a,
+        b);
+
+SELECT
+    *
+FROM (TABLE int2_tbl) AS s (a,
+        b);
+
+SELECT
     i.*
 FROM
     INT2_TBL i
@@ -61,7 +80,6 @@ WHERE
     i.f1 <> int2 '0';
 
 SELECT
-    '' AS four,
     i.*
 FROM
     INT2_TBL i
@@ -69,7 +87,6 @@ WHERE
     i.f1 <> int4 '0';
 
 SELECT
-    '' AS one,
     i.*
 FROM
     INT2_TBL i
@@ -77,7 +94,6 @@ WHERE
     i.f1 = int2 '0';
 
 SELECT
-    '' AS one,
     i.*
 FROM
     INT2_TBL i
@@ -85,7 +101,6 @@ WHERE
     i.f1 = int4 '0';
 
 SELECT
-    '' AS two,
     i.*
 FROM
     INT2_TBL i
@@ -93,7 +108,6 @@ WHERE
     i.f1 < int2 '0';
 
 SELECT
-    '' AS two,
     i.*
 FROM
     INT2_TBL i
@@ -101,7 +115,6 @@ WHERE
     i.f1 < int4 '0';
 
 SELECT
-    '' AS three,
     i.*
 FROM
     INT2_TBL i
@@ -109,7 +122,6 @@ WHERE
     i.f1 <= int2 '0';
 
 SELECT
-    '' AS three,
     i.*
 FROM
     INT2_TBL i
@@ -117,7 +129,6 @@ WHERE
     i.f1 <= int4 '0';
 
 SELECT
-    '' AS two,
     i.*
 FROM
     INT2_TBL i
@@ -125,7 +136,6 @@ WHERE
     i.f1 > int2 '0';
 
 SELECT
-    '' AS two,
     i.*
 FROM
     INT2_TBL i
@@ -133,7 +143,6 @@ WHERE
     i.f1 > int4 '0';
 
 SELECT
-    '' AS three,
     i.*
 FROM
     INT2_TBL i
@@ -141,7 +150,6 @@ WHERE
     i.f1 >= int2 '0';
 
 SELECT
-    '' AS three,
     i.*
 FROM
     INT2_TBL i
@@ -150,7 +158,6 @@ WHERE
 
 -- positive odds
 SELECT
-    '' AS one,
     i.*
 FROM
     INT2_TBL i
@@ -158,21 +165,18 @@ WHERE (i.f1 % int2 '2') = int2 '1';
 
 -- any evens
 SELECT
-    '' AS three,
     i.*
 FROM
     INT2_TBL i
 WHERE (i.f1 % int4 '2') = int2 '0';
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 * int2 '2' AS x
 FROM
     INT2_TBL i;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 * int2 '2' AS x
 FROM
@@ -181,21 +185,18 @@ WHERE
     abs(f1) < 16384;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 * int4 '2' AS x
 FROM
     INT2_TBL i;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 + int2 '2' AS x
 FROM
     INT2_TBL i;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 + int2 '2' AS x
 FROM
@@ -204,21 +205,18 @@ WHERE
     f1 < 32766;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 + int4 '2' AS x
 FROM
     INT2_TBL i;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 - int2 '2' AS x
 FROM
     INT2_TBL i;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 - int2 '2' AS x
 FROM
@@ -227,21 +225,18 @@ WHERE
     f1 > - 32767;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 - int4 '2' AS x
 FROM
     INT2_TBL i;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 / int2 '2' AS x
 FROM
     INT2_TBL i;
 
 SELECT
-    '' AS five,
     i.f1,
     i.f1 / int4 '2' AS x
 FROM
@@ -289,4 +284,86 @@ FROM (
         (0.5::numeric),
         (1.5::numeric),
         (2.5::numeric)) t (x);
+
+-- non-decimal literals
+SELECT
+    int2 '0b100101';
+
+SELECT
+    int2 '0o273';
+
+SELECT
+    int2 '0x42F';
+
+SELECT
+    int2 '0b';
+
+SELECT
+    int2 '0o';
+
+SELECT
+    int2 '0x';
+
+-- cases near overflow
+SELECT
+    int2 '0b111111111111111';
+
+SELECT
+    int2 '0b1000000000000000';
+
+SELECT
+    int2 '0o77777';
+
+SELECT
+    int2 '0o100000';
+
+SELECT
+    int2 '0x7FFF';
+
+SELECT
+    int2 '0x8000';
+
+SELECT
+    int2 '-0b1000000000000000';
+
+SELECT
+    int2 '-0b1000000000000001';
+
+SELECT
+    int2 '-0o100000';
+
+SELECT
+    int2 '-0o100001';
+
+SELECT
+    int2 '-0x8000';
+
+SELECT
+    int2 '-0x8001';
+
+-- underscores
+SELECT
+    int2 '1_000';
+
+SELECT
+    int2 '1_2_3';
+
+SELECT
+    int2 '0xE_FF';
+
+SELECT
+    int2 '0o2_73';
+
+SELECT
+    int2 '0b_10_0101';
+
+-- error cases
+SELECT
+    int2 '_100';
+
+SELECT
+    int2 '100_';
+
+SELECT
+    int2 '10__000';
 

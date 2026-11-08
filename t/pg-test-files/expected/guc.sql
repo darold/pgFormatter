@@ -2,6 +2,9 @@
 -- we can't rely on any specific default value of vacuum_cost_delay
 SHOW datestyle;
 
+-- Check output style of CamelCase enum options
+SET intervalstyle TO 'asd';
+
 -- SET to some nondefault value
 SET vacuum_cost_delay TO 40;
 
@@ -13,6 +16,28 @@ SHOW datestyle;
 
 SELECT
     '2006-08-13 12:34:56'::timestamptz;
+
+-- Check handling of list GUCs
+SET search_path = 'pg_catalog', Foo, 'Bar', '';
+
+SHOW search_path;
+
+SET search_path = NULL;
+
+-- means empty list
+SHOW search_path;
+
+SET search_path = NULL, NULL;
+
+-- syntax error
+SET enable_seqscan = NULL;
+
+-- error
+RESET search_path;
+
+-- Check syntax validation of output_plugin_libraries
+SELECT
+    set_config('output_plugin_libraries', 'pgoutput,', TRUE);
 
 -- SET LOCAL has no effect outside of a transaction
 SET LOCAL vacuum_cost_delay TO 50;
@@ -232,6 +257,49 @@ SET seq_page_cost TO 'NaN';
 
 SET vacuum_cost_delay TO '10s';
 
+SET no_such_variable TO 42;
+
+-- Test "custom" GUCs created on the fly (which aren't really an
+-- intended feature, but many people use them).
+SHOW custom.my_guc;
+
+-- error, not known yet
+SET custom.my_guc = 42;
+
+SHOW custom.my_guc;
+
+RESET custom.my_guc;
+
+-- this makes it go to empty, not become unknown again
+SHOW custom.my_guc;
+
+SET custom.my.qualified.guc = 'foo';
+
+SHOW custom.my.qualified.guc;
+
+SET custom."bad-guc" = 42;
+
+-- disallowed because -c cannot set this name
+SHOW custom."bad-guc";
+
+SET special. "weird name" = 'foo';
+
+-- could be allowed, but we choose not to
+SHOW special. "weird name";
+
+-- Check what happens when you try to set a "custom" GUC within the
+-- namespace of an extension.
+SET plpgsql.extra_foo_warnings = TRUE;
+
+-- allowed if plpgsql is not loaded yet
+LOAD 'plpgsql';
+
+-- this will throw a warning and delete the variable
+SET plpgsql.extra_foo_warnings = TRUE;
+
+-- now, it's an error
+SHOW plpgsql.extra_foo_warnings;
+
 --
 -- Test DISCARD TEMP
 --
@@ -355,6 +423,49 @@ SELECT
     current_schemas(FALSE);
 
 RESET search_path;
+
+--
+-- Test parsing of log_min_messages
+--
+SET log_min_messages TO foo;
+
+-- fail
+SET log_min_messages TO fatal;
+
+SHOW log_min_messages;
+
+SET log_min_messages TO 'fatal';
+
+SHOW log_min_messages;
+
+SET log_min_messages TO 'checkpointer:debug2, autovacuum:debug1';
+
+-- fail
+SET log_min_messages TO 'debug1, backend:error, fatal';
+
+-- fail
+SET log_min_messages TO 'backend:error, debug1, backend:warning';
+
+-- fail
+SET log_min_messages TO 'backend:error, foo:fatal, archiver:debug1';
+
+-- fail
+SET log_min_messages TO 'backend:error, checkpointer:bar, archiver:debug1';
+
+-- fail
+SET log_min_messages TO 'backend:error, checkpointer:debug3, fatal, archiver:debug2, autovacuum:debug1, walsender:debug3';
+
+SHOW log_min_messages;
+
+SET log_min_messages TO 'warning, autovacuum:debug1';
+
+SHOW log_min_messages;
+
+SET log_min_messages TO 'autovacuum:debug1, warning';
+
+SHOW log_min_messages;
+
+RESET log_min_messages;
 
 --
 -- Tests for function-local GUC settings
@@ -508,4 +619,124 @@ SET default_with_oids TO f;
 
 -- Should not allow to set it to true.
 SET default_with_oids TO t;
+
+-- Test that disabling track_activities disables query ID reporting in
+-- pg_stat_activity.
+SET compute_query_id = ON;
+
+SET track_activities = ON;
+
+SELECT
+    query_id IS NOT NULL AS qid_set
+FROM
+    pg_stat_activity
+WHERE
+    pid = pg_backend_pid();
+
+SET track_activities = OFF;
+
+SELECT
+    query_id IS NOT NULL AS qid_set
+FROM
+    pg_stat_activity
+WHERE
+    pid = pg_backend_pid();
+
+RESET track_activities;
+
+RESET compute_query_id;
+
+-- Test GUC_SHOW_IN_OCTAL
+SELECT
+    name,
+    min_val,
+    max_val,
+    boot_val
+FROM
+    pg_settings
+WHERE
+    name IN ('data_directory_mode', 'log_file_mode', 'unix_socket_permissions');
+
+ALTER SYSTEM SET log_file_mode = 0640;
+
+-- decimal, so out of range
+-- Test GUC categories and flag patterns
+SELECT
+    pg_settings_get_flags (NULL);
+
+SELECT
+    pg_settings_get_flags ('does_not_exist');
+
+CREATE TABLE tab_settings_flags AS
+SELECT
+    name,
+    category,
+    'EXPLAIN' = ANY (flags) AS explain,
+    'NO_RESET' = ANY (
+        flags
+) AS no_reset,
+    'NO_RESET_ALL' = ANY (flags) AS no_reset_all,
+    'NOT_IN_SAMPLE' = ANY (flags) AS not_in_sample,
+    'RUNTIME_COMPUTED' = ANY (flags) AS runtime_computed
+FROM
+    pg_show_all_settings() AS psas,
+    pg_settings_get_flags (psas.name) AS flags;
+
+-- Developer GUCs should be flagged with GUC_NOT_IN_SAMPLE:
+SELECT
+    name
+FROM
+    tab_settings_flags
+WHERE
+    category = 'Developer Options'
+    AND NOT not_in_sample
+ORDER BY
+    1;
+
+-- Most query-tuning GUCs are flagged as valid for EXPLAIN.
+-- default_statistics_target is an exception.
+SELECT
+    name
+FROM
+    tab_settings_flags
+WHERE
+    category ~ '^Query Tuning'
+    AND NOT EXPLAIN
+ORDER BY
+    1;
+
+-- Runtime-computed GUCs should be part of the preset category.
+SELECT
+    name
+FROM
+    tab_settings_flags
+WHERE
+    NOT category = 'Preset Options'
+    AND runtime_computed
+ORDER BY
+    1;
+
+-- Preset GUCs are flagged as NOT_IN_SAMPLE.
+SELECT
+    name
+FROM
+    tab_settings_flags
+WHERE
+    category = 'Preset Options'
+    AND NOT not_in_sample
+ORDER BY
+    1;
+
+-- NO_RESET implies NO_RESET_ALL.
+SELECT
+    name
+FROM
+    tab_settings_flags
+WHERE
+    no_reset
+    AND NOT no_reset_all
+ORDER BY
+    1;
+
+DROP TABLE tab_settings_flags;
 

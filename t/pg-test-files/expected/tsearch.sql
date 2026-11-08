@@ -1,3 +1,6 @@
+-- directory paths are passed to us in environment variables
+\getenv abs_srcdir PG_ABS_SRCDIR
+
 --
 -- Sanity checks for text search catalogs
 --
@@ -75,6 +78,19 @@ WHERE
     tt.cfgid IS NULL
     OR tt.tokid IS NULL;
 
+-- Load some test data
+CREATE TABLE test_tsvector (
+    t text,
+    a tsvector
+);
+
+\set filename :abs_srcdir '/data/tsearch.data'
+COPY test_tsvector
+FROM
+    :'filename';
+
+ANALYZE test_tsvector;
+
 -- test basic text search behavior without indexes, then with
 SELECT
     count(*)
@@ -145,6 +161,104 @@ FROM
     test_tsvector
 WHERE
     a @@ '!no_such_lexeme';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> !yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(pl <-> yh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(yh <-> pl)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(qe <2> qt)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:D';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:D';
 
 CREATE INDEX wowidx ON test_tsvector USING gist (a);
 
@@ -234,6 +348,104 @@ FROM
 WHERE
     a @@ '!no_such_lexeme';
 
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> !yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(pl <-> yh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(yh <-> pl)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(qe <2> qt)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:D';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:D';
+
 SET enable_indexscan = OFF;
 
 SET enable_bitmapscan = ON;
@@ -318,6 +530,481 @@ FROM
 WHERE
     a @@ '!no_such_lexeme';
 
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> !yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(pl <-> yh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(yh <-> pl)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(qe <2> qt)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:D';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:D';
+
+-- Test siglen parameter of GiST tsvector_ops
+CREATE INDEX wowidx1 ON test_tsvector USING gist (a tsvector_ops (foo = 1));
+
+CREATE INDEX wowidx1 ON test_tsvector USING gist (a tsvector_ops (siglen = 0));
+
+CREATE INDEX wowidx1 ON test_tsvector USING gist (a tsvector_ops (siglen = 2048));
+
+CREATE INDEX wowidx1 ON test_tsvector USING gist (a tsvector_ops (siglen = 100, foo = 'bar'));
+
+CREATE INDEX wowidx1 ON test_tsvector USING gist (a tsvector_ops (siglen = 100, siglen = 200));
+
+CREATE INDEX wowidx2 ON test_tsvector USING gist (a tsvector_ops (siglen = 1));
+
+\d test_tsvector
+DROP INDEX wowidx;
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr|qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr|qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr&qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'eq&yt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'eq|yt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '(eq&yt)|(wr&qh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '(eq|yt)&(wr|qh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'w:*|q:*';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ ANY ('{wr,qh}');
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'no_such_lexeme';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!no_such_lexeme';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> !yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(pl <-> yh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(yh <-> pl)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(qe <2> qt)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:D';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:D';
+
+DROP INDEX wowidx2;
+
+CREATE INDEX wowidx ON test_tsvector USING gist (a tsvector_ops (siglen = 484));
+
+\d test_tsvector
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr|qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr|qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr&qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'eq&yt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'eq|yt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '(eq&yt)|(wr&qh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '(eq|yt)&(wr|qh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'w:*|q:*';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ ANY ('{wr,qh}');
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'no_such_lexeme';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!no_such_lexeme';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> !yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(pl <-> yh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(yh <-> pl)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(qe <2> qt)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:D';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:D';
+
 RESET enable_seqscan;
 
 RESET enable_indexscan;
@@ -325,6 +1012,8 @@ RESET enable_indexscan;
 RESET enable_bitmapscan;
 
 DROP INDEX wowidx;
+
+ALTER TABLE test_tsvector SET (parallel_workers = 2);
 
 CREATE INDEX wowidx ON test_tsvector USING gin (a);
 
@@ -410,6 +1099,141 @@ FROM
     test_tsvector
 WHERE
     a @@ '!no_such_lexeme';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!pl <-> !yh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!yh <-> pl';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qe <2> qt';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(pl <-> yh)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(yh <-> pl)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!(qe <2> qt)';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wd:D';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:A';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!wd:D';
+
+-- Test optimization of non-empty GIN_SEARCH_MODE_ALL queries
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ '!qh';
+
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr'
+    AND a @@ '!qh';
+
+SELECT
+    count(*)
+FROM
+    test_tsvector
+WHERE
+    a @@ 'wr'
+    AND a @@ '!qh';
 
 RESET enable_seqscan;
 
@@ -770,6 +1594,84 @@ Water, water, every where
 Water, water, every where,
   Nor any drop to drink.
 S. T. Coleridge (1772-1834)
+', to_tsquery('english', 'day & drink'));
+
+SELECT
+    ts_headline('english', '
+Day after day, day after day,
+  We stuck, nor breath nor motion,
+As idle as a painted Ship
+  Upon a painted Ocean.
+Water, water, every where
+  And all the boards did shrink;
+Water, water, every where,
+  Nor any drop to drink.
+S. T. Coleridge (1772-1834)
+', to_tsquery('english', 'day | drink'));
+
+SELECT
+    ts_headline('english', '
+Day after day, day after day,
+  We stuck, nor breath nor motion,
+As idle as a painted Ship
+  Upon a painted Ocean.
+Water, water, every where
+  And all the boards did shrink;
+Water, water, every where,
+  Nor any drop to drink.
+S. T. Coleridge (1772-1834)
+', to_tsquery('english', 'day | !drink'));
+
+SELECT
+    ts_headline('english', '
+Day after day, day after day,
+  We stuck, nor breath nor motion,
+As idle as a painted Ship
+  Upon a painted Ocean.
+Water, water, every where
+  And all the boards did shrink;
+Water, water, every where,
+  Nor any drop to drink.
+S. T. Coleridge (1772-1834)
+', to_tsquery('english', 'painted <-> Ship & drink'));
+
+SELECT
+    ts_headline('english', '
+Day after day, day after day,
+  We stuck, nor breath nor motion,
+As idle as a painted Ship
+  Upon a painted Ocean.
+Water, water, every where
+  And all the boards did shrink;
+Water, water, every where,
+  Nor any drop to drink.
+S. T. Coleridge (1772-1834)
+', to_tsquery('english', 'painted <-> Ship | drink'));
+
+SELECT
+    ts_headline('english', '
+Day after day, day after day,
+  We stuck, nor breath nor motion,
+As idle as a painted Ship
+  Upon a painted Ocean.
+Water, water, every where
+  And all the boards did shrink;
+Water, water, every where,
+  Nor any drop to drink.
+S. T. Coleridge (1772-1834)
+', to_tsquery('english', 'painted <-> Ship | !drink'));
+
+SELECT
+    ts_headline('english', '
+Day after day, day after day,
+  We stuck, nor breath nor motion,
+As idle as a painted Ship
+  Upon a painted Ocean.
+Water, water, every where
+  And all the boards did shrink;
+Water, water, every where,
+  Nor any drop to drink.
+S. T. Coleridge (1772-1834)
 ', phraseto_tsquery('english', 'painted Ocean'));
 
 SELECT
@@ -784,6 +1686,12 @@ Water, water, every where,
   Nor any drop to drink.
 S. T. Coleridge (1772-1834)
 ', phraseto_tsquery('english', 'idle as a painted Ship'));
+
+SELECT
+    ts_headline('english', 'Lorem ipsum urna.  Nullam nullam ullamcorper urna.', to_tsquery('english', 'Lorem') && phraseto_tsquery('english', 'ullamcorper urna'), 'MaxWords=100, MinWords=1');
+
+SELECT
+    ts_headline('english', 'Lorem ipsum urna.  Nullam nullam ullamcorper urna.', phraseto_tsquery('english', 'ullamcorper urna'), 'MaxWords=100, MinWords=5');
 
 SELECT
     ts_headline('english', '
@@ -865,6 +1773,27 @@ Water, water, every where,
 S. T. Coleridge (1772-1834)
 ', to_tsquery('english', 'Coleridge & stuck'), 'MaxFragments=2,FragmentDelimiter=***');
 
+--Fragments with phrase search
+SELECT
+    ts_headline('english', 'Lorem ipsum urna.  Nullam nullam ullamcorper urna.', to_tsquery('english', 'Lorem') && phraseto_tsquery('english', 'ullamcorper urna'), 'MaxFragments=100, MaxWords=100, MinWords=1');
+
+-- Edge cases with empty query
+SELECT
+    ts_headline('english', '', to_tsquery('english', ''));
+
+SELECT
+    ts_headline('english', 'foo bar', to_tsquery('english', ''));
+
+-- Test for large values of StartSel, StopSel and FragmentDelimiter
+SELECT
+    ts_headline('english', 'foo barbar', to_tsquery('english', 'foo'), 'StartSel=' || repeat('x', 32768));
+
+SELECT
+    ts_headline('english', 'foo barbar', to_tsquery('english', 'foo'), 'StopSel=' || repeat('x', 32768));
+
+SELECT
+    ts_headline('english', 'foo barbar', to_tsquery('english', 'foo'), 'FragmentDelimiter=' || repeat('x', 32768));
+
 --Rewrite sub system
 CREATE TABLE test_tsquery (
     txtkeyword text,
@@ -872,6 +1801,14 @@ CREATE TABLE test_tsquery (
 );
 
 \set ECHO none
+\copy test_tsquery from stdin
+'New York'	new <-> york | big <-> apple | nyc
+Moscow	moskva | moscow
+'Sanct Peter'	Peterburg | peter | 'Sanct Peterburg'
+foo & bar & qq	foo & (bar | qq) & city
+1 & (2 <-> 3)	2 <-> 4
+5 <-> 6	5 <-> 7
+\.
 \set ECHO all
 ALTER TABLE test_tsquery
     ADD COLUMN keyword tsquery;
@@ -894,35 +1831,35 @@ SELECT
 FROM
     test_tsquery
 WHERE
-    keyword < 'new & york';
+    keyword < 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword <= 'new & york';
+    keyword <= 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword = 'new & york';
+    keyword = 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword >= 'new & york';
+    keyword >= 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword > 'new & york';
+    keyword > 'new <-> york';
 
 CREATE UNIQUE INDEX bt_tsq ON test_tsquery (keyword);
 
@@ -933,35 +1870,35 @@ SELECT
 FROM
     test_tsquery
 WHERE
-    keyword < 'new & york';
+    keyword < 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword <= 'new & york';
+    keyword <= 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword = 'new & york';
+    keyword = 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword >= 'new & york';
+    keyword >= 'new <-> york';
 
 SELECT
     COUNT(*)
 FROM
     test_tsquery
 WHERE
-    keyword > 'new & york';
+    keyword > 'new <-> york';
 
 RESET enable_seqscan;
 
@@ -978,7 +1915,7 @@ SELECT
     ts_rewrite('moscow & hotel', 'SELECT keyword, sample FROM test_tsquery'::text);
 
 SELECT
-    ts_rewrite('bar & new & qq & foo & york', 'SELECT keyword, sample FROM test_tsquery'::text);
+    ts_rewrite('bar & qq & foo & (new <-> york)', 'SELECT keyword, sample FROM test_tsquery'::text);
 
 SELECT
     ts_rewrite('moscow', 'SELECT keyword, sample FROM test_tsquery');
@@ -987,7 +1924,7 @@ SELECT
     ts_rewrite('moscow & hotel', 'SELECT keyword, sample FROM test_tsquery');
 
 SELECT
-    ts_rewrite('bar & new & qq & foo & york', 'SELECT keyword, sample FROM test_tsquery');
+    ts_rewrite('bar & qq & foo & (new <-> york)', 'SELECT keyword, sample FROM test_tsquery');
 
 SELECT
     ts_rewrite('1 & (2 <-> 3)', 'SELECT keyword, sample FROM test_tsquery'::text);
@@ -1049,7 +1986,7 @@ FROM
 SELECT
     ts_rewrite(query, 'SELECT keyword, sample FROM test_tsquery')
 FROM
-    to_tsquery('english', 'bar &  new & qq & foo & york') AS query;
+    to_tsquery('english', 'bar & qq & foo & (new <-> york)') AS query;
 
 SELECT
     ts_rewrite(query, 'SELECT keyword, sample FROM test_tsquery')
@@ -1064,7 +2001,7 @@ FROM
 SELECT
     ts_rewrite(query, 'SELECT keyword, sample FROM test_tsquery')
 FROM
-    to_tsquery('english', 'bar & new & qq & foo & york') AS query;
+    to_tsquery('english', 'bar & qq & foo & (new <-> york)') AS query;
 
 CREATE INDEX qq ON test_tsquery USING gist (keyword tsquery_ops);
 
@@ -1111,7 +2048,7 @@ FROM
 SELECT
     ts_rewrite(query, 'SELECT keyword, sample FROM test_tsquery')
 FROM
-    to_tsquery('english', 'bar & new & qq & foo & york') AS query;
+    to_tsquery('english', 'bar & qq & foo & (new <-> york)') AS query;
 
 SELECT
     ts_rewrite(query, 'SELECT keyword, sample FROM test_tsquery')
@@ -1126,7 +2063,7 @@ FROM
 SELECT
     ts_rewrite(query, 'SELECT keyword, sample FROM test_tsquery')
 FROM
-    to_tsquery('english', 'bar &  new & qq & foo & york') AS query;
+    to_tsquery('english', 'bar & qq & foo & (new <-> york)') AS query;
 
 SELECT
     ts_rewrite(tsquery_phrase('foo', 'foo'), 'foo', 'bar | baz');
@@ -1208,6 +2145,32 @@ FROM
     test_tsvector
 WHERE
     a @@ to_tsquery('345&qwerty');
+
+-- Test inlining of immutable constant functions
+-- to_tsquery(text) is not immutable, so it won't be inlined
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    test_tsquery,
+    to_tsquery('new') q
+WHERE
+    txtsample @@ q;
+
+-- to_tsquery(regconfig, text) is an immutable function.
+-- That allows us to get rid of using function scan and join at all.
+EXPLAIN (
+    COSTS OFF
+)
+SELECT
+    *
+FROM
+    test_tsquery,
+    to_tsquery('english', 'new') q
+WHERE
+    txtsample @@ q;
 
 -- test finding items in GIN's pending list
 CREATE temp TABLE pendtest (
@@ -1329,8 +2292,12 @@ SELECT
 SELECT
     websearch_to_tsquery('simple', 'abc <-> def');
 
+-- parens are ignored, too
 SELECT
     websearch_to_tsquery('simple', 'abc (pg or class)');
+
+SELECT
+    websearch_to_tsquery('simple', '(foo bar) or (ding dong)');
 
 -- NOT is ignored in quotes
 SELECT
@@ -1417,6 +2384,9 @@ SELECT
 
 SELECT
     websearch_to_tsquery('english', '"pg_class pg"');
+
+SELECT
+    websearch_to_tsquery('english', '"pg_class : pg"');
 
 SELECT
     websearch_to_tsquery('english', 'abc "pg_class pg"');

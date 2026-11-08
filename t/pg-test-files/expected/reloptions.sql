@@ -177,10 +177,61 @@ WHERE
 -- RESET fails if a value is specified
 ALTER TABLE reloptions_test RESET (fillfactor = 12);
 
--- Test vacuum_truncate option
+-- We can RESET an invalid option which for some reason is already set
+UPDATE
+    pg_class
+SET
+    reloptions = '{fillfactor=13,autovacuum_enabled=false,illegal_option=4}'
+WHERE
+    oid = 'reloptions_test'::regclass;
+
+ALTER TABLE reloptions_test RESET (illegal_option);
+
+SELECT
+    reloptions
+FROM
+    pg_class
+WHERE
+    oid = 'reloptions_test'::regclass;
+
+-- Tests for ternary options
+-- behave as boolean option: accept unassigned name and truncated value
 DROP TABLE reloptions_test;
 
 CREATE TABLE reloptions_test (
+    i int
+)
+WITH (
+    vacuum_truncate
+);
+
+SELECT
+    reloptions
+FROM
+    pg_class
+WHERE
+    oid = 'reloptions_test'::regclass;
+
+DROP TABLE reloptions_test;
+
+CREATE TABLE reloptions_test (
+    i int
+)
+WITH (
+    vacuum_truncate = FaLS
+);
+
+SELECT
+    reloptions
+FROM
+    pg_class
+WHERE
+    oid = 'reloptions_test'::regclass;
+
+-- Test vacuum_truncate option
+DROP TABLE reloptions_test;
+
+CREATE TEMP TABLE reloptions_test (
     i int NOT NULL,
     j text
 )
@@ -202,7 +253,9 @@ VALUES
     (1, NULL),
     (NULL, NULL);
 
-VACUUM reloptions_test;
+-- Do an aggressive vacuum to prevent page-skipping.
+VACUUM (FREEZE,
+    DISABLE_PAGE_SKIPPING) reloptions_test;
 
 SELECT
     pg_relation_size('reloptions_test') > 0;
@@ -234,7 +287,9 @@ VALUES
     (1, NULL),
     (NULL, NULL);
 
-VACUUM reloptions_test;
+-- Do an aggressive vacuum to prevent page-skipping.
+VACUUM (FREEZE,
+    DISABLE_PAGE_SKIPPING) reloptions_test;
 
 SELECT
     pg_relation_size('reloptions_test') = 0;
@@ -288,6 +343,61 @@ CREATE TABLE reloptions_test2 (
 WITH (
     toast.not_existing_option = 42
 );
+
+-- Test toast_value_type.
+CREATE TABLE reloptions_test2 (
+    s varchar
+)
+WITH (
+    toast.toast_value_type = 'oid'
+);
+
+CREATE TABLE reloptions_test2 (
+    s varchar
+)
+WITH (
+    toast_value_type = 'int8'
+);
+
+CREATE TABLE reloptions_test2 (
+    s varchar
+)
+WITH (
+    toast_value_type = 'oid'
+);
+
+SELECT
+    reloptions
+FROM
+    pg_class
+WHERE
+    oid = 'reloptions_test2'::regclass;
+
+-- The option is only consulted when the TOAST relation is created, so
+-- changing it afterwards leaves chunk_id alone.
+ALTER TABLE reloptions_test2 SET (toast_value_type = 'oid8');
+
+SELECT
+    a.atttypid::regtype AS chunk_id_type
+FROM
+    pg_class AS c,
+    pg_attribute AS a
+WHERE
+    c.oid = 'reloptions_test2'::regclass
+    AND a.attrelid = c.reltoastrelid
+    AND a.attname = 'chunk_id';
+
+ALTER TABLE reloptions_test2 RESET (toast_value_type);
+
+DROP TABLE reloptions_test2;
+
+-- relkinds not supported.
+CREATE INDEX reloptions_test_idx0 ON reloptions_test (s) WITH (toast_value_type = 'oid');
+
+CREATE TABLE reloptions_test2 (
+    i int
+)
+PARTITION BY RANGE (i) WITH (toast_value_type = 'oid');
 
 -- Mix TOAST & heap
 DROP TABLE reloptions_test;

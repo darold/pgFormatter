@@ -36,87 +36,102 @@ GRANT ALL ON SCHEMA selinto_schema TO public;
 
 SET SESSION AUTHORIZATION regress_selinto_user;
 
-SELECT
-    *
-INTO
-    TABLE selinto_schema.tmp1
-FROM
-    pg_class
-WHERE
-    relname LIKE '%a%';
-
--- Error
-SELECT
-    oid AS clsoid,
-    relname,
-    relnatts + 10 AS x
-INTO
-    selinto_schema.tmp2
-FROM
-    pg_class
-WHERE
-    relname LIKE '%b%';
-
--- Error
-CREATE TABLE selinto_schema.tmp3 (
-    a,
-    b,
-    c
+-- WITH DATA, passes.
+CREATE TABLE selinto_schema.tbl_withdata1 (
+    a
 ) AS
 SELECT
-    oid,
-    relname,
-    relacl
-FROM
-    pg_class
-WHERE
-    relname LIKE '%c%';
+    generate_series(1, 3
+)
+    WITH DATA;
 
--- Error
+INSERT INTO selinto_schema.tbl_withdata1
+    VALUES (4);
+
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF,
+    BUFFERS OFF
+) CREATE TABLE selinto_schema.tbl_withdata2 (
+    a
+) AS
+SELECT
+    generate_series(1, 3
+)
+    WITH DATA;
+
+-- WITH NO DATA, passes.
+CREATE TABLE selinto_schema.tbl_nodata1 (
+    a
+) AS
+SELECT
+    generate_series(1, 3
+)
+    WITH NO DATA;
+
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF,
+    BUFFERS OFF
+) CREATE TABLE selinto_schema.tbl_nodata2 (
+    a
+) AS
+SELECT
+    generate_series(1, 3
+)
+    WITH NO DATA;
+
+-- EXECUTE and WITH DATA, passes.
+PREPARE data_sel AS
+SELECT
+    generate_series(1, 3);
+
+CREATE TABLE selinto_schema.tbl_withdata3 (
+    a
+) AS
+EXECUTE data_sel WITH DATA;
+
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF,
+    BUFFERS OFF
+) CREATE TABLE selinto_schema.tbl_withdata4 (
+    a
+) AS
+EXECUTE data_sel WITH DATA;
+
+-- EXECUTE and WITH NO DATA, passes.
+CREATE TABLE selinto_schema.tbl_nodata3 (
+    a
+) AS
+EXECUTE data_sel WITH NO DATA;
+
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF,
+    BUFFERS OFF
+) CREATE TABLE selinto_schema.tbl_nodata4 (
+    a
+) AS
+EXECUTE data_sel WITH NO DATA;
+
 RESET SESSION AUTHORIZATION;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE regress_selinto_user GRANT INSERT ON TABLES TO regress_selinto_user;
 
 SET SESSION AUTHORIZATION regress_selinto_user;
 
-SELECT
-    *
-INTO
-    TABLE selinto_schema.tmp1
-FROM
-    pg_class
-WHERE
-    relname LIKE '%a%';
-
--- OK
-SELECT
-    oid AS clsoid,
-    relname,
-    relnatts + 10 AS x
-INTO
-    selinto_schema.tmp2
-FROM
-    pg_class
-WHERE
-    relname LIKE '%b%';
-
--- OK
-CREATE TABLE selinto_schema.tmp3 (
-    a,
-    b,
-    c
-) AS
-SELECT
-    oid,
-    relname,
-    relacl
-FROM
-    pg_class
-WHERE
-    relname LIKE '%c%';
-
--- OK
 RESET SESSION AUTHORIZATION;
+
+DEALLOCATE data_sel;
 
 DROP SCHEMA selinto_schema CASCADE;
 
@@ -270,7 +285,7 @@ DECLARE foo CURSOR FOR
     SELECT
         1
     INTO
-        b;
+        int4_tbl;
 
 COPY (
     SELECT
@@ -294,11 +309,100 @@ CREATE VIEW foo AS
 SELECT
     1
 INTO
-    b;
+    int4_tbl;
 
-INSERT INTO b
+INSERT INTO int4_tbl
 SELECT
     1
 INTO
     f;
+
+-- Test CREATE TABLE AS ... IF NOT EXISTS
+CREATE TABLE ctas_ine_tbl AS
+SELECT
+    1;
+
+CREATE TABLE ctas_ine_tbl AS
+SELECT
+    1 / 0;
+
+-- error
+CREATE TABLE IF NOT EXISTS ctas_ine_tbl AS
+SELECT
+    1 / 0;
+
+-- ok
+CREATE TABLE ctas_ine_tbl AS
+SELECT
+    1 / 0 WITH NO DATA;
+
+-- error
+CREATE TABLE IF NOT EXISTS ctas_ine_tbl AS
+SELECT
+    1 / 0 WITH NO DATA;
+
+-- ok
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF
+) CREATE TABLE ctas_ine_tbl AS
+SELECT
+    1 / 0;
+
+-- error
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF
+) CREATE TABLE IF NOT EXISTS ctas_ine_tbl AS
+SELECT
+    1 / 0;
+
+-- ok
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF
+) CREATE TABLE ctas_ine_tbl AS
+SELECT
+    1 / 0 WITH NO DATA;
+
+-- error
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF
+) CREATE TABLE IF NOT EXISTS ctas_ine_tbl AS
+SELECT
+    1 / 0 WITH NO DATA;
+
+-- ok
+PREPARE ctas_ine_query AS
+SELECT
+    1 / 0;
+
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF
+) CREATE TABLE ctas_ine_tbl AS
+EXECUTE ctas_ine_query;
+
+-- error
+EXPLAIN (
+    ANALYZE,
+    COSTS OFF,
+    SUMMARY OFF,
+    TIMING OFF
+) CREATE TABLE IF NOT EXISTS ctas_ine_tbl AS
+EXECUTE ctas_ine_query;
+
+-- ok
+DROP TABLE ctas_ine_tbl;
 

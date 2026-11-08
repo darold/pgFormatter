@@ -4,7 +4,8 @@
 SELECT
     name,
     statement,
-    parameter_types
+    parameter_types,
+    result_types
 FROM
     pg_prepared_statements;
 
@@ -17,7 +18,8 @@ EXECUTE q1;
 SELECT
     name,
     statement,
-    parameter_types
+    parameter_types,
+    result_types
 FROM
     pg_prepared_statements;
 
@@ -42,7 +44,8 @@ SELECT
 SELECT
     name,
     statement,
-    parameter_types
+    parameter_types,
+    result_types
 FROM
     pg_prepared_statements;
 
@@ -52,7 +55,8 @@ DEALLOCATE PREPARE q1;
 SELECT
     name,
     statement,
-    parameter_types
+    parameter_types,
+    result_types
 FROM
     pg_prepared_statements;
 
@@ -62,7 +66,8 @@ DEALLOCATE PREPARE q2;
 SELECT
     name,
     statement,
-    parameter_types
+    parameter_types,
+    result_types
 FROM
     pg_prepared_statements;
 
@@ -180,10 +185,20 @@ FROM
 WHERE
     thepath = $1;
 
+-- DML statements
+PREPARE q8 AS
+UPDATE
+    tenk1
+SET
+    stringu1 = $2
+WHERE
+    unique1 = $1;
+
 SELECT
     name,
     statement,
-    parameter_types
+    parameter_types,
+    result_types
 FROM
     pg_prepared_statements
 ORDER BY

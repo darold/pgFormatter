@@ -31,7 +31,7 @@ GROUP regress_dep_group;
 DROP GROUP regress_dep_group;
 
 -- can't drop the user if we revoke the privileges partially
-REVOKE SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES ON deptest FROM regress_dep_user;
+REVOKE SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, MAINTAIN ON deptest FROM regress_dep_user;
 
 DROP USER regress_dep_user;
 
