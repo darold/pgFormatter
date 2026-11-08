@@ -106,8 +106,8 @@ CREATE TABLE gtest_err_7b (
 CREATE TABLE gtest_err_7c (
     a int PRIMARY KEY,
     b int GENERATED ALWAYS AS ((
-    SELECT
-        a)) STORED
+        SELECT
+            a)) STORED
 );
 
 CREATE TABLE gtest_err_7d (

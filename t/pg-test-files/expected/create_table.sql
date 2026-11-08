@@ -736,8 +736,8 @@ FOR VALUES IN (sum(1));
 
 CREATE TABLE part_bogus_expr_fail PARTITION OF list_parted
 FOR VALUES IN ((
-SELECT
-    1));
+    SELECT
+        1));
 
 CREATE TABLE part_bogus_expr_fail PARTITION OF list_parted
 FOR VALUES IN (generate_series(4, 6));
@@ -828,8 +828,8 @@ FOR VALUES FROM (max('2019-02-01'::date)) TO ('2019-01-01');
 
 CREATE TABLE part_bogus_expr_fail PARTITION OF range_parted
 FOR VALUES FROM ((
-SELECT
-    1)) TO ('2019-01-01');
+    SELECT
+        1)) TO ('2019-01-01');
 
 CREATE TABLE part_bogus_expr_fail PARTITION OF range_parted
 FOR VALUES FROM (generate_series(1, 3)) TO ('2019-01-01');

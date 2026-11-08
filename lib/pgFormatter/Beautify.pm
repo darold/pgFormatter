@@ -1758,6 +1758,9 @@ sub beautify {
 	$self->{'_last_is_column'}             = 0;
 	$self->{'stmt_number'}                 = 1;
 	$self->{'_is_subquery'}                = 0;
+	$self->{'_subquery_stack'}             = [];
+	$self->{'_paren_depth'}                = 0;
+	delete $self->{'_subq_fix'};
 	$self->{'_mysql_delimiter'}            = '';
 	$self->{'_is_in_generated'}            = 0;
 	$self->{'_is_in_between'}              = 0;
@@ -1784,6 +1787,9 @@ sub beautify {
 
 		# Put json_build_object() key/value pairs on their own line
 		$self->_json_layout( $token, $last );
+
+		# Track the subqueries opened by ( SELECT, see _subquery_track()
+		$self->_subquery_track($token);
 
 		if (    $self->{'keep_newline'}
 			and $self->{'_is_in_block'} >= 0
@@ -3095,6 +3101,7 @@ sub beautify {
 			{
 				$self->{'_is_in_cast'} = 0;
 				$self->{'_is_subquery'}++;
+				$self->_subquery_open();
 			}
 			# A data-modifying CTE body -- WITH x AS ( INSERT/UPDATE/DELETE/MERGE ... )
 			# -- is the only place in valid SQL where a '(' is directly followed
@@ -3603,6 +3610,9 @@ sub beautify {
 			$self->{'_has_limit'}                  = 0;
 			$self->{'_not_a_type'}                 = 0;
 			$self->{'_is_subquery'}                = 0;
+			$self->{'_subquery_stack'}             = [];
+			$self->{'_paren_depth'}                = 0;
+			delete $self->{'_subq_fix'};
 			$self->{'_is_in_order_by'}             = 0;
 			$self->{'_is_in_materialized'}         = 0;
 			$self->{'_is_in_drop_function'}        = 0;
@@ -5881,6 +5891,102 @@ sub add_rule {
 	my $group = $rules->{$format} ||= [];
 
 	push @{$group}, ref($token) ? @{$token} : $token;
+}
+
+=head2 _subquery_track
+
+Called at the top of the main loop of beautify() for each token. It counts
+all parentheses, _parenthesis_level is not incremented in a function call,
+and finishes the subquery closed by the previous token: the _is_subquery
+counter is decremented when the closing parenthesis of a ( SELECT ... )
+subquery has been processed without decrementing it, otherwise this counter
+was never decremented when the subquery was not followed by AS or a comma
+and the WHERE clause of the next subqueries was not indented.
+
+=cut
+
+sub _subquery_track {
+	my ( $self, $token ) = @_;
+
+	# Indentation of the first line of a subquery in the arguments of a
+	# function, see _subquery_open(): checked once this line is written.
+	if ( my $fix = $self->{'_subq_fix'} ) {
+		if ( length( $self->{'content'} ) >= $fix->{'len'}
+			and substr( $self->{'content'}, $fix->{'len'} ) =~ /\n([ \t]*)\S/ )
+		{
+			delete $self->{'_subq_fix'};
+			my $start = $fix->{'len'} + $-[1];
+			my $unit  = length( $self->{'space'} x $self->{'spaces'} ) || 1;
+			my $level = int( length($1) / $unit );
+			if ( $level < $fix->{'min'} ) {
+				my $d = $fix->{'min'} - $level;
+				my $indent = $self->{'space'} x ( $self->{'spaces'} * $fix->{'min'} );
+				substr( $self->{'content'}, $start, length($1), $indent );
+				$self->_set_level( $self->{'_level'} + $d, $token );
+				$fix->{'entry'}{'shift'} = $d;
+			}
+		}
+	}
+
+	# The formatting of the CTE definitions relies on the old counting of
+	# _is_subquery, it is not changed for subqueries opened in a WITH clause.
+	if ( my $closed = delete $self->{'_subquery_closing'} ) {
+		$self->{'_is_subquery'}--
+		  if (  !$closed->{'in_with'}
+			and $self->{'_is_subquery'} > 0
+			and $self->{'_is_subquery'} == $closed->{'count'} );
+
+		# Remove the shift applied at the opening of the subquery
+		$self->_set_level( $self->{'_level'} - $closed->{'shift'}, $token )
+		  if ( $closed->{'shift'} and $self->{'_level'} >= $closed->{'shift'} );
+	}
+
+	if ( $token eq '(' ) {
+		$self->{'_paren_depth'}++;
+	}
+	elsif ( $token eq ')' ) {
+		my $stack = $self->{'_subquery_stack'};
+		if ( @{$stack} and $stack->[-1]{'depth'} == $self->{'_paren_depth'} ) {
+			my $e = pop( @{$stack} );
+			delete $self->{'_subq_fix'}
+			  if ( $self->{'_subq_fix'} and $self->{'_subq_fix'}{'entry'} == $e );
+			$self->{'_subquery_closing'} =
+			  { count => $self->{'_is_subquery'}, %{$e} };
+		}
+		$self->{'_paren_depth'}-- if ( $self->{'_paren_depth'} > 0 );
+	}
+}
+
+=head2 _subquery_open
+
+Remember the depth of the opening parenthesis of a ( SELECT ... ) subquery.
+
+The content of a subquery in the arguments of a function is indented at
+least one level more than the line where it is opened. When it is not, like
+in "FROM invoices)) + coalesce((" after the end of another subquery, the
+first line of the subquery is moved on the right once it is written and the
+rest of the subquery is shifted the same way. The shift is removed when the
+subquery is closed.
+
+=cut
+
+sub _subquery_open {
+	my $self = shift;
+
+	my $entry = {
+		depth   => $self->{'_paren_depth'},
+		in_with => ( $self->{'_is_in_with'} ? 1 : 0 ),
+		shift   => 0
+	};
+	push( @{ $self->{'_subquery_stack'} }, $entry );
+
+	if ( $self->{'spaces'} and $self->{'content'} =~ /\(\s*\(\z/ ) {
+		$self->{'_subq_fix'} = {
+			len   => length( $self->{'content'} ),
+			min   => $self->_current_line_level() + 1,
+			entry => $entry
+		};
+	}
 }
 
 =head2 _json_layout
