@@ -162,7 +162,7 @@ Takes options as hash. Following options are recognized:
 
 =item * no_extra_line - do not add an extra empty line at end of the output
 
-=item * keep_newline - preserve empty line in plpgsql code
+=item * keep_newline - preserve empty line in plpgsql code and around comments
 
 =item * no_space_function - remove space before function call and open parenthesis
 
@@ -847,9 +847,16 @@ sub tokenize_sql {
         )
     }ismx;
 
-	my @query = grep { /\S/ } $query =~ m{$re}simxg;
+	my @raw = $query =~ m{$re}simxg;
+
+	# With keep_newline, mark the comments of the query preceded or followed
+	# by an empty line, see _mark_comment_newline()
+	$self->_mark_comment_newline( \@raw )
+	  if ( $self->{'keep_newline'} and !defined wantarray );
+
+	my @query = grep { /\S/ } @raw;
 	if ( $self->{'keep_newline'} ) {
-		@query = grep { /(?:\S|^[\r\n]+$)/ } $query =~ m{$re}simxg;
+		@query = grep { /(?:\S|^[\r\n]+$)/ } @raw;
 	}
 
 	# fix := operator that can not be found when attached to the variable name
@@ -5009,6 +5016,9 @@ sub beautify {
 	# Add newline after ariga/atlas related comments
 	$self->{'content'} =~ s/(\-\-\s*atlas:[^\n]+)/$1\n/gs;
 
+	# Restore the empty lines around the comments
+	$self->_restore_comment_newline();
+
 	return;
 }
 
@@ -5837,6 +5847,112 @@ sub _is_sql_keyword {
 	my ( $self, $token ) = @_;
 
 	return ~~ grep { $_ eq uc($token) } @{ $self->{'sql_keywords'} };
+}
+
+=head2 _mark_comment_newline
+
+With the keep_newline option, mark the comments preceded or followed by at
+least one empty line in the input, the formatting removes most of them.
+The marks are stored in the comment token itself, so they follow it whatever
+the way the comment is written: a \x05 for an empty line before and a \x06 for
+an empty line after, at the end of a single line comment and just after the
+start of a C style comment, where they change nothing to its formatting. They are replaced by an empty line by
+_restore_comment_newline() at the end of beautify().
+
+=cut
+
+sub _mark_comment_newline {
+	my ( $self, $raw ) = @_;
+
+	my $empty = qr/^(?:(?:\r\n){2,}|\n{2,}|\r{2,})$/;
+	for ( my $i = 0 ; $i <= $#{$raw} ; $i++ ) {
+		next if ( !$self->_is_comment( $raw->[$i] ) );
+
+		# Previous and next tokens, spaces and tabulations excluded
+		my ( $p, $n ) = ( $i - 1, $i + 1 );
+		$p-- while ( $p >= 0 and $raw->[$p] =~ /^[\t ]+$/ );
+		$n++ while ( $n <= $#{$raw} and $raw->[$n] =~ /^[\t ]+$/ );
+
+		# The single line comments include the whitespace before them
+		my $before = ( $raw->[$i] =~ /^[\t ]*\r?\n[\t ]*\r?\n\s*--/
+			  or ( $p >= 0 and $raw->[$p] =~ $empty ) );
+		my $after = ( $n <= $#{$raw} and $raw->[$n] =~ $empty );
+		next if ( !$before and !$after );
+
+		my $marks = ( $before ? "\x05" : '' ) . ( $after ? "\x06" : '' );
+		if ( $raw->[$i] =~ m#^\s*/\*#s ) {
+			$raw->[$i] =~ s#^(\s*/\*)#$1$marks#s;
+		}
+		else {
+			$raw->[$i] =~ s/[\t ]+$//;
+			$raw->[$i] .= $marks;
+		}
+	}
+}
+
+=head2 _restore_comment_newline
+
+Replace the marks set by _mark_comment_newline() by an empty line before or
+after the comment, when there is not already one. An empty line is only added
+before a comment that starts its line and after a comment that ends its line,
+never at the start or at the end of the output.
+
+=cut
+
+sub _restore_comment_newline {
+	my $self = shift;
+
+	return if ( $self->{'content'} !~ /[\x05\x06]/ );
+
+	my $c   = $self->{'content'};
+	my $out = '';
+	while ( $c =~ /([\x05\x06])/ ) {
+		my $mark = $1;
+		$out .= substr( $c, 0, $-[0] );
+		$c = substr( $c, $-[0] + 1 );
+
+		if ( $mark eq "\x05" ) {
+
+			# The mark is on the line where the comment starts: at the end of
+			# a single line comment, just after the start of a C style comment.
+			my $ls = rindex( $out, "\n" ) + 1;
+			my $before = substr( $out, 0, $ls );
+			$before =~ s/[\x05\x06]//g;
+			if (    $ls > 0
+				and substr( $out, $ls ) =~ m#\A[\t ]*(?:<span[^>]*>)?(?:--|/\*)#
+				and $before =~ /\S/
+				and $before !~ /\n[\t ]*\n\z/ )
+			{
+				substr( $out, $ls, 0, "\n" );
+			}
+		}
+
+		# The comment ends its line: add an empty line after it when something
+		# follows and there is not already one.
+		else {
+
+			# Move to the end of a C style comment, they can be nested
+			if ( $out =~ m#/\*\x05?\z# ) {
+				my $depth = 1;
+				while ( $depth and $c =~ m#\G.*?(/\*|\*/)#gcs ) {
+					$depth += ( $1 eq '/*' ) ? 1 : -1;
+				}
+				next if ($depth);
+				my $end = pos($c);
+				$out .= substr( $c, 0, $end );
+				$c = substr( $c, $end );
+			}
+			next if ( $c !~ m#\A((?:</span>)?[\t ]*\n)# );
+			my $eol  = $1;
+			my $rest = substr( $c, length($eol) );
+			$rest =~ s/[\x05\x06]//g;
+			if ( $rest =~ /\S/ and $rest !~ /\A[\t ]*\n/ ) {
+				$out .= $eol . "\n";
+				$c = substr( $c, length($eol) );
+			}
+		}
+	}
+	$self->{'content'} = $out . $c;
 }
 
 =head2 _is_comment
@@ -7349,11 +7465,11 @@ sub _remove_comments {
 			$lines[$old_j] =~ s/^(\s*\-\-.*)$/PGF_COMMENT${idx}A/;
 			$self->{'comments'}{"PGF_COMMENT${idx}A"} = $cmt;
 			$idx++;
-			$j--;
-			while ( $j > $old_j ) {
-				delete $lines[$j];
-				$j--;
-			}
+
+			# Remove the other lines of the comment, delete() would leave
+			# undefined entries that are written as empty lines by join().
+			splice( @lines, $old_j + 1, $j - $old_j - 1 );
+			$j = $old_j;
 		}
 		if ( $lines[$j] =~ s/(\s*\-\-.*)$/PGF_COMMENT${idx}A/ ) {
 			$self->{'comments'}{"PGF_COMMENT${idx}A"} = $1;
@@ -7380,8 +7496,10 @@ sub _remove_comments {
 	}
 	$self->{'content'} = join( "\n", @lines );
 
-	# Remove extra newline after comment
-	while ( $self->{'content'} =~ s/(PGF_COMMENT\d+A[\n])[\n]+/$1/s ) { };
+	# Remove extra newline after comment, they are kept with keep_newline
+	if ( !$self->{'keep_newline'} ) {
+		while ( $self->{'content'} =~ s/(PGF_COMMENT\d+A[\n])[\n]+/$1/s ) { };
+	}
 
 	# Replace subsequent comment by a single one
 	while ( $self->{'content'} =~

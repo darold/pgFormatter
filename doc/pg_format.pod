@@ -48,7 +48,8 @@ Options:
                             regroupement. Default is to group statements.
     -h | --help           : show this message and exit.
     -i | --inplace        : override input files with formatted content.
-    -k | --keep-newline   : preserve empty line in plpgsql code.
+    -k | --keep-newline   : preserve empty line in plpgsql code and one
+                            empty line before and after comments.
     -I | --ident-case N   : Change the case of the identifiers (schema,
                             table, column and alias names). Default is
                             unchanged: 0. Values: 0=>unchanged, 1=>lowercase,

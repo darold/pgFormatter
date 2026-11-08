@@ -39,6 +39,7 @@ foreach my $f (@files)
 	$opt = "--split-in-param" if ($f =~ m#/ex100.sql$#);
 	$opt = "-s 0" if ($f =~ m#/ex104.sql$#);
 	$opt = "-w 20" if ($f =~ m#/ex105.sql$#);
+	$opt = "-k" if ($f =~ m#/ex107.sql$#);
 	if ($f =~ m#/ex61.sql$#)
 	{
 		my ($fh, $tmpfile) = tempfile('tmp_pgformatXXXX', SUFFIX => '.lst', TMPDIR => 1, O_TEMPORARY => 1, UNLINK => 1 );
