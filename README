@@ -103,6 +103,38 @@ DESCRIPTION
         pg_format -n t/test-files/ex1.sql
         pg_format -f 2 -n -o result.sql t/test-files/ex1.sql
 
+  Interactive mode
+    When the first non empty line of the input is STARTSTREAM, pg_format
+    reads the SQL code block by block instead of waiting for the end of the
+    input. Each time a line with ENDSTREAM is entered, the SQL code given
+    since the previous block is formatted with the options of the command
+    line and written, followed by an ENDSTREAM line that marks the end of the
+    formatted code, and the output is flushed. pg_format then waits for the
+    next block until the end of the input, Ctrl+D in a terminal. A block that
+    is not ended by ENDSTREAM is formatted at the end of the input.
+
+    STARTSTREAM and ENDSTREAM must be alone on their line, the case does not
+    matter. Each block is formatted independently: the statement numbering
+    (-N) and the anonymization start again with each block. The -i |
+    --inplace option can not be used in this mode. For example:
+
+        $ pg_format -
+        STARTSTREAM
+        select a, b from t;
+        ENDSTREAM
+        SELECT
+            a,
+            b
+        FROM
+            t;
+
+        ENDSTREAM
+
+    This allows a program, like an editor plugin, to keep a single pg_format
+    process running and to send it the code to format through a pipe, it
+    reads the result up to the ENDSTREAM line. Without STARTSTREAM as first
+    non empty line, the input is read and formatted at once as before.
+
   CGI context
     Install pg_format into your cgi-bin folder, grant execution on it as a
     CGI script (maybe you should add the .cgi extension) and get it from
