@@ -359,20 +359,22 @@ s/([\n\r])\s+([EU]*'(?:[^']*)')/$1 . ($self->{ 'space' } x $self->{ 'spaces' }) 
 				  s/(\s+AS\s+)'(\s+.*?END[;]*\s*)'/$1\$PGFDLM\$$2\$PGFDLM\$/is;
 			}
 
-# Remove any call too CREATE/DROP LANGUAGE to not break search of function code separator
-			$temp_content[$j] =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
-
 	  # Fix case where code separator with $ is associated to begin/end keywords
 			$temp_content[$j] =~ s/([^\s]+\$)(BEGIN\s)/$1 $2/igs;
 			$temp_content[$j] =~ s/(\sEND)(\$[^\s]+)/$1 $2/igs;
-			$temp_content[$j] =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
+
+			# Search the language and the code separator of the function
+			# without the code following a CREATE/DROP LANGUAGE, that code
+			# must not be removed from the query.
+			my $fct_code = $temp_content[$j];
+			$fct_code =~ s/(CREATE|DROP)\s+LANGUAGE\s+[^;]+;.*//is;
 			my $fctname = '';
-			if ( $temp_content[$j] =~ /^([^\s\(]+)/ ) {
+			if ( $fct_code =~ /^([^\s\(]+)/ ) {
 				$fctname = lc($1);
 			}
 			next if ( !$fctname );
 			my $language = 'sql';
-			if ( $temp_content[$j] =~ /\s+LANGUAGE\s+[']*([^'\s;]+)[']*/is ) {
+			if ( $fct_code =~ /\s+LANGUAGE\s+[']*([^'\s;]+)[']*/is ) {
 				$language = lc($1);
 				if ( $language =~ /AAKEYWCONST(\d+)AA/i ) {
 					$language = lc( $self->{'keyword_constant'}{$1} );
@@ -405,7 +407,7 @@ s/AS ('[^\']+')(?:\s*,\s*('[^\']+'|AAKEYWCONST\d+AA))?/AS CODEPARTB${i}CODEPARTB
 			elsif ( $language !~ /^(?:plpg)?sql$/ ) {
 
 				# Try to find the code separator
-				my $tmp_str = $temp_content[$j];
+				my $tmp_str = $fct_code;
 				while ( $tmp_str =~ s/\s+AS\s+([^\s]+)\s+//is ) {
 					my $code_sep = quotemeta($1);
 					foreach my $k ( @{ $self->{'keywords'} } ) {

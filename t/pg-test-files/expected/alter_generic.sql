@@ -301,6 +301,487 @@ WHERE
 --
 -- Procedural Language
 --
+CREATE
+LANGUAGE alt_lang1
+HANDLER plpgsql_call_handler;
+
+CREATE
+LANGUAGE alt_lang2
+HANDLER plpgsql_call_handler;
+
+ALTER LANGUAGE alt_lang1
+OWNER TO regress_alter_generic_user1;
+
+-- OK
+ALTER LANGUAGE alt_lang2
+OWNER TO regress_alter_generic_user2;
+
+-- OK
+SET SESSION AUTHORIZATION regress_alter_generic_user1;
+
+ALTER LANGUAGE alt_lang1
+RENAME TO alt_lang2;
+
+-- failed (name conflict)
+ALTER LANGUAGE alt_lang2
+RENAME TO alt_lang3;
+
+-- failed (not owner)
+ALTER LANGUAGE alt_lang1
+RENAME TO alt_lang3;
+
+-- OK
+ALTER LANGUAGE alt_lang2
+OWNER TO regress_alter_generic_user3;
+
+-- failed (not owner)
+ALTER LANGUAGE alt_lang3
+OWNER TO regress_alter_generic_user2;
+
+-- failed (no role membership)
+ALTER LANGUAGE alt_lang3
+OWNER TO regress_alter_generic_user3;
+
+-- OK
+RESET SESSION AUTHORIZATION;
+
+SELECT
+    lanname,
+    a.rolname
+FROM
+    pg_language l,
+    pg_authid a
+WHERE
+    l.lanowner = a.oid
+    AND l.lanname LIKE 'alt_lang%'
+ORDER BY
+    lanname;
+
+--
+-- Operator
+--
+SET SESSION AUTHORIZATION regress_alter_generic_user1;
+
+CREATE OPERATOR @-@ (
+    LEFTARG = int4,
+    RIGHTARG = int4,
+    PROCEDURE = int4mi
+);
+
+CREATE OPERATOR @+@ (
+    LEFTARG = int4,
+    RIGHTARG = int4,
+    PROCEDURE = int4pl
+);
+
+ALTER OPERATOR @+@ (int4, int4) OWNER TO regress_alter_generic_user2;
+
+-- failed (no role membership)
+ALTER OPERATOR @+@ (int4, int4) OWNER TO regress_alter_generic_user3;
+
+-- OK
+ALTER OPERATOR @-@ (int4, int4) SET SCHEMA alt_nsp2;
+
+-- OK
+SET SESSION AUTHORIZATION regress_alter_generic_user2;
+
+CREATE OPERATOR @-@ (
+    LEFTARG = int4,
+    RIGHTARG = int4,
+    PROCEDURE = int4mi
+);
+
+ALTER OPERATOR @+@ (int4, int4) OWNER TO regress_alter_generic_user2;
+
+-- failed (not owner)
+ALTER OPERATOR @-@ (int4, int4) OWNER TO regress_alter_generic_user3;
+
+-- failed (no role membership)
+ALTER OPERATOR @+@ (int4, int4) SET SCHEMA alt_nsp2;
+
+-- failed (not owner)
+-- can't test this: the error message includes the raw oid of namespace
+-- ALTER OPERATOR  @-@ (int4, int4) SET SCHEMA alt_nsp2;   -- failed (name conflict)
+RESET SESSION AUTHORIZATION;
+
+SELECT
+    n.nspname,
+    oprname,
+    a.rolname,
+    oprleft::regtype,
+    oprright::regtype,
+    oprcode::regproc
+FROM
+    pg_operator o,
+    pg_namespace n,
+    pg_authid a
+WHERE
+    o.oprnamespace = n.oid
+    AND o.oprowner = a.oid
+    AND n.nspname IN ('alt_nsp1', 'alt_nsp2')
+ORDER BY
+    nspname,
+    oprname;
+
+--
+-- OpFamily and OpClass
+--
+CREATE OPERATOR FAMILY alt_opf1
+    USING HASH;
+
+CREATE OPERATOR FAMILY alt_opf2
+    USING HASH;
+
+ALTER OPERATOR FAMILY alt_opf1
+    USING HASH OWNER TO regress_alter_generic_user1;
+
+ALTER OPERATOR FAMILY alt_opf2
+    USING HASH OWNER TO regress_alter_generic_user1;
+
+CREATE OPERATOR CLASS alt_opc1 FOR TYPE uuid
+    USING HASH AS STORAGE uuid;
+
+CREATE OPERATOR CLASS alt_opc2 FOR TYPE uuid
+    USING HASH AS STORAGE uuid;
+
+ALTER OPERATOR CLASS alt_opc1
+    USING HASH OWNER TO regress_alter_generic_user1;
+
+ALTER OPERATOR CLASS alt_opc2
+    USING HASH OWNER TO regress_alter_generic_user1;
+
+SET SESSION AUTHORIZATION regress_alter_generic_user1;
+
+ALTER OPERATOR FAMILY alt_opf1
+    USING HASH RENAME TO alt_opf2;
+
+-- failed (name conflict)
+ALTER OPERATOR FAMILY alt_opf1
+    USING HASH RENAME TO alt_opf3;
+
+-- OK
+ALTER OPERATOR FAMILY alt_opf2
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+-- failed (no role membership)
+ALTER OPERATOR FAMILY alt_opf2
+    USING HASH OWNER TO regress_alter_generic_user3;
+
+-- OK
+ALTER OPERATOR FAMILY alt_opf2
+    USING HASH SET SCHEMA alt_nsp2;
+
+-- OK
+ALTER OPERATOR CLASS alt_opc1
+    USING HASH RENAME TO alt_opc2;
+
+-- failed (name conflict)
+ALTER OPERATOR CLASS alt_opc1
+    USING HASH RENAME TO alt_opc3;
+
+-- OK
+ALTER OPERATOR CLASS alt_opc2
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+-- failed (no role membership)
+ALTER OPERATOR CLASS alt_opc2
+    USING HASH OWNER TO regress_alter_generic_user3;
+
+-- OK
+ALTER OPERATOR CLASS alt_opc2
+    USING HASH SET SCHEMA alt_nsp2;
+
+-- OK
+RESET SESSION AUTHORIZATION;
+
+CREATE OPERATOR FAMILY alt_opf1
+    USING HASH;
+
+CREATE OPERATOR FAMILY alt_opf2
+    USING HASH;
+
+ALTER OPERATOR FAMILY alt_opf1
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+ALTER OPERATOR FAMILY alt_opf2
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+CREATE OPERATOR CLASS alt_opc1 FOR TYPE macaddr
+    USING HASH AS STORAGE macaddr;
+
+CREATE OPERATOR CLASS alt_opc2 FOR TYPE macaddr
+    USING HASH AS STORAGE macaddr;
+
+ALTER OPERATOR CLASS alt_opc1
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+ALTER OPERATOR CLASS alt_opc2
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+SET SESSION AUTHORIZATION regress_alter_generic_user2;
+
+ALTER OPERATOR FAMILY alt_opf3
+    USING HASH RENAME TO alt_opf4;
+
+-- failed (not owner)
+ALTER OPERATOR FAMILY alt_opf1
+    USING HASH RENAME TO alt_opf4;
+
+-- OK
+ALTER OPERATOR FAMILY alt_opf3
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+-- failed (not owner)
+ALTER OPERATOR FAMILY alt_opf2
+    USING HASH OWNER TO regress_alter_generic_user3;
+
+-- failed (no role membership)
+ALTER OPERATOR FAMILY alt_opf3
+    USING HASH SET SCHEMA alt_nsp2;
+
+-- failed (not owner)
+ALTER OPERATOR FAMILY alt_opf2
+    USING HASH SET SCHEMA alt_nsp2;
+
+-- failed (name conflict)
+ALTER OPERATOR CLASS alt_opc3
+    USING HASH RENAME TO alt_opc4;
+
+-- failed (not owner)
+ALTER OPERATOR CLASS alt_opc1
+    USING HASH RENAME TO alt_opc4;
+
+-- OK
+ALTER OPERATOR CLASS alt_opc3
+    USING HASH OWNER TO regress_alter_generic_user2;
+
+-- failed (not owner)
+ALTER OPERATOR CLASS alt_opc2
+    USING HASH OWNER TO regress_alter_generic_user3;
+
+-- failed (no role membership)
+ALTER OPERATOR CLASS alt_opc3
+    USING HASH SET SCHEMA alt_nsp2;
+
+-- failed (not owner)
+ALTER OPERATOR CLASS alt_opc2
+    USING HASH SET SCHEMA alt_nsp2;
+
+-- failed (name conflict)
+RESET SESSION AUTHORIZATION;
+
+SELECT
+    nspname,
+    opfname,
+    amname,
+    rolname
+FROM
+    pg_opfamily o,
+    pg_am m,
+    pg_namespace n,
+    pg_authid a
+WHERE
+    o.opfmethod = m.oid
+    AND o.opfnamespace = n.oid
+    AND o.opfowner = a.oid
+    AND n.nspname IN ('alt_nsp1', 'alt_nsp2')
+    AND NOT opfname LIKE 'alt_opc%'
+ORDER BY
+    nspname,
+    opfname;
+
+SELECT
+    nspname,
+    opcname,
+    amname,
+    rolname
+FROM
+    pg_opclass o,
+    pg_am m,
+    pg_namespace n,
+    pg_authid a
+WHERE
+    o.opcmethod = m.oid
+    AND o.opcnamespace = n.oid
+    AND o.opcowner = a.oid
+    AND n.nspname IN ('alt_nsp1', 'alt_nsp2')
+ORDER BY
+    nspname,
+    opcname;
+
+-- ALTER OPERATOR FAMILY ... ADD/DROP
+-- Should work. Textbook case of CREATE / ALTER ADD / ALTER DROP / DROP
+BEGIN TRANSACTION;
+CREATE OPERATOR FAMILY alt_opf4
+    USING btree;
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        ADD
+        -- int4 vs int2
+        OPERATOR 1 < (int4, int2),
+        OPERATOR 2 <= (int4, int2),
+        OPERATOR 3 = (int4, int2),
+        OPERATOR 4 >= (int4, int2),
+        OPERATOR 5 > (int4, int2),
+        FUNCTION 1 btint42cmp(int4, int2);
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        DROP
+        -- int4 vs int2
+        OPERATOR 1 (int4, int2),
+        OPERATOR 2 (int4, int2),
+        OPERATOR 3 (int4, int2),
+        OPERATOR 4 (int4, int2),
+        OPERATOR 5 (int4, int2),
+        FUNCTION 1 (int4, int2);
+DROP OPERATOR FAMILY alt_opf4
+    USING btree;
+ROLLBACK;
+
+-- Should fail. Invalid values for ALTER OPERATOR FAMILY .. ADD / DROP
+CREATE OPERATOR FAMILY alt_opf4
+    USING btree;
+
+ALTER OPERATOR FAMILY alt_opf4
+    USING invalid_index_method
+        ADD OPERATOR 1 < (int4, int2);
+
+-- invalid indexing_method
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        ADD OPERATOR 6 < (int4, int2);
+
+-- operator number should be between 1 and 5
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        ADD OPERATOR 0 < (int4, int2);
+
+-- operator number should be between 1 and 5
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        ADD OPERATOR 1 <;
+
+-- operator without argument types
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        ADD FUNCTION 0 btint42cmp(int4, int2);
+
+-- function number should be between 1 and 5
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        ADD FUNCTION 6 btint42cmp(int4, int2);
+
+-- function number should be between 1 and 5
+ALTER OPERATOR FAMILY alt_opf4
+    USING btree
+        ADD STORAGE invalid_storage;
+
+-- Ensure STORAGE is not a part of ALTER OPERATOR FAMILY
+DROP OPERATOR FAMILY alt_opf4
+    USING btree;
+
+-- Should fail. Need to be SUPERUSER to do ALTER OPERATOR FAMILY .. ADD / DROP
+BEGIN TRANSACTION;
+CREATE ROLE regress_alter_generic_user5 NOSUPERUSER;
+CREATE OPERATOR FAMILY alt_opf5
+    USING btree;
+SET ROLE regress_alter_generic_user5;
+ALTER OPERATOR FAMILY alt_opf5
+    USING btree
+        ADD OPERATOR 1 < (int4, int2),
+        FUNCTION 1 btint42cmp(int4, int2);
+RESET ROLE;
+DROP OPERATOR FAMILY alt_opf5
+    USING btree;
+ROLLBACK;
+
+-- Should fail. Need rights to namespace for ALTER OPERATOR FAMILY .. ADD / DROP
+BEGIN TRANSACTION;
+CREATE ROLE regress_alter_generic_user6;
+CREATE SCHEMA alt_nsp6;
+REVOKE ALL ON SCHEMA alt_nsp6 FROM regress_alter_generic_user6;
+CREATE OPERATOR FAMILY alt_nsp6.alt_opf6
+    USING btree;
+SET ROLE regress_alter_generic_user6;
+ALTER OPERATOR FAMILY alt_nsp6.alt_opf6
+    USING btree
+        ADD OPERATOR 1 < (int4, int2);
+ROLLBACK;
+
+-- Should fail. Only two arguments required for ALTER OPERATOR FAMILY ... DROP OPERATOR
+CREATE OPERATOR FAMILY alt_opf7
+    USING btree;
+
+ALTER OPERATOR FAMILY alt_opf7
+    USING btree
+        ADD OPERATOR 1 < (int4, int2);
+
+ALTER OPERATOR FAMILY alt_opf7
+    USING btree
+        DROP OPERATOR 1 (int4, int2, int8);
+
+DROP OPERATOR FAMILY alt_opf7
+    USING btree;
+
+-- Should work. During ALTER OPERATOR FAMILY ... DROP OPERATOR
+-- when left type is the same as right type, a DROP with only one argument type should work
+CREATE OPERATOR FAMILY alt_opf8
+    USING btree;
+
+ALTER OPERATOR FAMILY alt_opf8
+    USING btree
+        ADD OPERATOR 1 < (int4, int4);
+
+DROP OPERATOR FAMILY alt_opf8
+    USING btree;
+
+-- Should work. Textbook case of ALTER OPERATOR FAMILY ... ADD OPERATOR with FOR ORDER BY
+CREATE OPERATOR FAMILY alt_opf9
+    USING gist;
+
+ALTER OPERATOR FAMILY alt_opf9
+    USING gist
+        ADD OPERATOR 1 < (int4, int4) FOR
+    ORDER BY
+        float_ops;
+
+DROP OPERATOR FAMILY alt_opf9
+    USING gist;
+
+-- Should fail. Ensure correct ordering methods in ALTER OPERATOR FAMILY ... ADD OPERATOR .. FOR ORDER BY
+CREATE OPERATOR FAMILY alt_opf10
+    USING btree;
+
+ALTER OPERATOR FAMILY alt_opf10
+    USING btree
+        ADD OPERATOR 1 < (int4, int4) FOR
+    ORDER BY
+        float_ops;
+
+DROP OPERATOR FAMILY alt_opf10
+    USING btree;
+
+-- Should work. Textbook case of ALTER OPERATOR FAMILY ... ADD OPERATOR with FOR ORDER BY
+CREATE OPERATOR FAMILY alt_opf11
+    USING gist;
+
+ALTER OPERATOR FAMILY alt_opf11
+    USING gist
+        ADD OPERATOR 1 < (int4, int4) FOR
+    ORDER BY
+        float_ops;
+
+ALTER OPERATOR FAMILY alt_opf11
+    USING gist
+        DROP OPERATOR 1 (int4, int4);
+
+DROP OPERATOR FAMILY alt_opf11
+    USING gist;
+
+-- Should fail. btree comparison functions should return INTEGER in ALTER OPERATOR FAMILY ... ADD FUNCTION
+BEGIN TRANSACTION;
+CREATE OPERATOR FAMILY alt_opf12
+    USING btree;
 CREATE FUNCTION fn_opf12 (int4, int2)
     RETURNS bigint
     AS '
@@ -308,14 +789,11 @@ CREATE FUNCTION fn_opf12 (int4, int2)
         NULL::bigint;
 '
 LANGUAGE SQL;
-
 ALTER OPERATOR FAMILY alt_opf12
     USING btree
         ADD FUNCTION 1 fn_opf12 (int4, int2);
-
 DROP OPERATOR FAMILY alt_opf12
     USING btree;
-
 ROLLBACK;
 
 -- Should fail. hash comparison functions should return INTEGER in ALTER OPERATOR FAMILY ... ADD FUNCTION
@@ -792,4 +1270,20 @@ ORDER BY
 DROP FOREIGN DATA WRAPPER alt_fdw2 CASCADE;
 
 DROP FOREIGN DATA WRAPPER alt_fdw3 CASCADE;
+
+DROP LANGUAGE alt_lang2
+CASCADE;
+
+DROP LANGUAGE alt_lang3
+CASCADE;
+
+DROP SCHEMA alt_nsp1 CASCADE;
+
+DROP SCHEMA alt_nsp2 CASCADE;
+
+DROP USER regress_alter_generic_user1;
+
+DROP USER regress_alter_generic_user2;
+
+DROP USER regress_alter_generic_user3;
 

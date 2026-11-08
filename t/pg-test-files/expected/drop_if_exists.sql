@@ -194,6 +194,169 @@ CREATE OPERATOR @#@ (
 DROP OPERATOR @#@ (int8, int8);
 
 -- language
+DROP LANGUAGE test_language_exists;
+
+DROP LANGUAGE IF EXISTS test_language_exists;
+
+-- cast
+DROP CAST(text AS text);
+
+DROP CAST IF EXISTS (text AS text);
+
+-- trigger
+DROP TRIGGER test_trigger_exists ON test_exists;
+
+DROP TRIGGER IF EXISTS test_trigger_exists ON test_exists;
+
+DROP TRIGGER test_trigger_exists ON no_such_table;
+
+DROP TRIGGER IF EXISTS test_trigger_exists ON no_such_table;
+
+DROP TRIGGER test_trigger_exists ON no_such_schema.no_such_table;
+
+DROP TRIGGER IF EXISTS test_trigger_exists ON no_such_schema.no_such_table;
+
+CREATE TRIGGER test_trigger_exists
+    BEFORE UPDATE ON test_exists
+    FOR EACH ROW
+    EXECUTE PROCEDURE suppress_redundant_updates_trigger ();
+
+DROP TRIGGER test_trigger_exists ON test_exists;
+
+-- rule
+DROP RULE test_rule_exists ON test_exists;
+
+DROP RULE IF EXISTS test_rule_exists ON test_exists;
+
+DROP RULE test_rule_exists ON no_such_table;
+
+DROP RULE IF EXISTS test_rule_exists ON no_such_table;
+
+DROP RULE test_rule_exists ON no_such_schema.no_such_table;
+
+DROP RULE IF EXISTS test_rule_exists ON no_such_schema.no_such_table;
+
+CREATE RULE test_rule_exists AS ON INSERT TO test_exists
+    DO INSTEAD
+    INSERT INTO test_exists VALUES (NEW.a, NEW.b || NEW.a::text);
+
+DROP RULE test_rule_exists ON test_exists;
+
+-- foreign data wrapper
+DROP FOREIGN DATA WRAPPER test_fdw_exists;
+
+DROP FOREIGN DATA WRAPPER IF EXISTS test_fdw_exists;
+
+-- foreign server
+DROP SERVER test_server_exists;
+
+DROP SERVER IF EXISTS test_server_exists;
+
+-- operator class
+DROP OPERATOR CLASS test_operator_class
+    USING btree;
+
+DROP OPERATOR CLASS IF EXISTS test_operator_class
+    USING btree;
+
+DROP OPERATOR CLASS test_operator_class
+    USING no_such_am;
+
+DROP OPERATOR CLASS IF EXISTS test_operator_class
+    USING no_such_am;
+
+-- operator family
+DROP OPERATOR FAMILY test_operator_family
+    USING btree;
+
+DROP OPERATOR FAMILY IF EXISTS test_operator_family
+    USING btree;
+
+DROP OPERATOR FAMILY test_operator_family
+    USING no_such_am;
+
+DROP OPERATOR FAMILY IF EXISTS test_operator_family
+    USING no_such_am;
+
+-- access method
+DROP ACCESS METHOD no_such_am;
+
+DROP ACCESS METHOD IF EXISTS no_such_am;
+
+-- drop the table
+DROP TABLE IF EXISTS test_exists;
+
+DROP TABLE test_exists;
+
+-- be tolerant with missing schemas, types, etc
+DROP AGGREGATE IF EXISTS no_such_schema.foo (int);
+
+DROP AGGREGATE IF EXISTS foo (no_such_type);
+
+DROP AGGREGATE IF EXISTS foo (no_such_schema.no_such_type);
+
+DROP CAST IF EXISTS (INTEGER AS no_such_type2);
+
+DROP CAST IF EXISTS (no_such_type1 AS INTEGER);
+
+DROP CAST IF EXISTS (INTEGER AS no_such_schema.bar);
+
+DROP CAST IF EXISTS (no_such_schema.foo AS INTEGER);
+
+DROP COLLATION IF EXISTS no_such_schema.foo;
+
+DROP CONVERSION IF EXISTS no_such_schema.foo;
+
+DROP DOMAIN IF EXISTS no_such_schema.foo;
+
+DROP FOREIGN TABLE IF EXISTS no_such_schema.foo;
+
+DROP FUNCTION IF EXISTS no_such_schema.foo ();
+
+DROP FUNCTION IF EXISTS foo (no_such_type);
+
+DROP FUNCTION IF EXISTS foo (no_such_schema.no_such_type);
+
+DROP INDEX IF EXISTS no_such_schema.foo;
+
+DROP MATERIALIZED VIEW IF EXISTS no_such_schema.foo;
+
+DROP OPERATOR IF EXISTS no_such_schema. + (int, int);
+
+DROP OPERATOR IF EXISTS + ( no_such_type, no_such_type);
+
+DROP OPERATOR IF EXISTS + ( no_such_schema.no_such_type, no_such_schema.no_such_type);
+
+DROP OPERATOR IF EXISTS # ( NONE, no_such_schema.no_such_type);
+
+DROP OPERATOR CLASS IF EXISTS no_such_schema.widget_ops
+    USING btree;
+
+DROP OPERATOR FAMILY IF EXISTS no_such_schema.float_ops
+    USING btree;
+
+DROP RULE IF EXISTS foo ON no_such_schema.bar;
+
+DROP SEQUENCE IF EXISTS no_such_schema.foo;
+
+DROP TABLE IF EXISTS no_such_schema.foo;
+
+DROP TEXT SEARCH CONFIGURATION IF EXISTS no_such_schema.foo;
+
+DROP TEXT SEARCH DICTIONARY IF EXISTS no_such_schema.foo;
+
+DROP TEXT SEARCH PARSER IF EXISTS no_such_schema.foo;
+
+DROP TEXT SEARCH TEMPLATE IF EXISTS no_such_schema.foo;
+
+DROP TRIGGER IF EXISTS foo ON no_such_schema.bar;
+
+DROP TYPE IF EXISTS no_such_schema.foo;
+
+DROP VIEW IF EXISTS no_such_schema.foo;
+
+-- Check we receive an ambiguous function error when there are
+-- multiple matching functions.
 CREATE FUNCTION test_ambiguous_funcname (int)
     RETURNS int
     AS $$
