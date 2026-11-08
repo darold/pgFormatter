@@ -4268,9 +4268,7 @@ BEGIN
     FETCH LAST FROM c INTO x;
     WHILE found LOOP
         RETURN NEXT x;
-        MOVE BACKWARD 2
-    FROM
-        c;
+        MOVE BACKWARD 2 FROM c;
         FETCH relative - 1 FROM c INTO x;
     END LOOP;
     CLOSE c;

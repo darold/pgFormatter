@@ -2937,7 +2937,12 @@ sub beautify {
 			@{ $self->{'_begin_level'} } = ();
 			next;
 		}
-		elsif ( $token =~ /^FETCH$/i and defined $last and $last eq ';' ) {
+		# FETCH and MOVE statements: at the start of the input, after the
+		# end of a statement or at the start of a block of plpgsql code.
+		# FETCH FIRST ... ROWS ONLY of a query never follows one of these.
+		elsif ( $token =~ /^(?:FETCH|MOVE)$/i
+			and ( !defined $last or $last =~ /^(?:;|BEGIN|THEN|ELSE|LOOP)?$/i ) )
+		{
 			$self->_new_line( $token, $last );
 			$self->_back( $token, $last ) if ( $self->{'_is_in_block'} == -1 );
 			$self->_add_token($token);
