@@ -5135,8 +5135,12 @@ sub beautify {
                                 my ( $lead, $inner, $rest ) = ( $1, $2, $3 );
                                 my $word = ( $lead =~ /([a-z0-9_"][\w\."]*)\s*$/i ) ? $1 : '';
                                 my $values_row = ( $lead =~ /\bVALUES\s*\(.*\)\s*,\s*$/is );
-                                if ( ($inner =~ /AAKEYWCONST\d+AA/ || $inner =~ /^\s*SELECT\b/i)
-                                             && ($word ne '' || $values_row) )
+                                # In a GROUP BY clause the parentheses are meaningful:
+                                # GROUPING SETS (((a, b))) is not GROUPING SETS ((a, b))
+                                my $group_by = ( $lead =~ /\bGROUP\s+BY\b(?:(?!\b(?:HAVING|ORDER|LIMIT|OFFSET|WINDOW|UNION|EXCEPT|INTERSECT)\b).)*$/is );
+                                if ( $group_by
+                                     or ( ($inner =~ /AAKEYWCONST\d+AA/ || $inner =~ /^\s*SELECT\b/i)
+                                             && ($word ne '' || $values_row) ) )
                                 {
 					"$lead\x02$inner\x03$rest";
                                 }
