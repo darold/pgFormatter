@@ -789,7 +789,7 @@ sub tokenize_sql {
 
 	my $re = qr{
         (
-		(?:\\(?:copyright|errverbose|gx|gexec|gset|gdesc|q|crosstabview|watch|\?|copy|qecho|echo|if|elif|else|endif|edit|ir|include_relative|include|warn|write|html|print|out|ef|ev|h|H|i|p|r|s|w|o|e|g|q|d(?:[aAbcCdDeEfFgilLmnoOpPrRstTuvwxy+]{0,3})?|l\+?|sf\+?|sv\+?|z|a|C|f|H|t|T|x|c|pset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|reset|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!))(?:$|[\n]|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
+		(?:\\(?:[a-zA-Z_][a-zA-Z0-9_]*[+!]*|\?|\!))(?:$|[\n]|(?=\\)|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
 		|
 		AAKEYWCONST\d+AA(?:\s+AAKEYWCONST\d+AA)+             # preserved multiple constants with newline
 		|
@@ -3557,7 +3557,7 @@ sub beautify {
 			  }
 			}
 
-		elsif ( $token eq ';' or $token =~ /^\\(?:g|crosstabview|watch)/ ) {
+		elsif ( $token eq ';' or $self->_is_psql_send($token) ) {
 
 # statement separator or executing psql meta command (prefix 'g' includes all its variants)
 
@@ -5620,6 +5620,22 @@ sub _back {
 		print STDERR "DEBUG_BACK: line: $line => last=$last, token=$token\n";
 	}
 	--$self->{'_level'} if ( $self->{'_level'} > 0 );
+}
+
+=head2 _is_psql_send
+
+Return 1 when the token is a psql meta-command that sends the query buffer
+to the server and ends the statement: \g and its variants, \crosstabview,
+\watch, \parse and \sendpipeline, also when it follows other meta-commands
+on the same line like in \bind 1 \g.
+
+=cut
+
+sub _is_psql_send {
+	my ( $self, $token ) = @_;
+
+	return 0 if ( !defined $token or $token !~ /^\\/ );
+	return ( $token =~ /(?:^|\s)\\(?:g\w*|crosstabview|watch|parse|sendpipeline)(?:\s|$)/ ) ? 1 : 0;
 }
 
 =head2 _celko_track

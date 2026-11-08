@@ -1,4 +1,4 @@
-use Test::Simple tests => 113;
+use Test::Simple tests => 114;
 use File::Temp qw/ tempfile /;
 
 my $pg_format = $ENV{PG_FORMAT} // './pg_format'; # set to the full path to 'pg_format' to test installed binary in /usr/bin
