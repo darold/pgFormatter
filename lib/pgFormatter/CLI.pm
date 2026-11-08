@@ -228,9 +228,46 @@ sub save_output {
 			'Formatted SQL queries will be written to stdout' );
 		$fh = \*STDOUT;
 	}
+	$self->_set_output_encoding($fh);
 	print $fh $self->{'ready'};
 	close $fh if ( $self->{'cfg'}->{'output'} ne '-' );
 	return;
+}
+
+=head2 _decode_input
+
+Decode the bytes read from the input: as UTF-8 when they are valid UTF-8,
+otherwise as Latin-1 where any byte is valid, so that an input in another
+single byte encoding, like Windows-1252, can be formatted. The output is
+written in the same encoding, see _set_output_encoding(), the non ASCII
+characters are kept unchanged.
+
+=cut
+
+sub _decode_input {
+	my ( $self, $bytes ) = @_;
+
+	return '' if ( !defined $bytes );
+	my $str = eval { decode( 'UTF-8', $bytes, Encode::FB_CROAK | Encode::LEAVE_SRC ) };
+	if ( defined $str ) {
+		$self->{'_encoding'} = 'UTF-8';
+		return $str;
+	}
+	$self->logmsg( 'DEBUG', 'Input is not valid UTF-8, read as Latin-1' );
+	$self->{'_encoding'} = 'iso-8859-1';
+	return decode( 'iso-8859-1', $bytes );
+}
+
+=head2 _set_output_encoding
+
+Set the encoding of the output to the one of the input, see _decode_input().
+
+=cut
+
+sub _set_output_encoding {
+	my ( $self, $fh ) = @_;
+
+	binmode( $fh, ':raw:encoding(' . ( $self->{'_encoding'} || 'UTF-8' ) . ')' );
 }
 
 =head2 logmsg
@@ -394,26 +431,28 @@ sub load_sql {
 	else {
 		$fh = \*STDIN;
 	}
-	binmode( $fh, ":encoding(utf8)" );
+	# The bytes are decoded by _decode_input()
+	binmode( $fh, ':raw' );
 
 	# Read the input up to its first non empty line, when it is STARTSTREAM
 	# the input is read and formatted block by block by run_stream().
 	$self->{'stream'} = 0;
-	$self->{'query'}  = '';
+	my $query = '';
 	while ( my $l = <$fh> ) {
 		if ( $l =~ /^\s*STARTSTREAM\s*$/i ) {
 			$self->{'stream'} = 1;
 			$self->{'_in_fh'} = $fh;
 			return;
 		}
-		$self->{'query'} .= $l;
+		$query .= $l;
 		last if ( $l =~ /\S/ );
 	}
 	{
 		local $/ = undef;
 		my $rest = <$fh>;
-		$self->{'query'} .= $rest if ( defined $rest );
+		$query .= $rest if ( defined $rest );
 	}
+	$self->{'query'} = $self->_decode_input($query);
 	close $fh if ( $self->{'cfg'}->{'input'} ne '-' );
 	return;
 }
@@ -478,8 +517,9 @@ sub _write_stream_block {
 
 	if ( $block =~ /\S/ ) {
 		$self->logmsg( 'DEBUG', 'Beautifying stream block' );
-		$self->{'query'} = $block;
+		$self->{'query'} = $self->_decode_input($block);
 		$self->beautify();
+		$self->_set_output_encoding($out);
 		print $out $self->{'ready'};
 	}
 	print $out "ENDSTREAM\n";
