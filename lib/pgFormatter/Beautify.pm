@@ -951,9 +951,9 @@ sub tokenize_sql {
 		|
 		(?:[\w:\@]+[\$]*[\w:\@]*(?:\.(?:\w+|\*)?)*) # words, standard named placeholders, db.table.*, db.*
 		|
-		(?:\$\w+\$) # text delimiter
+		(?:\$[A-Za-z_]\w*\$) # text delimiter, its tag can not start with a digit
                 |
-                (?: \$_\$ | \$\d+ | \${1,2} | \$\w+\$) # dollar expressions - eg $_$ $3 $$ $BODY$
+                (?: \$_\$ | \$\d+ | \${1,2} | \$[A-Za-z_]\w*\$) # dollar expressions - eg $_$ $3 $$ $BODY$
                 |
                 (?:\r\n){2,}                      # empty line Windows
                 |
@@ -1932,10 +1932,13 @@ sub beautify {
 			next;
 		}
 
-		# Replace concat operator found in some SGBD into || for normalization
+		# Replace concat operator found in some SGBD into || for normalization,
+		# not when concat is a name, like an alias: AS concat, concat FROM
 		if (   lc($token) eq 'concat'
 			&& defined $self->_next_token()
-			&& $self->_next_token ne '(' )
+			&& $self->_next_token ne '('
+			&& ( !defined $last or $last !~ /^(?:AS|\.|,|\(|SELECT)$/i )
+			&& $self->_next_token !~ /^(?:,|;|\)|\.|FROM|WHERE|AS|INTO|GROUP|ORDER|LIMIT|UNION|EXCEPT|INTERSECT|HAVING|WINDOW|RETURNING)$/i )
 		{
 			$token = '||';
 		}
