@@ -482,6 +482,20 @@ HINTS
     not want to enable this feature, set "$self->{ 'enable_api' } = 0" in
     the "set_config" sub of lib/pgFormatter/CGI.pm.
 
+    The SQL code is sent in the "content" field of a JSON object in the
+    body of a POST request and the formatted code is returned in the
+    "formatted" field of the JSON response. The formatting options use the
+    same names as the parameters of the web form: spaces, uc_keyword,
+    uc_function, uc_type, uc_identifier, nocomment, nogrouping, anonymize,
+    separator, comma, comma_break, format_type, wrap_after, numbering,
+    redshift, keep_newline, no_space_function, redundant_parenthesis,
+    vertical_align, isolate_semicolon and split_in_param. For example:
+
+        curl -X POST -H 'Accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -d '{"content": "select a from t;", "spaces": 2}' \
+            https://your.server/cgi-bin/pg_format.cgi
+
 USING AS PRE-COMMIT HOOK
 
   - repo: https://github.com/darold/pgFormatter

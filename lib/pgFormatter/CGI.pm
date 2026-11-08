@@ -328,7 +328,7 @@ sub get_api_params {
 	my $postdata    = $cgi->param('POSTDATA');
 	my $json_params = decode_json($postdata);
 	for my $param_name (
-		qw( colorize spaces uc_keyword uc_function uc_type content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align)
+		qw( colorize spaces uc_keyword uc_function uc_type uc_identifier content nocomment nogrouping show_example anonymize separator comma comma_break format_type wrap_after original_content numbering redshift keep_newline no_space_function redundant_parenthesis vertical_align isolate_semicolon split_in_param)
 	  )
 	{
 		$self->{$param_name} = $json_params->{$param_name}
