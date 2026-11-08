@@ -870,6 +870,8 @@ sub tokenize_sql {
 
 	my $re = qr{
         (
+		\\;		# psql escaped semicolon: statements sent as a single query
+		|
 		(?:\\copy\s[^\n]*\bfrom\s+p?stdin\b[^\n]*\n.*?^\\\.[\ \t]*$)	# psql \copy from stdin and its data
 		|
 		(?:\\(?:[a-zA-Z_][a-zA-Z0-9_]*[+!]*|\?|\!))(?:$|[\n]|(?=\\)|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
@@ -1917,6 +1919,13 @@ sub beautify {
 	$self->{'content'} .= "-- Statement # $self->{ 'stmt_number' }\n"
 	  if ( $self->{'numbering'} and $#{ $self->{'_tokens'} } > 0 );
 	while ( defined( my $token = $self->_token ) ) {
+
+		# A psql escaped semicolon ends the statement like a semicolon but
+		# must be written unchanged, see _add_token()
+		if ( $token eq "\\;" ) {
+			$self->{'_escaped_semicolon'} = 1;
+			$token = ';';
+		}
 		my $rule = $self->_get_rule($token);
 		$self->{'_is_closing_function'} = 0;
 
@@ -5671,6 +5680,11 @@ sub _add_token {
 			}
 		}
 	}
+	# Semicolon escaped in the input, see beautify()
+	if ( $token eq ';' and $self->{'_escaped_semicolon'} ) {
+		$self->{'_escaped_semicolon'} = 0;
+		$token = "\\;";
+	}
 	$self->{'content'} .= $token;
 
 	# This can't be the beginning of a new line anymore.
@@ -5996,7 +6010,10 @@ Code lifted from SQL::Beautify
 sub _next_token {
 	my ($self) = @_;
 
-	return @{ $self->{'_tokens'} } ? $self->{'_tokens'}->[0] : undef;
+	return undef if ( !@{ $self->{'_tokens'} } );
+
+	# A psql escaped semicolon is processed as a semicolon, see beautify()
+	return ( $self->{'_tokens'}->[0] eq "\\;" ) ? ';' : $self->{'_tokens'}->[0];
 }
 
 =head2 _at_with_level
