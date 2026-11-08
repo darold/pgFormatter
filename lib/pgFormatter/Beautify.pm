@@ -789,6 +789,8 @@ sub tokenize_sql {
 
 	my $re = qr{
         (
+		(?:\\copy\s[^\n]*\bfrom\s+p?stdin\b[^\n]*\n.*?^\\\.[\ \t]*$)	# psql \copy from stdin and its data
+		|
 		(?:\\(?:[a-zA-Z_][a-zA-Z0-9_]*[+!]*|\?|\!))(?:$|[\n]|(?=\\)|[\ \t](?:(?!\\(?:\\|pset|reset|connect|encoding|password|conninfo|cd|setenv|timing|prompt|set|unset|lo_export|lo_import|lo_list|lo_unlink|\!|copy|qecho|echo|edit|html|include_relative|include|print|out|warn|watch|write|q))[\ \t\S])*)        # psql meta-command
 		|
 		AAKEYWCONST\d+AA(?:\s+AAKEYWCONST\d+AA)+             # preserved multiple constants with newline
@@ -801,7 +803,8 @@ sub tokenize_sql {
 		|
 		(?:\d+(?:\.\d*)?|\.\d+)e[-+]\d+	# scientific notation with exponents, also 4664.E+5
 		|
-		(?:COPY\s+[^\s]+\s+\((?:.*?)\\\.)		# COPY and its content
+		(?:COPY\s+(?:[^\s;(]+(?:\s*\([^)]*\))?|\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))\s+FROM\s+(?:STDIN|STDOUT)\b[^;]*;.*?^\\\.[\ \t]*$)	# COPY FROM STDIN and its data, up to the \. line
+
 		|
 		[^\s\(,]+\%(?:ROWTYPE|TYPE)      # single line comments
 		|
@@ -5106,9 +5109,15 @@ sub _add_token {
 	# only token that can follow a meta-command on the same line.
 	if ( my $eol = $self->{'_eol_required'} ) {
 		$self->{'_eol_required'} = 0;
-		$self->{'content'} =~ s/[ \t]*\z/\n/
-		  if ( $self->{'content'} !~ /\n[ \t]*\z/
-			and ( $eol eq 'comment' or $token ne "\\\\" ) );
+		if ( $self->{'content'} !~ /\n[ \t]*\z/
+			and ( $eol eq 'comment' or $token ne "\\\\" ) )
+		{
+			$self->{'content'} =~ s/[ \t]*\z/\n/;
+			$self->{'_new_line'} = 1;
+		}
+
+		# No space at the end of the line of a comment or of the data of COPY
+		$self->{'content'} =~ s/[ \t]+(\n[ \t]*)\z/$1/ if ( $eol eq 'comment' );
 	}
 
 	if ( $self->{'wrap'} ) {
@@ -5576,6 +5585,11 @@ sub _add_token {
 		$self->{'_eol_required'} = 0;
 	}
 	elsif ( $token =~ /^(?:<[^>]+>)?[ \t]*--/ ) {
+		$self->{'_eol_required'} = 'comment';
+	}
+	elsif ( $token =~ /\n\\\.[ \t]*\z/ ) {
+
+		# The data of a COPY FROM STDIN end with a line with \.
 		$self->{'_eol_required'} = 'comment';
 	}
 	elsif ( $token =~ /^\\[^\\\s]/ ) {
