@@ -2000,6 +2000,7 @@ sub beautify {
 	$self->{'_is_in_create_function'}      = 0;
 	$self->{'_is_in_drop_function'}        = 0;
 	$self->{'_is_in_alter'}                = 0;
+	delete $self->{'_alter_action_level'};
 	$self->{'_alter_foreign_key'}          = 0;
 	$self->{'_is_in_trigger'}              = 0;
 	$self->{'_is_in_publication'}          = 0;
@@ -2799,6 +2800,11 @@ sub beautify {
 		if ( $token =~ /^ALTER$/i and $self->{'_is_in_alter'} > 1 ) {
 			$self->_new_line( $token, $last );
 			$self->_over( $token, $last ) if ( $last ne ',' );
+			if ($self->{'format_type'} and !$self->{'_parenthesis_level'}) {
+				$self->{'_alter_action_level'} = $self->{'_level'}
+					unless defined $self->{'_alter_action_level'};
+				$self->_set_level($self->{'_alter_action_level'}, $token, $last);
+			}
 			$self->_add_token($token);
 			$last = $self->_set_last( $token, $last );
 			next;
@@ -3914,6 +3920,7 @@ sub beautify {
 			$self->{'_is_in_create_table'}         = 0;
 			$self->{'_is_in_create_schema'}        = 0;
 			$self->{'_is_in_alter'}                = 0;
+			delete $self->{'_alter_action_level'};
 			$self->{'_alter_foreign_key'}          = 0;
 			$self->{'_is_in_merge'}                = 0;
 			$self->{'_is_in_merge_cte'}            = 0;
@@ -5124,6 +5131,16 @@ sub beautify {
 				$self->_new_line( $token, $last );
 				if ( $self->{'_is_in_alter'} < 2 ) {
 					$self->_over( $token, $last );
+				}
+			}
+			# CHECK predicates may temporarily increase the indentation level.
+			# Sibling ALTER actions always return to the first action's level.
+			if ($self->{'format_type'} and $self->{'_is_in_alter'}
+				and !$self->{'_parenthesis_level'}) {
+				if (defined $self->{'_alter_action_level'}) {
+					$self->_set_level($self->{'_alter_action_level'}, $token, $last);
+				} else {
+					$self->{'_alter_action_level'} = $self->{'_level'};
 				}
 			}
 			$self->_add_token( $token, $last );
@@ -7009,12 +7026,13 @@ sub _json_layout {
 		delete $self->{'_jl_pending_level'};
 	}
 
-	# Policy predicates align their top-level boolean continuations even
+	# Policy and CHECK predicates align their boolean continuations even
 	# after a preceding clause or nested function has changed the SQL level.
 	my $policy = $self->{'_jl_stack'}[-1];
-	if ($policy and $policy->{'kind'} eq 'policy'
+	if ($policy and $policy->{'kind'} =~ /^(policy|check)$/
 		and $policy->{'depth'} == $self->{'_jl_depth'}
-		and $token =~ /^(AND|OR)$/i)
+		and $token =~ /^(AND|OR)$/i
+		and !$self->{'_is_in_between'})
 	{
 		$self->_json_layout_break($policy->{'open'} + 1, $token, $last);
 	}
@@ -7124,6 +7142,23 @@ sub _json_layout_kind {
 		and @{$self->{'_jl_stack'}})
 	{
 		return 'policy-query';
+	}
+	# ALTER TABLE CHECK expressions use the same balanced layout frames as
+	# policy predicates. Leave simple checks and function calls compact.
+	if ($self->{'format_type'} and $self->{'matching_paren_newline'}
+		and $self->{'_is_in_alter'}) {
+		my $parent = $self->{'_jl_stack'}[-1];
+		return 'check' if $parent and $parent->{'kind'} eq 'check'
+			and defined $last and $last =~ /^(AND|OR|NOT)$/i;
+		if (defined $last and uc($last) eq 'CHECK') {
+			my $depth = 0;
+			for my $token (@$tokens) {
+				last if $token eq ')' and !$depth;
+				$depth++ if $token eq '(';
+				$depth-- if $token eq ')';
+				return 'check' if $token =~ /^(AND|OR)$/i;
+			}
+		}
 	}
 	return '' if ( !defined $last or $last !~ /^[\w\.\$]+$/ );
 	if ($self->{'_policy_expression_pending'} and $last =~ /^(USING|CHECK)$/i) {

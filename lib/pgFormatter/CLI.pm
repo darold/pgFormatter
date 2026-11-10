@@ -578,7 +578,7 @@ sub get_command_line_args {
 	$self->show_help_and_die(0) if $cfg{'help'};
 
 	if ( $cfg{'version'} ) {
-		printf '%s version %s%s', basename($0), $VERSION . '-samshull.1', "\n";
+		printf '%s version %s%s', basename($0), $VERSION . '-samshull.2', "\n";
 		exit 0;
 	}
 

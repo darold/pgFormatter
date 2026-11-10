@@ -4,7 +4,7 @@ NAME
 FORK
     This is samshull/pgFormatter, based on darold/pgFormatter under the original
     PostgreSQL and embedded SQL::Beautify licenses. Version output identifies
-    this fork as 5.11.1-samshull.1. Upstream remains darold/pgFormatter; keep
+    this fork as 5.11.1-samshull.2. Upstream remains darold/pgFormatter; keep
     fork changes separate when incorporating future upstream fixes.
 
     The optional profiles/readable.conf profile enables the extended SQL layout,

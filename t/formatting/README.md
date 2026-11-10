@@ -8,6 +8,7 @@ Each fixture is named for the syntax it exercises:
 
 | Fixture | Coverage |
 | --- | --- |
+| `alter-checks.sql` | Sibling ALTER actions, nested CHECK predicates, and BETWEEN bounds |
 | `subquery-condition.sql` | Procedural frame restoration after scalar subqueries |
 | `returning-clauses.sql` | Nested writes with `RETURNING INTO` |
 | `schema-migration.sql` | DDL, partial indexes, query loops, triggers, and privileges |
