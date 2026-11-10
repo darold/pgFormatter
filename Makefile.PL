@@ -39,8 +39,8 @@ WriteMakefile(
 			homepage => 'http://sqlformat.darold.net/',
 			repository  => {
 				type => 'git',
-				git => 'git@github.com:darold/pgformatter.git',
-				web => 'https://github.com/darold/pgformatter',
+				git => 'git@github.com:samshull/pgFormatter.git',
+				web => 'https://github.com/samshull/pgFormatter',
 			},
 		},
         }
