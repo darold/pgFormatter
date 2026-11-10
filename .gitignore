@@ -1,2 +1,5 @@
 # Swap files
 *.swp
+
+# Prepared portable release artifacts
+/dist/
