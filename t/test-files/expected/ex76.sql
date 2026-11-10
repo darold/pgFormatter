@@ -54,8 +54,7 @@ DECLARE
     v_sql text;
 BEGIN
     v_sql := format($sql$ GRANT usage ON SCHEMA dba_tools TO %s;
-    $sql$,
-    v_sql_role);
+    $sql$, v_sql_role);
     EXECUTE v_sql;
     RETURN v_sql;
 END;

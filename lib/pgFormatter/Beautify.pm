@@ -29,12 +29,12 @@ pgFormatter::Beautify - Library for pretty-printing SQL queries
 
 =head1 VERSION
 
-Version 5.11
+Version 5.11.1
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '5.11';
+our $VERSION = '5.11.1';
 
 # Inclusion of code from Perl package SQL::Beautify
 # Copyright (C) 2009 by Jonas Kramer
@@ -175,6 +175,12 @@ when the statement spans several lines
 
 =item * matching_paren_newline - align multiline closing parentheses with their opening line (text output)
 
+=item * multiline_functions - expand function calls containing nested calls or JSON extraction
+
+=item * multiline_json - pretty-print overlong literals explicitly cast to json or jsonb
+
+=item * max_line_length - wrap SQL code between tokens, leaving other literals intact
+
 =item * split_in_param - write each value of the list of an IN clause on its own line
 
 =item * backslash_escape - the backslash is an escape character in all strings, not only in the E'' strings, like with standard_conforming_strings off or with MySQL
@@ -197,7 +203,7 @@ sub new {
 	$self->set_defaults();
 
 	for my $key (
-		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline split_in_param celko backslash_escape)
+		qw( query spaces space break wrap keywords functions rules uc_keywords uc_functions uc_types uc_identifiers no_comments no_grouping placeholder multiline separator comma comma_break format colorize format_type wrap_limit wrap_after wrap_comment numbering redshift no_extra_line keep_newline no_space_function compact_clause_body isolate_semicolon redundant_parenthesis vertical_align matching_paren_newline multiline_functions multiline_json max_line_length split_in_param celko backslash_escape)
 	  )
 	{
 		$self->{$key} = $options{$key} if defined $options{$key};
@@ -440,27 +446,28 @@ s/AS ('[^\']+')(?:\s*,\s*('[^\']+'|AAKEYWCONST\d+AA))?/AS CODEPARTB${i}CODEPARTB
 	}
 	$self->{'query'} = join( '', @temp_content );
 
-        # replace all inline dollar-quoted constants, $$...$$ or $tag$...$tag$,
-        # but leave untouched the
-        # ones that are not real string constants: PL/pgSQL code bodies
-        # introduced by AS (function body) or DO (anonymous block, with an
-        # optional LANGUAGE clause) -- the keyword and the opening $$ can be
-        # separated by a newline -- and MySQL DELIMITER $$ directives. The
-        # prefix is consumed but rewritten as-is so it is skipped without looping.
-        $self->{'query'} =~ s{
-                (\bAS\s+ | \bDO\s+(?:LANGUAGE\s+\w+\s+)? | \bDELIMITER[ \t]+)?   # $1: skip prefix, kept verbatim
-                ((\$(?:[A-Za-z_]\w*)?\$)[ ]*\S[^\n\r]*?\3)                     # $2: inline $$...$$ or $tag$...$tag$
-        }{
-                if ( defined $1 ) {
-                        "$1$2";
-                }
-                else {
-                        $self->{'keyword_constant'}{$j} = $2;
-                        my $placeholder = 'AAKEYWCONST' . $j . 'AA';
-                        $j++;
-                        $placeholder;
-                }
-        }isexg;
+	# Protect data literals, including multiline JSON and dynamic SQL, while
+	# still formatting SQL/PLpgSQL bodies and their nested literals.
+	# Retain explicit dynamic-code formatting and MySQL delimiter behavior.
+	if ($self->{'separator'} or $self->{'query'} =~ /^\s*DELIMITER\b/im) {
+		$self->{'query'} =~ s{
+			(\bAS\s+ | \bDO\s+(?:LANGUAGE\s+\w+\s+)? | \bDELIMITER[ \t]+)?   # $1: skip prefix, kept verbatim
+			((\$(?:[A-Za-z_]\w*)?\$)[ ]*\S[^\n\r]*?\3)                     # $2: inline $$...$$ or $tag$...$tag$
+		}{
+			if ( defined $1 ) {
+				"$1$2";
+			}
+			else {
+				$self->{'keyword_constant'}{$j} = $2;
+				my $placeholder = 'AAKEYWCONST' . $j . 'AA';
+				$j++;
+				$placeholder;
+			}
+		}isexg;
+	}
+	else {
+		$self->{'query'} = $self->_protect_dollar_constants($self->{'query'}, \$j);
+	}
 
         # Store values of code that must not be changed following the given placeholder
 	if ( $self->{'placeholder'} ) {
@@ -576,6 +583,13 @@ s/CODEPART[B]*(\d+)CODEPART[B]*/$self->{ 'placeholder_values' }[$1]/igs;
 	# two opening parentheses, they stay in the content so that the merge of
 	# these parentheses above never applies, even if called several times.
 	( my $content = $self->{'content'} ) =~ s/\x{1}//g;
+
+	$content = $self->_format_json_literals($content)
+	  if (!defined $new_value and $self->{'multiline_json'}
+		and $self->{'max_line_length'} > 0 and $self->{'spaces'} and $self->{'format'} eq 'text');
+
+	$content = $self->_wrap_sql_code($content)
+	  if (!defined $new_value and $self->{'max_line_length'} and $self->{'format'} eq 'text');
 
 	return $content;
 }
@@ -798,6 +812,61 @@ sub _escape_estring_quotes {
 		$out .= $1;
 	}
 	$self->{'query'} = $out;
+}
+
+=head2 _protect_dollar_constants
+
+Hide dollar-quoted data without treating function and DO bodies as data.
+Scan quoted tokens and comments so delimiter-like text inside them is ignored.
+
+=cut
+
+sub _protect_dollar_constants {
+	my ($self, $query, $index) = @_;
+	my $out = '';
+	my $context = '';
+	pos($query) = 0;
+	while (pos($query) < length($query)) {
+		if ($query =~ /\G((?:[Ee])?'(?:[^'\\]|\\.|'')*'|"(?:[^"]|"")*"|--[^\n]*|\/\*.*?\*\/)/gcs) {
+			$out .= $1;
+			$context .= ($1 =~ m{^(?:--|/\*)}) ? ' ' : $1;
+			next;
+		}
+		if ($query =~ /\G(\$(?:[A-Za-z_]\w*)?\$)/gc) {
+			my $delimiter = $1;
+			my $start = pos($query);
+			# Dollar signs are also legal inside unquoted identifiers.
+			my $previous = $start - length($delimiter) - 1;
+			if ($previous >= 0 and substr($query, $previous, 1) =~ /[\w\$]/) {
+				$out .= $delimiter;
+				$context .= $delimiter;
+				next;
+			}
+			# MySQL DELIMITER is a directive, not a quoted string.
+			my $end = ($context =~ /\bDELIMITER[ \t]+$/i) ? -1 : index($query, $delimiter, $start);
+			if ($end < 0) {
+				$out .= $delimiter;
+				$context .= $delimiter;
+				next;
+			}
+			my $body = substr($query, $start, $end - $start);
+			if ($context =~ /(?:\bAS\s+|\bDO\s+(?:LANGUAGE\s+\w+\s+)?)$/i) {
+				$out .= $delimiter . $self->_protect_dollar_constants($body, $index) . $delimiter;
+			}
+			else {
+				$self->{'keyword_constant'}{$$index} = $delimiter . $body . $delimiter;
+				$out .= 'AAKEYWCONST' . $$index . 'AA';
+				$$index++;
+			}
+			$context .= ' literal ';
+			pos($query) = $end + length($delimiter);
+			next;
+		}
+		$query =~ /\G([^'"\$\/\-]+|.)/gcs;
+		$out .= $1;
+		$context .= $1;
+	}
+	return $out;
 }
 
 =head2 _escape_comment_quotes
@@ -1916,6 +1985,7 @@ sub beautify {
 	$self->{'_language_sql'}               = 0;
 	$self->{'_first_when_in_case'}         = 0;
 	$self->{'_is_in_if'}                   = 0;
+	$self->{'_if_frames'}                  = [];
 	$self->{ '_is_in_return_query' }       = 0;
 	$self->{'_is_in_set'}                  = 0;
 	$self->{'_is_in_conversion'}           = 0;
@@ -1930,6 +2000,8 @@ sub beautify {
 	$self->{'_is_in_create_function'}      = 0;
 	$self->{'_is_in_drop_function'}        = 0;
 	$self->{'_is_in_alter'}                = 0;
+	delete $self->{'_alter_action_level'};
+	$self->{'_alter_foreign_key'}          = 0;
 	$self->{'_is_in_trigger'}              = 0;
 	$self->{'_is_in_publication'}          = 0;
 	$self->{'_is_in_call'}                 = 0;
@@ -1969,6 +2041,8 @@ sub beautify {
 	$self->{'_is_in_partition'}            = 0;
 	$self->{'_is_in_over'}                 = 0;
 	$self->{'_is_in_policy'}               = 0;
+	$self->{'_policy_level'}               = 0;
+	$self->{'_policy_expression_pending'}  = 0;
 	$self->{'_policy_as_using'}            = 0;
 	$self->{'_is_in_truncate'}             = 0;
 	$self->{'_is_in_using'}                = 0;
@@ -2024,7 +2098,7 @@ sub beautify {
 		my $rule = $self->_get_rule($token);
 		$self->{'_is_closing_function'} = 0;
 
-		# Put json_build_object() key/value pairs on their own line
+		# Lay out JSON key/value pairs and opted-in complex function calls
 		$self->_json_layout( $token, $last );
 
 		# Track the subqueries opened by ( SELECT, see _subquery_track()
@@ -2726,6 +2800,11 @@ sub beautify {
 		if ( $token =~ /^ALTER$/i and $self->{'_is_in_alter'} > 1 ) {
 			$self->_new_line( $token, $last );
 			$self->_over( $token, $last ) if ( $last ne ',' );
+			if ($self->{'format_type'} and !$self->{'_parenthesis_level'}) {
+				$self->{'_alter_action_level'} = $self->{'_level'}
+					unless defined $self->{'_alter_action_level'};
+				$self->_set_level($self->{'_alter_action_level'}, $token, $last);
+			}
 			$self->_add_token($token);
 			$last = $self->_set_last( $token, $last );
 			next;
@@ -3052,6 +3131,7 @@ sub beautify {
 		{
 			$self->{'_is_in_block'}           = -1;
 			$self->{'_is_in_exception'}       = 0;
+			$self->{'_if_frames'}            = [];
 			$self->{'_is_in_create_function'} = 0;
 			$self->_reset_level( $token, $last );
 			$self->{'_fct_code_delimiter'} = '';
@@ -3201,10 +3281,32 @@ sub beautify {
 			next;
 		}
 
+		if ( $self->{'_is_in_alter'} and uc($token) eq 'FOREIGN'
+			and uc($self->_next_token // '') eq 'KEY' )
+		{
+			$self->{'_alter_foreign_key'} = 1;
+		}
+
+		# The command after policy FOR is a header item, not a DML statement.
+		if ($self->{'format_type'} and $self->{'_is_in_policy'}
+			and uc($last) eq 'FOR' and $token =~ /^(ALL|SELECT|INSERT|UPDATE|DELETE)$/i)
+		{
+			$self->_add_token($token);
+			$self->{'_is_in_policy'} = 2;
+			$last = $self->_set_last($token, $last);
+			next;
+		}
+
 		if ($rule) {
 			$self->_process_rule( $rule, $token );
 		}
 
+		elsif ( uc($token) eq 'REFERENCES'
+			and $self->{'format_type'} and $self->{'_alter_foreign_key'} )
+		{
+			$self->_new_line($token, $last);
+			$self->_add_token($token);
+		}
 		elsif ($token =~ /^(LANGUAGE|SECURITY|COST)$/i
 			&& !$self->{'_is_in_alter'}
 			&& !$self->{'_is_in_drop'}
@@ -3236,6 +3338,7 @@ sub beautify {
 		}
 		elsif ( $token =~ /^POLICY$/i ) {
 			$self->{'_is_in_policy'} = 1;
+			$self->{'_policy_level'} = $self->_current_line_level();
 			$self->_add_token($token);
 			$last = $self->_set_last( $token, $last );
 			next;
@@ -3343,6 +3446,15 @@ sub beautify {
 			if (uc($last) eq 'VALUES' && $self->{'_current_sql_stmt'} eq 'INSERT' && $self->{'_current_full_sql_stmt'} =~ /\) , \(/) {
 				$self->_new_line( $token, $last );
 				$self->_over( $token, $last );
+			}
+			# In the alternate layout, put a parenthesized FOR query below
+			# its header, keeping the query's closing delimiter with LOOP.
+			if ( $self->{'format_type'} and $self->{'_is_in_block'} >= 0
+				and uc($last) eq 'IN'
+				and ($self->_next_token // '') =~ /^(SELECT|WITH)$/i
+				and $self->{'content'} =~ /(?:^|\n)[ \t]*FOR\b[^\n]*\bIN[ \t]*$/i )
+			{
+				$self->_new_line($token, $last);
 			}
 			$self->_add_token( $token, $last );
 			if ( defined $self->_next_token
@@ -3573,7 +3685,7 @@ sub beautify {
 				$self->{'_is_in_grouping'}  = 0;
 				$self->{'_is_in_over'}      = 0;
 				$self->{'_has_order_by'}    = 0;
-				$self->{'_is_in_policy'}    = 0;
+				$self->{'_is_in_policy'}    = 0 if !$self->{'format_type'};
 				$self->{'_is_in_aggregate'} = 0;
 				$self->{'_policy_as_using'} = 0;
 			}
@@ -3626,6 +3738,7 @@ sub beautify {
 /^(?:AS|IS|THEN|INTO|BETWEEN|ON|IN|FILTER|WITHIN|DESC|ASC|WITHOUT|CASCADE)$/i
 					and ( $self->_next_token !~ /^(AND|OR)$/i
 						or !$self->{'_is_in_if'} )
+					and !($self->{'format_type'} and uc($self->_next_token) eq 'LOOP')
 					and $self->_next_token ne ')'
 					and $self->_next_token !~ /^:/
 					and $self->_next_token ne ';'
@@ -3645,6 +3758,7 @@ sub beautify {
 		}
 
 		elsif ( $token eq ',' ) {
+			$self->{'_alter_foreign_key'} = 0 if !$self->{'_parenthesis_level'};
 			my $add_newline = 0;
 
 			# Format INSERT with multiple values
@@ -3806,6 +3920,8 @@ sub beautify {
 			$self->{'_is_in_create_table'}         = 0;
 			$self->{'_is_in_create_schema'}        = 0;
 			$self->{'_is_in_alter'}                = 0;
+			delete $self->{'_alter_action_level'};
+			$self->{'_alter_foreign_key'}          = 0;
 			$self->{'_is_in_merge'}                = 0;
 			$self->{'_is_in_merge_cte'}            = 0;
 			$self->{'_is_in_rule'}                 = 0;
@@ -3838,6 +3954,7 @@ sub beautify {
 			$self->{'_is_in_partition'}            = 0;
 			$self->{'_is_in_over'}                 = 0;
 			$self->{'_is_in_policy'}               = 0;
+			$self->{'_policy_expression_pending'}  = 0;
 			$self->{'_policy_as_using'}            = 0;
 			$self->{'_is_in_truncate'}             = 0;
 			$self->{'_is_in_trigger'}              = 0;
@@ -3945,7 +4062,12 @@ sub beautify {
 
 		elsif ( $token =~ /^FOR$/i ) {
 			if ( $self->{'_is_in_policy'} ) {
-				$self->_over( $token, $last );
+				if ($self->{'format_type'}) {
+					$self->_set_level($self->{'_policy_level'} + 1, $token, $last);
+				}
+				else {
+					$self->_over( $token, $last );
+				}
 				$self->_new_line( $token, $last );
 				$self->_add_token($token);
 				$last = $self->_set_last( $token, $last );
@@ -3965,7 +4087,7 @@ sub beautify {
 			elsif ( $self->_next_token =~ /^EACH$/i
 				and $self->{'_is_in_trigger'} )
 			{
-				$self->_new_line( $token, $last );
+				$self->_new_line( $token, $last ) if !$self->{'format_type'};
 			}
 			$self->_add_token($token);
 
@@ -4120,6 +4242,19 @@ sub beautify {
 						my $cl = $self->{'_subquery_stack'}[-1]{'clause_level'};
 						$self->_set_level( $cl, $token, $last ) if ( defined $cl );
 					}
+					# VALUES may already have restored the enclosing PL/pgSQL
+					# level. RETURNING must not dedent past its statement's
+					# block, especially with comma-break and nested expressions.
+					if ( uc($token) eq 'RETURNING'
+						and $self->{'_is_in_block'} >= 0
+						and !$self->{'_language_sql'}
+						and !$self->{'_parenthesis_level'}
+						and !$self->{'_is_in_with'}
+						and @{ $self->{'_level_stack'} }
+						and $self->{'_level'} < $self->{'_level_stack'}[-1] )
+					{
+						$self->_set_level( $self->{'_level_stack'}[-1], $token, $last );
+					}
 					$self->_new_line( $token, $last )
 					  if ( !$self->{'_is_in_rule'}
 						and !$self->{'_is_in_merge'}
@@ -4235,7 +4370,7 @@ sub beautify {
 			if (   $token =~ /^(SELECT|UPDATE|DELETE|INSERT)$/i
 				&& $self->{'_is_in_policy'} )
 			{
-				$self->_over( $token, $last );
+				$self->_over( $token, $last ) unless $self->{'format_type'};
 			}
 
 			if (   $token =~ /^(UPDATE|DELETE|INSERT)$/i
@@ -4257,7 +4392,7 @@ sub beautify {
 				}
 			}
 			elsif (
-				  !$self->{'_is_in_policy'}
+				  (!$self->{'_is_in_policy'} or $self->{'format_type'})
 				&& $token !~ /^(DELETE|UPDATE)$/i
 				&& ( !defined $self->_next_token
 					|| $self->_next_token !~ /^DISTINCT$/i )
@@ -4509,6 +4644,16 @@ sub beautify {
 					  if ( $token =~ /^LOOP$/i );
 					$self->_new_line( $token, $last )
 					  if ( $token =~ /^LOOP$/i );
+					# SQL expression layout must not own procedural IF frames.
+					if ($token =~ /^IF$/i && $self->{'_is_in_block'} >= 0
+						&& ($self->{'multiline_functions'} || $self->{'format_type'})) {
+						push @{$self->{'_if_frames'}}, {
+							base => $self->_current_line_level(),
+							parent => [@{$self->{'_level_stack'}}],
+							cases => scalar(@{$self->{'_is_in_case'} || []}),
+							condition => 1,
+						};
+					}
 					$self->_over( $token, $last );
 					$self->_push_level( $self->{'_level'}, $token, $last );
 					if ( $token =~ /^IF$/i ) {
@@ -4543,11 +4688,22 @@ sub beautify {
 				  if ( $#{ $self->{'_level_stack'} } >= 0 );
 				$self->_over( $token, $last );
 			}
+			my $frame = $self->{'_if_frames'}[-1];
+			if ($frame && $frame->{'condition'}
+				&& $frame->{'cases'} == scalar(@{$self->{'_is_in_case'} || []})) {
+				$self->_set_level($frame->{'base'} + 1, $token, $last);
+				$frame->{'condition'} = 0;
+			}
 			$self->{'_is_in_if'} = 0;
 		}
 
 		elsif ( $token =~ /^(?:ELSE|ELSIF)$/i ) {
-			if ( $#{ $self->{'_is_in_case'} } < 0 ) {
+			my $frame = $self->{'_if_frames'}[-1];
+			if ($frame && $frame->{'cases'} == scalar(@{$self->{'_is_in_case'} || []})) {
+				$self->_set_level($frame->{'base'}, $token, $last);
+				$frame->{'condition'} = uc($token) eq 'ELSIF';
+			}
+			elsif ( $#{ $self->{'_is_in_case'} } < 0 ) {
 				$self->_back( $token, $last );
 			}
 			else {
@@ -4560,6 +4716,15 @@ sub beautify {
 		}
 
 		elsif ( $token =~ /^(?:END)$/i ) {
+			if (uc($self->_next_token // '') eq 'IF' && @{$self->{'_if_frames'}}) {
+				my $frame = pop @{$self->{'_if_frames'}};
+				$self->{'_level_stack'} = $frame->{'parent'};
+				$self->_set_level($frame->{'base'}, $token, $last);
+				$self->_new_line($token, $last);
+				$self->_add_token($token);
+				$last = $self->_set_last($token, $last);
+				next;
+			}
 			$self->{'_first_when_in_case'} = 0;
 			if ( $#{ $self->{'_is_in_case'} } >= 0 ) {
 				pop( @{ $self->{'_is_in_case'} } );
@@ -4840,6 +5005,21 @@ sub beautify {
 				and $self->{'_is_in_policy'} )
 		  )
 		{
+			# Policy clauses share one indentation level; their parenthesized
+			# predicates are laid out separately from EXECUTE/RAISE USING.
+			if ($self->{'format_type'} and $self->{'_is_in_policy'}
+				and !$self->{'_parenthesis_level'}
+				and !$self->{'_parenthesis_function_level'})
+			{
+				$self->{'_is_in_create'} = 0;
+				$self->{'_is_in_index'} = 0;
+				$self->_set_level($self->{'_policy_level'} + 1, $token, $last);
+				$self->_new_line($token, $last);
+				$self->_add_token($token);
+				$self->{'_policy_expression_pending'} = 1;
+				$last = $self->_set_last($token, $last);
+				next;
+			}
 			if ( !$self->{'_is_in_from'} ) {
 				$self->_over( $token, $last )
 				  if (
@@ -4951,6 +5131,16 @@ sub beautify {
 				$self->_new_line( $token, $last );
 				if ( $self->{'_is_in_alter'} < 2 ) {
 					$self->_over( $token, $last );
+				}
+			}
+			# CHECK predicates may temporarily increase the indentation level.
+			# Sibling ALTER actions always return to the first action's level.
+			if ($self->{'format_type'} and $self->{'_is_in_alter'}
+				and !$self->{'_parenthesis_level'}) {
+				if (defined $self->{'_alter_action_level'}) {
+					$self->_set_level($self->{'_alter_action_level'}, $token, $last);
+				} else {
+					$self->{'_alter_action_level'} = $self->{'_level'};
 				}
 			}
 			$self->_add_token( $token, $last );
@@ -5212,7 +5402,8 @@ sub beautify {
 	}
 
 	# Attempt to remove usless spaces
-	$self->{'content'} =~ s/\s+CHECK\s+\(\s+/ CHECK (/igs;
+	$self->{'content'} =~ s/\s+CHECK\s+\(\s+/ CHECK (/igs
+	  unless $self->{'format_type'};
 
         # Attempt to eliminate redundant parenthesis in DML queries. A pair
         # like ((x)) is collapsed to (x), with two refinements:
@@ -6186,6 +6377,8 @@ sub _is_keyword {
 	if ( defined $next_token ) {
 		return 0 if ( uc($token) eq 'LEVEL' and uc($next_token) ne 'SECURITY' );
 		return 0 if ( uc($token) eq 'EVENT' and uc($next_token) ne 'TRIGGER' );
+		return 0 if ($self->{'_is_in_policy'} and uc($token) eq 'EXTENSION'
+			and $next_token =~ /^(?:=|<>|!=|IS|IN|LIKE)$/i);
 		return 0
 		  if (  $self->{'_current_sql_stmt'} =~ /(INSERT|UPDATE)/
 			and $next_token =~ /^[,\)=]$/
@@ -6809,7 +7002,8 @@ sub _json_layout {
 	}
 	elsif ( $token eq ',' ) {
 		my $e = $self->{'_jl_stack'}[-1];
-		if ( $e and $e->{'depth'} == $self->{'_jl_depth'} ) {
+		if ( $e and $e->{'depth'} == $self->{'_jl_depth'}
+			and $e->{'kind'} ne 'policy-query' ) {
 			$e->{'commas'}++;
 
 			# break after each value of a pair or after each argument
@@ -6830,6 +7024,32 @@ sub _json_layout {
 		$self->{'_jl_depth'} = 0;
 		$self->{'_jl_stack'} = [];
 		delete $self->{'_jl_pending_level'};
+	}
+
+	# Policy and CHECK predicates align their boolean continuations even
+	# after a preceding clause or nested function has changed the SQL level.
+	my $policy = $self->{'_jl_stack'}[-1];
+	if ($policy and $policy->{'kind'} =~ /^(policy|check)$/
+		and $policy->{'depth'} == $self->{'_jl_depth'}
+		and $token =~ /^(AND|OR)$/i
+		and !$self->{'_is_in_between'})
+	{
+		$self->_json_layout_break($policy->{'open'} + 1, $token, $last);
+	}
+
+	if ($policy and $policy->{'kind'} eq 'policy-query'
+		and $policy->{'depth'} == $self->{'_jl_depth'})
+	{
+		my $level;
+		$level = $policy->{'open'} + 1
+		  if $token =~ /^(SELECT|FROM|WHERE|HAVING|GROUP|ORDER|LIMIT|UNION)$/i;
+		$level = $policy->{'open'} + 2 if $token =~ /^(AND|OR)$/i;
+		if (defined $level) {
+			# These clause handlers step back before emitting the keyword.
+			my $before = $level + ($token =~ /^(FROM|WHERE|HAVING)$/i ? 1 : 0);
+			$self->_set_level($before, $token, $last);
+			$self->_json_layout_break($level, $token, $last);
+		}
 	}
 
 	# Remember where the processing of this token starts when it is at the
@@ -6903,7 +7123,8 @@ sub _json_layout_indent {
 Return 'object' when the parenthesis that is being processed opens the
 arguments of a json_build_object() or jsonb_build_object() call, 'wrap' when
 it opens the arguments of another function call having such a call in its
-arguments, 'in' when it opens the list of values of an IN clause and the
+arguments or multiline_functions selects a complex call, 'in' when it opens
+the list of values of an IN clause and the
 split_in_param option is enabled, and an empty string otherwise. Calls
 without argument are never laid out. A json_build_object() call is only
 searched through function call parentheses, never inside a subquery or an
@@ -6915,8 +7136,35 @@ sub _json_layout_kind {
 	my ( $self, $last ) = @_;
 
 	my $tokens = $self->{'_tokens'};
-	return '' if ( !defined $last or $last !~ /^[\w\.\$]+$/ );
 	return '' if ( !@{$tokens} or $tokens->[0] eq ')' );
+	if ($self->{'format_type'} and $self->{'_is_in_policy'}
+		and $tokens->[0] =~ /^(SELECT|WITH)$/i
+		and @{$self->{'_jl_stack'}})
+	{
+		return 'policy-query';
+	}
+	# ALTER TABLE CHECK expressions use the same balanced layout frames as
+	# policy predicates. Leave simple checks and function calls compact.
+	if ($self->{'format_type'} and $self->{'matching_paren_newline'}
+		and $self->{'_is_in_alter'}) {
+		my $parent = $self->{'_jl_stack'}[-1];
+		return 'check' if $parent and $parent->{'kind'} eq 'check'
+			and defined $last and $last =~ /^(AND|OR|NOT)$/i;
+		if (defined $last and uc($last) eq 'CHECK') {
+			my $depth = 0;
+			for my $token (@$tokens) {
+				last if $token eq ')' and !$depth;
+				$depth++ if $token eq '(';
+				$depth-- if $token eq ')';
+				return 'check' if $token =~ /^(AND|OR)$/i;
+			}
+		}
+	}
+	return '' if ( !defined $last or $last !~ /^[\w\.\$]+$/ );
+	if ($self->{'_policy_expression_pending'} and $last =~ /^(USING|CHECK)$/i) {
+		$self->{'_policy_expression_pending'} = 0;
+		return 'policy';
+	}
 	return 'object' if ( $last =~ /(?:^|\.)jsonb?_build_object$/i );
 
 	# List of values of an IN clause, not a subquery and not the partition
@@ -6932,12 +7180,21 @@ sub _json_layout_kind {
 	# Other function calls, only those detected by the main loop
 	return '' if ( !$self->{'_is_in_function'} or uc($last) eq 'IN' );
 
+	# Expand complex calls, while keeping simple calls like btrim(name)
+	# and gen_random_uuid() compact. The same layout stack used for JSON
+	# objects handles argument indentation and matching closing delimiters.
 	# Look for a json_build_object() call in the arguments
 	my @fct_paren = (1);
 	my $prev      = '(';
 	for ( my $i = 0 ; $i <= $#{$tokens} ; $i++ ) {
 		my $t = $tokens->[$i];
 		last if ( $t eq ';' );
+		if ( $self->{'multiline_functions'} and $self->{'format'} eq 'text'
+			and ( $t =~ /^->>?$/
+				or ($t eq '(' and $self->_is_function_call_name($prev)) ) )
+		{
+			return 'wrap';
+		}
 		if ( $t eq '(' ) {
 			push( @fct_paren,
 				( $fct_paren[-1] and $self->_is_function_call_name($prev) )
@@ -7230,6 +7487,12 @@ Currently defined defaults:
 
 =item redundant_parenthesis => 0
 
+=item multiline_json => 0
+
+=item max_line_length => 0
+
+=item multiline_functions => 0
+
 =item matching_paren_newline => 0
 
 =item split_in_param => 0
@@ -7287,6 +7550,9 @@ sub set_defaults {
 	$self->{'_stmt_started'}         = 0;
 	$self->{'redundant_parenthesis'} = 0;
 	$self->{'matching_paren_newline'} = 0;
+	$self->{'multiline_functions'}    = 0;
+	$self->{'max_line_length'}        = 0;
+	$self->{'multiline_json'}         = 0;
 	$self->{'split_in_param'}         = 0;
 	$self->{'backslash_escape'}       = 0;
 	$self->{'celko'}                  = 0;
@@ -8043,6 +8309,341 @@ sub _restore_comments {
 	{
 		delete $self->{'comments'}{$1};
 	}
+}
+
+sub _preserved_ranges {
+	my ($self, $sql) = @_;
+	my @ranges;
+	return \@ranges if !$self->{'placeholder'};
+	my $pattern = $self->{'placeholder'};
+	my $regex = $self->{'multiline'} ? qr/$pattern/s : qr/$pattern/;
+	while ($sql =~ /$regex/g) {
+		push @ranges, [$-[0], $+[0]] if $+[0] > $-[0];
+	}
+	return \@ranges;
+}
+
+=head2 _json_value_lines
+
+Validate and lay out JSON tokens without decoding or re-encoding scalar values.
+This preserves property order, duplicate keys, escapes and numeric spellings.
+
+=cut
+
+sub _json_value_lines {
+	my ($self, $tokens, $position, $depth) = @_;
+	die "Invalid or excessively nested JSON" if $depth > 256 || $$position >= @$tokens;
+	my $unit = $self->{'space'} x $self->{'spaces'};
+	my $pad = $unit x $depth;
+	my $token = $tokens->[$$position++];
+	if ($token eq '{' || $token eq '[') {
+		my $object = $token eq '{';
+		my $close = $object ? '}' : ']';
+		if (($tokens->[$$position] // '') eq $close) {
+			$$position++;
+			return [$pad . $token . $close];
+		}
+		my @lines = ($pad . $token);
+		while (1) {
+			my $key;
+			if ($object) {
+				$key = $tokens->[$$position++];
+				die "Invalid JSON object key" if !defined $key || $key !~ /^"/;
+				die "Missing JSON colon" if ($tokens->[$$position++] // '') ne ':';
+			}
+			my $value = $self->_json_value_lines($tokens, $position, $depth + 1);
+			if ($object) {
+				substr($value->[0], 0, length($unit) * ($depth + 1)) = $pad . $unit . $key . ': ';
+			}
+			my $next = $tokens->[$$position++];
+			die "Missing JSON delimiter" if !defined $next || ($next ne ',' && $next ne $close);
+			$value->[-1] .= ',' if $next eq ',';
+			push @lines, @$value;
+			last if $next eq $close;
+		}
+		push @lines, $pad . $close;
+		return \@lines;
+	}
+	die "Invalid JSON value" if $token !~ /^(?:"|true$|false$|null$|-?\d)/;
+	return [$pad . $token];
+}
+
+sub _json_layout_lines {
+	my ($self, $json) = @_;
+	my @tokens;
+	pos($json) = 0;
+	while (pos($json) < length($json)) {
+		next if $json =~ /\G[ \t\r\n]+/gc;
+		if ($json =~ /\G("(?:[^"\\\x00-\x1f]|\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4}))*"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?|true|false|null|[{}\[\],:])/gc) {
+			push @tokens, $1;
+		}
+		else { return; }
+	}
+	my $position = 0;
+	local $@;
+	my $lines = eval { $self->_json_value_lines(\@tokens, \$position, 0) };
+	return if !$lines || $position != @tokens;
+	return $lines;
+}
+
+=head2 _format_json_literals
+
+Only direct builtin ::json/::jsonb casts qualify. Ordinary SQL strings use
+standard-conforming quoting; escape/Unicode/adjacent strings are left alone.
+Existing dollar tags are retained. New tags avoid payload and enclosing tags.
+
+=cut
+
+sub _format_json_literals {
+	my ($self, $sql) = @_;
+	my @tokens = $self->_line_width_tokens($sql);
+	my $preserved = $self->_preserved_ranges($sql);
+	my @enclosing;
+	my @updates;
+	my $previous;
+	for my $t (@tokens) {
+		if ($t->[2] eq 'code' && $t->[3] =~ /^\$(?:[A-Za-z_]\w*)?\$$/) {
+			if (@enclosing && $enclosing[-1] eq $t->[3]) { pop @enclosing; }
+			else { push @enclosing, $t->[3]; }
+		}
+		if ($t->[2] eq 'literal' && (!$previous || $previous->[2] ne 'literal')
+			&& !grep { $_->[0] < $t->[1] && $_->[1] > $t->[0] } @$preserved) {
+			my ($json, $delimiter);
+			if ($t->[3] =~ /^'(.*)'$/s && !$self->{'backslash_escape'}
+				&& ($t->[0] == 0 || substr($sql, $t->[0] - 1, 1) !~ /[\w\$]/))
+			{
+				$json = $1;
+				$json =~ s/''/'/g;
+			}
+			elsif ($t->[3] =~ /^(\$(?:[A-Za-z_]\w*)?\$)(.*?)\1$/s) {
+				($delimiter, $json) = ($1, $2);
+			}
+			my $tail = substr($sql, $t->[1]);
+			if (defined $json && $tail =~ /^([ \t\r\n]*::[ \t\r\n]*(?:pg_catalog\.)?jsonb?)(?![\w\$]|[ \t\r\n]*\[)/i) {
+				my $cast = $1;
+				my $cast_length = length($cast);
+				my $line_start = rindex($sql, "\n", $t->[0] - 1) + 1;
+				my $before = substr($sql, $line_start, $t->[0] - $line_start);
+				my ($indent) = $before =~ /^([ \t]*)/;
+				my @lines = split /\n/, $t->[3];
+				my $overlong = grep { length($_) + length($indent) + length($cast) > $self->{'max_line_length'} } @lines;
+				my $pretty = $overlong ? $self->_json_layout_lines($json) : undef;
+				if ($pretty) {
+					if (!defined $delimiter) {
+						my $suffix = 0;
+						do {
+							$delimiter = '$json' . ($suffix ? "_$suffix" : '') . '$';
+							$suffix++;
+						} while index($json, $delimiter) >= 0 || grep { $_ eq $delimiter } @enclosing;
+					}
+					my $replacement = $delimiter . "\n"
+					  . join("\n", map { $indent . $_ } @$pretty) . "\n" . $indent . $delimiter;
+					# Only remove whitespace immediately before this cast. Its type
+					# spelling and any later casts stay unchanged.
+					$cast =~ s/^\s+//;
+					push @updates, [$t->[0], $t->[1] - $t->[0] + $cast_length, $replacement . $cast];
+				}
+				elsif (defined $delimiter && $t->[3] =~ /\n/
+					&& $cast =~ /^\s/ && $self->_json_layout_lines($json))
+				{
+					# A converted value can fit on every JSON line next time.
+					# Keep its cast adjacent even if the SQL layout added a space.
+					$cast =~ s/^\s+//;
+					push @updates, [$t->[1], $cast_length, $cast];
+				}
+			}
+		}
+		$previous = $t if $t->[2] ne 'space' && $t->[2] ne 'comment';
+	}
+	for my $update (reverse @updates) {
+		substr($sql, $update->[0], $update->[1]) = $update->[2];
+	}
+	return $sql;
+}
+
+=head2 _line_width_tokens
+
+Lossless spans for code wrapping. Literals and quoted identifiers stay opaque;
+SQL and PL/pgSQL dollar bodies are scanned recursively. No SQL is executed.
+
+=cut
+
+sub _line_width_tokens {
+	my ($self, $sql, $offset) = @_;
+	$offset //= 0;
+	my @tokens;
+	pos($sql) = 0;
+	while (pos($sql) < length($sql)) {
+		my $start = pos($sql);
+		my ($text, $kind);
+		if ($sql =~ /\G(\s+)/gc) { ($text, $kind) = ($1, 'space'); }
+		elsif ($sql =~ /\G([Ee]'(?:[^'\\]|\\.|'')*'|U&'(?:[^']|'')*'|'(?:[^']|'')*'|"(?:[^"]|"")*")/gcs) {
+			($text, $kind) = ($1, 'literal');
+		}
+		elsif ($sql =~ /\G(--[^\n]*)/gc) { ($text, $kind) = ($1, 'comment'); }
+		elsif ($sql =~ /\G\/\*/gc) {
+			my $depth = 1;
+			while ($depth and $sql =~ /\G.*?(\/\*|\*\/)/gcs) {
+				$depth += $1 eq '/*' ? 1 : -1;
+			}
+			pos($sql) = length($sql) if $depth;
+			($text, $kind) = (substr($sql, $start, pos($sql) - $start), 'comment');
+		}
+		elsif ($sql =~ /\G(\$(?:[A-Za-z_]\w*)?\$)/gc) {
+			my $delimiter = $1;
+			my $body_start = pos($sql);
+			my $end = index($sql, $delimiter, $body_start);
+			if ($end >= 0) {
+				my $body = substr($sql, $body_start, $end - $body_start);
+				my $prefix = substr($sql, 0, $start);
+				(my $head = $body) =~ s/\A(?:\s|--[^\n]*\n|\/\*.*?\*\/)*//s;
+				my $executable = $prefix =~ /\bDO\s+(?:LANGUAGE\s+\w+\s+)?$/i
+				  || ($prefix =~ /\bAS\s*$/i
+					&& ($head =~ /^(DECLARE|BEGIN|SELECT|WITH|INSERT|UPDATE|DELETE|MERGE|VALUES)\b/i
+						|| $prefix =~ /\bLANGUAGE\s+(?:sql|plpgsql)\b[^;]*\bAS\s*$/i));
+				if ($executable) {
+					push @tokens, [$offset + $start, $offset + $body_start, 'code', $delimiter];
+					push @tokens, $self->_line_width_tokens($body, $offset + $body_start);
+					push @tokens, [$offset + $end, $offset + $end + length($delimiter), 'code', $delimiter];
+					pos($sql) = $end + length($delimiter);
+					next;
+				}
+				pos($sql) = $end + length($delimiter);
+				($text, $kind) = (substr($sql, $start, pos($sql) - $start), 'literal');
+			}
+			else { ($text, $kind) = ($delimiter, 'code'); }
+		}
+		elsif ($sql =~ /\G([A-Za-z_][\w\$]*)/gc) { ($text, $kind) = ($1, 'word'); }
+		else { $sql =~ /\G(.)/gcs; ($text, $kind) = ($1, 'code'); }
+		push @tokens, [$offset + $start, $offset + pos($sql), $kind, $text];
+	}
+	return @tokens;
+}
+
+sub _wrap_sql_line {
+	my ($self, $line, $condition) = @_;
+	my $limit = $self->{'max_line_length'};
+	return $line if length($line) <= $limit;
+	my ($indent) = $line =~ /^([ \t]*)/;
+	my $unit = $self->{'space'} x $self->{'spaces'};
+	my @tokens = $self->_line_width_tokens($line);
+	# Move an overlong trailing comment onto its own comment lines.
+	my ($comment) = grep { $_->[2] eq 'comment' && $_->[3] =~ /^--/ } @tokens;
+	if ($comment && $comment->[0] > length($indent)) {
+		my $code = substr($line, 0, $comment->[0]);
+		$code =~ s/[ \t]+$//;
+		return $self->_wrap_sql_line($code, $condition) . "\n"
+		  . $self->_wrap_sql_code($indent . $comment->[3]);
+	}
+	# A long atomic literal may exceed the code width. Never split its contents.
+	my @literals = grep { $_->[2] eq 'literal' } @tokens;
+	my $literal_width = 0;
+	$literal_width += $_->[1] - $_->[0] for @literals;
+	return $line if grep({ $_->[1] - $_->[0] > $limit } @literals)
+	  && length($line) - $literal_width <= $limit;
+
+	# An overlong procedural condition is one predicate per continuation line.
+	if (!$condition && $line =~ /^\s*(IF|ELSIF|WHILE)\b/i) {
+		my @breaks;
+		my ($depth, $cases) = (0, 0);
+		for my $t (@tokens) {
+			next if $t->[2] eq 'literal' || $t->[2] eq 'comment';
+			$depth++ if $t->[3] eq '(';
+			$depth-- if $t->[3] eq ')';
+			$cases++ if uc($t->[3]) eq 'CASE';
+			$cases-- if $cases && uc($t->[3]) eq 'END';
+			push @breaks, [$t->[0], $t->[3] =~ /^(THEN|LOOP)$/i ? $indent : $indent . $unit]
+			  if !$depth && !$cases && $t->[2] eq 'word'
+				&& $t->[3] =~ /^(AND|OR|THEN|LOOP)$/i;
+		}
+		if (@breaks) {
+			my @parts;
+			my ($start, $prefix) = (0, '');
+			for my $b (@breaks, [length($line), '']) {
+				my $part = substr($line, $start, $b->[0] - $start);
+				$part =~ s/[ \t]+$//;
+				push @parts, $self->_wrap_sql_line($prefix . $part, 1) if length($part);
+				($start, $prefix) = @$b;
+			}
+			return join("\n", @parts);
+		}
+	}
+
+	# Only whitespace outside quoted tokens is a legal wrapping point.
+	my @gaps = grep { $_->[2] eq 'space' && $_->[0] >= length($indent) } @tokens;
+	# Compact SQL bodies may have no spaces between arguments. A comma
+	# is also a safe token boundary, even when the input has no whitespace.
+	push @gaps, map { [$_->[1], $_->[1]] }
+	  grep { $_->[2] eq 'code' && $_->[3] eq ',' } @tokens;
+	@gaps = sort { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] } @gaps;
+	my ($start, $prefix) = (length($indent), $indent);
+	my @lines;
+	while (length($prefix) + length($line) - $start > $limit) {
+		my @available = grep { $_->[0] > $start } @gaps;
+		last if !@available;
+		my @fitting = grep { length($prefix) + $_->[0] - $start <= $limit } @available;
+		my $gap = @fitting ? $fitting[-1] : $available[0];
+		push @lines, $prefix . substr($line, $start, $gap->[0] - $start);
+		$start = $gap->[1];
+		$prefix = $indent . $unit;
+	}
+	push @lines, $prefix . substr($line, $start);
+	return join("\n", @lines);
+}
+
+sub _wrap_sql_code {
+	my ($self, $sql) = @_;
+	return $sql if $self->{'max_line_length'} <= 0 || !$self->{'spaces'};
+	my @tokens = $self->_line_width_tokens($sql);
+	my @multiline_literals = grep { $_->[2] eq 'literal' && $_->[3] =~ /\n/ } @tokens;
+	push @multiline_literals, @{$self->_preserved_ranges($sql)};
+	my @block_comments = grep { $_->[2] eq 'comment' && $_->[3] =~ m{^/\*} } @tokens;
+	my $offset = 0;
+	my @result;
+	for my $line (split(/(?<=\n)/, $sql)) {
+		my $end = $offset + length($line);
+		my $newline = $line =~ s/(\r?\n)$// ? $1 : '';
+		if (grep { $_->[0] < $end && $_->[1] > $offset } @multiline_literals) {
+			push @result, $line . $newline;
+		}
+		elsif ($line =~ /^([ \t]*--[ \t]*)(.*)$/ && length($line) > $self->{'max_line_length'}) {
+			my ($prefix, $text) = ($1, $2);
+			my @lines;
+			my $current = $prefix;
+			for my $word (split /\s+/, $text) {
+				if (length($current) > length($prefix) && length($current) + 1 + length($word) > $self->{'max_line_length'}) {
+					push @lines, $current;
+					$current = $prefix;
+				}
+				$current .= ' ' if length($current) > length($prefix);
+				$current .= $word;
+			}
+			push @lines, $current;
+			push @result, join("\n", @lines) . $newline;
+		}
+		elsif (length($line) > $self->{'max_line_length'}
+			&& grep { $_->[0] <= $offset && $_->[1] >= $end - length($newline) } @block_comments)
+		{
+			# Inside a block comment, line breaks remain comment whitespace.
+			my ($indent) = $line =~ /^([ \t]*)/;
+			my @words = split /\s+/, substr($line, length($indent));
+			my @lines;
+			my $current = $indent;
+			for my $word (@words) {
+				if (length($current) > length($indent) && length($current) + 1 + length($word) > $self->{'max_line_length'}) {
+					push @lines, $current;
+					$current = $indent;
+				}
+				$current .= ' ' if length($current) > length($indent);
+				$current .= $word;
+			}
+			push @lines, $current;
+			push @result, join("\n", @lines) . $newline;
+		}
+		else { push @result, $self->_wrap_sql_line($line) . $newline; }
+		$offset = $end;
+	}
+	return join('', @result);
 }
 
 =head2 wrap_lines

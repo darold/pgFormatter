@@ -2,6 +2,21 @@
 
 pg_format - PostgreSQL SQL syntax beautifier
 
+=head1 FORK
+
+This is samshull/pgFormatter, based on darold/pgFormatter under the original
+PostgreSQL and embedded SQL::Beautify licenses. Version output identifies this
+fork as 5.11.1-samshull.1. Upstream remains darold/pgFormatter; keep fork changes
+separate when incorporating future upstream fixes.
+
+The optional C<profiles/readable.conf> profile enables extended SQL layout,
+token-aware line wrapping and explicitly cast JSON formatting.
+
+Build with C<perl Makefile.PL> and C<make>. For a portable local installation,
+install C<blib/script/pg_format> in your bin directory and copy
+C<blib/lib/pgFormatter> to C<bin/lib/pgFormatter> alongside it. The executable
+resolves modules relative to its real location, including symlink use.
+
 =head1 DESCRIPTION
 
 This SQL formatter/beautifier supports keywords from SQL-92, SQL-99,
@@ -93,6 +108,10 @@ Options:
                             parenthesis.
     --matching-paren-newline: if content starts on a new line after an opening
                             parenthesis, close on a new line at the same indent.
+    --multiline-json   : pretty-print overlong literals explicitly cast to json/jsonb.
+    --max-line-length N : wrap SQL code to N characters without changing literals.
+    --multiline-functions: expand calls containing nested calls or JSON extraction,
+                            keeping simple function calls compact.
     --split-in-param    : write each value of the list of an IN clause on its
                             own line, the closing parenthesis on a new line.
     --celko             : use the Joe Celko style for the DML statements: the
@@ -250,7 +269,11 @@ This option activate an alternative formatting that adds:
 
   * newline in procedure/function parameter list
   * new line in PUBLICATION and POLICY DDL
+  * align policy commands, USING and WITH CHECK, with indented predicates
   * keep enumeration in GROUP BY clause on a single line
+  * put ALTER TABLE foreign-key REFERENCES clauses on a separate line
+  * put parenthesized FOR queries below their header, ending with ) LOOP
+  * keep trigger FOR EACH clauses on the event line
 
 Expect this list grow following alternative thoughts.
 
@@ -341,6 +364,49 @@ For example, combined with C<--comma-break>:
     SELECT
         1,
         'example';
+
+=head2 Option --multiline-json
+
+With C<--max-line-length>, pretty-print JSON literals whose rendered lines
+exceed the configured width and which have a direct C<::json> or C<::jsonb>
+cast (including pg_catalog-qualified builtin types). Ordinary strings become
+C<$json$>-quoted multiline data; existing dollar tags are retained. Generated
+tags avoid the JSON payload and enclosing function-body delimiters.
+
+Property order, duplicate keys, numeric spelling, JSON escapes and string
+values are preserved. Invalid JSON, short values, uncast literals, other cast
+types, array casts, adjacent strings and E/U& escape strings are left alone.
+JSON string values are never split to enforce the line width. Disabled by
+default; text output only, with nonzero indentation and width.
+
+=head2 Option --max-line-length
+
+Wrap SQL code at token boundaries, counting indentation in the limit.
+Long IF, ELSIF and WHILE conditions put boolean predicates on aligned
+continuation lines and THEN or LOOP on its own line. Comments may reflow;
+other string literals, quoted identifiers, dollar-quoted data and indivisible
+tokens are never split or changed and may exceed the limit. Multiline
+literal contents are preserved; configured placeholders are never reflowed. Disabled by default; text output only.
+Use this instead of C<--wrap-limit> when preserving literal values is required.
+
+=head2 Option --multiline-functions
+
+Lay out function calls containing nested calls or JSON extraction operators
+(C<< -> >> and C<< ->> >>) with one argument per line and an aligned closing
+parenthesis. Simple calls, such as C<btrim(name)> and C<gen_random_uuid()>,
+remain compact. JSON object constructors retain one key/value pair per line.
+Disabled by default; applies to text output with nonzero indentation.
+
+    coalesce(
+        nullif(
+            btrim(
+                person.metadata ->> 'full_name'
+            ),
+            ''
+        ),
+        person.email,
+        'Personal account'
+    )
 
 =head2 Option --split-in-param
 

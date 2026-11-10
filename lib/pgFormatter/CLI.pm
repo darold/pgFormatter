@@ -15,12 +15,12 @@ pgFormatter::CLI - Implementation of command line program to format SQL queries.
 
 =head1 VERSION
 
-Version 5.11
+Version 5.11.1
 
 =cut
 
 # Version of pgFormatter
-our $VERSION = '5.11';
+our $VERSION = '5.11.1';
 
 use autodie;
 use pgFormatter::Beautify;
@@ -118,6 +118,9 @@ sub beautify {
 	$args{'multiline'}             = $self->{'cfg'}->{'multiline'};
 	$args{'separator'}             = $self->{'cfg'}->{'separator'};
 	$args{'comma'}                 = $self->{'cfg'}->{'comma'};
+	$args{'multiline_json'}         = $self->{'cfg'}->{'multiline-json'};
+	$args{'max_line_length'}        = $self->{'cfg'}->{'max-line-length'};
+	$args{'multiline_functions'}    = $self->{'cfg'}->{'multiline-functions'};
 	$args{'matching_paren_newline'} = $self->{'cfg'}->{'matching-paren-newline'};
 	$args{'split_in_param'}        = $self->{'cfg'}->{'split-in-param'};
 	$args{'celko'}                 = $self->{'cfg'}->{'celko'};
@@ -385,6 +388,10 @@ Options:
                             and the body of a CASE ... THEN on the same line as THEN.
     --matching-paren-newline: if content starts on a new line after an opening
                             parenthesis, close on a new line at the same indent.
+    --multiline-json   : pretty-print overlong literals explicitly cast to json/jsonb.
+    --max-line-length N : wrap SQL code to N characters without changing literals.
+    --multiline-functions: expand calls containing nested calls or JSON extraction,
+                            keeping simple function calls compact.
     --split-in-param    : write each value of the list of an IN clause on its
                             own line, the closing parenthesis on a new line.
     --celko             : use the Joe Celko style for the DML statements: the
@@ -542,7 +549,7 @@ sub get_command_line_args {
 	my %cfg;
 	my @options = (
 		'anonymize|a!',    'comma-start|b!',
-		'matching-paren-newline!', 'comma-break|B!',  'config|c=s',
+		'multiline-json!', 'max-line-length=i', 'multiline-functions!', 'matching-paren-newline!', 'comma-break|B!',  'config|c=s',
 		'split-in-param!',
 		'celko!',
 		'backslash-escape!',
@@ -571,7 +578,7 @@ sub get_command_line_args {
 	$self->show_help_and_die(0) if $cfg{'help'};
 
 	if ( $cfg{'version'} ) {
-		printf '%s version %s%s', basename($0), $VERSION, "\n";
+		printf '%s version %s%s', basename($0), $VERSION . '-samshull.2', "\n";
 		exit 0;
 	}
 
@@ -623,6 +630,9 @@ sub get_command_line_args {
 	$cfg{'ident-case'}    //= 0;
 	$cfg{'comma'}         //= 'end';
 	$cfg{'format'}        //= 'text';
+	$cfg{'multiline-json'}         //= 0;
+	$cfg{'max-line-length'}        //= 0;
+	$cfg{'multiline-functions'}    //= 0;
 	$cfg{'matching-paren-newline'} //= 0;
 	$cfg{'split-in-param'}        //= 0;
 	$cfg{'celko'}                 //= 0;

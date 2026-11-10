@@ -1,6 +1,61 @@
 NAME
     pg_format - PostgreSQL SQL syntax beautifier
 
+FORK
+    This is samshull/pgFormatter, based on darold/pgFormatter under the original
+    PostgreSQL and embedded SQL::Beautify licenses. Version output identifies
+    this fork as 5.11.1-samshull.2. Upstream remains darold/pgFormatter; keep
+    fork changes separate when incorporating future upstream fixes.
+
+    The optional profiles/readable.conf profile enables the extended SQL layout,
+    token-aware line wrapping and explicitly cast JSON formatting.
+
+    Build with `perl Makefile.PL` and `make`. For a portable local installation,
+    install blib/script/pg_format in your bin directory and copy
+    blib/lib/pgFormatter to bin/lib/pgFormatter alongside it. The executable
+    resolves its modules relative to its real location, including symlink use.
+
+PORTABLE RELEASES
+    Releases provide pgFormatter-VERSION.tar.gz and SHA256SUMS. The prepared
+    archive contains bin/pg_format, bin/lib/pgFormatter, profiles/readable.conf,
+    the original LICENSE and README, and release.json with version and source
+    commit. CLI use requires Perl 5.22 or newer and its core modules. CGI use
+    still requires the upstream CGI and JSON dependencies.
+
+    Download an explicit release version from samshull/pgFormatter. Verify the
+    archive against a trusted SHA-256 pinned by the consuming application; the
+    accompanying SHA256SUMS is also provided for manual integrity checks.
+    Extract it and copy the portable bin contents into your chosen bin directory:
+
+        tar -xzf pgFormatter-VERSION.tar.gz
+        mkdir -p "$HOME/.local/bin"
+        cp -R pgFormatter-VERSION/bin/. "$HOME/.local/bin/"
+        "$HOME/.local/bin/pg_format" --version
+
+    This keeps pg_format and lib/pgFormatter together. Put that bin directory
+    on PATH. No Git checkout, Make, or compilation is needed to install it.
+    The readable profile is opt-in: pass --config with the extracted profile.
+
+    Build a package from a fork checkout:
+
+        perl scripts/build-release.pl
+
+    Linux GitHub runners test both the source and the extracted archive on every
+    push and pull request. Packaged tests run away from the source checkout and
+    use only the archive's runtime modules and profile. macOS testing is optional
+    client testing; from a checkout, run the same command against a downloaded
+    release archive (with SHA256SUMS in the same directory):
+
+        perl scripts/test-release.pl path/to/pgFormatter-VERSION.tar.gz
+
+    To publish, enable immutable releases in GitHub's repository release settings
+    and push a tag named vVERSION matching pg_format --version. The workflow
+    rejects mismatched tags or dirty source, tests the prepared package on Linux,
+    and publishes that exact archive and checksum only after the tests pass.
+    Branch pushes and pull requests produce CI artifacts without publishing.
+    A release tag should point to the reviewed release commit; never move a tag
+    or replace a published asset. Consumers should pin the release and checksum.
+
 DESCRIPTION
     This SQL formatter/beautifier supports keywords from SQL-92, SQL-99,
     SQL-2003, SQL-2008, SQL-2011 and PostgreSQL specifics keywords. Works
@@ -91,6 +146,10 @@ DESCRIPTION
                                 parenthesis.
         --matching-paren-newline: if content starts on a new line after an opening
                                 parenthesis, close on a new line at the same indent.
+        --multiline-json   : pretty-print overlong literals explicitly cast to json/jsonb.
+        --max-line-length N : wrap SQL code to N characters without changing literals.
+        --multiline-functions: expand calls containing nested calls or JSON extraction,
+                                keeping simple function calls compact.
         --split-in-param    :   write each value of the list of an IN clause on its
                                 own line, the closing parenthesis on a new line.
         --celko             :   use the Joe Celko style for the DML statements: the
@@ -245,7 +304,11 @@ SPECIAL FORMATTING
 
       * newline in procedure/function parameter list
       * new line in PUBLICATION and POLICY DDL
+      * align policy commands, USING and WITH CHECK, with indented predicates
       * keep enumeration in GROUP BY clause on a single line
+      * put ALTER TABLE foreign-key REFERENCES clauses on a separate line
+      * put parenthesized FOR queries below their header, ending with ) LOOP
+      * keep trigger FOR EACH clauses on the event line
 
     Expect this list grow following alternative thoughts.
 
@@ -329,6 +392,46 @@ SPECIAL FORMATTING
         SELECT
             1,
             'example';
+
+  Option --multiline-json
+    With --max-line-length, pretty-print JSON literals whose rendered lines
+    exceed the configured width and which have a direct ::json or ::jsonb cast
+    (including pg_catalog-qualified builtin types). Ordinary strings become
+    $json$-quoted multiline data; existing dollar tags are retained. Generated
+    tags avoid the JSON payload and enclosing function-body delimiters.
+
+    Property order, duplicate keys, numeric spelling, JSON escapes and string
+    values are preserved. Invalid JSON, short values, uncast literals, other
+    cast types, array casts, adjacent strings and E/U& escape strings are left
+    alone. JSON string values are never split to enforce the line width.
+    Disabled by default; text output only, with nonzero indentation and width.
+
+  Option --max-line-length
+    Wrap SQL code at token boundaries, counting indentation in the limit.
+    Long IF, ELSIF and WHILE conditions put boolean predicates on aligned
+    continuation lines and THEN or LOOP on its own line. Comments may reflow;
+    other string literals, quoted identifiers, dollar-quoted data and indivisible
+    tokens are never split or changed and may exceed the limit. Multiline
+    literal contents are preserved; configured placeholders are never reflowed. Disabled by default; text output only.
+    Use this instead of --wrap-limit when preserving literal values is required.
+
+  Option --multiline-functions
+    Lay out function calls containing nested calls or JSON extraction operators
+    (-> and ->>) with one argument per line and an aligned closing parenthesis.
+    Simple calls, such as btrim(name) and gen_random_uuid(), remain compact.
+    JSON object constructors retain one key/value pair per line. Disabled by
+    default; applies to text output with nonzero indentation.
+
+        coalesce(
+            nullif(
+                btrim(
+                    person.metadata ->> 'full_name'
+                ),
+                ''
+            ),
+            person.email,
+            'Personal account'
+        )
 
   Option --split-in-param
     Write each value of the list of an IN clause on its own line, one level
