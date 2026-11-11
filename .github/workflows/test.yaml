@@ -1,0 +1,45 @@
+name: Test
+
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      alpha-version:
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package and test on Linux
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Stamp the package version
+        if: inputs.alpha-version != ''
+        env:
+          PACKAGE_VERSION: ${{ inputs.alpha-version }}
+        run: |
+          ALPHA_SUFFIX="-${PACKAGE_VERSION#*-}" perl -pi -e 's/-samshull\.\d+(?=\x27)/$ENV{ALPHA_SUFFIX}/' lib/pgFormatter/CLI.pm
+          test "$(./pg_format --version)" = "pg_format version $PACKAGE_VERSION"
+      - name: Test source and packaging
+        run: prove -lr t
+      - name: Build portable archive
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            perl scripts/build-release.pl dist "$GITHUB_REF_NAME"
+          else
+            perl scripts/build-release.pl dist
+          fi
+      - name: Test the extracted package without source modules
+        run: perl scripts/test-release.pl dist/pgFormatter-*.tar.gz
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pgformatter-portable
+          path: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+          if-no-files-found: error

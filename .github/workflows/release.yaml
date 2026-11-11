@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*-samshull.*']
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Choose release version
+    runs-on: ubuntu-24.04
+    outputs:
+      alpha-version: ${{ steps.alpha.outputs.version }}
+    steps:
+      - id: alpha
+        if: github.ref == 'refs/heads/master'
+        run: |
+          # Continue after v5.11.1-samshull.2.
+          echo "version=5.11.1-samshull.$((2 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
+
+  package:
+    needs: version
+    uses: ./.github/workflows/test.yaml
+    with:
+      alpha-version: ${{ needs.version.outputs.alpha-version || '' }}
+
+  publish:
+    name: Publish tested release assets
+    needs: [version, package]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: pgformatter-release-${{ needs.version.outputs.alpha-version || github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pgformatter-portable
+          path: dist
+      - name: Publish the exact archive tested on Linux
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ALPHA_VERSION: ${{ needs.version.outputs.alpha-version }}
+        run: |
+          cd dist
+          sha256sum --check SHA256SUMS
+          if [[ -n "$ALPHA_VERSION" ]]; then
+            tag="v$ALPHA_VERSION"
+            release_options=(--target "$GITHUB_SHA" --prerelease)
+          else
+            tag="$GITHUB_REF_NAME"
+            release_options=(--verify-tag)
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release view "$tag" --json assets,isDraft,isPrerelease |
+              jq -e --arg archive "pgFormatter-${tag#v}.tar.gz" --arg alpha "$ALPHA_VERSION" '
+                (.isDraft | not) and ($alpha == "" or .isPrerelease) and
+                ([.assets[].name] | index($archive) != null and index("SHA256SUMS") != null)
+              ' >/dev/null
+            echo "Release $tag already has both assets."
+            exit 0
+          fi
+          gh release create "$tag" ./*.tar.gz SHA256SUMS \
+            "${release_options[@]}" --title "$tag" \
+            --notes 'Portable pgFormatter CLI package. Requires Perl 5.22 or newer. SHA256SUMS verifies the archive; release.json records the formatter version and source commit. This exact archive passed the Linux packaged regression suite.'
