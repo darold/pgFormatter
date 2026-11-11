@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches: [master]
-    tags: ['v*-samshull.*']
+    tags: ['v*']
 
 permissions:
   contents: read
@@ -18,8 +18,8 @@ jobs:
       - id: alpha
         if: github.ref == 'refs/heads/master'
         run: |
-          # Continue after v5.11.1-samshull.2.
-          echo "version=5.11.1-samshull.$((2 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
+          # Continue after v5.12.0-1
+          echo "version=v5.12.0-$((GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
 
   package:
     needs: version
