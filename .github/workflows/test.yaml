@@ -23,7 +23,7 @@ jobs:
         env:
           PACKAGE_VERSION: ${{ inputs.alpha-version }}
         run: |
-          ALPHA_SUFFIX="-${PACKAGE_VERSION#*-}" perl -pi -e 's/-samshull\.\d+(?=\x27)/$ENV{ALPHA_SUFFIX}/' lib/pgFormatter/CLI.pm
+          ALPHA_SUFFIX="-${PACKAGE_VERSION#*-}" perl -pi -e 's/-\d+(?=\x27)/$ENV{ALPHA_SUFFIX}/' lib/pgFormatter/CLI.pm
           test "$(./pg_format --version)" = "pg_format version $PACKAGE_VERSION"
       - name: Test source and packaging
         run: prove -lr t
