@@ -87,5 +87,6 @@ FROM (
     UNION ALL (
         SELECT
             4
-    )) s2;
+    )
+    ) s2;
 
