@@ -386,8 +386,8 @@ Options:
     --compact-clause-body : keep the first element of a FROM, WHERE, SET, RETURNING,
                             HAVING or VALUES clause on the same line as the keyword,
                             and the body of a CASE ... THEN on the same line as THEN.
-    --matching-paren-newline: if content starts on a new line after an opening
-                            parenthesis, close on a new line at the same indent.
+    --matching-paren-newline: when parentheses span multiple lines, align the
+                            closing parenthesis with the opening line.
     --multiline-json   : pretty-print overlong literals explicitly cast to json/jsonb.
     --max-line-length N : wrap SQL code to N characters without changing literals.
     --multiline-functions: expand calls containing nested calls or JSON extraction,

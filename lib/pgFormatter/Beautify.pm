@@ -5955,12 +5955,21 @@ sub _add_token {
 	# Quoted strings, comments and dynamic SQL do not enter this stack.
 	if ( $self->{matching_paren_newline} && $self->{format} eq 'text' ) {
 		if ( $token eq '(' ) {
+			my $keyword = defined($last_token) ? uc($last_token) : '';
+			if ( $keyword =~ /^(?:AND|OR|IN|EXISTS)$/ && $self->{content} !~ /\s\z/ ) {
+				$self->{content} .= ' ';
+			}
 			my ($indent) = $self->{content} =~ /(?:^|\n)([ \t]*)[^\n]*\z/;
-			push @{ $self->{_matching_parens} }, [length($self->{content}) + 1, $indent];
+			push @{ $self->{_matching_parens} },
+			  [length($self->{content}) + 1, $indent, $keyword =~ /^(?:AND|OR)$/ ? 1 : 0];
 		}
 		elsif ( $token eq ')' && @{ $self->{_matching_parens} } ) {
-			my ($start, $indent) = @{ pop @{ $self->{_matching_parens} } };
-			if ( substr($self->{content}, $start) =~ /^[ \t]*\r?\n/ ) {
+			my ($start, $indent, $boolean_group) = @{ pop @{ $self->{_matching_parens} } };
+			if ( index($self->{content}, "\n", $start) >= 0 ) {
+				if ( $boolean_group && substr($self->{content}, $start) =~ /^([ \t]*)[^\s]/ ) {
+					substr($self->{content}, $start, length($1),
+						"\n" . $indent . ($self->{space} x $self->{spaces}));
+				}
 				$self->{content} =~ s/\s+\z//;
 				$self->{content} .= "\n" . $indent;
 			}

@@ -10,7 +10,7 @@ BEGIN
     RETURN;
   END IF;
   IF length(message) > 5
-    AND(ready OR permitted)
+    AND (ready OR permitted)
     AND owner_id IS NOT DISTINCT FROM requested_owner
     AND enabled
   THEN

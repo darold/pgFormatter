@@ -144,8 +144,8 @@ DESCRIPTION
                                 keywords defined internaly in pgFormatter.
         --no-space-function :   remove space between function call and the open
                                 parenthesis.
-        --matching-paren-newline: if content starts on a new line after an opening
-                                parenthesis, close on a new line at the same indent.
+        --matching-paren-newline: when parentheses span multiple lines, align the
+                                closing parenthesis with the opening line.
         --multiline-json   : pretty-print overlong literals explicitly cast to json/jsonb.
         --max-line-length N : wrap SQL code to N characters without changing literals.
         --multiline-functions: expand calls containing nested calls or JSON extraction,
@@ -378,10 +378,10 @@ SPECIAL FORMATTING
     redundant parenthesis untouched.
 
   Option --matching-paren-newline
-    When formatted content starts on a new line after an opening
-    parenthesis, put the matching closing parenthesis on its own line,
-    aligned with the opening line. Disabled by default; applies to text
-    output.
+    When parentheses span multiple lines, put the closing parenthesis on its own line,
+    aligned with the opening line. Multiline AND and OR groups also start
+    their first expression on an indented line. Disabled by default; applies
+    to text output.
 
     For example, combined with "--comma-break":
 
