@@ -92,3 +92,8 @@ WITH (
 )
 TABLESPACE pg_default;
 
+INSERT INTO email_template (name, body)
+    VALUES ('welcome', 'Hello,
+----
+The Team');
+
