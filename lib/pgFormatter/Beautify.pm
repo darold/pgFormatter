@@ -5002,7 +5002,7 @@ sub beautify {
 			}
 
 			# special case with comment
-			if ( $token =~ /(?:\s*--)[\ \t\S]*/s ) {
+			if ( $token =~ /^\s*--/ ) {
 				if ( !$self->{'no_comments'} ) {
 					$token =~ s/^(\s*)(--.*)/$2/s;
 					my $start = $1 || '';
